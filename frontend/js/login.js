@@ -35,7 +35,11 @@ async function handleLogin(event) {
     window.location.href = "admin_dashboard.html";
 
   } catch (err) {
-    errorEl.textContent = err.message;
+    if (err.name === "TypeError" && err.message.includes("fetch")) {
+      errorEl.innerHTML = "Cannot connect to the backend server.<br><small>Make sure the backend is running at <code>localhost:5050</code> — run <code>npm start</code> in the backend folder.</small>";
+    } else {
+      errorEl.textContent = err.message;
+    }
     errorEl.style.display = "block";
     btn.textContent = "Sign In";
     btn.disabled = false;

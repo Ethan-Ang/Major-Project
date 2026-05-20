@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enquiry Basket | Yee Lim Adhesives Industries</title>
+  <link rel="stylesheet" href="css/products.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="home.html" class="nav-logo">YEE LIM</a>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li><a href="products.html">Products</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="enquiry.html" class="nav-basket" style="background:#333">
+      Enquiry Basket <span class="basket-count" id="basketCount">0</span>
+    </a>
+    <button class="nav-hamburger" onclick="document.getElementById('mobileNav').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  </div>
+</nav>
+
+<div class="nav-mobile" id="mobileNav">
+  <a href="home.html">Home</a>
+  <a href="products.html">Products</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="enquiry.html">Enquiry Basket</a>
+</div>
+
+<!-- Main content -->
+<div class="page-content" id="mainContent">
+  <h1>Enquiry Basket</h1>
+  <p class="sub">Review your selected products and submit an enquiry to our sales team.</p>
+
+  <!-- Basket list -->
+  <div class="basket-list" id="basketList"></div>
+  <a href="products.html" style="display:inline-block;margin-bottom:1.5rem;font-size:0.875rem;color:var(--red);text-decoration:none">
+    &#8592; Continue browsing products
+  </a>
+
+  <!-- Enquiry form (shown only if basket has items) -->
+  <div class="enquiry-form" id="enquiryFormSection" style="display:none">
+    <h2>Submit Your Enquiry</h2>
+
+    <div id="selectedProductsDisplay" style="background:var(--bg);padding:0.75rem 1rem;border-radius:var(--radius);font-size:0.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;"></div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="eName">Full Name *</label>
+        <input type="text" id="eName" required placeholder="John Tan">
+      </div>
+      <div class="form-group">
+        <label for="eCompany">Company Name *</label>
+        <input type="text" id="eCompany" required placeholder="ABC Pte Ltd">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="eEmail">Email Address *</label>
+        <input type="email" id="eEmail" required placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label for="ePhone">Phone Number</label>
+        <input type="tel" id="ePhone" placeholder="+65 9123 4567">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="eMessage">Message / Requirements</label>
+      <textarea id="eMessage" placeholder="Tell us about your project, quantity needed, or any specific requirements…"></textarea>
+    </div>
+    <div class="form-submit">
+      <button class="btn btn-primary" style="padding:0.75rem 2rem;font-size:1rem" onclick="submitEnquiry()">
+        Submit Enquiry
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation screen (hidden until submit) -->
+<div class="page-content confirmation" id="confirmation">
+  <h2>&#10003; Enquiry Submitted</h2>
+  <p>Thank you for your enquiry. Our team will get back to you within 1–2 business days.</p>
+  <a href="products.html" class="btn btn-primary" style="margin-top:1.5rem;padding:0.75rem 1.5rem;display:inline-block">
+    Browse More Products
+  </a>
+</div>
+
+<footer class="footer">
+  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", renderBasket);
+
+function getBasket() {
+  return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
+}
+
+function saveBasket(basket) {
+  localStorage.setItem("enquiryBasket", JSON.stringify(basket));
+  document.getElementById("basketCount").textContent = basket.length;
+}
+
+function renderBasket() {
+  const ids = getBasket();
+  document.getElementById("basketCount").textContent = ids.length;
+
+  const products = ids.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+  const list = document.getElementById("basketList");
+  const formSection = document.getElementById("enquiryFormSection");
+  const selectedDisplay = document.getElementById("selectedProductsDisplay");
+
+  if (products.length === 0) {
+    list.innerHTML = `
+      <div class="basket-empty">
+        <p style="margin-bottom:1rem">Your enquiry basket is empty.</p>
+        <a href="products.html" class="btn btn-primary" style="padding:0.6rem 1.25rem">Browse Products</a>
+      </div>`;
+    formSection.style.display = "none";
+    return;
+  }
+
+  list.innerHTML = products.map(p => `
+    <div class="basket-item">
+      <div class="basket-item-info">
+        <h4>${p.name}</h4>
+        <p>${p.brand} &middot; ${p.shortDescription.substring(0, 72)}…</p>
+      </div>
+      <button class="basket-remove" onclick="removeFromBasket(${p.id})" title="Remove">&#10005;</button>
+    </div>
+  `).join("");
+
+  formSection.style.display = "block";
+  selectedDisplay.innerHTML = `<strong>Enquiring about:</strong> ${products.map(p => p.name).join(", ")}`;
+}
+
+function removeFromBasket(id) {
+  const basket = getBasket().filter(i => i !== id);
+  saveBasket(basket);
+  renderBasket();
+}
+
+function submitEnquiry() {
+  const name = document.getElementById("eName").value.trim();
+  const company = document.getElementById("eCompany").value.trim();
+  const email = document.getElementById("eEmail").value.trim();
+
+  if (!name || !company || !email) {
+    alert("Please fill in your name, company name, and email address.");
+    return;
+  }
+
+  localStorage.removeItem("enquiryBasket");
+
+  document.getElementById("mainContent").style.display = "none";
+  document.getElementById("confirmation").style.display = "block";
+  document.getElementById("basketCount").textContent = "0";
+}
+</script>
+</body>
+</html>

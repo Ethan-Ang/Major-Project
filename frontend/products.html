@@ -18,10 +18,22 @@
     <li><a href="about.html">About</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
-  <a href="enquiry.html" class="nav-basket">
-    Enquiry Basket <span class="basket-count" id="basketCount">0</span>
-  </a>
+  <div class="nav-right">
+    <a href="enquiry.html" class="nav-basket">
+      Enquiry Basket <span class="basket-count" id="basketCount">0</span>
+    </a>
+    <button class="nav-hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
+  </div>
 </nav>
+
+<!-- Mobile nav drawer -->
+<div class="nav-mobile" id="mobileNav">
+  <a href="home.html">Home</a>
+  <a href="products.html">Products</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="enquiry.html">Enquiry Basket</a>
+</div>
 
 <!-- Hero / Search -->
 <section class="page-hero">
@@ -33,12 +45,15 @@
   </div>
 </section>
 
+<!-- Active filter chips -->
+<div class="active-filter-chips" id="activeChips"></div>
+
 <!-- Catalogue Layout -->
 <div class="catalogue-layout">
 
   <!-- Mobile filter toggle -->
   <button class="filter-toggle" id="filterToggle" onclick="toggleFilterSidebar()">
-    ☰ Filters
+    &#9776; Filters
   </button>
 
   <!-- Filter Sidebar -->
@@ -67,6 +82,12 @@
   <section class="product-grid-section">
     <div class="grid-meta">
       <span id="resultCount">Loading products…</span>
+      <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+        <option value="default">Default order</option>
+        <option value="az">Name A–Z</option>
+        <option value="za">Name Z–A</option>
+        <option value="brand">Sort by Brand</option>
+      </select>
     </div>
     <div class="product-grid" id="productGrid"></div>
   </section>

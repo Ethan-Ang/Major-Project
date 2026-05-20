@@ -88,6 +88,7 @@ function openEditModal(id) {
   document.getElementById("fieldImageUrl").value = p.imageUrl || "";
   document.getElementById("fieldStatus").value = p.status || "Available";
   document.getElementById("modalError").style.display = "none";
+  updateImagePreview();
   document.getElementById("productModal").classList.add("open");
 }
 
@@ -102,6 +103,17 @@ function clearForm() {
   document.getElementById("fieldCategory").value = "Industrial";
   document.getElementById("fieldStatus").value = "Available";
   document.getElementById("modalError").style.display = "none";
+  updateImagePreview();
+}
+
+function updateImagePreview() {
+  const url = document.getElementById("fieldImageUrl").value.trim();
+  const box = document.getElementById("imagePreview");
+  if (!url) {
+    box.textContent = "No image URL entered";
+    return;
+  }
+  box.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.textContent='Image not found'">`;
 }
 
 async function saveProduct() {

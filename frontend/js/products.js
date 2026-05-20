@@ -26,9 +26,10 @@ function buildCheckboxGroup(containerId, items, type) {
   `).join("");
 }
 
-// ─── Apply search + filters ───────────────────────────────────────
+// ─── Apply search + filters + sort ───────────────────────────────
 function applyFilters() {
   const query = document.getElementById("searchInput").value.toLowerCase().trim();
+  const sortVal = document.getElementById("sortSelect").value;
 
   activeFilters = { brands: [], industries: [], surfaces: [] };
   document.querySelectorAll(".filter-sidebar input[type=checkbox]:checked").forEach(cb => {
@@ -38,7 +39,7 @@ function applyFilters() {
     if (type === "surface") activeFilters.surfaces.push(cb.value);
   });
 
-  const results = PRODUCTS.filter(p => {
+  let results = PRODUCTS.filter(p => {
     const matchesQuery = !query ||
       p.name.toLowerCase().includes(query) ||
       p.brand.toLowerCase().includes(query) ||
@@ -58,14 +59,62 @@ function applyFilters() {
     return matchesQuery && matchesBrand && matchesIndustry && matchesSurface;
   });
 
+  if (sortVal === "az") results.sort((a, b) => a.name.localeCompare(b.name));
+  else if (sortVal === "za") results.sort((a, b) => b.name.localeCompare(a.name));
+  else if (sortVal === "brand") results.sort((a, b) => a.brand.localeCompare(b.brand));
+
+  renderFilterChips();
   renderGrid(results);
 }
 
 function clearFilters() {
   document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => cb.checked = false);
   document.getElementById("searchInput").value = "";
+  document.getElementById("sortSelect").value = "default";
   activeFilters = { brands: [], industries: [], surfaces: [] };
+  renderFilterChips();
   renderGrid(PRODUCTS);
+}
+
+// ─── Active filter chips ──────────────────────────────────────────
+function renderFilterChips() {
+  const container = document.getElementById("activeChips");
+  const chips = [];
+
+  const query = document.getElementById("searchInput").value.trim();
+  if (query) {
+    chips.push(`<button class="filter-chip" onclick="clearSearch()">Search: "${query}" &times;</button>`);
+  }
+
+  activeFilters.brands.forEach(b => {
+    chips.push(`<button class="filter-chip" onclick="removeFilter('brand','${b.replace(/'/g,"\\'")}')">Brand: ${b} &times;</button>`);
+  });
+  activeFilters.industries.forEach(i => {
+    chips.push(`<button class="filter-chip" onclick="removeFilter('industry','${i.replace(/'/g,"\\'")}')">Industry: ${i} &times;</button>`);
+  });
+  activeFilters.surfaces.forEach(s => {
+    chips.push(`<button class="filter-chip" onclick="removeFilter('surface','${s.replace(/'/g,"\\'")}')">Surface: ${s} &times;</button>`);
+  });
+
+  if (chips.length > 1) {
+    chips.push(`<button class="filter-chip filter-chip-clear" onclick="clearFilters()">Clear all &times;</button>`);
+  }
+
+  container.innerHTML = chips.join("");
+  container.style.marginBottom = chips.length ? "1rem" : "0";
+}
+
+function clearSearch() {
+  document.getElementById("searchInput").value = "";
+  applyFilters();
+}
+
+function removeFilter(type, value) {
+  const cb = document.querySelector(
+    `.filter-sidebar input[data-type="${type}"][value="${value}"]`
+  );
+  if (cb) { cb.checked = false; }
+  applyFilters();
 }
 
 // ─── Render product grid ──────────────────────────────────────────
@@ -92,11 +141,17 @@ function productCardHTML(p) {
   const inBasket = basket.includes(p.id);
   const industryTags = p.industries.slice(0, 2).map(i => `<span class="product-tag">${i}</span>`).join("");
 
+  const brandSlug = p.brand.replace(/[^a-z]/gi, "").toLowerCase();
+  const imageHtml = `
+    <img
+      src="${p.imageUrl}"
+      alt="${p.name}"
+      onerror="this.parentElement.classList.add('no-image');this.remove();this.parentElement.innerHTML+='<div class=no-image-icon>&#128247;</div><div class=no-image-label>${brandSlug}</div>'"
+    >`;
+
   return `
     <div class="product-card">
-      <div class="product-card-image">
-        <img src="${p.imageUrl}" alt="${p.name}" onerror="this.parentElement.innerHTML='<span>No image</span>'">
-      </div>
+      <div class="product-card-image">${imageHtml}</div>
       <div class="product-card-body">
         <span class="brand-badge">${p.brand}</span>
         <h3>${p.name}</h3>
@@ -106,17 +161,20 @@ function productCardHTML(p) {
           <a href="product-detail.html?id=${p.id}" class="btn btn-outline">View Details</a>
           <button
             class="btn btn-primary ${inBasket ? "btn-added" : ""}"
-            id="addBtn${p.id}"
             onclick="toggleBasket(${p.id})"
-          >${inBasket ? "✓ Added" : "Add to Enquiry"}</button>
+          >${inBasket ? "&#10003; Added" : "Add to Enquiry"}</button>
         </div>
       </div>
     </div>`;
 }
 
-// ─── Filter sidebar mobile toggle ────────────────────────────────
+// ─── Filter sidebar + mobile nav toggles ─────────────────────────
 function toggleFilterSidebar() {
   document.getElementById("filterSidebar").classList.toggle("open");
+}
+
+function toggleMobileNav() {
+  document.getElementById("mobileNav").classList.toggle("open");
 }
 
 // ─── Enquiry basket (localStorage) ───────────────────────────────
