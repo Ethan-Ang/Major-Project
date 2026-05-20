@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail | Yee Lim Adhesives Industries</title>
+  <link rel="stylesheet" href="css/products.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="home.html" class="nav-logo">YEE LIM</a>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li><a href="products.html">Products</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="enquiry.html" class="nav-basket">
+    Enquiry Basket <span class="basket-count" id="basketCount">0</span>
+  </a>
+</nav>
+
+<div class="breadcrumb">
+  <a href="home.html">Home</a>
+  <span>›</span>
+  <a href="products.html">Products</a>
+  <span>›</span>
+  <span id="breadcrumbProduct">Loading…</span>
+</div>
+
+<!-- Product Hero -->
+<div class="detail-layout" id="detailLayout">
+  <div class="detail-image" id="detailImage">Loading…</div>
+  <div class="detail-info" id="detailInfo">Loading…</div>
+</div>
+
+<!-- Full Description + Usage -->
+<div class="detail-full-desc" id="detailFullDesc"></div>
+
+<!-- Related Products -->
+<div class="related-section" id="relatedSection" style="display:none">
+  <h3>Related Products</h3>
+  <div class="related-grid" id="relatedGrid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer class="footer">
+  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/product-detail.js"></script>
+</body>
+</html>

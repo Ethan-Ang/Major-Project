@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products | Yee Lim Adhesives Industries</title>
+  <meta name="description" content="Browse Yee Lim's full range of industrial and commercial adhesives — Deer™, Horsemen™, Premier™, and Rhino™ brands. Filter by industry and surface.">
+  <link rel="stylesheet" href="css/products.css">
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="home.html" class="nav-logo">YEE LIM</a>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li><a href="products.html" style="color:#fff">Products</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="enquiry.html" class="nav-basket">
+    Enquiry Basket <span class="basket-count" id="basketCount">0</span>
+  </a>
+</nav>
+
+<!-- Hero / Search -->
+<section class="page-hero">
+  <h1>Our Products</h1>
+  <p>50+ years of adhesive expertise — find the right product for your application.</p>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search by product name, industry, or surface…" autocomplete="off">
+    <button onclick="applyFilters()">Search</button>
+  </div>
+</section>
+
+<!-- Catalogue Layout -->
+<div class="catalogue-layout">
+
+  <!-- Mobile filter toggle -->
+  <button class="filter-toggle" id="filterToggle" onclick="toggleFilterSidebar()">
+    ☰ Filters
+  </button>
+
+  <!-- Filter Sidebar -->
+  <aside class="filter-sidebar" id="filterSidebar">
+    <h3>Filter Products</h3>
+
+    <div class="filter-group">
+      <h4>Brand</h4>
+      <div id="brandFilters"></div>
+    </div>
+
+    <div class="filter-group">
+      <h4>Industry</h4>
+      <div id="industryFilters"></div>
+    </div>
+
+    <div class="filter-group">
+      <h4>Surface</h4>
+      <div id="surfaceFilters"></div>
+    </div>
+
+    <button class="filter-clear" onclick="clearFilters()">Clear All Filters</button>
+  </aside>
+
+  <!-- Product Grid -->
+  <section class="product-grid-section">
+    <div class="grid-meta">
+      <span id="resultCount">Loading products…</span>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved. | 1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/products.js"></script>
+</body>
+</html>
