@@ -5,7 +5,7 @@ let allProducts = [];
 // ─── Auth guard ───────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
-  if (!token) { window.location.href = "admin_login.html"; return; }
+  if (!token) { window.location.href = "login.html"; return; }
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadProducts();
   } catch {
     localStorage.removeItem("adminToken");
-    window.location.href = "admin_login.html";
+    window.location.href = "login.html";
   }
 });
 
@@ -23,7 +23,7 @@ function getToken() { return localStorage.getItem("adminToken"); }
 
 function logout() {
   localStorage.removeItem("adminToken");
-  window.location.href = "admin_login.html";
+  window.location.href = "login.html";
 }
 
 // ─── Load products ────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("adminToken")) {
-    window.location.href = "admin_dashboard.html";
+    window.location.href = "dashboard.html";
   }
 });
 
@@ -32,7 +32,7 @@ async function handleLogin(event) {
     }
 
     localStorage.setItem("adminToken", data.token);
-    window.location.href = "admin_dashboard.html";
+    window.location.href = "dashboard.html";
 
   } catch (err) {
     if (err.name === "TypeError" && err.message.includes("fetch")) {
