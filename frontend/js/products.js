@@ -168,13 +168,9 @@ function productCardHTML(p) {
     </div>`;
 }
 
-// ─── Filter sidebar + mobile nav toggles ─────────────────────────
+// ─── Filter sidebar toggle ────────────────────────────────────────
 function toggleFilterSidebar() {
   document.getElementById("filterSidebar").classList.toggle("open");
-}
-
-function toggleMobileNav() {
-  document.getElementById("mobileNav").classList.toggle("open");
 }
 
 // ─── Enquiry basket (localStorage) ───────────────────────────────

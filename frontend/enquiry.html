@@ -5,32 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Enquiry Basket | Yee Lim Adhesives Industries</title>
   <link rel="stylesheet" href="css/products.css">
+  <script src="js/navbar.js"></script>
 </head>
 <body>
-
-<nav class="nav">
-  <a href="home.html" class="nav-logo">YEE LIM</a>
-  <ul class="nav-links">
-    <li><a href="home.html">Home</a></li>
-    <li><a href="products.html">Products</a></li>
-    <li><a href="about.html">About</a></li>
-    <li><a href="contact.html">Contact</a></li>
-  </ul>
-  <div class="nav-right">
-    <a href="enquiry.html" class="nav-basket" style="background:#333">
-      Enquiry Basket <span class="basket-count" id="basketCount">0</span>
-    </a>
-    <button class="nav-hamburger" onclick="document.getElementById('mobileNav').classList.toggle('open')" aria-label="Menu">&#9776;</button>
-  </div>
-</nav>
-
-<div class="nav-mobile" id="mobileNav">
-  <a href="home.html">Home</a>
-  <a href="products.html">Products</a>
-  <a href="about.html">About</a>
-  <a href="contact.html">Contact</a>
-  <a href="enquiry.html">Enquiry Basket</a>
-</div>
 
 <!-- Main content -->
 <div class="page-content" id="mainContent">
@@ -104,13 +81,11 @@ function getBasket() {
 
 function saveBasket(basket) {
   localStorage.setItem("enquiryBasket", JSON.stringify(basket));
-  document.getElementById("basketCount").textContent = basket.length;
+  window.dispatchEvent(new Event("basketUpdated"));
 }
 
 function renderBasket() {
   const ids = getBasket();
-  document.getElementById("basketCount").textContent = ids.length;
-
   const products = ids.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
   const list = document.getElementById("basketList");
   const formSection = document.getElementById("enquiryFormSection");
@@ -157,10 +132,10 @@ function submitEnquiry() {
   }
 
   localStorage.removeItem("enquiryBasket");
+  window.dispatchEvent(new Event("basketUpdated"));
 
   document.getElementById("mainContent").style.display = "none";
   document.getElementById("confirmation").style.display = "block";
-  document.getElementById("basketCount").textContent = "0";
 }
 </script>
 </body>

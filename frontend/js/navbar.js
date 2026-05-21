@@ -1,0 +1,178 @@
+(function () {
+  // ─── Inject nav CSS ───────────────────────────────────────────
+  const style = document.createElement("style");
+  style.textContent = `
+    .nav {
+      background: #1a1a1a;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 60px;
+      box-sizing: border-box;
+    }
+    .nav-logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #CC2929;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-links a.nav-active { color: #fff; }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .nav-basket {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #CC2929;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .nav-basket:hover { background: #a82020; }
+    .nav-basket-count {
+      background: #fff;
+      color: #CC2929;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+      line-height: 1;
+    }
+    .nav-mobile-drawer {
+      background: #111;
+      display: none;
+      flex-direction: column;
+      padding: 0.75rem 2rem;
+    }
+    .nav-mobile-drawer.open { display: flex; }
+    .nav-mobile-drawer a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid #222;
+      transition: color 0.2s;
+    }
+    .nav-mobile-drawer a:last-child { border-bottom: none; }
+    .nav-mobile-drawer a:hover { color: #fff; }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-hamburger { display: block; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // ─── Detect active page ───────────────────────────────────────
+  const page = window.location.pathname.split("/").pop().replace(".html", "") || "home";
+  function isActive(name) {
+    if (name === "home" && (page === "home" || page === "")) return true;
+    return page === name;
+  }
+
+  // ─── Basket count ─────────────────────────────────────────────
+  function getBasketCount() {
+    return JSON.parse(localStorage.getItem("enquiryBasket") || "[]").length;
+  }
+
+  // ─── Build nav HTML ───────────────────────────────────────────
+  const links = [
+    { name: "home",     label: "Home",    href: "home.html" },
+    { name: "products", label: "Products", href: "products.html" },
+    { name: "about",    label: "About",   href: "about.html" },
+    { name: "contact",  label: "Contact", href: "contact.html" },
+  ];
+
+  const navEl = document.createElement("nav");
+  navEl.className = "nav";
+  navEl.innerHTML = `
+    <a href="home.html" class="nav-logo">YEE LIM</a>
+    <ul class="nav-links">
+      ${links.map(l => `
+        <li><a href="${l.href}" ${isActive(l.name) ? 'class="nav-active"' : ""}>${l.label}</a></li>
+      `).join("")}
+    </ul>
+    <div class="nav-right">
+      <a href="enquiry.html" class="nav-basket">
+        Enquiry Basket
+        <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
+      </a>
+      <button class="nav-hamburger" id="_navHamburger" aria-label="Menu">&#9776;</button>
+    </div>
+  `;
+
+  const drawerEl = document.createElement("div");
+  drawerEl.className = "nav-mobile-drawer";
+  drawerEl.id = "_navDrawer";
+  drawerEl.innerHTML = `
+    ${links.map(l => `<a href="${l.href}">${l.label}</a>`).join("")}
+    <a href="enquiry.html">Enquiry Basket</a>
+  `;
+
+  // ─── Insert at top of body ────────────────────────────────────
+  function insert() {
+    document.body.insertBefore(drawerEl, document.body.firstChild);
+    document.body.insertBefore(navEl, document.body.firstChild);
+
+    document.getElementById("_navHamburger").addEventListener("click", function () {
+      document.getElementById("_navDrawer").classList.toggle("open");
+    });
+
+    // Keep basket count live
+    window.addEventListener("storage", updateCount);
+    window.addEventListener("basketUpdated", updateCount);
+  }
+
+  function updateCount() {
+    const el = document.getElementById("basketCount");
+    if (el) el.textContent = getBasketCount();
+  }
+
+  if (document.body) {
+    insert();
+  } else {
+    document.addEventListener("DOMContentLoaded", insert);
+  }
+})();
