@@ -1305,8 +1305,8 @@ body {
 .compare-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.65);
-  z-index: 300;
+  background: rgba(0,0,0,0.88);
+  z-index: 500;
   display: none;
   align-items: flex-start;
   justify-content: center;
@@ -1361,12 +1361,13 @@ body {
 
 .compare-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-.compare-label-col { width: 130px; }
+.compare-label-col { width: 150px; min-width: 150px; }
 
 .compare-col-header {
   padding: 1.25rem 1rem;
   text-align: left;
   border-right: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
   vertical-align: top;
 }
 
@@ -1436,14 +1437,16 @@ body {
 
 .compare-row-label {
   padding: 0.75rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #444;
-  background: #fafafa;
-  border-right: 1px solid var(--border);
-  border-top: 1px solid var(--bg);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  background: var(--bg);
+  border-right: 2px solid var(--border);
+  border-top: 1px solid var(--border);
   white-space: nowrap;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .compare-row-value {
@@ -1451,7 +1454,7 @@ body {
   font-size: 0.82rem;
   color: var(--text);
   border-right: 1px solid var(--border);
-  border-top: 1px solid var(--bg);
+  border-top: 1px solid var(--border);
   vertical-align: top;
   line-height: 1.5;
 }
