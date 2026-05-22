@@ -14,9 +14,10 @@
 <section class="page-hero">
   <h1>Our Products</h1>
   <p>50+ years of adhesive expertise — find the right product for your application.</p>
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search by product name, industry, or surface…" autocomplete="off">
-    <button onclick="applyFilters()">Search</button>
+  <div class="search-bar" role="search">
+    <label for="searchInput" class="sr-only">Search products</label>
+    <input type="text" id="searchInput" placeholder="Search by product name, industry, or surface…" autocomplete="off" aria-label="Search products by name, industry, or surface">
+    <button onclick="applyFilters()" aria-label="Search">Search</button>
   </div>
 </section>
 
@@ -32,21 +33,21 @@
   </button>
 
   <!-- Filter Sidebar -->
-  <aside class="filter-sidebar" id="filterSidebar">
-    <h3>Filter Products</h3>
+  <aside class="filter-sidebar" id="filterSidebar" aria-label="Filter products">
+    <h2 class="filter-heading">Filter</h2>
 
     <div class="filter-group">
-      <h4>Brand</h4>
+      <h3>Brand</h3>
       <div id="brandFilters"></div>
     </div>
 
     <div class="filter-group">
-      <h4>Industry</h4>
+      <h3>Industry</h3>
       <div id="industryFilters"></div>
     </div>
 
     <div class="filter-group">
-      <h4>Surface</h4>
+      <h3>Surface</h3>
       <div id="surfaceFilters"></div>
     </div>
 
@@ -56,8 +57,9 @@
   <!-- Product Grid -->
   <section class="product-grid-section">
     <div class="grid-meta">
-      <span id="resultCount">Loading products…</span>
-      <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+      <span id="resultCount" aria-live="polite" aria-atomic="true">Loading products…</span>
+      <label for="sortSelect" class="sr-only">Sort products</label>
+      <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
         <option value="default">Default order</option>
         <option value="az">Name A–Z</option>
         <option value="za">Name Z–A</option>
@@ -70,7 +72,7 @@
 </div>
 
 <!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <!-- Footer -->
 <footer class="footer">

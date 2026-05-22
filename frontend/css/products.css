@@ -40,13 +40,26 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
   font-size: 16px;
   line-height: 1.5;
-  animation: fadeInPage 0.4s ease both;
+  animation: fadeInPage 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 /* ─── Nav ────────────────────────────────────────────────────── */
@@ -115,7 +128,7 @@ body {
 }
 
 /* ─── Page Hero / Search ─────────────────────────────────────── */
-.nav { animation: slideUp 0.35s ease both; }
+.nav { animation: slideUp 0.35s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
 .page-hero {
   background: var(--dark);
@@ -175,7 +188,7 @@ body {
 
 /* ─── Filter Sidebar ──────────────────────────────────────────── */
 .filter-sidebar {
-  animation: slideInLeft 0.4s ease 0.1s both;
+  animation: slideInLeft 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both;
   width: 240px;
   flex-shrink: 0;
   background: var(--card);
@@ -184,7 +197,7 @@ body {
   padding: 1.25rem;
 }
 
-.filter-sidebar h3 {
+.filter-heading {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -196,7 +209,7 @@ body {
   margin-bottom: 1.5rem;
 }
 
-.filter-group h4 {
+.filter-group h3 {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
@@ -277,7 +290,7 @@ body {
 
 /* ─── Product Card ────────────────────────────────────────────── */
 .product-card.animate {
-  animation: slideUp 0.4s ease both;
+  animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 .product-card {
@@ -378,11 +391,13 @@ body {
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: all 0.2s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s;
   text-decoration: none;
   text-align: center;
   display: inline-block;
 }
+
+.btn:active { transform: scale(0.97); }
 
 .btn-primary {
   background: var(--red);
@@ -440,7 +455,7 @@ body {
 }
 
 /* ─── Filter chip pop-in ──────────────────────────────────────── */
-.filter-chip { animation: popIn 0.2s ease both; }
+.filter-chip { animation: popIn 0.2s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
 /* ─── Product Detail Page ─────────────────────────────────────── */
 .breadcrumb {
@@ -455,10 +470,10 @@ body {
 .breadcrumb a:hover { color: var(--red); }
 .breadcrumb span { margin: 0 0.4rem; }
 
-.detail-image { animation: slideInLeft 0.45s ease 0.1s both; }
-.detail-info  { animation: slideInRight 0.45s ease 0.15s both; }
-.detail-full-desc { animation: slideUp 0.4s ease 0.25s both; }
-.related-section  { animation: slideUp 0.4s ease 0.3s both; }
+.detail-image { animation: slideInLeft 0.45s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both; }
+.detail-info  { animation: slideInRight 0.45s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both; }
+.detail-full-desc { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.25s both; }
+.related-section  { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
 
 .detail-layout {
   max-width: 1280px;
@@ -587,9 +602,9 @@ body {
 }
 
 .usage-box {
-  background: var(--card);
-  border-left: 4px solid var(--red);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  background: rgba(204, 41, 41, 0.05);
+  border: 1px solid rgba(204, 41, 41, 0.18);
+  border-radius: var(--radius);
   padding: 1rem 1.25rem;
   font-size: 0.9rem;
   line-height: 1.6;
@@ -909,4 +924,12 @@ body {
   .detail-cta .btn { width: 100%; text-align: center; }
   .form-row { grid-template-columns: 1fr; }
   .page-hero h1 { font-size: 1.4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

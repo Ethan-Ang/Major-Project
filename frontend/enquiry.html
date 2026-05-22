@@ -51,6 +51,7 @@
       <textarea id="eMessage" placeholder="Tell us about your project, quantity needed, or any specific requirements…"></textarea>
     </div>
     <div class="form-submit">
+      <p id="enquiryError" role="alert" style="display:none;color:#c0392b;font-size:0.875rem;margin-bottom:0.75rem"></p>
       <button class="btn btn-primary" style="padding:0.75rem 2rem;font-size:1rem" onclick="submitEnquiry()">
         Submit Enquiry
       </button>
@@ -107,7 +108,7 @@ function renderBasket() {
         <h4>${p.name}</h4>
         <p>${p.brand} &middot; ${p.shortDescription.substring(0, 72)}…</p>
       </div>
-      <button class="basket-remove" onclick="removeFromBasket(${p.id})" title="Remove">&#10005;</button>
+      <button class="basket-remove" onclick="removeFromBasket(${p.id})" aria-label="Remove ${p.name} from basket">&#10005;</button>
     </div>
   `).join("");
 
@@ -122,14 +123,18 @@ function removeFromBasket(id) {
 }
 
 function submitEnquiry() {
-  const name = document.getElementById("eName").value.trim();
+  const name    = document.getElementById("eName").value.trim();
   const company = document.getElementById("eCompany").value.trim();
-  const email = document.getElementById("eEmail").value.trim();
+  const email   = document.getElementById("eEmail").value.trim();
+  const errorEl = document.getElementById("enquiryError");
 
   if (!name || !company || !email) {
-    alert("Please fill in your name, company name, and email address.");
+    errorEl.textContent   = "Please fill in your full name, company name, and email address before submitting.";
+    errorEl.style.display = "block";
+    errorEl.scrollIntoView({ block: "nearest" });
     return;
   }
+  errorEl.style.display = "none";
 
   localStorage.removeItem("enquiryBasket");
   window.dispatchEvent(new Event("basketUpdated"));

@@ -26,7 +26,7 @@
       <ul>
         <li>
           <a href="#" class="active">
-            <i data-lucide="package"></i>
+            <i data-lucide="package" aria-hidden="true"></i>
             Products
           </a>
         </li>
@@ -35,7 +35,7 @@
       <ul>
         <li>
           <a href="enquiries.html">
-            <i data-lucide="mail"></i>
+            <i data-lucide="mail" aria-hidden="true"></i>
             Enquiries
           </a>
         </li>
@@ -44,11 +44,11 @@
 
     <div class="admin-sidebar-footer">
       <a href="../products.html" class="btn-view-site" target="_blank">
-        <i data-lucide="external-link"></i>
+        <i data-lucide="external-link" aria-hidden="true"></i>
         View Live Site
       </a>
       <button class="btn-logout" onclick="logout()">
-        <i data-lucide="log-out"></i>
+        <i data-lucide="log-out" aria-hidden="true"></i>
         Sign Out
       </button>
     </div>
@@ -65,11 +65,11 @@
       </div>
       <div class="topbar-actions">
         <button class="btn btn-outline" onclick="exportCSV()">
-          <i data-lucide="download"></i>
+          <i data-lucide="download" aria-hidden="true"></i>
           Export CSV
         </button>
         <button class="btn btn-primary" onclick="openAddModal()">
-          <i data-lucide="plus"></i>
+          <i data-lucide="plus" aria-hidden="true"></i>
           Add Product
         </button>
       </div>
@@ -79,7 +79,7 @@
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-blue">
-          <i data-lucide="layers"></i>
+          <i data-lucide="layers" aria-hidden="true"></i>
         </div>
         <div class="stat-info">
           <div class="stat-value" id="statTotal">—</div>
@@ -88,7 +88,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-green">
-          <i data-lucide="check-circle"></i>
+          <i data-lucide="check-circle" aria-hidden="true"></i>
         </div>
         <div class="stat-info">
           <div class="stat-value" id="statAvailable">—</div>
@@ -97,7 +97,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon-red">
-          <i data-lucide="x-circle"></i>
+          <i data-lucide="x-circle" aria-hidden="true"></i>
         </div>
         <div class="stat-info">
           <div class="stat-value" id="statUnavailable">—</div>
@@ -119,7 +119,7 @@
         </div>
         <div class="card-header-right">
           <div class="table-search-wrap">
-            <i data-lucide="search" class="search-icon"></i>
+            <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
             <input type="text" id="tableSearch" class="table-search" placeholder="Search products…" oninput="onSearch()">
           </div>
           <select class="page-size-select" id="pageSizeSelect" onchange="onPageSizeChange()">
@@ -137,12 +137,12 @@
           <button class="btn btn-outline btn-sm" onclick="bulkMarkAvailable()">Mark Available</button>
           <button class="btn btn-outline btn-sm" onclick="bulkMarkUnavailable()">Mark Unavailable</button>
           <button class="btn btn-danger btn-sm" onclick="bulkDelete()">
-            <i data-lucide="trash-2"></i>
+            <i data-lucide="trash-2" aria-hidden="true"></i>
             Delete Selected
           </button>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="clearSelection()">
-          <i data-lucide="x"></i>
+        <button class="btn btn-ghost btn-sm" onclick="clearSelection()" aria-label="Clear selection">
+          <i data-lucide="x" aria-hidden="true"></i>
         </button>
       </div>
 
@@ -180,13 +180,13 @@
         <span class="pagination-info" id="paginationInfo"></span>
         <div class="pagination-controls">
           <button class="btn btn-ghost btn-sm" id="btnPrevPage" onclick="changePage(-1)">
-            <i data-lucide="chevron-left"></i>
+            <i data-lucide="chevron-left" aria-hidden="true"></i>
             Prev
           </button>
           <div class="page-numbers" id="pageNumbers"></div>
           <button class="btn btn-ghost btn-sm" id="btnNextPage" onclick="changePage(1)">
             Next
-            <i data-lucide="chevron-right"></i>
+            <i data-lucide="chevron-right" aria-hidden="true"></i>
           </button>
         </div>
       </div>
@@ -201,8 +201,8 @@
   <div class="modal">
     <div class="modal-header">
       <h2 id="modalTitle">Add Product</h2>
-      <button class="modal-close" onclick="closeModal()">
-        <i data-lucide="x"></i>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close modal">
+        <i data-lucide="x" aria-hidden="true"></i>
       </button>
     </div>
     <div class="modal-body">
@@ -274,13 +274,13 @@
   <div class="modal modal-sm">
     <div class="modal-header">
       <h2>Delete Product</h2>
-      <button class="modal-close" onclick="closeDeleteModal()">
-        <i data-lucide="x"></i>
+      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close modal">
+        <i data-lucide="x" aria-hidden="true"></i>
       </button>
     </div>
     <div class="modal-body">
       <div class="delete-confirm-icon">
-        <i data-lucide="trash-2"></i>
+        <i data-lucide="trash-2" aria-hidden="true"></i>
       </div>
       <p class="delete-confirm-text">Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
       <p class="delete-confirm-sub">This action cannot be undone.</p>
@@ -297,13 +297,13 @@
   <div class="modal modal-sm">
     <div class="modal-header">
       <h2>Delete Selected Products</h2>
-      <button class="modal-close" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')">
-        <i data-lucide="x"></i>
+      <button class="modal-close" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')" aria-label="Close modal">
+        <i data-lucide="x" aria-hidden="true"></i>
       </button>
     </div>
     <div class="modal-body">
       <div class="delete-confirm-icon">
-        <i data-lucide="trash-2"></i>
+        <i data-lucide="trash-2" aria-hidden="true"></i>
       </div>
       <p class="delete-confirm-text" id="bulkDeleteText">Delete selected products?</p>
       <p class="delete-confirm-sub">This action cannot be undone.</p>

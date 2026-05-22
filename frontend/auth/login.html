@@ -22,7 +22,7 @@
         </div>
       </div>
 
-      <h2 class="auth-headline">Your trusted<br>adhesive partner.</h2>
+      <p class="auth-headline">50 years of adhesive expertise,<br>now at your fingertips.</p>
       <p class="auth-sub">Sign in to manage your enquiries, track product requests, and get faster responses from our sales team.</p>
 
       <div class="auth-benefits">
@@ -66,7 +66,7 @@
         <div class="form-group">
           <label for="email">Email Address</label>
           <div class="input-wrap">
-            <i data-lucide="mail" class="input-icon"></i>
+            <i data-lucide="mail" class="input-icon" aria-hidden="true"></i>
             <input type="email" id="email" required placeholder="you@company.com" autocomplete="email">
           </div>
         </div>
@@ -74,16 +74,16 @@
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-wrap">
-            <i data-lucide="lock" class="input-icon"></i>
+            <i data-lucide="lock" class="input-icon" aria-hidden="true"></i>
             <input type="password" id="password" required placeholder="Enter your password" autocomplete="current-password">
-            <button type="button" class="input-toggle" onclick="togglePw('password','eyeIcon1')" tabindex="-1">
-              <i data-lucide="eye" id="eyeIcon1"></i>
+            <button type="button" class="input-toggle" onclick="togglePw('password','eyeIcon1')" aria-label="Show password" id="pwToggle1">
+              <i data-lucide="eye" id="eyeIcon1" aria-hidden="true"></i>
             </button>
           </div>
         </div>
 
         <button class="btn-auth" id="loginBtn" onclick="handleLogin()">
-          <i data-lucide="log-in"></i>
+          <i data-lucide="log-in" aria-hidden="true"></i>
           Sign In
         </button>
       </div>
@@ -91,7 +91,7 @@
       <!-- Success state -->
       <div class="auth-success" id="successState">
         <div class="success-icon">
-          <i data-lucide="check-circle"></i>
+          <i data-lucide="check-circle" aria-hidden="true"></i>
         </div>
         <h2>Welcome back!</h2>
         <p>You have signed in successfully. Redirecting you to your dashboard…</p>
@@ -99,7 +99,7 @@
 
       <div class="auth-back">
         <a href="../products.html">
-          <i data-lucide="arrow-left"></i>
+          <i data-lucide="arrow-left" aria-hidden="true"></i>
           Back to products
         </a>
       </div>
@@ -115,9 +115,12 @@ lucide.createIcons();
 function togglePw(inputId, iconId) {
   const input   = document.getElementById(inputId);
   const icon    = document.getElementById(iconId);
+  const btnId   = inputId === "password" ? "pwToggle1" : "pwToggle2";
+  const btn     = document.getElementById(btnId);
   const showing = input.type === "text";
   input.type    = showing ? "password" : "text";
   icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+  if (btn) btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
   lucide.createIcons();
 }
 

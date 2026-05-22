@@ -154,7 +154,7 @@
         Enquiry Basket
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
-      <button class="nav-hamburger" id="_navHamburger" aria-label="Menu">&#9776;</button>
+      <button class="nav-hamburger" id="_navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="_navDrawer">&#9776;</button>
     </div>
   `;
 
@@ -173,7 +173,10 @@
     document.body.insertBefore(navEl, document.body.firstChild);
 
     document.getElementById("_navHamburger").addEventListener("click", function () {
-      document.getElementById("_navDrawer").classList.toggle("open");
+      const drawer = document.getElementById("_navDrawer");
+      const isOpen = drawer.classList.toggle("open");
+      this.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      this.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
     });
 
     // Keep basket count live

@@ -55,7 +55,7 @@ body {
   color: var(--text);
   font-size: 14px;
   line-height: 1.5;
-  animation: fadeInPage 0.3s ease both;
+  animation: fadeInPage 0.3s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 /* ─── Login Page ─────────────────────────────────────────────── */
@@ -83,7 +83,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 3rem;
-  animation: slideInLeft 0.4s ease 0.05s both;
+  animation: slideInLeft 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.05s both;
 }
 
 .login-brand-content { flex: 1; }
@@ -160,7 +160,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  animation: slideUp 0.4s ease 0.1s both;
+  animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both;
 }
 
 .login-form-wrap {
@@ -351,7 +351,7 @@ body {
 }
 
 /* ─── Login animation ────────────────────────────────────────── */
-.login-card { animation: slideUp 0.4s ease 0.1s both; }
+.login-card { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both; }
 
 /* ─── Dashboard Layout ───────────────────────────────────────── */
 .admin-layout {
@@ -367,7 +367,7 @@ body {
 }
 
 /* ─── Sidebar ────────────────────────────────────────────────── */
-.admin-sidebar { animation: slideInLeft 0.35s ease both; }
+.admin-sidebar { animation: slideInLeft 0.35s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
 .admin-sidebar {
   width: 240px;
@@ -513,11 +513,11 @@ body {
 /* ─── Stats Cards ────────────────────────────────────────────── */
 .admin-topbar { animation: slideUp 0.35s ease 0.05s both; }
 
-.stat-card:nth-child(1) { animation: slideUp 0.4s ease 0.08s both; }
-.stat-card:nth-child(2) { animation: slideUp 0.4s ease 0.14s both; }
-.stat-card:nth-child(3) { animation: slideUp 0.4s ease 0.20s both; }
+.stat-card:nth-child(1) { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.08s both; }
+.stat-card:nth-child(2) { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.14s both; }
+.stat-card:nth-child(3) { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.20s both; }
 
-.admin-card { animation: slideUp 0.4s ease 0.25s both; }
+.admin-card { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.25s both; }
 
 .stats-row {
   display: grid;
@@ -575,13 +575,15 @@ body {
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   font-family: inherit;
 }
+
+.btn:active { transform: scale(0.97); }
 
 .btn svg { width: 15px; height: 15px; }
 
@@ -771,7 +773,7 @@ tbody tr:hover td { background: #f9fafb; }
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  animation: modalIn 0.25s ease both;
+  animation: modalIn 0.25s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 .modal-sm { max-width: 420px; }
@@ -868,7 +870,7 @@ tbody tr:hover td { background: #f9fafb; }
 
 /* ─── Row stagger ────────────────────────────────────────────── */
 tbody tr.row-animate {
-  animation: slideUp 0.3s ease both;
+  animation: slideUp 0.3s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 /* ─── Button spinner ─────────────────────────────────────────── */
@@ -1253,4 +1255,12 @@ th.sortable:hover { color: var(--text); }
   .form-row-2 { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: 1fr; }
   .table-search { width: 160px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

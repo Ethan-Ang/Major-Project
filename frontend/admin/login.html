@@ -20,15 +20,15 @@
 
         <div class="login-brand-features">
           <div class="login-feature">
-            <div class="login-feature-icon"><i data-lucide="package"></i></div>
+            <div class="login-feature-icon"><i data-lucide="package" aria-hidden="true"></i></div>
             <span>Manage your product catalogue</span>
           </div>
           <div class="login-feature">
-            <div class="login-feature-icon"><i data-lucide="mail"></i></div>
+            <div class="login-feature-icon"><i data-lucide="mail" aria-hidden="true"></i></div>
             <span>View and respond to enquiries</span>
           </div>
           <div class="login-feature">
-            <div class="login-feature-icon"><i data-lucide="bar-chart-2"></i></div>
+            <div class="login-feature-icon"><i data-lucide="bar-chart-2" aria-hidden="true"></i></div>
             <span>Track product availability</span>
           </div>
         </div>
@@ -53,7 +53,7 @@
           <div class="form-group">
             <label for="username">Username</label>
             <div class="input-wrap">
-              <i data-lucide="user" class="input-icon"></i>
+              <i data-lucide="user" class="input-icon" aria-hidden="true"></i>
               <input type="text" id="username" name="username" required
                 autocomplete="username" placeholder="Enter your username">
             </div>
@@ -62,11 +62,11 @@
           <div class="form-group">
             <label for="password">Password</label>
             <div class="input-wrap">
-              <i data-lucide="lock" class="input-icon"></i>
+              <i data-lucide="lock" class="input-icon" aria-hidden="true"></i>
               <input type="password" id="password" name="password" required
                 autocomplete="current-password" placeholder="Enter your password">
-              <button type="button" class="input-toggle" onclick="togglePassword()" tabindex="-1">
-                <i data-lucide="eye" id="eyeIcon"></i>
+              <button type="button" class="input-toggle" onclick="togglePassword()" aria-label="Show password" id="pwToggle">
+                <i data-lucide="eye" id="eyeIcon" aria-hidden="true"></i>
               </button>
             </div>
           </div>
@@ -78,7 +78,7 @@
 
         <p class="login-back">
           <a href="../products.html">
-            <i data-lucide="arrow-left"></i>
+            <i data-lucide="arrow-left" aria-hidden="true"></i>
             Back to website
           </a>
         </p>
@@ -94,9 +94,11 @@
     function togglePassword() {
       const input   = document.getElementById("password");
       const icon    = document.getElementById("eyeIcon");
+      const btn     = document.getElementById("pwToggle");
       const showing = input.type === "text";
       input.type    = showing ? "password" : "text";
       icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+      btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
       lucide.createIcons();
     }
   </script>

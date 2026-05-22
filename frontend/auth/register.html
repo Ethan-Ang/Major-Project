@@ -22,7 +22,7 @@
         </div>
       </div>
 
-      <h2 class="auth-headline">Start sourcing<br>smarter today.</h2>
+      <p class="auth-headline">Singapore's specialist<br>adhesive supplier since 1974.</p>
       <p class="auth-sub">Create a business account to submit product enquiries, track your requests, and work directly with our sales team.</p>
 
       <div class="auth-benefits">
@@ -67,14 +67,14 @@
           <div class="form-group">
             <label for="firstName">First Name</label>
             <div class="input-wrap">
-              <i data-lucide="user" class="input-icon"></i>
+              <i data-lucide="user" class="input-icon" aria-hidden="true"></i>
               <input type="text" id="firstName" required placeholder="John">
             </div>
           </div>
           <div class="form-group">
             <label for="lastName">Last Name</label>
             <div class="input-wrap">
-              <i data-lucide="user" class="input-icon"></i>
+              <i data-lucide="user" class="input-icon" aria-hidden="true"></i>
               <input type="text" id="lastName" required placeholder="Tan">
             </div>
           </div>
@@ -83,7 +83,7 @@
         <div class="form-group">
           <label for="company">Company Name</label>
           <div class="input-wrap">
-            <i data-lucide="building-2" class="input-icon"></i>
+            <i data-lucide="building-2" class="input-icon" aria-hidden="true"></i>
             <input type="text" id="company" required placeholder="ABC Pte Ltd">
           </div>
         </div>
@@ -91,7 +91,7 @@
         <div class="form-group">
           <label for="email">Business Email</label>
           <div class="input-wrap">
-            <i data-lucide="mail" class="input-icon"></i>
+            <i data-lucide="mail" class="input-icon" aria-hidden="true"></i>
             <input type="email" id="email" required placeholder="you@company.com" autocomplete="email">
           </div>
         </div>
@@ -99,7 +99,7 @@
         <div class="form-group">
           <label for="phone">Phone Number</label>
           <div class="input-wrap">
-            <i data-lucide="phone" class="input-icon"></i>
+            <i data-lucide="phone" class="input-icon" aria-hidden="true"></i>
             <input type="tel" id="phone" placeholder="+65 9123 4567">
           </div>
         </div>
@@ -107,11 +107,11 @@
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-wrap">
-            <i data-lucide="lock" class="input-icon"></i>
+            <i data-lucide="lock" class="input-icon" aria-hidden="true"></i>
             <input type="password" id="password" required placeholder="Minimum 8 characters"
               autocomplete="new-password" oninput="checkStrength()">
-            <button type="button" class="input-toggle" onclick="togglePw('password','eyeIcon1')" tabindex="-1">
-              <i data-lucide="eye" id="eyeIcon1"></i>
+            <button type="button" class="input-toggle" onclick="togglePw('password','eyeIcon1')" aria-label="Show password" id="pwToggle1">
+              <i data-lucide="eye" id="eyeIcon1" aria-hidden="true"></i>
             </button>
           </div>
           <div class="password-strength">
@@ -125,11 +125,11 @@
         <div class="form-group">
           <label for="confirmPassword">Confirm Password</label>
           <div class="input-wrap">
-            <i data-lucide="lock" class="input-icon"></i>
+            <i data-lucide="lock" class="input-icon" aria-hidden="true"></i>
             <input type="password" id="confirmPassword" required placeholder="Re-enter your password"
               autocomplete="new-password">
-            <button type="button" class="input-toggle" onclick="togglePw('confirmPassword','eyeIcon2')" tabindex="-1">
-              <i data-lucide="eye" id="eyeIcon2"></i>
+            <button type="button" class="input-toggle" onclick="togglePw('confirmPassword','eyeIcon2')" aria-label="Show confirm password" id="pwToggle2">
+              <i data-lucide="eye" id="eyeIcon2" aria-hidden="true"></i>
             </button>
           </div>
         </div>
@@ -142,7 +142,7 @@
         </div>
 
         <button class="btn-auth" id="regBtn" onclick="handleRegister()">
-          <i data-lucide="user-plus"></i>
+          <i data-lucide="user-plus" aria-hidden="true"></i>
           Create Account
         </button>
       </div>
@@ -150,19 +150,19 @@
       <!-- Success state -->
       <div class="auth-success" id="successState">
         <div class="success-icon">
-          <i data-lucide="check-circle"></i>
+          <i data-lucide="check-circle" aria-hidden="true"></i>
         </div>
         <h2>Account created!</h2>
         <p>Welcome to Yee Lim. Your account has been created successfully. Our team may be in touch to verify your business details.</p>
         <a href="../products.html" class="btn-auth" style="margin-top:0.5rem;text-decoration:none">
-          <i data-lucide="arrow-right"></i>
+          <i data-lucide="arrow-right" aria-hidden="true"></i>
           Browse Products
         </a>
       </div>
 
       <div class="auth-back">
         <a href="../products.html">
-          <i data-lucide="arrow-left"></i>
+          <i data-lucide="arrow-left" aria-hidden="true"></i>
           Back to products
         </a>
       </div>
@@ -178,9 +178,12 @@ lucide.createIcons();
 function togglePw(inputId, iconId) {
   const input   = document.getElementById(inputId);
   const icon    = document.getElementById(iconId);
+  const btnId   = inputId === "password" ? "pwToggle1" : "pwToggle2";
+  const btn     = document.getElementById(btnId);
   const showing = input.type === "text";
   input.type    = showing ? "password" : "text";
   icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+  if (btn) btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
   lucide.createIcons();
 }
 
