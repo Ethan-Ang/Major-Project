@@ -490,6 +490,35 @@ body {
 .breadcrumb a:hover { color: var(--red); }
 .breadcrumb span { margin: 0 0.4rem; }
 
+/* ─── Detail Page Hero (dark header band, matches products page) ── */
+.detail-hero {
+  background: var(--dark);
+  padding: 1rem 0;
+}
+
+.detail-hero-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.detail-hero .breadcrumb {
+  margin: 0;
+  padding: 0;
+  color: rgba(255,255,255,0.45);
+}
+
+.detail-hero .breadcrumb a {
+  color: rgba(255,255,255,0.55);
+  transition: color 0.15s;
+}
+
+.detail-hero .breadcrumb a:hover { color: #fff; }
+
+.detail-hero .breadcrumb span { color: rgba(255,255,255,0.3); }
+
+.detail-hero .breadcrumb span:last-of-type { color: rgba(255,255,255,0.9); font-weight: 500; }
+
 .detail-image { animation: slideInLeft 0.45s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both; }
 .detail-info  { animation: slideInRight 0.45s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both; }
 .detail-full-desc { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.25s both; }
@@ -953,7 +982,13 @@ body {
 .gallery-main {
   width: 100%;
   aspect-ratio: 4/3;
-  background: var(--bg);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--bg) 0px,
+    var(--bg) 10px,
+    #ebebeb 10px,
+    #ebebeb 11px
+  );
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -964,18 +999,39 @@ body {
   cursor: default;
 }
 
+.gallery-main img { background: var(--bg); }
+
 .gallery-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .gallery-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.75rem;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.3px;
+  width: 100%;
+  height: 100%;
 }
 
-.gallery-placeholder svg { opacity: 0.3; }
+.gallery-placeholder-brand {
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--border);
+  line-height: 1;
+  user-select: none;
+}
+
+.gallery-thumb-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+}
 
 .gallery-thumbs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
 
