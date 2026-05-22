@@ -195,17 +195,25 @@ body {
   align-items: center;
 }
 
-/* Works whether or not Lucide copies the class to the replaced SVG */
-.input-icon,
-.input-wrap > svg {
+.input-icon {
   position: absolute;
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 16px !important;
-  height: 16px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   color: var(--muted);
   pointer-events: none;
+}
+
+.input-icon svg,
+.input-icon i {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .input-wrap input,
