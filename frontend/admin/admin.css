@@ -211,7 +211,7 @@ body {
 
 .input-wrap input {
   width: 100%;
-  padding: 0.7rem 2.75rem 0.7rem 3rem;
+  padding: 0.7rem 2.75rem 0.7rem 3rem !important;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
