@@ -18,19 +18,21 @@ function renderComparePage() {
   }
 
   const headerCols = products.map(p => {
-    const availClass = p.status === "Available" ? "available" : "unavailable";
-    const imgContent = p.imageUrl
-      ? `<img src="${p.imageUrl}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`
-      : "";
+    const availClass  = p.status === "Available" ? "available" : "unavailable";
+    const brandLabel  = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
     return `
       <td class="compare-col-header">
-        <div class="compare-product-img">${imgContent}</div>
+        <div class="compare-product-img">
+          <span class="compare-img-placeholder">${brandLabel}</span>
+          <span class="compare-img-placeholder-sub">Photography coming soon</span>
+        </div>
         <a class="compare-product-name" href="product-detail?id=${p.id}">${p.name}</a>
         <div class="compare-product-brand">${p.brand}</div>
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${p.status}
         </div>
-        <button class="compare-col-remove" onclick="removeFromCompare(${p.id})">Remove &#215;</button>
+        <button class="btn-add-enquiry" onclick="addToBasket(${p.id})">Add to Enquiry Basket</button>
+        <button class="compare-col-remove" onclick="removeFromCompare(${p.id})">Remove</button>
       </td>`;
   }).join("");
 
@@ -45,15 +47,6 @@ function renderComparePage() {
       ${products.map(p => `<td class="compare-row-value">${row.render(p)}</td>`).join("")}
     </tr>`).join("");
 
-  const actionRow = `
-    <tr>
-      <td class="compare-row-label"></td>
-      ${products.map(p => `
-        <td class="compare-row-value">
-          <button class="btn-add-enquiry" onclick="addToBasket(${p.id})">Add to Enquiry Basket</button>
-        </td>`).join("")}
-    </tr>`;
-
   content.innerHTML = `
     <div class="compare-page-table-wrap">
       <table class="compare-table">
@@ -63,13 +56,12 @@ function renderComparePage() {
         </colgroup>
         <thead>
           <tr>
-            <td class="compare-row-label"></td>
+            <td class="compare-row-label">Product</td>
             ${headerCols}
           </tr>
         </thead>
         <tbody>
           ${specRows}
-          ${actionRow}
         </tbody>
       </table>
     </div>`;

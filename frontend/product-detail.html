@@ -10,28 +10,25 @@
 </head>
 <body>
 
-<nav class="nav" id="mainNav" aria-label="Main navigation"></nav>
+<nav class="breadcrumb page-breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
+  <a href="home.html">Home</a>
+  <span aria-hidden="true">›</span>
+  <a href="products.html">Products</a>
+  <span aria-hidden="true">›</span>
+  <span id="breadcrumbProduct">Loading…</span>
+</nav>
 
-<div class="detail-hero">
-  <div class="detail-hero-inner">
-    <nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
-      <a href="home.html">Home</a>
-      <span aria-hidden="true">›</span>
-      <a href="products.html">Products</a>
-      <span aria-hidden="true">›</span>
-      <span id="breadcrumbProduct">Loading…</span>
-    </nav>
-  </div>
+<!-- Gallery + sidebar side by side -->
+<div class="detail-gallery-row" id="detailPageGrid">
+  <div id="detailGallery"></div>
+  <aside class="detail-sidebar" id="detailSidebar" aria-label="Product actions"></aside>
 </div>
 
-<div class="detail-page-grid" id="detailPageGrid">
-  <div class="detail-main">
-    <div id="detailGallery"></div>
-    <div id="detailHeader"></div>
-    <div id="detailSpecs"></div>
-    <div id="detailDesc"></div>
-  </div>
-  <aside class="detail-sidebar" id="detailSidebar" aria-label="Product actions"></aside>
+<!-- Full-width: header, spec table, description -->
+<div class="detail-content">
+  <div id="detailHeader"></div>
+  <div id="detailSpecs"></div>
+  <div id="detailDesc"></div>
 </div>
 
 <div class="related-section" id="relatedSection" style="display:none">

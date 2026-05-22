@@ -31,7 +31,6 @@ function renderGallery(product) {
   const el     = document.getElementById("detailGallery");
   if (!el) return;
   const images = (product.images && product.images.length) ? product.images : [];
-  const primary = product.imageUrl || "";
 
   const brandLabel = product.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
   const placeholderSVG = `
@@ -40,16 +39,14 @@ function renderGallery(product) {
       <span>Photography coming soon</span>
     </div>`;
 
-  const mainImgContent = primary
-    ? `<img id="galleryMainImg" src="${primary}" alt="${product.name}" onerror="this.parentElement.innerHTML='${placeholderSVG.replace(/'/g, "\\'").replace(/\n/g, "")}'">`
+  const mainImgContent = images.length
+    ? `<img id="galleryMainImg" src="${images[0]}" alt="${product.name}">`
     : placeholderSVG;
 
-  const thumbSources = images.length ? images : (primary ? [primary] : []);
-
   const thumbsHTML = [0, 1, 2, 3].map(i => {
-    const src = thumbSources[i] || "";
+    const src = images[i] || "";
     const imgTag = src
-      ? `<img src="${src}" alt="Product view ${i + 1}" onerror="this.parentElement.innerHTML=''">`
+      ? `<img src="${src}" alt="Product view ${i + 1}">`
       : `<span class="gallery-thumb-dot" aria-hidden="true"></span>`;
     const activeClass = i === 0 ? " active" : "";
     return `
@@ -135,33 +132,36 @@ function renderSidebar(product) {
   const inBasket  = basket.includes(product.id);
   const inCompare = isInCompare(product.id);
   const availClass = product.status === "Available" ? "available" : "unavailable";
+  const availLabel = product.status === "Available" ? "Available for Enquiry" : "Currently Unavailable";
 
   el.innerHTML = `
-    <div class="sidebar-product-name">${product.name}</div>
-    <div class="sidebar-brand">${product.brand}</div>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-avail ${availClass}" aria-label="Availability: ${product.status}">
-      <span class="avail-dot" aria-hidden="true"></span>${product.status}
+    <div class="sidebar-avail-bar ${availClass}" aria-label="Availability: ${product.status}">
+      <span class="avail-dot" aria-hidden="true"></span>${availLabel}
     </div>
-    <div class="sidebar-divider"></div>
-    <button
-      class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
-      id="sidebarBasketBtn"
-      onclick="toggleBasket(${product.id})"
-      aria-pressed="${inBasket}">
-      ${inBasket ? "&#10003; Added to Enquiry" : "Add to Enquiry Basket"}
-    </button>
-    <button
-      class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
-      id="sidebarCompareBtn"
-      onclick="toggleCompare(${product.id})"
-      aria-pressed="${inCompare}">
-      ${inCompare ? "&#10003; In Comparison" : "+ Add to Compare"}
-    </button>
-    <a href="enquiry.html" class="btn btn-outline btn-lg" style="text-align:center;display:block">
-      View Enquiry Basket
-    </a>
-    <p class="sidebar-note">Submit an enquiry to receive pricing and lead times from our sales team.</p>`;
+    <div class="sidebar-identity">
+      <div class="sidebar-product-name">${product.name}</div>
+      <div class="sidebar-brand">${product.brand}</div>
+    </div>
+    <div class="sidebar-actions">
+      <button
+        class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
+        id="sidebarBasketBtn"
+        onclick="toggleBasket(${product.id})"
+        aria-pressed="${inBasket}">
+        ${inBasket ? "&#10003; Added to Enquiry" : "Add to Enquiry Basket"}
+      </button>
+      <button
+        class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
+        id="sidebarCompareBtn"
+        onclick="toggleCompare(${product.id})"
+        aria-pressed="${inCompare}">
+        ${inCompare ? "&#10003; In Comparison" : "+ Add to Compare"}
+      </button>
+    </div>
+    <div class="sidebar-foot">
+      <a href="enquiry.html" class="sidebar-enquiry-link">View Enquiry Basket &rarr;</a>
+      <p class="sidebar-note">Submit an enquiry to receive pricing and lead times from our sales team.</p>
+    </div>`;
 }
 
 function updateSidebarCompareBtn(productId) {
@@ -210,7 +210,7 @@ function renderRelated(product) {
         <h3>${p.name}</h3>
         <p>${p.shortDescription}</p>
         <div class="product-card-actions">
-          <a href="product-detail?id=${p.id}" class="btn btn-outline">View Details</a>
+          <a href="product-detail?id=${p.id}" class="btn btn-outline">View Product</a>
         </div>
       </div>
     </div>`).join("");

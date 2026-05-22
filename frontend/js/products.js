@@ -172,7 +172,7 @@ function productCardHTML(p) {
         <p>${p.shortDescription}</p>
         <div class="product-tags">${industryTags}</div>
         <div class="product-card-actions">
-          <a href="product-detail?id=${p.id}" class="btn btn-outline">View Details</a>
+          <a href="product-detail?id=${p.id}" class="btn btn-outline">View Product</a>
           <button
             class="btn btn-primary ${inBasket ? "btn-added" : ""}"
             onclick="toggleBasket(${p.id})"

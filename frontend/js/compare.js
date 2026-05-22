@@ -60,10 +60,11 @@ function renderCompareTray() {
       const name = p ? p.name : "Unknown product";
       slots.push(`
         <div class="compare-slot compare-slot-filled">
+          <div class="compare-slot-thumb" aria-hidden="true"></div>
           <span class="compare-slot-name" title="${name}">${name}</span>
           <button class="compare-slot-remove"
             onclick="removeFromCompare(${id})"
-            aria-label="Remove ${name} from comparison">×</button>
+            aria-label="Remove ${name} from comparison">&#215;</button>
         </div>`);
     } else {
       slots.push(`<div class="compare-slot compare-slot-empty">+ Add product</div>`);
