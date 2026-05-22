@@ -116,18 +116,33 @@ body {
 
 .auth-benefit {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  align-items: flex-start;
+  gap: 0.65rem;
   color: #9ca3af;
   font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 .auth-benefit-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--red);
+  width: 16px;
+  height: 16px;
+  background: rgba(204, 41, 41, 0.15);
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.auth-benefit-dot::after {
+  content: "";
+  width: 5px;
+  height: 8px;
+  border-right: 1.5px solid var(--red);
+  border-bottom: 1.5px solid var(--red);
+  transform: rotate(45deg) translate(-1px, -1px);
+  display: block;
 }
 
 .auth-brand-footer {
@@ -156,9 +171,10 @@ body {
 }
 
 .auth-form-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.3px;
 }
 
 .auth-form-header p {
@@ -263,6 +279,29 @@ body {
   margin-top: 0.25rem;
 }
 
+/* Form section labels */
+.form-section-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-section-label:first-of-type {
+  margin-top: 0;
+}
+
+/* Password hint */
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+
 /* Password strength */
 .password-strength {
   display: flex;
@@ -338,7 +377,7 @@ body {
 }
 
 .btn-auth:hover { background: var(--red-dark); }
-.btn-auth:active { transform: scale(0.99); }
+.btn-auth:active { transform: scale(0.97); }
 .btn-auth:disabled { background: #9ca3af; cursor: not-allowed; }
 .btn-auth svg { width: 16px; height: 16px; }
 
@@ -400,7 +439,7 @@ body {
   justify-content: center;
   margin: 0 auto 1.25rem;
   color: var(--green);
-  animation: slideUp 0.4s ease both;
+  animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 .success-icon svg { width: 26px; height: 26px; }

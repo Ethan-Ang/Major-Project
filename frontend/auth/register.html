@@ -56,13 +56,14 @@
 
       <div class="auth-form-header">
         <h1>Create account</h1>
-        <p>Already registered? <a href="login.html">Sign in</a></p>
+        <p>Already have an account? <a href="login.html">Sign in</a></p>
       </div>
 
       <div class="alert alert-error" id="regError" style="display:none"></div>
 
       <!-- Registration form -->
       <div id="regForm">
+        <p class="form-section-label">Personal details</p>
         <div class="form-row-2">
           <div class="form-group">
             <label for="firstName">First Name</label>
@@ -80,6 +81,7 @@
           </div>
         </div>
 
+        <p class="form-section-label">Company</p>
         <div class="form-group">
           <label for="company">Company Name</label>
           <div class="input-wrap">
@@ -104,16 +106,18 @@
           </div>
         </div>
 
+        <p class="form-section-label">Account security</p>
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-wrap">
             <span class="input-icon" aria-hidden="true"><i data-lucide="lock"></i></span>
-            <input type="password" id="password" required placeholder="Minimum 8 characters"
+            <input type="password" id="password" required placeholder="Create a password"
               autocomplete="new-password" oninput="checkStrength()">
             <button type="button" class="input-toggle" onclick="togglePw('password','eyeIcon1')" aria-label="Show password" id="pwToggle1">
               <i data-lucide="eye" id="eyeIcon1" aria-hidden="true"></i>
             </button>
           </div>
+          <p class="form-hint">Minimum 8 characters. Use uppercase, numbers, or symbols for a stronger password.</p>
           <div class="password-strength">
             <div class="strength-bar" id="bar1"></div>
             <div class="strength-bar" id="bar2"></div>
