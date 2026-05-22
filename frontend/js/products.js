@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("searchInput").addEventListener("input", applyFilters);
 });
 
-window.addEventListener("compareUpdated", () => renderGrid(currentResults));
+window.addEventListener("compareUpdated", syncCompareButtons);
 
 // ─── Build filter sidebar checkboxes from data ───────────────────
 function buildFilterCheckboxes() {
@@ -187,6 +187,25 @@ function productCardHTML(p) {
         </button>
       </div>
     </div>`;
+}
+
+// ─── Sync compare button states without rebuilding the grid ──────
+function syncCompareButtons() {
+  const list = getCompareList();
+  const full = list.length >= COMPARE_MAX;
+  document.querySelectorAll(".product-card").forEach(card => {
+    const btn = card.querySelector(".btn-compare-card");
+    if (!btn) return;
+    const match = (btn.getAttribute("onclick") || "").match(/toggleCompare\((\d+)\)/);
+    if (!match) return;
+    const id        = parseInt(match[1], 10);
+    const inCompare = list.includes(id);
+    btn.className   = `btn-compare-card${inCompare ? " in-compare" : ""}`;
+    btn.innerHTML   = inCompare ? "&#10003; In Compare" : "+ Compare";
+    btn.disabled    = !inCompare && full;
+    btn.title       = (!inCompare && full) ? "Remove a product to add another" : "";
+    btn.setAttribute("aria-pressed", String(inCompare));
+  });
 }
 
 // ─── Filter sidebar toggle ────────────────────────────────────────

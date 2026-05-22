@@ -417,9 +417,9 @@ body {
 .btn-outline:hover { border-color: var(--red); color: var(--red); }
 
 .btn-added {
-  background: #28a745 !important;
+  background: #16a34a !important;
   color: #fff !important;
-  border-color: #28a745 !important;
+  border-color: #16a34a !important;
 }
 
 .btn-compare-card {
@@ -1488,6 +1488,43 @@ body {
 
 .btn-add-enquiry:hover { background: var(--red-dark); }
 .btn-add-enquiry:active { transform: scale(0.97); }
+
+/* ─── Section headings (detail page description area) ────────── */
+.section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--red);
+  display: inline-block;
+}
+
+/* ─── Focus states ───────────────────────────────────────────── */
+.gallery-thumb:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.btn-compare-card:focus-visible,
+.btn-compare-sidebar:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.compare-tray-btn:focus-visible,
+.compare-slot-remove:focus-visible,
+.compare-overlay-close:focus-visible,
+.compare-col-remove:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+/* ─── Toast offset when compare tray is open ─────────────────── */
+body:has(.compare-tray.visible) .toast {
+  bottom: calc(3.5rem + 1.5rem);
+  transition: bottom 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
