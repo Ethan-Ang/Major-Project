@@ -62,20 +62,196 @@ body {
 .login-body {
   min-height: 100vh;
   display: flex;
+  background: var(--bg);
+  padding: 0;
+  margin: 0;
+  animation: none;
+}
+
+.login-split {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  animation: fadeInPage 0.4s ease both;
+}
+
+/* Left brand panel */
+.login-brand-panel {
+  width: 440px;
+  flex-shrink: 0;
+  background: var(--dark);
+  display: flex;
+  flex-direction: column;
+  padding: 3rem;
+  animation: slideInLeft 0.4s ease 0.05s both;
+}
+
+.login-brand-content { flex: 1; }
+
+.login-brand-logo {
+  width: 52px;
+  height: 52px;
+  background: var(--red);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  border-radius: 12px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--dark);
+  letter-spacing: 0.5px;
+  margin-bottom: 2rem;
 }
 
-.login-card {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem;
+.login-brand-name {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.login-brand-tagline {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  max-width: 300px;
+}
+
+.login-brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.login-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.login-feature-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--red);
+}
+
+.login-feature-icon svg { width: 15px; height: 15px; }
+
+.login-brand-footer {
+  font-size: 0.75rem;
+  color: #374151;
+  margin-top: 2rem;
+}
+
+/* Right form panel */
+.login-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: slideUp 0.4s ease 0.1s both;
+}
+
+.login-form-wrap {
   width: 100%;
   max-width: 380px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
 }
 
+.login-form-header {
+  margin-bottom: 2rem;
+}
+
+.login-form-header h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.login-form-header p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Input with icon */
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.85rem;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.input-wrap input {
+  width: 100%;
+  padding: 0.7rem 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fff;
+}
+
+.input-wrap input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(204,41,41,0.08);
+}
+
+.input-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.input-toggle svg { width: 16px; height: 16px; }
+.input-toggle:hover { color: var(--text); }
+
+.login-back {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.login-back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.login-back a svg { width: 14px; height: 14px; }
+.login-back a:hover { color: var(--red); }
+
+/* Legacy support for simple login card (kept for compatibility) */
 .login-logo {
   font-size: 1.5rem;
   font-weight: 800;
@@ -84,12 +260,16 @@ body {
   margin-bottom: 1.25rem;
 }
 
-.login-card h1 { font-size: 1.3rem; margin-bottom: 0.2rem; }
-
 .login-sub {
   color: var(--muted);
   font-size: 0.85rem;
   margin-bottom: 1.75rem;
+}
+
+@media (max-width: 768px) {
+  .login-split { flex-direction: column; }
+  .login-brand-panel { width: 100%; min-height: auto; padding: 2rem; }
+  .login-brand-features { display: none; }
 }
 
 /* ─── Forms ──────────────────────────────────────────────────── */
@@ -176,7 +356,14 @@ body {
 /* ─── Dashboard Layout ───────────────────────────────────────── */
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.admin-main {
+  flex: 1;
+  overflow-y: auto;
+  height: 100vh;
 }
 
 /* ─── Sidebar ────────────────────────────────────────────────── */
@@ -299,8 +486,6 @@ body {
 
 /* ─── Main Content ───────────────────────────────────────────── */
 .admin-main {
-  flex: 1;
-  overflow: auto;
   padding: 2rem 2.5rem;
   min-width: 0;
 }

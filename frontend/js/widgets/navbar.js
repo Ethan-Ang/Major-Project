@@ -98,8 +98,20 @@
     }
     .nav-mobile-drawer a:last-child { border-bottom: none; }
     .nav-mobile-drawer a:hover { color: #fff; }
+    .nav-signin {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      border: 1px solid #444;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav-signin:hover { color: #fff; border-color: #888; }
     @media (max-width: 768px) {
       .nav-links { display: none; }
+      .nav-signin { display: none; }
       .nav-hamburger { display: block; }
     }
   `;
@@ -135,6 +147,7 @@
       `).join("")}
     </ul>
     <div class="nav-right">
+      <a href="auth/login.html" class="nav-signin">Sign In</a>
       <a href="enquiry.html" class="nav-basket">
         Enquiry Basket
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
@@ -149,6 +162,7 @@
   drawerEl.innerHTML = `
     ${links.map(l => `<a href="${l.href}">${l.label}</a>`).join("")}
     <a href="enquiry.html">Enquiry Basket</a>
+    <a href="auth/login.html">Sign In</a>
   `;
 
   // ─── Insert at top of body ────────────────────────────────────
