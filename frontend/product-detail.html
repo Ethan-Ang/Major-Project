@@ -4,13 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Detail | Yee Lim Adhesives Industries</title>
-  <meta name="description" content="Detailed specifications, application surfaces, and usage guide for Yee Lim Adhesives industrial products. Submit an enquiry directly to our sales team."  id="metaDescription">
+  <meta id="metaDescription" name="description" content="Detailed specifications, application surfaces, and usage guide for Yee Lim Adhesives industrial products. Submit an enquiry directly to our sales team.">
   <link rel="stylesheet" href="css/products.css">
   <script src="js/widgets/navbar.js"></script>
 </head>
 <body>
 
-<div class="breadcrumb">
+<nav class="nav" id="mainNav" aria-label="Main navigation"></nav>
+
+<div class="breadcrumb" id="breadcrumb">
   <a href="home.html">Home</a>
   <span>›</span>
   <a href="products.html">Products</a>
@@ -18,28 +20,32 @@
   <span id="breadcrumbProduct">Loading…</span>
 </div>
 
-<!-- Product Hero -->
-<div class="detail-layout" id="detailLayout">
-  <div class="detail-image" id="detailImage">Loading…</div>
-  <div class="detail-info" id="detailInfo">Loading…</div>
+<div class="detail-page-grid" id="detailPageGrid">
+  <div class="detail-main">
+    <div id="detailGallery"></div>
+    <div id="detailHeader"></div>
+    <div id="detailSpecs"></div>
+    <div id="detailDesc"></div>
+  </div>
+  <aside class="detail-sidebar" id="detailSidebar" aria-label="Product actions"></aside>
 </div>
 
-<!-- Full Description + Usage -->
-<div class="detail-full-desc" id="detailFullDesc"></div>
-
-<!-- Related Products -->
 <div class="related-section" id="relatedSection" style="display:none">
   <h3>Related Products</h3>
   <div class="related-grid" id="relatedGrid"></div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="compare-overlay" id="compareOverlay"
+  role="dialog" aria-modal="true" aria-label="Product comparison"></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <footer class="footer">
   <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
 </footer>
 
 <script src="js/data.js"></script>
+<script src="js/compare.js"></script>
 <script src="js/product-detail.js"></script>
 </body>
 </html>
