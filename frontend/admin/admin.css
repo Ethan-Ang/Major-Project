@@ -190,16 +190,25 @@ body {
 
 .input-icon {
   position: absolute;
-  left: 0.85rem;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
   width: 16px;
   height: 16px;
   color: var(--muted);
   pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* Ensure Lucide SVG doesn't override size via its own attributes */
+.input-wrap svg.input-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .input-wrap input {
   width: 100%;
-  padding: 0.7rem 2.75rem;
+  padding: 0.7rem 2.75rem 0.7rem 3rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
