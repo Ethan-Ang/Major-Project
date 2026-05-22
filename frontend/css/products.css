@@ -1,3 +1,29 @@
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeInPage {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* ─── Variables ─────────────────────────────────────────────── */
 :root {
   --red:       #CC2929;
@@ -20,6 +46,7 @@ body {
   color: var(--text);
   font-size: 16px;
   line-height: 1.5;
+  animation: fadeInPage 0.4s ease both;
 }
 
 /* ─── Nav ────────────────────────────────────────────────────── */
@@ -88,6 +115,8 @@ body {
 }
 
 /* ─── Page Hero / Search ─────────────────────────────────────── */
+.nav { animation: slideUp 0.35s ease both; }
+
 .page-hero {
   background: var(--dark);
   color: #fff;
@@ -146,6 +175,7 @@ body {
 
 /* ─── Filter Sidebar ──────────────────────────────────────────── */
 .filter-sidebar {
+  animation: slideInLeft 0.4s ease 0.1s both;
   width: 240px;
   flex-shrink: 0;
   background: var(--card);
@@ -246,6 +276,10 @@ body {
 }
 
 /* ─── Product Card ────────────────────────────────────────────── */
+.product-card.animate {
+  animation: slideUp 0.4s ease both;
+}
+
 .product-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -405,6 +439,9 @@ body {
   transform: translateY(0);
 }
 
+/* ─── Filter chip pop-in ──────────────────────────────────────── */
+.filter-chip { animation: popIn 0.2s ease both; }
+
 /* ─── Product Detail Page ─────────────────────────────────────── */
 .breadcrumb {
   max-width: 1280px;
@@ -417,6 +454,11 @@ body {
 .breadcrumb a { color: var(--muted); text-decoration: none; }
 .breadcrumb a:hover { color: var(--red); }
 .breadcrumb span { margin: 0 0.4rem; }
+
+.detail-image { animation: slideInLeft 0.45s ease 0.1s both; }
+.detail-info  { animation: slideInRight 0.45s ease 0.15s both; }
+.detail-full-desc { animation: slideUp 0.4s ease 0.25s both; }
+.related-section  { animation: slideUp 0.4s ease 0.3s both; }
 
 .detail-layout {
   max-width: 1280px;

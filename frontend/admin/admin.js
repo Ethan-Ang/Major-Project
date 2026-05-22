@@ -64,10 +64,23 @@ async function loadProducts() {
 }
 
 function updateStats(products) {
-  const available   = products.filter(p => p.status === "Available").length;
-  document.getElementById("statTotal").textContent       = products.length;
-  document.getElementById("statAvailable").textContent   = available;
-  document.getElementById("statUnavailable").textContent = products.length - available;
+  const available = products.filter(p => p.status === "Available").length;
+  countUp("statTotal",       products.length);
+  countUp("statAvailable",   available);
+  countUp("statUnavailable", products.length - available);
+}
+
+function countUp(id, target) {
+  const el    = document.getElementById(id);
+  const dur   = 600;
+  const start = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - start) / dur, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
 // ─── Render table with pagination ────────────────────────────────
@@ -95,10 +108,11 @@ function renderTable() {
   const start   = (currentPage - 1) * pageSize;
   const pageRows = filteredProducts.slice(start, start + pageSize);
 
-  tbody.innerHTML = pageRows.map(p => {
+  tbody.innerHTML = pageRows.map((p, i) => {
+    const delay = `${i * 0.04}s`;
     const checked = selectedIds.has(p._id) ? "checked" : "";
     return `
-      <tr class="${selectedIds.has(p._id) ? "row-selected" : ""}">
+      <tr class="row-animate ${selectedIds.has(p._id) ? "row-selected" : ""}" style="animation-delay:${delay}">
         <td class="td-check">
           <input type="checkbox" class="row-check" value="${p._id}"
             ${checked} onchange="toggleRowSelect('${p._id}', this.checked)">
@@ -472,7 +486,7 @@ async function saveProduct() {
     return;
   }
 
-  btn.textContent       = "Saving…";
+  btn.innerHTML         = `<span class="btn-spinner"></span> Saving…`;
   btn.disabled          = true;
   errorEl.style.display = "none";
 
@@ -515,8 +529,8 @@ function closeDeleteModal() {
 
 async function confirmDelete() {
   const btn = document.getElementById("confirmDeleteBtn");
-  btn.textContent = "Deleting…";
-  btn.disabled    = true;
+  btn.innerHTML = `<span class="btn-spinner"></span> Deleting…`;
+  btn.disabled  = true;
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/products/${deletingId}`, {

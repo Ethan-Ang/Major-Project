@@ -134,6 +134,11 @@ function renderGrid(products) {
   }
 
   grid.innerHTML = products.map(p => productCardHTML(p)).join("");
+
+  grid.querySelectorAll(".product-card").forEach((card, i) => {
+    card.classList.add("animate");
+    card.style.animationDelay = `${i * 0.05}s`;
+  });
 }
 
 function productCardHTML(p) {
