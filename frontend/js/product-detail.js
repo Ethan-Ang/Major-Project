@@ -221,7 +221,7 @@ function renderRelated(product) {
         <h3>${p.name}</h3>
         <p>${p.shortDescription}</p>
         <div class="product-card-actions">
-          <a href="product-detail.html?id=${p.id}" class="btn btn-outline">View Details</a>
+          <a href="product-detail?id=${p.id}" class="btn btn-outline">View Details</a>
         </div>
       </div>
     </div>`).join("");
