@@ -8,14 +8,15 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
       padding: 0 2rem;
       height: 60px;
       box-sizing: border-box;
     }
     .nav-logo {
+      justify-self: start;
       font-size: 1.2rem;
       font-weight: 700;
       color: #CC2929;
@@ -43,6 +44,7 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      justify-self: end;
     }
     .nav-basket {
       display: flex;
