@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | Yee Lim Adhesives</title>
   <link rel="stylesheet" href="admin.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 
@@ -12,33 +13,101 @@
 
   <!-- Sidebar -->
   <aside class="admin-sidebar">
-    <div class="admin-sidebar-logo">YEE LIM ADMIN</div>
-    <ul class="admin-nav">
-      <li><a href="#" class="active">&#128230; Products</a></li>
-    </ul>
+    <div class="admin-sidebar-brand">
+      <span class="brand-mark">YL</span>
+      <div>
+        <div class="brand-name">Yee Lim</div>
+        <div class="brand-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-section-label">Catalogue</div>
+      <ul>
+        <li>
+          <a href="#" class="active">
+            <i data-lucide="package"></i>
+            Products
+          </a>
+        </li>
+      </ul>
+    </nav>
+
     <div class="admin-sidebar-footer">
-      <button class="btn-logout" onclick="logout()">Sign Out</button>
+      <button class="btn-logout" onclick="logout()">
+        <i data-lucide="log-out"></i>
+        Sign Out
+      </button>
     </div>
   </aside>
 
   <!-- Main -->
   <main class="admin-main">
-    <div class="admin-header">
-      <h1>Products</h1>
-      <button class="btn btn-primary" onclick="openAddModal()">+ Add Product</button>
+
+    <!-- Top bar -->
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Products</h1>
+        <p class="admin-page-sub">Manage the Yee Lim product catalogue</p>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">
+        <i data-lucide="plus"></i>
+        Add Product
+      </button>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+          <i data-lucide="layers"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total Products</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+          <i data-lucide="check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="statAvailable">—</div>
+          <div class="stat-label">Available</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-red">
+          <i data-lucide="x-circle"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="statUnavailable">—</div>
+          <div class="stat-label">Unavailable</div>
+        </div>
+      </div>
     </div>
 
     <div class="alert alert-error" id="pageError" style="display:none"></div>
 
+    <!-- Product table card -->
     <div class="admin-card">
       <div class="admin-card-header">
         <h2>All Products</h2>
-        <span id="productCount" style="font-size:0.85rem;color:#666"></span>
+        <div class="table-search-wrap">
+          <i data-lucide="search" class="search-icon"></i>
+          <input
+            type="text"
+            id="tableSearch"
+            class="table-search"
+            placeholder="Search products…"
+            oninput="filterTable()"
+          >
+        </div>
       </div>
       <table>
         <thead>
           <tr>
-            <th>Name</th>
+            <th>Product Name</th>
             <th>Category</th>
             <th>Status</th>
             <th>Actions</th>
@@ -49,6 +118,7 @@
         </tbody>
       </table>
     </div>
+
   </main>
 </div>
 
@@ -57,17 +127,18 @@
   <div class="modal">
     <div class="modal-header">
       <h2 id="modalTitle">Add Product</h2>
-      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <button class="modal-close" onclick="closeModal()">
+        <i data-lucide="x"></i>
+      </button>
     </div>
     <div class="modal-body">
       <div class="alert alert-error" id="modalError" style="display:none"></div>
-
       <input type="hidden" id="editingId">
 
       <div class="form-row-2">
         <div class="form-group">
           <label for="fieldName">Product Name *</label>
-          <input type="text" id="fieldName" required>
+          <input type="text" id="fieldName" required placeholder="e.g. Deer™ Wood Contact Adhesive">
         </div>
         <div class="form-group">
           <label for="fieldCategory">Category *</label>
@@ -81,24 +152,27 @@
 
       <div class="form-group">
         <label for="fieldShortDesc">Short Description *</label>
-        <input type="text" id="fieldShortDesc" required>
+        <input type="text" id="fieldShortDesc" required placeholder="One line summary of the product">
       </div>
 
       <div class="form-group">
         <label for="fieldFullDesc">Full Description</label>
-        <textarea id="fieldFullDesc" rows="4"></textarea>
+        <textarea id="fieldFullDesc" rows="4" placeholder="Detailed product description…"></textarea>
       </div>
 
       <div class="form-group">
         <label for="fieldUsage">How to Use</label>
-        <textarea id="fieldUsage" rows="3"></textarea>
+        <textarea id="fieldUsage" rows="3" placeholder="Application instructions…"></textarea>
       </div>
 
       <div class="form-row-2">
         <div class="form-group">
           <label for="fieldImageUrl">Image URL</label>
           <input type="text" id="fieldImageUrl" placeholder="images/products/name.jpg" oninput="updateImagePreview()">
-          <div class="image-preview-box" id="imagePreview">No image URL entered</div>
+          <div class="image-preview-box" id="imagePreview">
+            <i data-lucide="image" style="opacity:0.3;width:28px;height:28px"></i>
+            <span>No image URL entered</span>
+          </div>
         </div>
         <div class="form-group">
           <label for="fieldStatus">Status</label>
@@ -118,22 +192,32 @@
 
 <!-- Delete Confirm Modal -->
 <div class="modal-overlay" id="deleteModal">
-  <div class="modal" style="max-width:400px">
+  <div class="modal modal-sm">
     <div class="modal-header">
       <h2>Delete Product</h2>
-      <button class="modal-close" onclick="closeDeleteModal()">&#10005;</button>
+      <button class="modal-close" onclick="closeDeleteModal()">
+        <i data-lucide="x"></i>
+      </button>
     </div>
     <div class="modal-body">
-      <p>Are you sure you want to delete <strong id="deleteProductName"></strong>? This cannot be undone.</p>
+      <div class="delete-confirm-icon">
+        <i data-lucide="trash-2"></i>
+      </div>
+      <p class="delete-confirm-text">Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+      <p class="delete-confirm-sub">This action cannot be undone.</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
-      <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-danger-solid" id="confirmDeleteBtn" onclick="confirmDelete()">Delete Product</button>
     </div>
   </div>
 </div>
 
+<!-- Toast -->
+<div class="admin-toast" id="adminToast"></div>
+
 <script src="../js/data.js"></script>
 <script src="admin.js"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
