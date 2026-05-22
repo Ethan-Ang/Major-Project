@@ -734,10 +734,14 @@ th.sortable:hover { color: var(--text); }
 /* ─── Checkbox column ────────────────────────────────────────── */
 .th-check, .td-check {
   width: 44px;
-  padding-right: 0;
+  padding: 0 0.5rem !important;
+  vertical-align: middle;
+  text-align: center;
 }
 
 .row-check {
+  display: block;
+  margin: 0 auto;
   width: 15px;
   height: 15px;
   accent-color: var(--red);
