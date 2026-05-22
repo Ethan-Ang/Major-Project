@@ -180,7 +180,7 @@ function updateSidebarCompareBtn(productId) {
   if (!btn) return;
   const inCompare  = isInCompare(productId);
   btn.className    = `btn-compare-sidebar${inCompare ? " in-compare" : ""}`;
-  btn.textContent  = inCompare ? "✓ In Comparison" : "+ Add to Compare";
+  btn.innerHTML    = inCompare ? "&#10003; In Comparison" : "+ Add to Compare";
   btn.setAttribute("aria-pressed", String(inCompare));
 }
 

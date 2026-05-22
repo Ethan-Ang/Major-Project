@@ -35,6 +35,20 @@
   <div class="related-grid" id="relatedGrid"></div>
 </div>
 
+<!-- Compare tray -->
+<div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
+  <span class="compare-tray-label">Comparing:</span>
+  <div class="compare-tray-slots" id="compareTraySlots"></div>
+  <div class="compare-tray-actions">
+    <button class="compare-tray-btn" id="compareBtn"
+      onclick="openComparisonOverlay()" disabled
+      aria-label="Open comparison view">Compare &#8594;</button>
+    <button class="compare-tray-clear" onclick="clearCompare()"
+      aria-label="Clear all products from comparison">Clear all</button>
+  </div>
+</div>
+
+<!-- Compare overlay -->
 <div class="compare-overlay" id="compareOverlay"
   role="dialog" aria-modal="true" aria-label="Product comparison"></div>
 
