@@ -669,6 +669,199 @@ tbody tr:hover td { background: #f9fafb; }
 
 .admin-toast svg { width: 16px; height: 16px; flex-shrink: 0; }
 
+/* ─── Topbar actions ─────────────────────────────────────────── */
+.topbar-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+/* ─── Card header layout ─────────────────────────────────────── */
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.table-count {
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: var(--bg);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+.card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ─── Page size select ───────────────────────────────────────── */
+.page-size-select {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  font-family: inherit;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.page-size-select:focus { border-color: var(--red); }
+
+/* ─── Sortable columns ───────────────────────────────────────── */
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+th.sortable:hover { color: var(--text); }
+
+.sort-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.3rem;
+  color: var(--red);
+  vertical-align: middle;
+}
+
+/* ─── Checkbox column ────────────────────────────────────────── */
+.th-check, .td-check {
+  width: 44px;
+  padding-right: 0;
+}
+
+.row-check {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.row-selected td { background: #fff5f5 !important; }
+
+/* ─── Bulk action bar ────────────────────────────────────────── */
+.bulk-bar {
+  padding: 0.65rem 1.25rem;
+  background: #fff5f5;
+  border-bottom: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.bulk-selected {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--red);
+  margin-right: auto;
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+/* ─── Table wrap ─────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+
+/* ─── View site link in sidebar ──────────────────────────────── */
+.btn-view-site {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  background: none;
+  border: 1px solid var(--dark3);
+  color: #9ca3af;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: inherit;
+  text-decoration: none;
+  transition: all 0.15s;
+  margin-bottom: 0.5rem;
+}
+
+.btn-view-site svg { width: 14px; height: 14px; }
+.btn-view-site:hover { border-color: #6b7280; color: #fff; }
+
+/* ─── Pagination ─────────────────────────────────────────────── */
+.pagination-bar {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #f9fafb;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: all 0.15s;
+}
+
+.page-btn:hover { border-color: var(--red); color: var(--red); }
+
+.page-btn-active {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  font-weight: 600;
+}
+
+.page-btn-active:hover { background: var(--red-dark); color: #fff; }
+
+.page-ellipsis {
+  display: flex;
+  align-items: center;
+  padding: 0 0.3rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 /* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .stats-row { grid-template-columns: 1fr 1fr; }

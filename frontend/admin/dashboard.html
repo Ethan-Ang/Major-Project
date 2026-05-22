@@ -34,6 +34,10 @@
     </nav>
 
     <div class="admin-sidebar-footer">
+      <a href="../products.html" class="btn-view-site" target="_blank">
+        <i data-lucide="external-link"></i>
+        View Live Site
+      </a>
       <button class="btn-logout" onclick="logout()">
         <i data-lucide="log-out"></i>
         Sign Out
@@ -50,14 +54,20 @@
         <h1 class="admin-page-title">Products</h1>
         <p class="admin-page-sub">Manage the Yee Lim product catalogue</p>
       </div>
-      <button class="btn btn-primary" onclick="openAddModal()">
-        <i data-lucide="plus"></i>
-        Add Product
-      </button>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" onclick="exportCSV()">
+          <i data-lucide="download"></i>
+          Export CSV
+        </button>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <i data-lucide="plus"></i>
+          Add Product
+        </button>
+      </div>
     </div>
 
     <!-- Stats cards -->
-    <div class="stats-row" id="statsRow">
+    <div class="stats-row">
       <div class="stat-card">
         <div class="stat-icon stat-icon-blue">
           <i data-lucide="layers"></i>
@@ -91,32 +101,87 @@
 
     <!-- Product table card -->
     <div class="admin-card">
+
+      <!-- Card header -->
       <div class="admin-card-header">
-        <h2>All Products</h2>
-        <div class="table-search-wrap">
-          <i data-lucide="search" class="search-icon"></i>
-          <input
-            type="text"
-            id="tableSearch"
-            class="table-search"
-            placeholder="Search products…"
-            oninput="filterTable()"
-          >
+        <div class="card-header-left">
+          <h2>All Products</h2>
+          <span class="table-count" id="tableCount"></span>
+        </div>
+        <div class="card-header-right">
+          <div class="table-search-wrap">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="tableSearch" class="table-search" placeholder="Search products…" oninput="onSearch()">
+          </div>
+          <select class="page-size-select" id="pageSizeSelect" onchange="onPageSizeChange()">
+            <option value="10">10 per page</option>
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+          </select>
         </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Product Name</th>
-            <th>Category</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="productTableBody">
-          <tr class="loading-row"><td colspan="4">Loading products…</td></tr>
-        </tbody>
-      </table>
+
+      <!-- Bulk action bar (hidden until items selected) -->
+      <div class="bulk-bar" id="bulkBar" style="display:none">
+        <span class="bulk-selected" id="bulkSelected">0 selected</span>
+        <div class="bulk-actions">
+          <button class="btn btn-outline btn-sm" onclick="bulkMarkAvailable()">Mark Available</button>
+          <button class="btn btn-outline btn-sm" onclick="bulkMarkUnavailable()">Mark Unavailable</button>
+          <button class="btn btn-danger btn-sm" onclick="bulkDelete()">
+            <i data-lucide="trash-2"></i>
+            Delete Selected
+          </button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="clearSelection()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="th-check">
+                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" class="row-check">
+              </th>
+              <th class="sortable" onclick="sortBy('name')">
+                Product Name
+                <span class="sort-icon" id="sort-name"></span>
+              </th>
+              <th class="sortable" onclick="sortBy('category')">
+                Category
+                <span class="sort-icon" id="sort-category"></span>
+              </th>
+              <th class="sortable" onclick="sortBy('status')">
+                Status
+                <span class="sort-icon" id="sort-status"></span>
+              </th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+            <tr class="loading-row"><td colspan="5">Loading products…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination bar -->
+      <div class="pagination-bar" id="paginationBar" style="display:none">
+        <span class="pagination-info" id="paginationInfo"></span>
+        <div class="pagination-controls">
+          <button class="btn btn-ghost btn-sm" id="btnPrevPage" onclick="changePage(-1)">
+            <i data-lucide="chevron-left"></i>
+            Prev
+          </button>
+          <div class="page-numbers" id="pageNumbers"></div>
+          <button class="btn btn-ghost btn-sm" id="btnNextPage" onclick="changePage(1)">
+            Next
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
     </div>
 
   </main>
@@ -170,7 +235,12 @@
           <label for="fieldImageUrl">Image URL</label>
           <input type="text" id="fieldImageUrl" placeholder="images/products/name.jpg" oninput="updateImagePreview()">
           <div class="image-preview-box" id="imagePreview">
-            <i data-lucide="image" style="opacity:0.3;width:28px;height:28px"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
             <span>No image URL entered</span>
           </div>
         </div>
@@ -209,6 +279,29 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
       <button class="btn btn-danger-solid" id="confirmDeleteBtn" onclick="confirmDelete()">Delete Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Delete Confirm Modal -->
+<div class="modal-overlay" id="bulkDeleteModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Delete Selected Products</h2>
+      <button class="modal-close" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirm-icon">
+        <i data-lucide="trash-2"></i>
+      </div>
+      <p class="delete-confirm-text" id="bulkDeleteText">Delete selected products?</p>
+      <p class="delete-confirm-sub">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-danger-solid" id="confirmBulkDeleteBtn" onclick="confirmBulkDelete()">Delete All</button>
     </div>
   </div>
 </div>
