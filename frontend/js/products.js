@@ -1,5 +1,6 @@
 // ─── State ──────────────────────────────────────────────────────
-let activeFilters = { brands: [], industries: [], surfaces: [] };
+let activeFilters  = { brands: [], industries: [], surfaces: [] };
+let currentResults = PRODUCTS;
 
 // ─── Init ────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -8,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   updateBasketCount();
   document.getElementById("searchInput").addEventListener("input", applyFilters);
 });
+
+window.addEventListener("compareUpdated", () => renderGrid(currentResults));
 
 // ─── Build filter sidebar checkboxes from data ───────────────────
 function buildFilterCheckboxes() {
@@ -119,6 +122,7 @@ function removeFilter(type, value) {
 
 // ─── Render product grid ──────────────────────────────────────────
 function renderGrid(products) {
+  currentResults = products;
   const grid = document.getElementById("productGrid");
   const countEl = document.getElementById("resultCount");
 
@@ -144,6 +148,11 @@ function renderGrid(products) {
 function productCardHTML(p) {
   const basket = getBasket();
   const inBasket = basket.includes(p.id);
+  const inCompare       = isInCompare(p.id);
+  const compareListFull = getCompareList().length >= COMPARE_MAX;
+  const compareDisabled = !inCompare && compareListFull;
+  const compareBtnClass = `btn-compare-card${inCompare ? " in-compare" : ""}`;
+  const compareBtnText  = inCompare ? "&#10003; In Compare" : "+ Compare";
   const industryTags = p.industries.slice(0, 2).map(i => `<span class="product-tag">${i}</span>`).join("");
 
   const brandSlug = p.brand.replace(/[^a-z]/gi, "").toLowerCase();
@@ -169,6 +178,13 @@ function productCardHTML(p) {
             onclick="toggleBasket(${p.id})"
           >${inBasket ? "&#10003; Added" : "Add to Enquiry"}</button>
         </div>
+        <button
+          class="${compareBtnClass}"
+          onclick="toggleCompare(${p.id})"
+          ${compareDisabled ? `disabled title="Remove a product to add another"` : ""}
+          aria-pressed="${inCompare}">
+          ${compareBtnText}
+        </button>
       </div>
     </div>`;
 }
