@@ -197,7 +197,7 @@ body {
 
 .input-icon {
   position: absolute;
-  left: 0.75rem;
+  left: 0.65rem;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -219,7 +219,7 @@ body {
 .input-wrap input,
 .input-wrap select {
   width: 100%;
-  padding: 0.7rem 0.85rem 0.7rem 2.75rem;
+  padding: 0.7rem 0.85rem 0.7rem 2.25rem !important;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
