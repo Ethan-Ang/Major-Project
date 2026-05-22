@@ -158,6 +158,10 @@ function openComparisonOverlay() {
       </div>
     </div>`;
 
+  // Clean up any previous listeners before (re-)attaching
+  if (_backdropListener) { overlay.removeEventListener("click", _backdropListener); _backdropListener = null; }
+  if (_escapeListener)   { document.removeEventListener("keydown", _escapeListener); _escapeListener = null; }
+
   overlay.classList.add("open");
   document.body.style.overflow = "hidden";
 
@@ -193,5 +197,16 @@ function addToBasketFromCompare(productId) {
 }
 
 // ─── Init ───────────────────────────────────────────────────────
-window.addEventListener("compareUpdated", renderCompareTray);
+window.addEventListener("compareUpdated", () => {
+  renderCompareTray();
+  const overlay = document.getElementById("compareOverlay");
+  if (overlay && overlay.classList.contains("open")) {
+    const list = getCompareList();
+    if (list.length < 2) {
+      closeComparisonOverlay();
+    } else {
+      openComparisonOverlay();
+    }
+  }
+});
 window.addEventListener("DOMContentLoaded", renderCompareTray);
