@@ -37,7 +37,7 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   display: flex;
-  animation: fadeInPage 0.35s ease both;
+  animation: fadeInPage 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 /* ─── Auth split layout ──────────────────────────────────────── */
@@ -55,7 +55,6 @@ body {
   display: flex;
   flex-direction: column;
   padding: 3rem;
-  animation: slideInLeft 0.4s ease 0.05s both;
 }
 
 .auth-brand-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -144,7 +143,6 @@ body {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  animation: slideUp 0.4s ease 0.1s both;
 }
 
 .auth-form-wrap {
@@ -434,4 +432,13 @@ body {
   .auth-benefits { display: none; }
   .auth-sub { display: none; }
   .form-row-2 { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
