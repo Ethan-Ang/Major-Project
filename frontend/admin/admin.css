@@ -72,7 +72,6 @@ body {
   display: flex;
   width: 100%;
   min-height: 100vh;
-  animation: fadeInPage 0.4s ease both;
 }
 
 /* Left brand panel */
@@ -83,7 +82,6 @@ body {
   display: flex;
   flex-direction: column;
   padding: 3rem;
-  animation: slideInLeft 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.05s both;
 }
 
 .login-brand-content { flex: 1; }
@@ -160,7 +158,6 @@ body {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both;
 }
 
 .login-form-wrap {
@@ -1260,6 +1257,7 @@ th.sortable:hover { color: var(--text); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
