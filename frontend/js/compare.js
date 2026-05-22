@@ -70,13 +70,17 @@ function renderCompareTray() {
     }
   }
 
-  document.getElementById("compareTraySlots").innerHTML = slots.join("");
+  const slotsEl = document.getElementById("compareTraySlots");
+  if (slotsEl) slotsEl.innerHTML = slots.join("");
 
   const btn = document.getElementById("compareBtn");
   if (btn) btn.disabled = list.length < 2;
 }
 
 // ─── Overlay ────────────────────────────────────────────────────
+let _backdropListener = null;
+let _escapeListener   = null;
+
 function openComparisonOverlay() {
   const list     = getCompareList();
   const products = list.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
@@ -124,6 +128,8 @@ function openComparisonOverlay() {
     </tr>`;
 
   const overlay = document.getElementById("compareOverlay");
+  if (!overlay) return;
+
   overlay.innerHTML = `
     <div class="compare-overlay-inner">
       <div class="compare-overlay-header">
@@ -155,27 +161,25 @@ function openComparisonOverlay() {
   overlay.classList.add("open");
   document.body.style.overflow = "hidden";
 
-  // Close on backdrop click
-  overlay.addEventListener("click", function onBackdropClick(e) {
-    if (e.target === overlay) {
-      closeComparisonOverlay();
-      overlay.removeEventListener("click", onBackdropClick);
-    }
-  });
-
-  // Close on Escape
-  document.addEventListener("keydown", function onEscape(e) {
-    if (e.key === "Escape") {
-      closeComparisonOverlay();
-      document.removeEventListener("keydown", onEscape);
-    }
-  });
+  _backdropListener = e => { if (e.target === overlay) closeComparisonOverlay(); };
+  _escapeListener   = e => { if (e.key === "Escape") closeComparisonOverlay(); };
+  overlay.addEventListener("click", _backdropListener);
+  document.addEventListener("keydown", _escapeListener);
 }
 
 function closeComparisonOverlay() {
   const overlay = document.getElementById("compareOverlay");
   if (overlay) overlay.classList.remove("open");
   document.body.style.overflow = "";
+
+  if (_backdropListener) {
+    overlay && overlay.removeEventListener("click", _backdropListener);
+    _backdropListener = null;
+  }
+  if (_escapeListener) {
+    document.removeEventListener("keydown", _escapeListener);
+    _escapeListener = null;
+  }
 }
 
 function addToBasketFromCompare(productId) {
