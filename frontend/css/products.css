@@ -150,6 +150,7 @@ body {
 
 .search-bar {
   display: flex;
+  align-items: stretch;
   max-width: 560px;
   margin: 0 auto;
 }
@@ -171,6 +172,7 @@ body {
   border-radius: 0 var(--radius) var(--radius) 0;
   cursor: pointer;
   font-size: 1rem;
+  font-family: inherit;
   transition: background 0.2s;
 }
 
