@@ -44,6 +44,13 @@
     </nav>
 
     <div class="admin-sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebarAvatar">A</div>
+        <div>
+          <div class="sidebar-user-name" id="sidebarUsername">Admin</div>
+          <div class="sidebar-user-role">Administrator</div>
+        </div>
+      </div>
       <a href="../products.html" class="btn-view-site" target="_blank">
         <i data-lucide="external-link" aria-hidden="true"></i>
         View Live Site
@@ -64,15 +71,15 @@
         <p class="admin-page-sub">Customer product enquiries submitted via the website</p>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-outline" onclick="markAllRead()">
-          <i data-lucide="check-check" aria-hidden="true"></i>
-          Mark All Read
-        </button>
-        <button class="btn btn-outline" onclick="exportEnquiriesCSV()">
-          <i data-lucide="download" aria-hidden="true"></i>
-          Export CSV
-        </button>
-      </div>
+          <button class="btn btn-outline" onclick="markAllRead()">
+            <i data-lucide="check-check" aria-hidden="true"></i>
+            Mark All Read
+          </button>
+          <button class="btn btn-outline" onclick="exportEnquiriesCSV()">
+            <i data-lucide="download" aria-hidden="true"></i>
+            Export CSV
+          </button>
+        </div>
     </div>
 
     <!-- Stats -->
@@ -103,6 +110,19 @@
           <div class="stat-value" id="statRead">—</div>
           <div class="stat-label">Read</div>
         </div>
+      </div>
+    </div>
+
+    <!-- Enquiry volume chart -->
+    <div class="admin-card" style="margin-bottom:1.25rem">
+      <div class="admin-card-header">
+        <div class="card-header-left">
+          <h2>Enquiry Volume</h2>
+          <span class="table-count">Last 14 days</span>
+        </div>
+      </div>
+      <div class="enq-chart-body">
+        <canvas id="enqChart"></canvas>
       </div>
     </div>
 
@@ -170,6 +190,7 @@
 
 <div class="admin-toast" id="adminToast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="../js/data.js"></script>
 <script src="enquiries.js"></script>
 <script>lucide.createIcons();</script>

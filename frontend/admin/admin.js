@@ -20,6 +20,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
+    const name = localStorage.getItem("adminUsername") || "Admin";
+    const nameEl   = document.getElementById("sidebarUsername");
+    const avatarEl = document.getElementById("sidebarAvatar");
+    if (nameEl)   nameEl.textContent   = name;
+    if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
     loadProducts();
   } catch {
     localStorage.removeItem("adminToken");

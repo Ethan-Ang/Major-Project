@@ -32,6 +32,7 @@ async function handleLogin(event) {
     }
 
     localStorage.setItem("adminToken", data.token);
+    localStorage.setItem("adminUsername", username);
     window.location.href = "dashboard.html";
 
   } catch (err) {

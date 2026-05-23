@@ -69,12 +69,18 @@ const SAMPLE_ENQUIRIES = [
 let enquiries      = [];
 let filteredEnqs   = [];
 let currentEnqId   = null;
+let enqChart       = null;
 let readIds        = new Set(JSON.parse(localStorage.getItem("readEnquiries") || "[]"));
 
 // ─── Auth guard ───────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
+  const name = localStorage.getItem("adminUsername") || "Admin";
+  const nameEl   = document.getElementById("sidebarUsername");
+  const avatarEl = document.getElementById("sidebarAvatar");
+  if (nameEl)   nameEl.textContent   = name;
+  if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
   loadEnquiries();
 });
 
@@ -102,6 +108,7 @@ async function loadEnquiries() {
   filteredEnqs = [...enquiries];
   renderStats();
   renderTable();
+  renderChart();
 }
 
 function isRead(id) { return readIds.has(id); }
@@ -315,6 +322,72 @@ function closePanel() {
   document.getElementById("detailPanel").classList.remove("open");
   document.getElementById("panelOverlay").classList.remove("open");
   currentEnqId = null;
+}
+
+// ─── Enquiry volume chart ─────────────────────────────────────
+function renderChart() {
+  const canvas = document.getElementById("enqChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  const today = new Date();
+  const labels = [];
+  const counts = [];
+
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    labels.push(d.toLocaleDateString("en-SG", { day: "numeric", month: "short" }));
+    counts.push(enquiries.filter(e => e.date.slice(0, 10) === key).length);
+  }
+
+  if (enqChart) enqChart.destroy();
+
+  enqChart = new Chart(canvas.getContext("2d"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Enquiries",
+        data: counts,
+        backgroundColor: "rgba(204,41,41,0.14)",
+        borderColor: "#CC2929",
+        borderWidth: 2,
+        borderRadius: 5,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#111827",
+          titleColor: "#e5e7eb",
+          bodyColor: "#9ca3af",
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} enquir${ctx.parsed.y !== 1 ? "ies" : "y"}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: "#9ca3af", font: { size: 11 }, maxRotation: 0 }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: "#9ca3af", font: { size: 11 }, stepSize: 1, precision: 0 },
+          grid: { color: "#f3f4f6" },
+          border: { display: false }
+        }
+      }
+    }
+  });
 }
 
 // ─── Export CSV ───────────────────────────────────────────────────
