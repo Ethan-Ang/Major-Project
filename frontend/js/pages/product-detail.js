@@ -199,21 +199,24 @@ function renderRelated(product) {
   if (!section || !grid) return;
 
   section.style.display = "block";
-  grid.innerHTML = related.map(p => `
+  grid.innerHTML = related.map(p => {
+    const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+    return `
     <div class="product-card">
-      <div class="product-card-image">
-        <img src="${p.imageUrl}" alt="${p.name}"
-          onerror="this.parentElement.style.background='var(--bg)';this.remove()">
+      <div class="product-card-image no-image">
+        <div class="no-image-icon" aria-hidden="true">&#9783;</div>
+        <div class="no-image-label" aria-hidden="true">${brandLabel}</div>
       </div>
       <div class="product-card-body">
         <span class="brand-badge">${p.brand}</span>
         <h3>${p.name}</h3>
         <p>${p.shortDescription}</p>
         <div class="product-card-actions">
-          <a href="product-detail?id=${p.id}" class="btn btn-outline">View Product</a>
+          <a href="product-detail.html?id=${p.id}" class="btn btn-outline">View Product</a>
         </div>
       </div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 // ─── Basket helpers ───────────────────────────────────────────────

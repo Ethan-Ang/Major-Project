@@ -1,45 +1,107 @@
 // ─── State ──────────────────────────────────────────────────────
 let activeFilters  = { brands: [], industries: [], surfaces: [] };
 let currentResults = PRODUCTS;
+let initialLoadDone = false;
 
 // ─── Init ────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  renderSkeleton();
+  readStateFromURL();
   buildFilterCheckboxes();
-  renderGrid(PRODUCTS);
+  applyStateToCheckboxes();
   updateBasketCount();
-  document.getElementById("searchInput").addEventListener("input", applyFilters);
+
+  // Small delay so the skeleton is visible at least one frame
+  // and animations have a chance to start
+  requestAnimationFrame(() => {
+    applyFilters({ skipUrlWrite: true });
+    initialLoadDone = true;
+  });
+
+  document.getElementById("searchInput").addEventListener("input", () => applyFilters());
 });
 
 window.addEventListener("compareUpdated", syncCompareButtons);
 
-// ─── Build filter sidebar checkboxes from data ───────────────────
-function buildFilterCheckboxes() {
-  buildCheckboxGroup("brandFilters", BRANDS, "brand");
-  buildCheckboxGroup("industryFilters", INDUSTRIES, "industry");
-  buildCheckboxGroup("surfaceFilters", SURFACES, "surface");
+// ─── URL state ──────────────────────────────────────────────────
+function readStateFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const searchInput = document.getElementById("searchInput");
+  const sortSelect  = document.getElementById("sortSelect");
+
+  if (params.get("q")) searchInput.value = params.get("q");
+  if (params.get("sort") && sortSelect) sortSelect.value = params.get("sort");
+
+  activeFilters.brands     = params.get("brand")    ? params.get("brand").split("|")    : [];
+  activeFilters.industries = params.get("industry") ? params.get("industry").split("|") : [];
+  activeFilters.surfaces   = params.get("surface")  ? params.get("surface").split("|")  : [];
 }
 
-function buildCheckboxGroup(containerId, items, type) {
+function writeStateToURL() {
+  const params = new URLSearchParams();
+  const search = document.getElementById("searchInput").value.trim();
+  const sort   = document.getElementById("sortSelect").value;
+
+  if (search) params.set("q", search);
+  if (sort && sort !== "default") params.set("sort", sort);
+  if (activeFilters.brands.length)     params.set("brand",    activeFilters.brands.join("|"));
+  if (activeFilters.industries.length) params.set("industry", activeFilters.industries.join("|"));
+  if (activeFilters.surfaces.length)   params.set("surface",  activeFilters.surfaces.join("|"));
+
+  const queryStr = params.toString();
+  const newUrl   = queryStr ? `${location.pathname}?${queryStr}` : location.pathname;
+  history.replaceState(null, "", newUrl);
+}
+
+function applyStateToCheckboxes() {
+  // Called after buildFilterCheckboxes — restores checked state from activeFilters
+  document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => {
+    const type = cb.dataset.type;
+    const val  = cb.value;
+    if (type === "brand")    cb.checked = activeFilters.brands.includes(val);
+    if (type === "industry") cb.checked = activeFilters.industries.includes(val);
+    if (type === "surface")  cb.checked = activeFilters.surfaces.includes(val);
+  });
+}
+
+// ─── Filter checkboxes with counts ───────────────────────────────
+function buildFilterCheckboxes() {
+  buildCheckboxGroup("brandFilters",    BRANDS,     "brand",    p => [p.brand]);
+  buildCheckboxGroup("industryFilters", INDUSTRIES, "industry", p => p.industries);
+  buildCheckboxGroup("surfaceFilters",  SURFACES,   "surface",  p => p.surfaces);
+}
+
+function buildCheckboxGroup(containerId, items, type, valueExtractor) {
   const container = document.getElementById(containerId);
-  container.innerHTML = items.map(item => `
-    <label>
-      <input type="checkbox" value="${item}" data-type="${type}" onchange="applyFilters()">
-      ${item}
-    </label>
-  `).join("");
+  const counts = {};
+  PRODUCTS.forEach(p => {
+    valueExtractor(p).forEach(v => { counts[v] = (counts[v] || 0) + 1; });
+  });
+
+  container.innerHTML = items.map(item => {
+    const count = counts[item] || 0;
+    const disabled = count === 0 ? "disabled" : "";
+    return `
+      <label class="${disabled ? 'is-empty' : ''}">
+        <input type="checkbox" value="${item}" data-type="${type}" onchange="applyFilters()" ${disabled}>
+        <span class="filter-label-text">${item}</span>
+        <span class="filter-count">${count}</span>
+      </label>
+    `;
+  }).join("");
 }
 
 // ─── Apply search + filters + sort ───────────────────────────────
-function applyFilters() {
-  const query = document.getElementById("searchInput").value.toLowerCase().trim();
+function applyFilters(opts = {}) {
+  const query   = document.getElementById("searchInput").value.toLowerCase().trim();
   const sortVal = document.getElementById("sortSelect").value;
 
   activeFilters = { brands: [], industries: [], surfaces: [] };
   document.querySelectorAll(".filter-sidebar input[type=checkbox]:checked").forEach(cb => {
     const type = cb.dataset.type;
-    if (type === "brand") activeFilters.brands.push(cb.value);
+    if (type === "brand")    activeFilters.brands.push(cb.value);
     if (type === "industry") activeFilters.industries.push(cb.value);
-    if (type === "surface") activeFilters.surfaces.push(cb.value);
+    if (type === "surface")  activeFilters.surfaces.push(cb.value);
   });
 
   let results = PRODUCTS.filter(p => {
@@ -62,12 +124,40 @@ function applyFilters() {
     return matchesQuery && matchesBrand && matchesIndustry && matchesSurface;
   });
 
-  if (sortVal === "az") results.sort((a, b) => a.name.localeCompare(b.name));
+  if (sortVal === "az")    results.sort((a, b) => a.name.localeCompare(b.name));
   else if (sortVal === "za") results.sort((a, b) => b.name.localeCompare(a.name));
   else if (sortVal === "brand") results.sort((a, b) => a.brand.localeCompare(b.brand));
 
   renderFilterChips();
   renderGrid(results);
+
+  if (!opts.skipUrlWrite) writeStateToURL();
+  updateClearVisibility();
+  updateFilterGroupBadges();
+}
+
+function updateFilterGroupBadges() {
+  document.querySelectorAll(".filter-sidebar .filter-group").forEach(group => {
+    const heading = group.querySelector("h3");
+    if (!heading) return;
+    const existing = heading.querySelector(".filter-group-badge");
+    if (existing) existing.remove();
+    const checked = group.querySelectorAll("input[type=checkbox]:checked").length;
+    if (checked > 0) {
+      const badge = document.createElement("span");
+      badge.className = "filter-group-badge";
+      badge.textContent = checked;
+      heading.appendChild(badge);
+    }
+  });
+}
+
+function updateClearVisibility() {
+  const btn = document.querySelector(".filter-clear");
+  if (!btn) return;
+  const any = activeFilters.brands.length || activeFilters.industries.length ||
+              activeFilters.surfaces.length || document.getElementById("searchInput").value.trim();
+  btn.style.display = any ? "block" : "none";
 }
 
 function clearFilters() {
@@ -77,6 +167,9 @@ function clearFilters() {
   activeFilters = { brands: [], industries: [], surfaces: [] };
   renderFilterChips();
   renderGrid(PRODUCTS);
+  writeStateToURL();
+  updateClearVisibility();
+  updateFilterGroupBadges();
 }
 
 // ─── Active filter chips ──────────────────────────────────────────
@@ -86,17 +179,17 @@ function renderFilterChips() {
 
   const query = document.getElementById("searchInput").value.trim();
   if (query) {
-    chips.push(`<button class="filter-chip" onclick="clearSearch()">Search: "${query}" &times;</button>`);
+    chips.push(`<button class="filter-chip" onclick="clearSearch()">Search: "${escapeHTML(query)}" &times;</button>`);
   }
 
   activeFilters.brands.forEach(b => {
-    chips.push(`<button class="filter-chip" onclick="removeFilter('brand','${b.replace(/'/g,"\\'")}')">Brand: ${b} &times;</button>`);
+    chips.push(`<button class="filter-chip" onclick="removeFilter('brand','${b.replace(/'/g,"\\'")}')">${b} &times;</button>`);
   });
   activeFilters.industries.forEach(i => {
-    chips.push(`<button class="filter-chip" onclick="removeFilter('industry','${i.replace(/'/g,"\\'")}')">Industry: ${i} &times;</button>`);
+    chips.push(`<button class="filter-chip" onclick="removeFilter('industry','${i.replace(/'/g,"\\'")}')">${i} &times;</button>`);
   });
   activeFilters.surfaces.forEach(s => {
-    chips.push(`<button class="filter-chip" onclick="removeFilter('surface','${s.replace(/'/g,"\\'")}')">Surface: ${s} &times;</button>`);
+    chips.push(`<button class="filter-chip" onclick="removeFilter('surface','${s.replace(/'/g,"\\'")}')">${s} &times;</button>`);
   });
 
   if (chips.length > 1) {
@@ -105,6 +198,10 @@ function renderFilterChips() {
 
   container.innerHTML = chips.join("");
   container.style.marginBottom = chips.length ? "1rem" : "0";
+}
+
+function escapeHTML(s) {
+  return s.replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
 }
 
 function clearSearch() {
@@ -116,23 +213,42 @@ function removeFilter(type, value) {
   const cb = document.querySelector(
     `.filter-sidebar input[data-type="${type}"][value="${value}"]`
   );
-  if (cb) { cb.checked = false; }
+  if (cb) cb.checked = false;
   applyFilters();
+}
+
+// ─── Skeleton state ───────────────────────────────────────────────
+function renderSkeleton() {
+  const grid = document.getElementById("productGrid");
+  if (!grid) return;
+  grid.innerHTML = Array.from({ length: 6 }).map(() => `
+    <div class="product-card skeleton-card" aria-hidden="true">
+      <div class="skeleton-img"></div>
+      <div class="product-card-body">
+        <div class="skeleton-line skeleton-line-short"></div>
+        <div class="skeleton-line skeleton-line-title"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line skeleton-line-mid"></div>
+      </div>
+    </div>
+  `).join("");
 }
 
 // ─── Render product grid ──────────────────────────────────────────
 function renderGrid(products) {
   currentResults = products;
-  const grid = document.getElementById("productGrid");
+  const grid    = document.getElementById("productGrid");
   const countEl = document.getElementById("resultCount");
 
-  countEl.textContent = `${products.length} product${products.length !== 1 ? "s" : ""} found`;
+  countEl.textContent = `${products.length} product${products.length !== 1 ? "s" : ""}`;
 
   if (products.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
-        <h3>No products found</h3>
-        <p>Try adjusting your search or filters.</p>
+        <div class="empty-state-icon" aria-hidden="true">&#9783;</div>
+        <h3>No products match those filters</h3>
+        <p>Try removing a filter or clearing your search.</p>
+        <button class="btn btn-outline" onclick="clearFilters()">Clear all filters</button>
       </div>`;
     return;
   }
@@ -141,52 +257,67 @@ function renderGrid(products) {
 
   grid.querySelectorAll(".product-card").forEach((card, i) => {
     card.classList.add("animate");
-    card.style.animationDelay = `${i * 0.05}s`;
+    card.style.animationDelay = `${Math.min(i, 8) * 0.04}s`;
   });
 }
 
 function productCardHTML(p) {
-  const basket = getBasket();
+  const basket   = getBasket();
   const inBasket = basket.includes(p.id);
   const inCompare       = isInCompare(p.id);
   const compareListFull = getCompareList().length >= COMPARE_MAX;
   const compareDisabled = !inCompare && compareListFull;
-  const compareBtnClass = `btn-compare-card${inCompare ? " in-compare" : ""}`;
-  const compareBtnText  = inCompare ? "&#10003; In Compare" : "+ Compare";
+
   const industryTags = p.industries.slice(0, 2).map(i => `<span class="product-tag">${i}</span>`).join("");
 
-  const brandSlug = p.brand.replace(/[^a-z]/gi, "").toLowerCase();
-  const imageHtml = `
-    <img
-      src="${p.imageUrl}"
-      alt="${p.name}"
-      onerror="this.parentElement.classList.add('no-image');this.remove();this.parentElement.innerHTML+='<div class=no-image-icon>&#128247;</div><div class=no-image-label>${brandSlug}</div>'"
-    >`;
+  const hasRealImage = p.images && p.images.length > 0;
+  const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+  const imageContent = hasRealImage
+    ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy">`
+    : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
+  const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
+
+  const compareTitle = compareDisabled
+    ? "Comparison full — remove one to add another"
+    : inCompare ? "Remove from comparison" : "Add to compare";
 
   return `
-    <div class="product-card">
-      <div class="product-card-image">${imageHtml}</div>
+    <article class="product-card" data-brand="${brandSlug(p.brand)}">
+      <div class="${imageClass}">
+        ${imageContent}
+        <button
+          class="card-compare-btn${inCompare ? " in-compare" : ""}"
+          onclick="event.stopPropagation();toggleCompare(${p.id})"
+          ${compareDisabled ? "disabled" : ""}
+          aria-pressed="${inCompare}"
+          title="${compareTitle}"
+          aria-label="${compareTitle}">
+          ${inCompare
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`}
+          <span>${inCompare ? "In compare" : "Compare"}</span>
+        </button>
+      </div>
       <div class="product-card-body">
         <span class="brand-badge">${p.brand}</span>
         <h3>${p.name}</h3>
         <p>${p.shortDescription}</p>
         <div class="product-tags">${industryTags}</div>
         <div class="product-card-actions">
-          <a href="product-detail?id=${p.id}" class="btn btn-outline">View Product</a>
+          <a href="product-detail.html?id=${p.id}" class="btn btn-outline">View Product</a>
           <button
             class="btn btn-primary ${inBasket ? "btn-added" : ""}"
             onclick="toggleBasket(${p.id})"
-          >${inBasket ? "&#10003; Added" : "Add to Enquiry"}</button>
+            aria-pressed="${inBasket}">
+            ${inBasket ? "&check; Added" : "Add to Enquiry"}
+          </button>
         </div>
-        <button
-          class="${compareBtnClass}"
-          onclick="toggleCompare(${p.id})"
-          ${compareDisabled ? `disabled title="Remove a product to add another"` : ""}
-          aria-pressed="${inCompare}">
-          ${compareBtnText}
-        </button>
       </div>
-    </div>`;
+    </article>`;
+}
+
+function brandSlug(brand) {
+  return brand.replace(/[^a-z]/gi, "").toLowerCase();
 }
 
 // ─── Sync compare button states without rebuilding the grid ──────
@@ -194,17 +325,25 @@ function syncCompareButtons() {
   const list = getCompareList();
   const full = list.length >= COMPARE_MAX;
   document.querySelectorAll(".product-card").forEach(card => {
-    const btn = card.querySelector(".btn-compare-card");
+    const btn = card.querySelector(".card-compare-btn");
     if (!btn) return;
     const match = (btn.getAttribute("onclick") || "").match(/toggleCompare\((\d+)\)/);
     if (!match) return;
     const id        = parseInt(match[1], 10);
     const inCompare = list.includes(id);
-    btn.className   = `btn-compare-card${inCompare ? " in-compare" : ""}`;
-    btn.innerHTML   = inCompare ? "&#10003; In Compare" : "+ Compare";
-    btn.disabled    = !inCompare && full;
-    btn.title       = (!inCompare && full) ? "Remove a product to add another" : "";
+    const disabled  = !inCompare && full;
+
+    btn.className = `card-compare-btn${inCompare ? " in-compare" : ""}`;
+    btn.disabled  = disabled;
+    btn.title     = disabled
+      ? "Comparison full — remove one to add another"
+      : inCompare ? "Remove from comparison" : "Add to compare";
     btn.setAttribute("aria-pressed", String(inCompare));
+    btn.setAttribute("aria-label", btn.title);
+    btn.innerHTML = (inCompare
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`)
+      + `<span>${inCompare ? "In compare" : "Compare"}</span>`;
   });
 }
 
@@ -236,7 +375,8 @@ function toggleBasket(productId) {
   }
 
   saveBasket(basket);
-  applyFilters();
+  // Re-render so the changed card reflects its state but keep filters & URL stable
+  applyFilters({ skipUrlWrite: true });
 }
 
 function updateBasketCount() {

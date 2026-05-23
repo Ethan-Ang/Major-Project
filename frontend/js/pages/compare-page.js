@@ -26,7 +26,7 @@ function renderComparePage() {
           <span class="compare-img-placeholder">${brandLabel}</span>
           <span class="compare-img-placeholder-sub">Photography coming soon</span>
         </div>
-        <a class="compare-product-name" href="product-detail?id=${p.id}">${p.name}</a>
+        <a class="compare-product-name" href="product-detail.html?id=${p.id}">${p.name}</a>
         <div class="compare-product-brand">${p.brand}</div>
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${p.status}

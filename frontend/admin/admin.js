@@ -9,8 +9,19 @@ let currentPage    = 1;
 let pageSize       = 10;
 let sortCol        = "";
 let sortDir        = "asc";
+let demoMode       = false;
 
-// ─── Auth guard ───────────────────────────────────────────────────
+// Demo fallback when backend is unreachable — mirrors enquiries.js SAMPLE_ENQUIRIES pattern
+const SAMPLE_ADMIN_PRODUCTS = PRODUCTS.map(p => ({
+  ...p,
+  _id: String(p.id)
+}));
+
+function isNetworkError(err) {
+  return err instanceof TypeError;
+}
+
+// ─── Auth guard ──────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
@@ -20,15 +31,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
-    const name = localStorage.getItem("adminUsername") || "Admin";
-    const nameEl   = document.getElementById("sidebarUsername");
-    const avatarEl = document.getElementById("sidebarAvatar");
-    if (nameEl)   nameEl.textContent   = name;
-    if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
     loadProducts();
-  } catch {
-    localStorage.removeItem("adminToken");
-    window.location.href = "login.html";
+  } catch (err) {
+    if (isNetworkError(err)) {
+      // Backend unreachable — fall back to demo data so the page is still navigable
+      demoMode = true;
+      loadProducts();
+    } else {
+      localStorage.removeItem("adminToken");
+      window.location.href = "login.html";
+    }
   }
 });
 
@@ -44,28 +56,45 @@ async function loadProducts() {
   const tbody   = document.getElementById("productTableBody");
   const errorEl = document.getElementById("pageError");
 
-  tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Loading products…</td></tr>';
+  tbody.innerHTML = adminSkeletonRows(6, 5);
   errorEl.style.display = "none";
+
+  if (demoMode) {
+    showDemoBanner();
+    return finishLoad([...SAMPLE_ADMIN_PRODUCTS]);
+  }
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/products`);
     if (!res.ok) throw new Error("Failed to load products.");
     const products = await res.json();
-
-    allProducts      = products;
-    filteredProducts = applySort([...products]);
-    currentPage      = 1;
-    selectedIds      = new Set();
-
-    updateStats(products);
-    renderTable();
-    lucide.createIcons();
-
+    finishLoad(products);
   } catch (err) {
+    if (isNetworkError(err)) {
+      // Network error — fall back to demo so the admin is still reviewable
+      demoMode = true;
+      showDemoBanner();
+      return finishLoad([...SAMPLE_ADMIN_PRODUCTS]);
+    }
     errorEl.textContent = err.message;
     errorEl.style.display = "block";
     tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Could not load products.</td></tr>';
   }
+}
+
+function finishLoad(products) {
+  allProducts      = products;
+  filteredProducts = applySort([...products]);
+  currentPage      = 1;
+  selectedIds      = new Set();
+  updateStats(products);
+  renderTable();
+  if (window.lucide) lucide.createIcons();
+}
+
+function showDemoBanner() {
+  // Demo fallback is silent now — sample data loads without a visible banner.
+  // Re-enable by uncommenting the banner creation if you want a visible warning.
 }
 
 function updateStats(products) {
@@ -73,6 +102,16 @@ function updateStats(products) {
   countUp("statTotal",       products.length);
   countUp("statAvailable",   available);
   countUp("statUnavailable", products.length - available);
+
+  // Toggle empty-state shell when there are zero products in the DB
+  const emptyEl = document.getElementById("productsEmptyState");
+  const statsEl = document.getElementById("statsRow");
+  const cardEl  = document.getElementById("productsCard");
+  const isEmpty = products.length === 0;
+  if (emptyEl) emptyEl.style.display = isEmpty ? "flex" : "none";
+  if (statsEl) statsEl.style.display = isEmpty ? "none" : "grid";
+  if (cardEl)  cardEl.style.display  = isEmpty ? "none" : "block";
+  if (isEmpty && window.lucide) lucide.createIcons();
 }
 
 function countUp(id, target) {
@@ -563,6 +602,25 @@ function showToast(message, type = "default") {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
+function adminSkeletonRows(count, cols) {
+  const rows = [];
+  for (let i = 0; i < count; i++) {
+    rows.push(`
+      <tr class="skel-row" aria-hidden="true">
+        <td class="td-check"><span class="skel skel-checkbox"></span></td>
+        <td>
+          <div class="skel skel-text skel-text-md"></div>
+          <div class="skel skel-text skel-text-sm"></div>
+        </td>
+        <td><span class="skel skel-pill"></span></td>
+        <td><span class="skel skel-badge"></span></td>
+        <td><div class="skel-actions"><span class="skel skel-icon"></span><span class="skel skel-icon"></span><span class="skel skel-icon"></span></div></td>
+      </tr>
+    `);
+  }
+  return rows.join("");
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")

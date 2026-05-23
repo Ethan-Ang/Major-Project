@@ -43,14 +43,7 @@
     </nav>
 
     <div class="admin-sidebar-footer">
-      <div class="sidebar-user">
-        <div class="sidebar-user-avatar" id="sidebarAvatar">A</div>
-        <div>
-          <div class="sidebar-user-name" id="sidebarUsername">Admin</div>
-          <div class="sidebar-user-role">Administrator</div>
-        </div>
-      </div>
-      <a href="../products.html" class="btn-view-site" target="_blank">
+      <a href="../products.html" class="btn-view-site">
         <i data-lucide="external-link" aria-hidden="true"></i>
         View Live Site
       </a>
@@ -83,7 +76,7 @@
     </div>
 
     <!-- Stats cards -->
-    <div class="stats-row">
+    <div class="stats-row" id="statsRow">
       <div class="stat-card">
         <div class="stat-icon stat-icon-blue">
           <i data-lucide="layers" aria-hidden="true"></i>
@@ -115,8 +108,29 @@
 
     <div class="alert alert-error" id="pageError" style="display:none"></div>
 
+    <!-- Empty state — shown only when allProducts.length === 0 -->
+    <div class="admin-empty-state" id="productsEmptyState" style="display:none">
+      <div class="admin-empty-state-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m7.5 4.27 9 5.15"/>
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/>
+          <path d="M12 22V12"/>
+        </svg>
+      </div>
+      <h2>No products yet</h2>
+      <p>Add your first adhesive to start building the Yee Lim catalogue. Products you add here appear instantly on the public site.</p>
+      <div class="admin-empty-state-actions">
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <i data-lucide="plus" aria-hidden="true"></i>
+          Add Your First Product
+        </button>
+      </div>
+    </div>
+
     <!-- Product table card -->
-    <div class="admin-card">
+    <div class="admin-card" id="productsCard">
 
       <!-- Card header -->
       <div class="admin-card-header">

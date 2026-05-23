@@ -3,7 +3,7 @@
   const style = document.createElement("style");
   style.textContent = `
     .nav {
-      background: #1a1a1a;
+      background: #111827;
       color: #fff;
       position: sticky;
       top: 0;
@@ -17,12 +17,31 @@
     }
     .nav-logo {
       justify-self: start;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #CC2929;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: #fff;
       text-decoration: none;
-      letter-spacing: 0.5px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .nav-logo-mark {
+      width: 30px;
+      height: 30px;
+      background: #CC2929;
+      color: #fff;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .nav-logo-text {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.5px;
     }
     .nav-links {
       display: flex;
@@ -43,8 +62,9 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.6rem;
       justify-self: end;
+      flex-shrink: 0;
     }
     .nav-basket {
       display: flex;
@@ -58,6 +78,8 @@
       padding: 0.4rem 0.9rem;
       border-radius: 6px;
       transition: background 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .nav-basket:hover { background: #a82020; }
     .nav-basket-count {
@@ -72,6 +94,8 @@
       align-items: center;
       justify-content: center;
     }
+    .nav-compare,
+    .nav-compare-count { display: none !important; }
     .nav-hamburger {
       display: none;
       background: none;
@@ -83,7 +107,7 @@
       line-height: 1;
     }
     .nav-mobile-drawer {
-      background: #111;
+      background: #0b1220;
       display: none;
       flex-direction: column;
       padding: 0.75rem 2rem;
@@ -101,19 +125,22 @@
     .nav-mobile-drawer a:last-child { border-bottom: none; }
     .nav-mobile-drawer a:hover { color: #fff; }
     .nav-signin {
-      color: #ccc;
+      color: #d1d5db;
       text-decoration: none;
       font-size: 0.875rem;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      border: 1px solid #444;
-      padding: 0.35rem 0.85rem;
+      padding: 0.4rem 0.65rem;
       border-radius: 6px;
-      transition: all 0.2s;
+      transition: color 0.2s, background 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-weight: 500;
     }
-    .nav-signin:hover { color: #fff; border-color: #888; }
+    .nav-signin:hover { color: #fff; background: rgba(255,255,255,0.06); }
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .nav-signin { display: none; }
+      .nav-compare { display: none !important; }
       .nav-hamburger { display: block; }
     }
   `;
@@ -131,6 +158,10 @@
     return JSON.parse(localStorage.getItem("enquiryBasket") || "[]").length;
   }
 
+  function getCompareCount() {
+    return JSON.parse(localStorage.getItem("compareList") || "[]").length;
+  }
+
   // ─── Build nav HTML ───────────────────────────────────────────
   const links = [
     { name: "home",     label: "Home",    href: "home.html" },
@@ -142,7 +173,10 @@
   const navEl = document.createElement("nav");
   navEl.className = "nav";
   navEl.innerHTML = `
-    <a href="home.html" class="nav-logo">YEE LIM</a>
+    <a href="home.html" class="nav-logo" aria-label="Yee Lim home">
+      <span class="nav-logo-mark" aria-hidden="true">YL</span>
+      <span class="nav-logo-text">YEE LIM</span>
+    </a>
     <ul class="nav-links">
       ${links.map(l => `
         <li><a href="${l.href}" ${isActive(l.name) ? 'class="nav-active"' : ""}>${l.label}</a></li>
@@ -179,14 +213,22 @@
       this.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
     });
 
-    // Keep basket count live
-    window.addEventListener("storage", updateCount);
-    window.addEventListener("basketUpdated", updateCount);
+    // Keep basket + compare counts live
+    window.addEventListener("storage", updateCounts);
+    window.addEventListener("basketUpdated", updateCounts);
+    window.addEventListener("compareUpdated", updateCounts);
+    updateCounts();
   }
 
-  function updateCount() {
-    const el = document.getElementById("basketCount");
-    if (el) el.textContent = getBasketCount();
+  function updateCounts() {
+    const basketEl = document.getElementById("basketCount");
+    if (basketEl) basketEl.textContent = getBasketCount();
+
+    const compareCountEl = document.getElementById("navCompareCount");
+    const compareLinkEl  = document.getElementById("navCompareLink");
+    const compareN = getCompareCount();
+    if (compareCountEl) compareCountEl.textContent = compareN;
+    if (compareLinkEl)  compareLinkEl.classList.toggle("visible", compareN > 0);
   }
 
   if (document.body) {
