@@ -2139,3 +2139,217 @@ body:has(.compare-tray.visible) .toast {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   WHATSAPP + CONTACT PAGE ADDITIONS
+   Added for floating contact feature and contact.html page
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── WhatsApp buttons inside product cards/detail sidebar ───── */
+.btn-whatsapp-card,
+.btn-whatsapp-sidebar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background: #25D366;
+  color: #fff;
+  border: 1px solid #25D366;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
+}
+
+.btn-whatsapp-card {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.95rem;
+}
+
+.btn-whatsapp-sidebar {
+  padding: 0.6rem 0.95rem;
+}
+
+.btn-whatsapp-card:hover,
+.btn-whatsapp-sidebar:hover {
+  background: #1ebe5d;
+  border-color: #1ebe5d;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+}
+
+.btn-whatsapp-card:active,
+.btn-whatsapp-sidebar:active {
+  transform: scale(0.97);
+}
+
+.btn-whatsapp-card:focus-visible,
+.btn-whatsapp-sidebar:focus-visible {
+  outline: 2px solid #25D366;
+  outline-offset: 2px;
+}
+
+/* ─── Contact Page ───────────────────────────────────────────── */
+.contact-hero {
+  padding-bottom: 3.25rem;
+}
+
+.contact-page {
+  max-width: 1180px;
+  margin: 2.5rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.contact-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 1.75rem;
+}
+
+.contact-info-card {
+  position: sticky;
+  top: 84px;
+}
+
+.contact-eyebrow {
+  display: inline-block;
+  color: var(--red);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.contact-card h2 {
+  color: var(--dark);
+  font-size: 1.55rem;
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+}
+
+.contact-card p {
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+
+.contact-detail-list {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1.25rem 0;
+}
+
+.contact-detail {
+  border: 1px solid var(--border);
+  background: #fafafa;
+  border-radius: var(--radius);
+  padding: 0.9rem;
+}
+
+.contact-detail strong {
+  display: block;
+  color: var(--dark);
+  margin-bottom: 0.25rem;
+}
+
+.contact-detail span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.contact-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #25D366;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid #25D366;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.2rem;
+  font-weight: 700;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
+}
+
+.contact-whatsapp-btn:hover {
+  background: #1ebe5d;
+  border-color: #1ebe5d;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+}
+
+.contact-whatsapp-btn:active {
+  transform: scale(0.98);
+}
+
+.contact-whatsapp-btn:focus-visible {
+  outline: 2px solid #25D366;
+  outline-offset: 2px;
+}
+
+.contact-form {
+  margin-top: 1rem;
+}
+
+.contact-form textarea {
+  min-height: 140px;
+}
+
+.contact-submit-btn {
+  padding: 0.75rem 1.4rem;
+  font-size: 0.95rem;
+}
+
+.contact-form-status {
+  margin: 0 0 0.9rem;
+  font-size: 0.9rem;
+  min-height: 1.35rem;
+}
+
+.contact-form-status.success {
+  color: #16803a;
+}
+
+.contact-form-status.error {
+  color: #c0392b;
+}
+
+@media (max-width: 900px) {
+  .contact-page {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-info-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-page {
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+  }
+
+  .contact-card {
+    padding: 1.25rem;
+  }
+
+  .contact-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .contact-whatsapp-btn,
+  .contact-submit-btn {
+    width: 100%;
+  }
+}
