@@ -12,18 +12,19 @@ function saveCompareList(list) {
 }
 
 function isInCompare(productId) {
-  return getCompareList().includes(productId);
+  return getCompareList().map(String).includes(String(productId));
 }
 
 function addToCompare(productId) {
-  const list = getCompareList();
-  if (list.includes(productId) || list.length >= COMPARE_MAX) return;
-  list.push(productId);
+  const list = getCompareList().map(String);
+  const id = String(productId);
+  if (list.includes(id) || list.length >= COMPARE_MAX) return;
+  list.push(id);
   saveCompareList(list);
 }
 
 function removeFromCompare(productId) {
-  saveCompareList(getCompareList().filter(id => id !== productId));
+  saveCompareList(getCompareList().map(String).filter(id => id !== String(productId)));
 }
 
 function clearCompare() {
@@ -56,14 +57,14 @@ function renderCompareTray() {
   for (let i = 0; i < COMPARE_MAX; i++) {
     const id = list[i];
     if (id !== undefined) {
-      const p    = PRODUCTS.find(p => p.id === id);
+      const p    = PRODUCTS.find(p => String(p.id) === String(id));
       const name = p ? p.name : "Unknown product";
       slots.push(`
         <div class="compare-slot compare-slot-filled">
           <div class="compare-slot-thumb" aria-hidden="true"></div>
           <span class="compare-slot-name" title="${name}">${name}</span>
           <button class="compare-slot-remove"
-            onclick="removeFromCompare(${id})"
+            onclick="removeFromCompare('${id}')"
             aria-label="Remove ${name} from comparison">&times;</button>
         </div>`);
     } else {

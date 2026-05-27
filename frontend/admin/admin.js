@@ -268,6 +268,7 @@ function onSearch() {
   const base = q
     ? allProducts.filter(p =>
         p.name.toLowerCase().includes(q) ||
+        (p.brand || "").toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
         (p.shortDescription || "").toLowerCase().includes(q) ||
         p.status.toLowerCase().includes(q)
@@ -436,10 +437,11 @@ async function toggleStatus(id, currentStatus) {
 
 // ─── Export CSV ───────────────────────────────────────────────────
 function exportCSV() {
-  const headers = ["Name", "Category", "Status", "Short Description", "Full Description", "Usage", "Image URL"];
+  const headers = ["Name", "Brand", "Category", "Status", "Industries", "Surfaces", "Features", "Short Description", "Full Description", "Usage", "Image URL", "Images"];
   const rows = allProducts.map(p => [
-    p.name, p.category, p.status,
-    p.shortDescription, p.fullDescription, p.usage, p.imageUrl
+    p.name, p.brand, p.category, p.status,
+    joinList(p.industries), joinList(p.surfaces), joinList(p.features),
+    p.shortDescription, p.fullDescription, p.usage, p.imageUrl, joinList(p.images)
   ].map(v => `"${(v || "").replace(/"/g, '""')}"`));
 
   const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
@@ -468,10 +470,15 @@ function openEditModal(id) {
   document.getElementById("editingId").value          = p._id;
   document.getElementById("fieldName").value          = p.name || "";
   document.getElementById("fieldCategory").value      = p.category || "Industrial";
+  document.getElementById("fieldBrand").value         = p.brand || "Deer™ Brand";
   document.getElementById("fieldShortDesc").value     = p.shortDescription || "";
   document.getElementById("fieldFullDesc").value      = p.fullDescription || "";
   document.getElementById("fieldUsage").value         = p.usage || "";
   document.getElementById("fieldImageUrl").value      = p.imageUrl || "";
+  document.getElementById("fieldImages").value        = joinList(p.images);
+  document.getElementById("fieldIndustries").value    = joinList(p.industries);
+  document.getElementById("fieldSurfaces").value      = joinList(p.surfaces);
+  document.getElementById("fieldFeatures").value      = joinList(p.features);
   document.getElementById("fieldStatus").value        = p.status || "Available";
   document.getElementById("modalError").style.display = "none";
   updateImagePreview();
@@ -483,10 +490,11 @@ function closeModal() {
 }
 
 function clearForm() {
-  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl"].forEach(id => {
+  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl","fieldImages","fieldIndustries","fieldSurfaces","fieldFeatures"].forEach(id => {
     document.getElementById(id).value = "";
   });
   document.getElementById("fieldCategory").value      = "Industrial";
+  document.getElementById("fieldBrand").value         = "Deer™ Brand";
   document.getElementById("fieldStatus").value        = "Available";
   document.getElementById("modalError").style.display = "none";
   updateImagePreview();
@@ -509,6 +517,17 @@ function updateImagePreview() {
   box.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<span>Image not found</span>'">`;
 }
 
+function splitList(value) {
+  return value
+    .split(/[,\n]/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function joinList(value) {
+  return Array.isArray(value) ? value.join(", ") : "";
+}
+
 async function saveProduct() {
   const id      = document.getElementById("editingId").value;
   const btn     = document.getElementById("saveBtn");
@@ -516,11 +535,16 @@ async function saveProduct() {
 
   const payload = {
     name:             document.getElementById("fieldName").value.trim(),
+    brand:            document.getElementById("fieldBrand").value,
     category:         document.getElementById("fieldCategory").value,
     shortDescription: document.getElementById("fieldShortDesc").value.trim(),
     fullDescription:  document.getElementById("fieldFullDesc").value.trim(),
     usage:            document.getElementById("fieldUsage").value.trim(),
     imageUrl:         document.getElementById("fieldImageUrl").value.trim(),
+    images:           splitList(document.getElementById("fieldImages").value),
+    industries:       splitList(document.getElementById("fieldIndustries").value),
+    surfaces:         splitList(document.getElementById("fieldSurfaces").value),
+    features:         splitList(document.getElementById("fieldFeatures").value),
     status:           document.getElementById("fieldStatus").value
   };
 

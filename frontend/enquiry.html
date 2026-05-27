@@ -75,7 +75,14 @@
 
 <script src="js/data.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", renderBasket);
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await loadProductsFromBackend();
+  } catch (err) {
+    console.error(err);
+  }
+  renderBasket();
+});
 
 function getBasket() {
   return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
@@ -88,7 +95,7 @@ function saveBasket(basket) {
 
 function renderBasket() {
   const ids = getBasket();
-  const products = ids.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+  const products = ids.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
   const list = document.getElementById("basketList");
   const formSection = document.getElementById("enquiryFormSection");
   const selectedDisplay = document.getElementById("selectedProductsDisplay");
@@ -113,7 +120,7 @@ function renderBasket() {
           <h4>${p.name}</h4>
           <p>${p.shortDescription}</p>
         </div>
-        <button class="basket-remove" onclick="removeFromBasket(${p.id})" aria-label="Remove ${p.name} from basket">
+        <button class="basket-remove" onclick="removeFromBasket('${p.id}')" aria-label="Remove ${p.name} from basket">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -129,7 +136,7 @@ function renderBasket() {
 }
 
 function removeFromBasket(id) {
-  const basket = getBasket().filter(i => i !== id);
+  const basket = getBasket().map(String).filter(i => i !== String(id));
   saveBasket(basket);
   renderBasket();
 }

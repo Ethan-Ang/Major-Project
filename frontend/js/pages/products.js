@@ -1,18 +1,31 @@
 // ─── State ──────────────────────────────────────────────────────
 let activeFilters  = { brands: [], industries: [], surfaces: [] };
-let currentResults = PRODUCTS;
+let currentResults = [];
 let initialLoadDone = false;
 
 // ─── Init ────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   renderSkeleton();
+
+  try {
+    await loadProductsFromBackend();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("productGrid").innerHTML = `
+      <div class="empty-state">
+        <h3>Could not load products</h3>
+        <p>Please make sure the backend is running at ${API_BASE_URL}.</p>
+      </div>`;
+    document.getElementById("resultCount").textContent = "0 products";
+    return;
+  }
+
   readStateFromURL();
   buildFilterCheckboxes();
   applyStateToCheckboxes();
   updateBasketCount();
+  if (typeof renderCompareTray === "function") renderCompareTray();
 
-  // Small delay so the skeleton is visible at least one frame
-  // and animations have a chance to start
   requestAnimationFrame(() => {
     applyFilters({ skipUrlWrite: true });
     initialLoadDone = true;
@@ -110,7 +123,8 @@ function applyFilters(opts = {}) {
       p.brand.toLowerCase().includes(query) ||
       p.shortDescription.toLowerCase().includes(query) ||
       p.industries.some(i => i.toLowerCase().includes(query)) ||
-      p.surfaces.some(s => s.toLowerCase().includes(query));
+      p.surfaces.some(s => s.toLowerCase().includes(query)) ||
+      p.features.some(f => f.toLowerCase().includes(query));
 
     const matchesBrand = activeFilters.brands.length === 0 ||
       activeFilters.brands.includes(p.brand);
@@ -287,7 +301,7 @@ function productCardHTML(p) {
         ${imageContent}
         <button
           class="card-compare-btn${inCompare ? " in-compare" : ""}"
-          onclick="event.stopPropagation();toggleCompare(${p.id})"
+          data-product-id="${p.id}" onclick="event.stopPropagation();toggleCompare('${p.id}')"
           ${compareDisabled ? "disabled" : ""}
           aria-pressed="${inCompare}"
           title="${compareTitle}"
@@ -304,10 +318,10 @@ function productCardHTML(p) {
         <p>${p.shortDescription}</p>
         <div class="product-tags">${industryTags}</div>
         <div class="product-card-actions">
-          <a href="product-detail.html?id=${p.id}" class="btn btn-outline">View Product</a>
+          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline">View Product</a>
           <button
             class="btn btn-primary ${inBasket ? "btn-added" : ""}"
-            onclick="toggleBasket(${p.id})"
+            onclick="toggleBasket('${p.id}')"
             aria-pressed="${inBasket}">
             ${inBasket ? "&check; Added" : "Add to Enquiry"}
           </button>
@@ -327,9 +341,8 @@ function syncCompareButtons() {
   document.querySelectorAll(".product-card").forEach(card => {
     const btn = card.querySelector(".card-compare-btn");
     if (!btn) return;
-    const match = (btn.getAttribute("onclick") || "").match(/toggleCompare\((\d+)\)/);
-    if (!match) return;
-    const id        = parseInt(match[1], 10);
+    const id = btn.dataset.productId;
+    if (!id) return;
     const inCompare = list.includes(id);
     const disabled  = !inCompare && full;
 

@@ -7,6 +7,11 @@ const productSchema = new mongoose.Schema(
       required: [true, "Product name is required"],
       trim: true
     },
+    brand: {
+      type: String,
+      default: "Yee Lim",
+      trim: true
+    },
     category: {
       type: String,
       required: [true, "Product category is required"],
@@ -32,10 +37,26 @@ const productSchema = new mongoose.Schema(
       default: "",
       trim: true
     },
+    images: {
+      type: [String],
+      default: []
+    },
     status: {
       type: String,
       enum: ["Available", "Unavailable"],
       default: "Available"
+    },
+    industries: {
+      type: [String],
+      default: []
+    },
+    surfaces: {
+      type: [String],
+      default: []
+    },
+    features: {
+      type: [String],
+      default: []
     }
   },
   {

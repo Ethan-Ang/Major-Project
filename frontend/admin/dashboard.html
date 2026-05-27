@@ -250,6 +250,33 @@
         <input type="text" id="fieldShortDesc" required placeholder="One line summary of the product">
       </div>
 
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldBrand">Brand</label>
+          <select id="fieldBrand">
+            <option value="Deer™ Brand">Deer™ Brand</option>
+            <option value="Horsemen™ Brand">Horsemen™ Brand</option>
+            <option value="Premier™ Brand">Premier™ Brand</option>
+            <option value="Rhino™ Brand">Rhino™ Brand</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fieldIndustries">Industries</label>
+          <input type="text" id="fieldIndustries" placeholder="Carpentry, Flooring">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldSurfaces">Surfaces</label>
+          <input type="text" id="fieldSurfaces" placeholder="Wood, Laminates">
+        </div>
+        <div class="form-group">
+          <label for="fieldFeatures">Features</label>
+          <input type="text" id="fieldFeatures" placeholder="Fast setting, Heat resistant">
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="fieldFullDesc">Full Description</label>
         <textarea id="fieldFullDesc" rows="4" placeholder="Detailed product description…"></textarea>
@@ -264,6 +291,8 @@
         <div class="form-group">
           <label for="fieldImageUrl">Image URL</label>
           <input type="text" id="fieldImageUrl" placeholder="images/products/name.jpg" oninput="updateImagePreview()">
+          <label for="fieldImages" style="margin-top:0.75rem">Additional Image URLs</label>
+          <input type="text" id="fieldImages" placeholder="url1.jpg, url2.jpg">
           <div class="image-preview-box" id="imagePreview">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2">
