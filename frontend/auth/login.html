@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | Yee Lim Adhesives Industries</title>
+  <link rel="stylesheet" href="auth.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<div class="auth-split">
+
+  <!-- Left brand panel -->
+  <div class="auth-brand">
+    <div class="auth-brand-content">
+      <div class="auth-logo">
+        <div class="auth-logo-mark">YL</div>
+        <div>
+          <div class="auth-logo-name">Yee Lim</div>
+          <div class="auth-logo-sub">Adhesives Industries</div>
+        </div>
+      </div>
+
+      <p class="auth-headline">50 years of adhesive expertise,<br>now at your fingertips.</p>
+      <p class="auth-sub">Sign in to manage your enquiries, track product requests, and get faster responses from our sales team.</p>
+
+      <div class="auth-benefits">
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Track your product enquiries in one place
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Get faster responses from our sales team
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Save your preferred products for quick access
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Receive product updates and availability alerts
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-brand-footer">
+      &copy; 2025 Yee Lim Adhesives Industries Pte Ltd
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="auth-form-panel">
+    <div class="auth-form-wrap">
+
+      <div class="auth-form-header">
+        <h1>Sign in</h1>
+        <p>Don't have an account? <a href="register.html">Create one</a></p>
+      </div>
+
+      <div class="alert alert-error" id="loginError" style="display:none"></div>
+
+      <!-- Login form -->
+      <div id="loginForm">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true"><i data-lucide="mail"></i></span>
+            <input type="email" id="email" required placeholder="you@company.com" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true"><i data-lucide="lock"></i></span>
+            <input type="password" id="password" required placeholder="Enter your password" autocomplete="current-password">
+            <button type="button" class="input-toggle" onclick="togglePw('password','eyeIcon1')" aria-label="Show password" id="pwToggle1">
+              <i data-lucide="eye" id="eyeIcon1" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-auth" id="loginBtn" onclick="handleLogin()">
+          <i data-lucide="log-in" aria-hidden="true"></i>
+          Sign In
+        </button>
+      </div>
+
+      <!-- Success state -->
+      <div class="auth-success" id="successState">
+        <div class="success-icon">
+          <i data-lucide="check-circle" aria-hidden="true"></i>
+        </div>
+        <h2>Welcome back!</h2>
+        <p>You have signed in successfully. Redirecting you to your dashboard…</p>
+      </div>
+
+      <div class="auth-back">
+        <a href="../products.html">
+          <i data-lucide="arrow-left" aria-hidden="true"></i>
+          Back to products
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+lucide.createIcons();
+
+function togglePw(inputId, iconId) {
+  const input   = document.getElementById(inputId);
+  const icon    = document.getElementById(iconId);
+  const btnId   = inputId === "password" ? "pwToggle1" : "pwToggle2";
+  const btn     = document.getElementById(btnId);
+  const showing = input.type === "text";
+  input.type    = showing ? "password" : "text";
+  icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+  if (btn) btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+  lucide.createIcons();
+}
+
+async function handleLogin() {
+  const email    = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const btn      = document.getElementById("loginBtn");
+  const errorEl  = document.getElementById("loginError");
+
+  if (!email || !password) {
+    errorEl.textContent   = "Please enter your email and password.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  btn.innerHTML  = `<span class="btn-spinner"></span> Signing in…`;
+  btn.disabled   = true;
+  errorEl.style.display = "none";
+
+  // Placeholder — connect to backend when Ding Xun adds user auth endpoint
+  await new Promise(r => setTimeout(r, 1200));
+
+  // Simulate success for prototype
+  document.getElementById("loginForm").style.display  = "none";
+  document.getElementById("successState").style.display = "block";
+  lucide.createIcons();
+}
+</script>
+</body>
+</html>

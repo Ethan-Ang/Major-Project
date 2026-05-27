@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail | Yee Lim Adhesives Industries</title>
+  <meta id="metaDescription" name="description" content="Detailed specifications, application surfaces, and usage guide for Yee Lim Adhesives industrial products. Submit an enquiry directly to our sales team.">
+  <link rel="stylesheet" href="css/products.css">
+  <script src="js/widgets/navbar.js"></script>
+</head>
+<body>
+
+<nav class="breadcrumb page-breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
+  <a href="home.html">Home</a>
+  <span aria-hidden="true">&rsaquo;</span>
+  <a href="products.html">Products</a>
+  <span aria-hidden="true">&rsaquo;</span>
+  <span id="breadcrumbProduct">Loading&hellip;</span>
+</nav>
+
+<!-- Gallery + sidebar side by side -->
+<div class="detail-gallery-row" id="detailPageGrid">
+  <div id="detailGallery"></div>
+  <aside class="detail-sidebar" id="detailSidebar" aria-label="Product actions"></aside>
+</div>
+
+<!-- Full-width: header, spec table, description -->
+<div class="detail-content">
+  <div id="detailHeader"></div>
+  <div id="detailSpecs"></div>
+  <div id="detailDesc"></div>
+</div>
+
+<div class="related-section" id="relatedSection" style="display:none">
+  <h3>Related Products</h3>
+  <div class="related-grid" id="relatedGrid"></div>
+</div>
+
+<!-- Compare tray -->
+<div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
+  <span class="compare-tray-label">Comparing:</span>
+  <div class="compare-tray-slots" id="compareTraySlots"></div>
+  <div class="compare-tray-actions">
+    <button class="compare-tray-btn" id="compareBtn"
+      onclick="location.href='compare.html'" disabled
+      aria-label="Open comparison view">Compare &#8594;</button>
+    <button class="compare-tray-clear" onclick="clearCompare()"
+      aria-label="Clear all products from comparison">Clear all</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<footer class="footer">
+  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/widgets/compare.js"></script>
+<script src="js/pages/product-detail.js"></script>
+</body>
+</html>

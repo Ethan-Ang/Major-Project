@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enquiries | Yee Lim Admin</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <span class="brand-mark">YL</span>
+      <div>
+        <div class="brand-name">Yee Lim</div>
+        <div class="brand-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="nav-section-label">Catalogue</div>
+      <ul>
+        <li>
+          <a href="dashboard.html">
+            <i data-lucide="package" aria-hidden="true"></i>
+            Products
+          </a>
+        </li>
+      </ul>
+      <div class="nav-section-label" style="margin-top:0.75rem">Customer</div>
+      <ul>
+        <li>
+          <a href="enquiries.html" class="active">
+            <i data-lucide="mail" aria-hidden="true"></i>
+            Enquiries
+            <span class="badge-count" id="unreadBadge" style="display:none"></span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="admin-sidebar-footer">
+      <a href="../products.html" class="btn-view-site">
+        <i data-lucide="external-link" aria-hidden="true"></i>
+        View Live Site
+      </a>
+      <button class="btn-logout" onclick="logout()">
+        <i data-lucide="log-out" aria-hidden="true"></i>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title">Enquiries</h1>
+        <p class="admin-page-sub">Customer product enquiries submitted via the website</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" onclick="markAllRead()">
+          <i data-lucide="check-check" aria-hidden="true"></i>
+          Mark All Read
+        </button>
+        <button class="btn btn-outline" onclick="exportEnquiriesCSV()">
+          <i data-lucide="download" aria-hidden="true"></i>
+          Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+          <i data-lucide="mail" aria-hidden="true"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total Enquiries</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-red">
+          <i data-lucide="mail-open" aria-hidden="true"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="statUnread">—</div>
+          <div class="stat-label">Unread</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+          <i data-lucide="check-circle" aria-hidden="true"></i>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value" id="statRead">—</div>
+          <div class="stat-label">Read</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enquiries table -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="card-header-left">
+          <h2>All Enquiries</h2>
+          <span class="table-count" id="tableCount"></span>
+        </div>
+        <div class="card-header-right">
+          <div class="table-search-wrap">
+            <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
+            <input type="text" id="tableSearch" class="table-search" placeholder="Search enquiries…" oninput="filterEnquiries()">
+          </div>
+          <select class="page-size-select" id="filterStatus" onchange="filterEnquiries()">
+            <option value="all">All</option>
+            <option value="unread">Unread only</option>
+            <option value="read">Read only</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:28px"></th>
+              <th>Name / Company</th>
+              <th>Products Enquired</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="enquiryTableBody">
+            <tr class="loading-row"><td colspan="5">Loading enquiries…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Detail slide panel -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-panel-header">
+    <h2>Enquiry Details</h2>
+    <button class="modal-close" onclick="closePanel()" aria-label="Close panel">
+      <i data-lucide="x" aria-hidden="true"></i>
+    </button>
+  </div>
+  <div class="detail-panel-body" id="detailPanelBody"></div>
+  <div class="detail-panel-footer">
+    <a id="replyBtn" href="#" class="btn btn-primary">
+      <i data-lucide="mail" aria-hidden="true"></i>
+      Reply by Email
+    </a>
+    <button class="btn btn-outline" id="toggleReadBtn" onclick="toggleCurrentRead()">
+      Mark as Unread
+    </button>
+  </div>
+</div>
+
+<div class="admin-toast" id="adminToast"></div>
+
+<script src="../js/data.js"></script>
+<script src="enquiries.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

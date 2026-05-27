@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products | Yee Lim Adhesives Industries</title>
+  <meta name="description" content="Browse Yee Lim's full range of industrial and commercial adhesives — Deer™, Horsemen™, Premier™, and Rhino™ brands. Filter by industry and surface.">
+  <link rel="stylesheet" href="css/products.css">
+  <script src="js/widgets/navbar.js"></script>
+</head>
+<body>
+
+<!-- Hero / Search -->
+<section class="page-hero">
+  <h1>Our Products</h1>
+  <p>50 years of adhesive expertise. Find the right product for your application.</p>
+  <div class="search-bar" role="search">
+    <label for="searchInput" class="sr-only">Search products</label>
+    <input type="text" id="searchInput" placeholder="Search by product name, industry, or surface…" autocomplete="off" aria-label="Search products by name, industry, or surface">
+    <button onclick="applyFilters()" aria-label="Search">Search</button>
+  </div>
+</section>
+
+<!-- Active filter chips -->
+<div class="active-filter-chips" id="activeChips"></div>
+
+<!-- Catalogue Layout -->
+<div class="catalogue-layout">
+
+  <!-- Mobile filter toggle -->
+  <button class="filter-toggle" id="filterToggle" onclick="toggleFilterSidebar()">
+    &#9776; Filters
+  </button>
+
+  <!-- Filter Sidebar -->
+  <aside class="filter-sidebar" id="filterSidebar" aria-label="Filter products">
+    <h2 class="filter-heading">Filter</h2>
+
+    <div class="filter-group">
+      <h3>Brand</h3>
+      <div id="brandFilters"></div>
+    </div>
+
+    <div class="filter-group">
+      <h3>Industry</h3>
+      <div id="industryFilters"></div>
+    </div>
+
+    <div class="filter-group">
+      <h3>Surface</h3>
+      <div id="surfaceFilters"></div>
+    </div>
+
+    <button class="filter-clear" onclick="clearFilters()">Clear All Filters</button>
+  </aside>
+
+  <!-- Product Grid -->
+  <section class="product-grid-section">
+    <div class="grid-meta">
+      <span id="resultCount" aria-live="polite" aria-atomic="true">Loading products…</span>
+      <label for="sortSelect" class="sr-only">Sort products</label>
+      <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
+        <option value="default">Default order</option>
+        <option value="az">Name A–Z</option>
+        <option value="za">Name Z–A</option>
+        <option value="brand">Sort by Brand</option>
+      </select>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved. | 1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
+</footer>
+
+<!-- Compare tray -->
+<div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
+  <span class="compare-tray-label">Comparing:</span>
+  <div class="compare-tray-slots" id="compareTraySlots"></div>
+  <div class="compare-tray-actions">
+    <button class="compare-tray-btn" id="compareBtn"
+      onclick="location.href='compare.html'" disabled
+      aria-label="Open comparison view">Compare &#8594;</button>
+    <button class="compare-tray-clear" onclick="clearCompare()"
+      aria-label="Clear all products from comparison">Clear all</button>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/widgets/compare.js"></script>
+<script src="js/pages/products.js"></script>
+</body>
+</html>

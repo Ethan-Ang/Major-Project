@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Products | Yee Lim Adhesives Industries</title>
+  <link rel="stylesheet" href="css/products.css">
+  <script src="js/widgets/navbar.js"></script>
+</head>
+<body>
+
+<div class="compare-page-top">
+  <div class="compare-page-title-wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="home.html">Home</a>
+      <span aria-hidden="true">&rsaquo;</span>
+      <a href="products.html">Products</a>
+      <span aria-hidden="true">&rsaquo;</span>
+      <span>Compare</span>
+    </nav>
+    <h1>Compare Products</h1>
+  </div>
+  <button class="compare-page-clear" onclick="clearAll()">Clear all</button>
+</div>
+
+<div class="compare-page-body" id="comparePageContent">
+  <div class="empty-state">
+    <h3>Loading…</h3>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<footer class="footer">
+  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/widgets/compare.js"></script>
+<script src="js/pages/compare-page.js"></script>
+</body>
+</html>

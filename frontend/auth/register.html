@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account | Yee Lim Adhesives Industries</title>
+  <link rel="stylesheet" href="auth.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<div class="auth-split">
+
+  <!-- Left brand panel -->
+  <div class="auth-brand">
+    <div class="auth-brand-content">
+      <div class="auth-logo">
+        <div class="auth-logo-mark">YL</div>
+        <div>
+          <div class="auth-logo-name">Yee Lim</div>
+          <div class="auth-logo-sub">Adhesives Industries</div>
+        </div>
+      </div>
+
+      <p class="auth-headline">Singapore's specialist<br>adhesive supplier since 1974.</p>
+      <p class="auth-sub">Create a business account to submit product enquiries, track your requests, and work directly with our sales team.</p>
+
+      <div class="auth-benefits">
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Submit and track multiple product enquiries
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Get dedicated support from our sales team
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Access technical data sheets and spec documents
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-dot"></span>
+          Be notified of new products in your industry
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-brand-footer">
+      &copy; 2025 Yee Lim Adhesives Industries Pte Ltd
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="auth-form-panel">
+    <div class="auth-form-wrap">
+
+      <div class="auth-form-header">
+        <h1>Create account</h1>
+        <p>Already have an account? <a href="login.html">Sign in</a></p>
+      </div>
+
+      <div class="alert alert-error" id="regError" style="display:none"></div>
+
+      <!-- Registration form -->
+      <div id="regForm">
+        <p class="form-section-label">Personal details</p>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="user"></i></span>
+              <input type="text" id="firstName" required placeholder="John">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true"><i data-lucide="user"></i></span>
+              <input type="text" id="lastName" required placeholder="Tan">
+            </div>
+          </div>
+        </div>
+
+        <p class="form-section-label">Company</p>
+        <div class="form-group">
+          <label for="company">Company Name</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true"><i data-lucide="building-2"></i></span>
+            <input type="text" id="company" required placeholder="ABC Pte Ltd">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Business Email</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true"><i data-lucide="mail"></i></span>
+            <input type="email" id="email" required placeholder="you@company.com" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true"><i data-lucide="phone"></i></span>
+            <input type="tel" id="phone" placeholder="+65 9123 4567">
+          </div>
+        </div>
+
+        <p class="form-section-label">Account security</p>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true"><i data-lucide="lock"></i></span>
+            <input type="password" id="password" required placeholder="Create a password"
+              autocomplete="new-password" oninput="checkStrength()">
+            <button type="button" class="input-toggle" onclick="togglePw('password','eyeIcon1')" aria-label="Show password" id="pwToggle1">
+              <i data-lucide="eye" id="eyeIcon1" aria-hidden="true"></i>
+            </button>
+          </div>
+          <p class="form-hint">Minimum 8 characters. Use uppercase, numbers, or symbols for a stronger password.</p>
+          <div class="password-strength">
+            <div class="strength-bar" id="bar1"></div>
+            <div class="strength-bar" id="bar2"></div>
+            <div class="strength-bar" id="bar3"></div>
+          </div>
+          <div class="strength-label" id="strengthLabel"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true"><i data-lucide="lock"></i></span>
+            <input type="password" id="confirmPassword" required placeholder="Re-enter your password"
+              autocomplete="new-password">
+            <button type="button" class="input-toggle" onclick="togglePw('confirmPassword','eyeIcon2')" aria-label="Show confirm password" id="pwToggle2">
+              <i data-lucide="eye" id="eyeIcon2" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="agreeTerms">
+          <label for="agreeTerms">
+            I agree to Yee Lim's <a href="../contact.html">Terms of Service</a> and confirm this is a business account.
+          </label>
+        </div>
+
+        <button class="btn-auth" id="regBtn" onclick="handleRegister()">
+          <i data-lucide="user-plus" aria-hidden="true"></i>
+          Create Account
+        </button>
+      </div>
+
+      <!-- Success state -->
+      <div class="auth-success" id="successState">
+        <div class="success-icon">
+          <i data-lucide="check-circle" aria-hidden="true"></i>
+        </div>
+        <h2>Account created!</h2>
+        <p>Welcome to Yee Lim. Your account has been created successfully. Our team may be in touch to verify your business details.</p>
+        <a href="../products.html" class="btn-auth" style="margin-top:0.5rem;text-decoration:none">
+          <i data-lucide="arrow-right" aria-hidden="true"></i>
+          Browse Products
+        </a>
+      </div>
+
+      <div class="auth-back">
+        <a href="../products.html">
+          <i data-lucide="arrow-left" aria-hidden="true"></i>
+          Back to products
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+lucide.createIcons();
+
+function togglePw(inputId, iconId) {
+  const input   = document.getElementById(inputId);
+  const icon    = document.getElementById(iconId);
+  const btnId   = inputId === "password" ? "pwToggle1" : "pwToggle2";
+  const btn     = document.getElementById(btnId);
+  const showing = input.type === "text";
+  input.type    = showing ? "password" : "text";
+  icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+  if (btn) btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+  lucide.createIcons();
+}
+
+function checkStrength() {
+  const pw      = document.getElementById("password").value;
+  const bars    = [document.getElementById("bar1"), document.getElementById("bar2"), document.getElementById("bar3")];
+  const label   = document.getElementById("strengthLabel");
+  const classes = ["", "", ""];
+
+  if (pw.length === 0) {
+    bars.forEach(b => b.className = "strength-bar");
+    label.textContent = "";
+    return;
+  }
+
+  let score = 0;
+  if (pw.length >= 8)                             score++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw))      score++;
+  if (/[0-9]/.test(pw) || /[^A-Za-z0-9]/.test(pw)) score++;
+
+  const levels = [
+    { class: "weak",   text: "Weak",   color: "#ef4444" },
+    { class: "medium", text: "Medium", color: "#f59e0b" },
+    { class: "strong", text: "Strong", color: "#16a34a" }
+  ];
+
+  const level = levels[score - 1] || levels[0];
+  bars.forEach((b, i) => {
+    b.className = "strength-bar" + (i < score ? " " + level.class : "");
+  });
+  label.textContent  = level.text;
+  label.style.color  = level.color;
+}
+
+async function handleRegister() {
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName  = document.getElementById("lastName").value.trim();
+  const company   = document.getElementById("company").value.trim();
+  const email     = document.getElementById("email").value.trim();
+  const password  = document.getElementById("password").value;
+  const confirm   = document.getElementById("confirmPassword").value;
+  const agreed    = document.getElementById("agreeTerms").checked;
+  const btn       = document.getElementById("regBtn");
+  const errorEl   = document.getElementById("regError");
+
+  errorEl.style.display = "none";
+
+  if (!firstName || !lastName || !company || !email || !password) {
+    errorEl.textContent   = "Please fill in all required fields.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (password.length < 8) {
+    errorEl.textContent   = "Password must be at least 8 characters.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (password !== confirm) {
+    errorEl.textContent   = "Passwords do not match.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (!agreed) {
+    errorEl.textContent   = "Please agree to the Terms of Service to continue.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  btn.innerHTML = `<span class="btn-spinner"></span> Creating account…`;
+  btn.disabled  = true;
+
+  // Placeholder — connect to backend when Ding Xun adds user registration endpoint
+  await new Promise(r => setTimeout(r, 1500));
+
+  document.getElementById("regForm").style.display    = "none";
+  document.getElementById("successState").style.display = "block";
+  lucide.createIcons();
+}
+</script>
+</body>
+</html>
