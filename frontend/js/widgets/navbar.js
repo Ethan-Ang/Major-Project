@@ -210,7 +210,7 @@
 
   // ─── Build nav HTML ───────────────────────────────────────────
   const links = [
-    { name: "home",     label: "Home",    href: "home.html" },
+    { name: "home",     label: "Home",    href: "index.html" },
     { name: "products", label: "Products", href: "products.html" },
     { name: "about",    label: "About",   href: "about.html" },
     { name: "contact",  label: "Contact", href: "contact.html" },
@@ -247,7 +247,7 @@
     <a href="auth/login.html">Sign In</a>
   `;
 
-  const whatsappNumber = "6590292613"; // Replace with Yee Lim's actual WhatsApp number
+  const whatsappNumber = "6588755786"; // Replace with Yee Lim's actual WhatsApp number
   const whatsappMessage = encodeURIComponent("Hello Yee Lim, I would like to enquire about your adhesive products.");
   const whatsappEl = document.createElement("a");
   whatsappEl.className = "floating-whatsapp";
@@ -257,7 +257,7 @@
   whatsappEl.setAttribute("aria-label", "Chat with Yee Lim on WhatsApp");
   whatsappEl.innerHTML = `
     <span class="floating-whatsapp-icon" aria-hidden="true">☎</span>
-    <span>WhatsApp Us</span>
+
   `;
 
   // ─── Insert at top of body ────────────────────────────────────

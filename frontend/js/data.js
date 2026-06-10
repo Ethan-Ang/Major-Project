@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5050";
+const API_BASE_URL = "";
 
 const BRANDS = ["Deer™ Brand", "Horsemen™ Brand", "Premier™ Brand", "Rhino™ Brand"];
 
@@ -39,7 +39,7 @@ function normaliseProduct(product) {
 }
 
 async function loadProductsFromBackend() {
-  const response = await fetch(`${API_BASE_URL}/api/products`);
+  const response = await fetch(`${API_BASE_URL}/api/products.php`);
 
   if (!response.ok) {
     throw new Error("Failed to load products from backend.");

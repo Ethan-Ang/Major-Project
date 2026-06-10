@@ -19,7 +19,7 @@ async function handleLogin(event) {
   errorEl.style.display = "none";
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/login.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
@@ -37,10 +37,11 @@ async function handleLogin(event) {
 
   } catch (err) {
     if (err.name === "TypeError" && err.message.includes("fetch")) {
-      errorEl.innerHTML = "Cannot connect to the backend server.<br><small>Make sure the backend is running at <code>localhost:5050</code> — run <code>npm start</code> in the backend folder.</small>";
+      errorEl.textContent = "Cannot connect to the login server. Please check that api/login.php has been uploaded correctly.";
     } else {
       errorEl.textContent = err.message;
     }
+
     errorEl.style.display = "block";
     btn.textContent = "Sign In";
     btn.disabled = false;

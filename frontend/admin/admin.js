@@ -11,7 +11,7 @@ let sortCol        = "";
 let sortDir        = "asc";
 let demoMode       = false;
 
-// Demo fallback when backend is unreachable — mirrors enquiries.js SAMPLE_ENQUIRIES pattern
+// Demo fallback when backend is unreachable — mirrors enquiries.js SAMPLE_ENQUIRIES pattern
 const SAMPLE_ADMIN_PRODUCTS = PRODUCTS.map(p => ({
   ...p,
   _id: String(p.id)
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!token) { window.location.href = "login.html"; return; }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    const res = await fetch(`${API_BASE_URL}/api/me.php`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
@@ -65,7 +65,7 @@ async function loadProducts() {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products`);
+    const res = await fetch(`${API_BASE_URL}/api/products.php`);
     if (!res.ok) throw new Error("Failed to load products.");
     const products = await res.json();
     finishLoad(products);
@@ -369,7 +369,7 @@ async function bulkStatusChange(newStatus) {
 
   for (const id of ids) {
     try {
-      await fetch(`${API_BASE_URL}/api/products/${id}`, {
+      await fetch(`${API_BASE_URL}/api/products.php?id=${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ status: newStatus })
@@ -402,7 +402,7 @@ async function confirmBulkDelete() {
   let done = 0;
   for (const id of ids) {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/products.php?id=${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${getToken()}` }
       });
@@ -422,7 +422,7 @@ async function confirmBulkDelete() {
 async function toggleStatus(id, currentStatus) {
   const newStatus = currentStatus === "Available" ? "Unavailable" : "Available";
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/products.php?id=${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
       body: JSON.stringify({ status: newStatus })
@@ -560,7 +560,7 @@ async function saveProduct() {
 
   try {
     const res = await fetch(
-      id ? `${API_BASE_URL}/api/products/${id}` : `${API_BASE_URL}/api/products`,
+      id ? `${API_BASE_URL}/api/products.php?id=${id}` : `${API_BASE_URL}/api/products.php`,
       {
         method: id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
@@ -601,7 +601,7 @@ async function confirmDelete() {
   btn.disabled  = true;
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products/${deletingId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/products.php?id=${deletingId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${getToken()}` }
     });
