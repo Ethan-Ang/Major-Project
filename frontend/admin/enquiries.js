@@ -90,7 +90,7 @@ async function loadEnquiries() {
 
   // Try real API first; fall back to sample data
   try {
-    const res = await fetch(`${API_BASE_URL}/api/enquiries`, {
+    const res = await fetch(`${API_BASE_URL}/api/enquiries.php`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }
     });
     if (res.ok) {

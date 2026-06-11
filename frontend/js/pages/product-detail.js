@@ -1,8 +1,14 @@
 // ─── Init ────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await loadProductsFromBackend();
+  } catch (err) {
+    console.error(err);
+  }
+
   const params  = new URLSearchParams(window.location.search);
-  const id      = parseInt(params.get("id"), 10);
-  const product = PRODUCTS.find(p => p.id === id);
+  const id      = params.get("id");
+  const product = PRODUCTS.find(p => String(p.id) === String(id));
 
   if (!product) {
     const grid = document.getElementById("detailPageGrid");
@@ -23,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderRelated(product);
   updateBasketCount();
 
+  if (typeof renderCompareTray === "function") renderCompareTray();
   window.addEventListener("compareUpdated", () => updateSidebarCompareBtn(product.id));
 });
 
@@ -146,14 +153,14 @@ function renderSidebar(product) {
       <button
         class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
         id="sidebarBasketBtn"
-        onclick="toggleBasket(${product.id})"
+        onclick="toggleBasket('${product.id}')"
         aria-pressed="${inBasket}">
         ${inBasket ? "&#10003; Added to Enquiry" : "Add to Enquiry Basket"}
       </button>
       <button
         class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
         id="sidebarCompareBtn"
-        onclick="toggleCompare(${product.id})"
+        onclick="toggleCompare('${product.id}')"
         aria-pressed="${inCompare}">
         ${inCompare ? "&#10003; In Comparison" : "+ Add to Compare"}
       </button>
@@ -187,7 +194,7 @@ function renderFullDesc(product) {
 // ─── Related Products ─────────────────────────────────────────────
 function renderRelated(product) {
   const related = PRODUCTS.filter(p =>
-    p.id !== product.id &&
+    String(p.id) !== String(product.id) &&
     (p.brand === product.brand ||
      p.industries.some(i => product.industries.includes(i)))
   ).slice(0, 4);
@@ -212,7 +219,7 @@ function renderRelated(product) {
         <h3>${p.name}</h3>
         <p>${p.shortDescription}</p>
         <div class="product-card-actions">
-          <a href="product-detail.html?id=${p.id}" class="btn btn-outline">View Product</a>
+          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline">View Product</a>
         </div>
       </div>
     </div>`;

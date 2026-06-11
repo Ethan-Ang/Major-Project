@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us | Yee Lim Adhesives Industries</title>
+  <meta name="description" content="Contact Yee Lim Adhesives Industries for product enquiries, quotations, and technical adhesive support.">
+  <link rel="stylesheet" href="css/products.css">
+  <script src="js/widgets/navbar.js"></script>
+</head>
+<body>
+
+<section class="page-hero contact-hero">
+  <h1>Contact Us</h1>
+  <p>Need help choosing the right adhesive? Contact our team for product enquiries, quotations, and technical support.</p>
+</section>
+
+<main class="contact-page">
+  <section class="contact-card contact-info-card">
+    <span class="contact-eyebrow">Get in touch</span>
+    <h2>Speak with Yee Lim</h2>
+    <p>
+      Our team can assist with product selection, pricing, lead time, and adhesive recommendations for your application.
+    </p>
+
+    <div class="contact-detail-list">
+      <div class="contact-detail">
+        <strong>Address</strong>
+        <span>1 Ang Mo Kio Street 65, #03-17, Singapore 569063</span>
+      </div>
+
+      <div class="contact-detail">
+        <strong>WhatsApp</strong>
+        <span>Click the button below to start a WhatsApp enquiry.</span>
+      </div>
+
+      <div class="contact-detail">
+        <strong>Email</strong>
+        <span>Send your enquiry using the form.</span>
+      </div>
+    </div>
+
+    <a
+      class="contact-whatsapp-btn"
+      href="https://wa.me/6590292613?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products."
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      WhatsApp Us
+    </a>
+  </section>
+
+  <section class="contact-card">
+    <span class="contact-eyebrow">Enquiry form</span>
+    <h2>Send us a message</h2>
+
+    <form class="contact-form" onsubmit="submitContactForm(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contactName">Full Name *</label>
+          <input type="text" id="contactName" required placeholder="Your name">
+        </div>
+
+        <div class="form-group">
+          <label for="contactCompany">Company</label>
+          <input type="text" id="contactCompany" placeholder="Company name">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contactEmail">Email Address *</label>
+          <input type="email" id="contactEmail" required placeholder="you@example.com">
+        </div>
+
+        <div class="form-group">
+          <label for="contactPhone">Phone Number</label>
+          <input type="tel" id="contactPhone" placeholder="+65 9123 4567">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="contactSubject">Subject *</label>
+        <input type="text" id="contactSubject" required placeholder="Product enquiry / quotation request">
+      </div>
+
+      <div class="form-group">
+        <label for="contactMessage">Message *</label>
+        <textarea id="contactMessage" required placeholder="Tell us what product or adhesive application you need help with..."></textarea>
+      </div>
+
+      <p id="contactFormStatus" class="contact-form-status" role="status"></p>
+
+      <button type="submit" class="btn btn-primary contact-submit-btn">
+        Submit Enquiry
+      </button>
+    </form>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
+</footer>
+
+<script>
+function submitContactForm(event) {
+  event.preventDefault();
+
+  const name = document.getElementById("contactName").value.trim();
+  const company = document.getElementById("contactCompany").value.trim();
+  const email = document.getElementById("contactEmail").value.trim();
+  const phone = document.getElementById("contactPhone").value.trim();
+  const subject = document.getElementById("contactSubject").value.trim();
+  const message = document.getElementById("contactMessage").value.trim();
+  const status = document.getElementById("contactFormStatus");
+
+  if (!name || !email || !subject || !message) {
+    status.textContent = "Please fill in all required fields.";
+    status.className = "contact-form-status error";
+    return;
+  }
+
+  const mailSubject = encodeURIComponent(`[Website Enquiry] ${subject}`);
+  const mailBody = encodeURIComponent(
+`Name: ${name}
+Company: ${company || "-"}
+Email: ${email}
+Phone: ${phone || "-"}
+
+Message:
+${message}`
+  );
+
+  window.location.href = `mailto:leedingxun409@gmail.com?subject=${mailSubject}&body=${mailBody}`;
+
+  status.textContent = "Opening your email app. Please send the email to complete your enquiry.";
+  status.className = "contact-form-status success";
+
+  event.target.reset();
+}
+</script>
+
+</body>
+</html>

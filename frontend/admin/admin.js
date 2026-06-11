@@ -11,7 +11,7 @@ let sortCol        = "";
 let sortDir        = "asc";
 let demoMode       = false;
 
-// Demo fallback when backend is unreachable — mirrors enquiries.js SAMPLE_ENQUIRIES pattern
+// Demo fallback when backend is unreachable — mirrors enquiries.js SAMPLE_ENQUIRIES pattern
 const SAMPLE_ADMIN_PRODUCTS = PRODUCTS.map(p => ({
   ...p,
   _id: String(p.id)
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!token) { window.location.href = "login.html"; return; }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    const res = await fetch(`${API_BASE_URL}/api/me.php`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
@@ -65,7 +65,7 @@ async function loadProducts() {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products`);
+    const res = await fetch(`${API_BASE_URL}/api/products.php`);
     if (!res.ok) throw new Error("Failed to load products.");
     const products = await res.json();
     finishLoad(products);
@@ -268,6 +268,7 @@ function onSearch() {
   const base = q
     ? allProducts.filter(p =>
         p.name.toLowerCase().includes(q) ||
+        (p.brand || "").toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
         (p.shortDescription || "").toLowerCase().includes(q) ||
         p.status.toLowerCase().includes(q)
@@ -368,7 +369,7 @@ async function bulkStatusChange(newStatus) {
 
   for (const id of ids) {
     try {
-      await fetch(`${API_BASE_URL}/api/products/${id}`, {
+      await fetch(`${API_BASE_URL}/api/products.php?id=${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ status: newStatus })
@@ -401,7 +402,7 @@ async function confirmBulkDelete() {
   let done = 0;
   for (const id of ids) {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/products.php?id=${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${getToken()}` }
       });
@@ -421,7 +422,7 @@ async function confirmBulkDelete() {
 async function toggleStatus(id, currentStatus) {
   const newStatus = currentStatus === "Available" ? "Unavailable" : "Available";
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/products.php?id=${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
       body: JSON.stringify({ status: newStatus })
@@ -436,10 +437,11 @@ async function toggleStatus(id, currentStatus) {
 
 // ─── Export CSV ───────────────────────────────────────────────────
 function exportCSV() {
-  const headers = ["Name", "Category", "Status", "Short Description", "Full Description", "Usage", "Image URL"];
+  const headers = ["Name", "Brand", "Category", "Status", "Industries", "Surfaces", "Features", "Short Description", "Full Description", "Usage", "Image URL", "Images"];
   const rows = allProducts.map(p => [
-    p.name, p.category, p.status,
-    p.shortDescription, p.fullDescription, p.usage, p.imageUrl
+    p.name, p.brand, p.category, p.status,
+    joinList(p.industries), joinList(p.surfaces), joinList(p.features),
+    p.shortDescription, p.fullDescription, p.usage, p.imageUrl, joinList(p.images)
   ].map(v => `"${(v || "").replace(/"/g, '""')}"`));
 
   const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
@@ -468,10 +470,15 @@ function openEditModal(id) {
   document.getElementById("editingId").value          = p._id;
   document.getElementById("fieldName").value          = p.name || "";
   document.getElementById("fieldCategory").value      = p.category || "Industrial";
+  document.getElementById("fieldBrand").value         = p.brand || "Deer™ Brand";
   document.getElementById("fieldShortDesc").value     = p.shortDescription || "";
   document.getElementById("fieldFullDesc").value      = p.fullDescription || "";
   document.getElementById("fieldUsage").value         = p.usage || "";
   document.getElementById("fieldImageUrl").value      = p.imageUrl || "";
+  document.getElementById("fieldImages").value        = joinList(p.images);
+  document.getElementById("fieldIndustries").value    = joinList(p.industries);
+  document.getElementById("fieldSurfaces").value      = joinList(p.surfaces);
+  document.getElementById("fieldFeatures").value      = joinList(p.features);
   document.getElementById("fieldStatus").value        = p.status || "Available";
   document.getElementById("modalError").style.display = "none";
   updateImagePreview();
@@ -483,10 +490,11 @@ function closeModal() {
 }
 
 function clearForm() {
-  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl"].forEach(id => {
+  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl","fieldImages","fieldIndustries","fieldSurfaces","fieldFeatures"].forEach(id => {
     document.getElementById(id).value = "";
   });
   document.getElementById("fieldCategory").value      = "Industrial";
+  document.getElementById("fieldBrand").value         = "Deer™ Brand";
   document.getElementById("fieldStatus").value        = "Available";
   document.getElementById("modalError").style.display = "none";
   updateImagePreview();
@@ -509,6 +517,17 @@ function updateImagePreview() {
   box.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<span>Image not found</span>'">`;
 }
 
+function splitList(value) {
+  return value
+    .split(/[,\n]/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function joinList(value) {
+  return Array.isArray(value) ? value.join(", ") : "";
+}
+
 async function saveProduct() {
   const id      = document.getElementById("editingId").value;
   const btn     = document.getElementById("saveBtn");
@@ -516,11 +535,16 @@ async function saveProduct() {
 
   const payload = {
     name:             document.getElementById("fieldName").value.trim(),
+    brand:            document.getElementById("fieldBrand").value,
     category:         document.getElementById("fieldCategory").value,
     shortDescription: document.getElementById("fieldShortDesc").value.trim(),
     fullDescription:  document.getElementById("fieldFullDesc").value.trim(),
     usage:            document.getElementById("fieldUsage").value.trim(),
     imageUrl:         document.getElementById("fieldImageUrl").value.trim(),
+    images:           splitList(document.getElementById("fieldImages").value),
+    industries:       splitList(document.getElementById("fieldIndustries").value),
+    surfaces:         splitList(document.getElementById("fieldSurfaces").value),
+    features:         splitList(document.getElementById("fieldFeatures").value),
     status:           document.getElementById("fieldStatus").value
   };
 
@@ -536,7 +560,7 @@ async function saveProduct() {
 
   try {
     const res = await fetch(
-      id ? `${API_BASE_URL}/api/products/${id}` : `${API_BASE_URL}/api/products`,
+      id ? `${API_BASE_URL}/api/products.php?id=${id}` : `${API_BASE_URL}/api/products.php`,
       {
         method: id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
@@ -577,7 +601,7 @@ async function confirmDelete() {
   btn.disabled  = true;
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products/${deletingId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/products.php?id=${deletingId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${getToken()}` }
     });

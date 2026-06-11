@@ -137,11 +137,57 @@
       font-weight: 500;
     }
     .nav-signin:hover { color: #fff; background: rgba(255,255,255,0.06); }
+
+    .floating-whatsapp {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 999;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      background: #25D366;
+      color: #fff;
+      text-decoration: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.85rem 1.05rem;
+      border-radius: 999px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.22);
+      transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .floating-whatsapp:hover {
+      background: #1ebe5d;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.28);
+    }
+
+    .floating-whatsapp-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .nav-signin { display: none; }
       .nav-compare { display: none !important; }
       .nav-hamburger { display: block; }
+
+      .floating-whatsapp {
+        right: 16px;
+        bottom: 16px;
+        padding: 0.8rem 0.9rem;
+        font-size: 0.85rem;
+      }
     }
   `;
   document.head.appendChild(style);
@@ -164,7 +210,7 @@
 
   // ─── Build nav HTML ───────────────────────────────────────────
   const links = [
-    { name: "home",     label: "Home",    href: "home.html" },
+    { name: "home",     label: "Home",    href: "index.html" },
     { name: "products", label: "Products", href: "products.html" },
     { name: "about",    label: "About",   href: "about.html" },
     { name: "contact",  label: "Contact", href: "contact.html" },
@@ -201,10 +247,24 @@
     <a href="auth/login.html">Sign In</a>
   `;
 
+  const whatsappNumber = "6588755786"; // Replace with Yee Lim's actual WhatsApp number
+  const whatsappMessage = encodeURIComponent("Hello Yee Lim, I would like to enquire about your adhesive products.");
+  const whatsappEl = document.createElement("a");
+  whatsappEl.className = "floating-whatsapp";
+  whatsappEl.href = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+  whatsappEl.target = "_blank";
+  whatsappEl.rel = "noopener noreferrer";
+  whatsappEl.setAttribute("aria-label", "Chat with Yee Lim on WhatsApp");
+  whatsappEl.innerHTML = `
+    <span class="floating-whatsapp-icon" aria-hidden="true">☎</span>
+
+  `;
+
   // ─── Insert at top of body ────────────────────────────────────
   function insert() {
     document.body.insertBefore(drawerEl, document.body.firstChild);
     document.body.insertBefore(navEl, document.body.firstChild);
+    document.body.appendChild(whatsappEl);
 
     document.getElementById("_navHamburger").addEventListener("click", function () {
       const drawer = document.getElementById("_navDrawer");

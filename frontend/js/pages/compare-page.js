@@ -1,9 +1,16 @@
-document.addEventListener("DOMContentLoaded", renderComparePage);
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await loadProductsFromBackend();
+  } catch (err) {
+    console.error(err);
+  }
+  renderComparePage();
+});
 window.addEventListener("compareUpdated", renderComparePage);
 
 function renderComparePage() {
   const list     = getCompareList();
-  const products = list.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+  const products = list.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
   const content  = document.getElementById("comparePageContent");
   if (!content) return;
 
@@ -26,13 +33,13 @@ function renderComparePage() {
           <span class="compare-img-placeholder">${brandLabel}</span>
           <span class="compare-img-placeholder-sub">Photography coming soon</span>
         </div>
-        <a class="compare-product-name" href="product-detail.html?id=${p.id}">${p.name}</a>
+        <a class="compare-product-name" href="product-detail.html?id=${encodeURIComponent(p.id)}">${p.name}</a>
         <div class="compare-product-brand">${p.brand}</div>
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${p.status}
         </div>
-        <button class="btn-add-enquiry" onclick="addToBasket(${p.id})">Add to Enquiry Basket</button>
-        <button class="compare-col-remove" onclick="removeFromCompare(${p.id})">Remove</button>
+        <button class="btn-add-enquiry" onclick="addToBasket('${p.id}')">Add to Enquiry Basket</button>
+        <button class="compare-col-remove" onclick="removeFromCompare('${p.id}')">Remove</button>
       </td>`;
   }).join("");
 
