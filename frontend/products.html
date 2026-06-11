@@ -19,6 +19,13 @@
     <input type="text" id="searchInput" placeholder="Search by product name, industry, or surface…" autocomplete="off" aria-label="Search products by name, industry, or surface">
     <button onclick="applyFilters()" aria-label="Search">Search</button>
   </div>
+  <div class="hero-ai-prompt">
+    <span>Not sure which adhesive?</span>
+    <button class="hero-ai-btn" onclick="openProductAdvisor()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      Ask our AI
+    </button>
+  </div>
 </section>
 
 <!-- Active filter chips -->
@@ -95,5 +102,6 @@
 <script src="js/data.js"></script>
 <script src="js/widgets/compare.js"></script>
 <script src="js/pages/products.js"></script>
+<script src="js/widgets/chatbot.js"></script>
 </body>
 </html>
