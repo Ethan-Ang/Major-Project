@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Brand Explorer | Interactive Cards</title>
+  <!-- Google Fonts & simple reset + modern look -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 (free icons for extra visual, optional but nice) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ========== 1. CSS (styles.css equivalent) ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fc 0%, #eef2f8 100%);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      color: #1a2c3e;
+    }
+
+    /* main container */
+    .brands-container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* header styling */
+    .brands-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .brands-header h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      background: linear-gradient(125deg, #1f3b4c, #2c6e8f);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+    .brands-header p {
+      color: #4a627a;
+      margin-top: 0.6rem;
+      font-weight: 500;
+    }
+
+    /* responsive grid */
+    .brands-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 2rem;
+      justify-items: center;
+      align-items: stretch;
+    }
+
+    /* ----- brand card ----- */
+    .brand-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(0px);
+      border-radius: 2rem;
+      width: 100%;
+      max-width: 340px;
+      padding: 1.5rem 1.2rem 1.8rem;
+      box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.02);
+      transition: all 0.25s ease-in-out;
+      cursor: pointer;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.7);
+    }
+    .brand-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 28px 36px -14px rgba(0, 0, 0, 0.2);
+      background: white;
+      border-color: #cbdde9;
+    }
+    .brand-card:active {
+      transform: scale(0.97);
+      transition: transform 0.08s linear;
+    }
+
+    /* brand visual - custom illustration / icon area */
+    .brand-visual {
+      background: #eef3fc;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      margin: 0 auto 1rem auto;
+      font-size: 3.2rem;
+      color: #1f5e7a;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 8px 14px -8px rgba(0,0,0,0.15);
+      transition: 0.2s;
+    }
+    .brand-card:hover .brand-visual {
+      background: #e5f0fa;
+      transform: scale(1.02);
+    }
+
+    .brand-name {
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin: 0.6rem 0 0.2rem;
+      color: #1e3a4b;
+    }
+    .brand-tagline {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #5d7f94;
+      margin-bottom: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .brand-short {
+      font-size: 0.9rem;
+      color: #2c5a6e;
+      line-height: 1.4;
+      margin: 0.7rem 0 1rem;
+      font-weight: 500;
+    }
+    .tap-hint {
+      font-size: 0.7rem;
+      color: #8fadc2;
+      margin-top: 0.6rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eef2f7;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+    }
+
+    /* ========== MODAL STYLES ========== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(8, 28, 38, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1100;
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0.2s, opacity 0.25s ease;
+      padding: 1rem;
+    }
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal-card {
+      background: #ffffff;
+      max-width: 540px;
+      width: 100%;
+      border-radius: 2.2rem;
+      box-shadow: 0 40px 60px rgba(0, 0, 0, 0.4);
+      transform: scale(0.96);
+      transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      overflow: hidden;
+    }
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+    .modal-header {
+      background: linear-gradient(115deg, #1f3b4c 0%, #215f78 100%);
+      padding: 1.8rem 1.8rem 1.2rem 1.8rem;
+      color: white;
+      position: relative;
+    }
+    .modal-header h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .modal-tagline {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      letter-spacing: 0.4px;
+    }
+    .close-modal-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1.4rem;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      font-size: 1.7rem;
+      cursor: pointer;
+      color: white;
+      width: 38px;
+      height: 38px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    .close-modal-btn:hover {
+      background: rgba(255,255,255,0.35);
+    }
+    .modal-body {
+      padding: 1.8rem;
+    }
+    .modal-description {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #1f3c4b;
+      margin-bottom: 1.2rem;
+      font-weight: 500;
+    }
+    .modal-details {
+      background: #f0f5fa;
+      padding: 1rem 1.2rem;
+      border-radius: 1.4rem;
+      margin: 1rem 0;
+    }
+    .modal-details p {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      margin: 0.7rem 0;
+      color: #1e4f66;
+    }
+    .modal-details i {
+      width: 28px;
+      font-size: 1.15rem;
+      color: #2c6e8f;
+    }
+    .modal-footer {
+      margin-top: 1.8rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .modal-footer button {
+      background: #eef2f7;
+      border: none;
+      padding: 0.7rem 1.6rem;
+      border-radius: 3rem;
+      font-weight: 600;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: #1d5e78;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .modal-footer button:active {
+      background: #d3e2ed;
+      transform: scale(0.96);
+    }
+    @media (max-width: 640px) {
+      body { padding: 1.2rem; }
+      .brands-header h1 { font-size: 1.9rem; }
+      .modal-card { max-width: 92%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="brands-container">
+  <div class="brands-header">
+    <h1><i class="fas fa-crown" style="color: #2c6e8f; margin-right: 8px;"></i> Iconic brands</h1>
+    <p>Tap any card — explore heritage & impact</p>
+  </div>
+  <div class="brands-grid" id="brandsGrid">
+    <!-- Cards will be injected via JS, but we separate logic -->
+  </div>
+</div>
+
+<!-- MODAL MARKUP (hidden initially) -->
+<div id="brandModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <button class="close-modal-btn" id="closeModalBtn" aria-label="Close">&times;</button>
+      <h2 id="modalBrandName">Brand Name</h2>
+      <div class="modal-tagline" id="modalTagline">tagline</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-description" id="modalDescription">
+        Full description will be shown here.
+      </div>
+      <div class="modal-details" id="modalExtraDetails">
+        <!-- dynamic fields -->
+      </div>
+      <div class="modal-footer">
+        <button id="modalCloseFooterBtn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ========== 2. JAVASCRIPT (script.js) ==========
+  // HARDCODED BRAND INFORMATION (fully editable)
+  const brandsData = [
+    {
+      id: 1,
+      name: "Nike",
+      tagline: "Just Do It",
+      shortDesc: "Global sportswear & relentless innovation.",
+      iconClass: "fab fa-nike",
+      fullDescription: "Nike, Inc. started as Blue Ribbon Sports in 1964 and became the world's leading athletic brand. With the iconic Swoosh, it empowers athletes and merges performance with culture.",
+      founded: "1964 (as BRS), 1971 as Nike",
+      origin: "Oregon, USA",
+      website: "nike.com",
+      industry: "Sportswear & Equipment",
+      funFact: "The 'Swoosh' was designed for $35!"
+    },
+    {
+      id: 2,
+      name: "Apple",
+      tagline: "Think Different",
+      shortDesc: "Revolutionary technology and design.",
+      iconClass: "fab fa-apple",
+      fullDescription: "Apple Inc. redefined personal computing, music, and mobile phones. From Mac to iPhone, its ecosystem and design-led innovation changed the world.",
+      founded: "1976",
+      origin: "Cupertino, California",
+      website: "apple.com",
+      industry: "Consumer Electronics",
+      funFact: "First Apple computer was built in a garage."
+    },
+    {
+      id: 3,
+      name: "Starbucks",
+      tagline: "Brewed Passion",
+      shortDesc: "Coffee culture & community spaces.",
+      iconClass: "fas fa-mug-hot",
+      fullDescription: "Starbucks transformed coffee into a global experience, creating the 'third place' between home and work. Known for ethical sourcing and seasonal blends.",
+      founded: "1971",
+      origin: "Seattle, Washington",
+      website: "starbucks.com",
+      industry: "Coffeehouse Chain",
+      funFact: "The siren logo was inspired by a 16th-century Norse woodcut."
+    },
+    {
+      id: 4,
+      name: "Tesla",
+      tagline: "Accelerate the future",
+      shortDesc: "Electric vehicles & clean energy.",
+      iconClass: "fas fa-car",
+      fullDescription: "Tesla's mission is to accelerate the world's transition to sustainable energy. From Model S to Cybertruck, it leads EV innovation and autonomy.",
+      founded: "2003",
+      origin: "Austin, Texas (HQ)",
+      website: "tesla.com",
+      industry: "Automotive & Energy",
+      funFact: "Tesla's first car was the Roadster, based on Lotus Elise."
+    },
+    {
+      id: 5,
+      name: "Adidas",
+      tagline: "Impossible is Nothing",
+      shortDesc: "German sportswear excellence.",
+      iconClass: "fab fa-adidas",
+      fullDescription: "Adidas stands for performance, style, and sustainability. Known for Boost technology, Originals line, and iconic partnerships.",
+      founded: "1949",
+      origin: "Herzogenaurach, Germany",
+      website: "adidas.com",
+      industry: "Sportswear",
+      funFact: "Adidas was founded by Adolf 'Adi' Dassler."
+    },
+    {
+      id: 6,
+      name: "Sony",
+      tagline: "For the thrill of creativity",
+      shortDesc: "Entertainment & electronics giant.",
+      iconClass: "fab fa-sony",
+      fullDescription: "Sony reshaped electronics with Walkman, PlayStation, and top-tier cameras. Its entertainment arm includes music, movies, and games.",
+      founded: "1946",
+      origin: "Tokyo, Japan",
+      website: "sony.com",
+      industry: "Electronics & Entertainment",
+      funFact: "PlayStation was originally a failed Nintendo collaboration."
+    },
+    {
+      id: 7,
+      name: "LEGO",
+      tagline: "Play Well",
+      shortDesc: "Creative building bricks for all ages.",
+      iconClass: "fas fa-cubes",
+      fullDescription: "LEGO Group inspires creativity through interlocking brick systems. From simple sets to complex Technic, it encourages imagination worldwide.",
+      founded: "1932",
+      origin: "Billund, Denmark",
+      website: "lego.com",
+      industry: "Toys & Entertainment",
+      funFact: "The name LEGO comes from Danish 'leg godt' meaning 'play well'."
+    }
+  ];
+
+  // DOM references
+  const brandsGrid = document.getElementById('brandsGrid');
+  const modalOverlay = document.getElementById('brandModal');
+  const modalBrandName = document.getElementById('modalBrandName');
+  const modalTagline = document.getElementById('modalTagline');
+  const modalDescription = document.getElementById('modalDescription');
+  const modalExtraDetails = document.getElementById('modalExtraDetails');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const modalCloseFooterBtn = document.getElementById('modalCloseFooterBtn');
+
+  // ---------- MODAL LOGIC ----------
+  function closeModal() {
+    if (modalOverlay) {
+      modalOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function openModal(brand) {
+    if (!brand) return;
+    // Fill modal header & description
+    modalBrandName.textContent = brand.name;
+    modalTagline.textContent = brand.tagline;
+    modalDescription.textContent = brand.fullDescription;
+    
+    // Build extra details panel (hardcoded fields + fun fact)
+    modalExtraDetails.innerHTML = `
+      <p><i class="fas fa-calendar-alt"></i> <strong>Founded:</strong> ${brand.founded}</p>
+      <p><i class="fas fa-map-marker-alt"></i> <strong>Origin:</strong> ${brand.origin}</p>
+      <p><i class="fas fa-briefcase"></i> <strong>Industry:</strong> ${brand.industry}</p>
+      <p><i class="fas fa-globe"></i> <strong>Website:</strong> <span style="font-family: monospace;">${brand.website}</span></p>
+      <p><i class="fas fa-lightbulb"></i> <strong>Did you know?</strong> ${brand.funFact || 'Iconic brand with global impact.'}</p>
+    `;
+    
+    modalOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // ---------- BUILD BRAND CARDS (hardcoded data) ----------
+  function buildBrandCards() {
+    brandsGrid.innerHTML = '';
+    brandsData.forEach(brand => {
+      const card = document.createElement('div');
+      card.className = 'brand-card';
+      card.setAttribute('data-id', brand.id);
+      
+      // decide icon: if brand uses fontawesome brand icon (like fab fa-nike) else solid
+      let iconHtml = '';
+      if (brand.iconClass) {
+        iconHtml = `<i class="${brand.iconClass}"></i>`;
+      } else {
+        iconHtml = `<i class="fas fa-building"></i>`;
+      }
+      
+      card.innerHTML = `
+        <div class="brand-visual">
+          ${iconHtml}
+        </div>
+        <div class="brand-name">${brand.name}</div>
+        <div class="brand-tagline">${brand.tagline}</div>
+        <div class="brand-short">${brand.shortDesc}</div>
+        <div class="tap-hint">
+          <i class="fas fa-hand-pointer"></i> <span>tap to discover</span>
+        </div>
+      `;
+      
+      // add tap / click event
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openModal(brand);
+      });
+      
+      // optional touchstart to ensure responsiveness (click works on mobile, but keep)
+      card.addEventListener('touchstart', (e) => {
+        // just passive for better response - no conflict
+      });
+      
+      brandsGrid.appendChild(card);
+    });
+  }
+
+  // ---------- GLOBAL MODAL EVENT LISTENERS ----------
+  function initModalEvents() {
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', closeModal);
+    }
+    if (modalCloseFooterBtn) {
+      modalCloseFooterBtn.addEventListener('click', closeModal);
+    }
+    // close when clicking on overlay background
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+          closeModal();
+        }
+      });
+    }
+    // ESC key to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('active')) {
+        closeModal();
+      }
+    });
+  }
+
+  // small helper: reset body overflow if needed
+  function finalCleanup() {
+    window.addEventListener('resize', () => {
+      if (modalOverlay && !modalOverlay.classList.contains('active')) {
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  // ---------- BOOTSTRAP EVERYTHING ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    buildBrandCards();      // inject all cards from hardcoded array
+    initModalEvents();     // attach modal close listeners
+    finalCleanup();
+  });
+</script>
+</body>
+</html>
