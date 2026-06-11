@@ -27,11 +27,12 @@ function renderComparePage() {
   const headerCols = products.map(p => {
     const availClass  = p.status === "Available" ? "available" : "unavailable";
     const brandLabel  = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+    const placeholderSub = (p.category && p.category !== "Others") ? p.category : "Adhesive Solution";
     return `
       <td class="compare-col-header">
         <div class="compare-product-img">
           <span class="compare-img-placeholder">${brandLabel}</span>
-          <span class="compare-img-placeholder-sub">Photography coming soon</span>
+          <span class="compare-img-placeholder-sub">${placeholderSub}</span>
         </div>
         <a class="compare-product-name" href="product-detail.html?id=${encodeURIComponent(p.id)}">${p.name}</a>
         <div class="compare-product-brand">${p.brand}</div>

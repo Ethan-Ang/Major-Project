@@ -40,10 +40,13 @@ function renderGallery(product) {
   const images = (product.images && product.images.length) ? product.images : [];
 
   const brandLabel = product.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+  const placeholderSub = (product.category && product.category !== "Others")
+    ? product.category
+    : "Adhesive Solution";
   const placeholderSVG = `
-    <div class="gallery-placeholder" aria-label="No product image available">
+    <div class="gallery-placeholder" aria-label="${product.name}">
       <div class="gallery-placeholder-brand" aria-hidden="true">${brandLabel}</div>
-      <span>Photography coming soon</span>
+      <span>${placeholderSub}</span>
     </div>`;
 
   const mainImgContent = images.length
@@ -167,6 +170,7 @@ function renderSidebar(product) {
     </div>
     <div class="sidebar-foot">
       <a href="enquiry.html" class="sidebar-enquiry-link">View Enquiry Basket &rarr;</a>
+      <a href="contact.html" class="sidebar-enquiry-link">Speak to Yee Lim &rarr;</a>
       <p class="sidebar-note">Submit an enquiry to receive pricing and lead times from our sales team.</p>
     </div>`;
 }

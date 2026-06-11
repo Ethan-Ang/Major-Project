@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   readStateFromURL();
   buildFilterCheckboxes();
+  renderApplications();
   applyStateToCheckboxes();
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
@@ -104,6 +105,67 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
   }).join("");
 }
 
+// ─── Browse by Application (solution tiles) ──────────────────────
+// Friendly B2B labels mapped 1:1 to real industries in data.js so every
+// tile filters real products — no dead ends.
+const APPLICATIONS = [
+  { label: "Woodworking & Carpentry", industry: "Carpentry",  blurb: "Joinery, panels &amp; timber bonding",
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>` },
+  { label: "Flooring", industry: "Flooring", blurb: "Carpet, vinyl, laminate &amp; turf",
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>` },
+  { label: "Packaging", industry: "Packaging", blurb: "Cartons, labels &amp; sealing",
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>` },
+  { label: "Furniture & Upholstery", industry: "Upholstery", blurb: "Foam, fabric &amp; leather lamination",
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>` },
+  { label: "Marine", industry: "Marine", blurb: "Water-resistant industrial bonding",
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>` },
+  { label: "Automotive", industry: "Automotive", blurb: "Trim, insulation &amp; assembly",
+    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>` },
+];
+
+function renderApplications() {
+  const grid = document.getElementById("applicationGrid");
+  if (!grid) return;
+
+  const counts = {};
+  PRODUCTS.forEach(p => p.industries.forEach(i => { counts[i] = (counts[i] || 0) + 1; }));
+
+  grid.innerHTML = APPLICATIONS.map(app => {
+    const n = counts[app.industry] || 0;
+    const plural = n === 1 ? "" : "s";
+    return `
+      <button class="application-card" type="button" data-industry="${app.industry}"
+        onclick="filterByIndustry('${app.industry}')"
+        aria-label="Browse ${app.label.replace(/&amp;/g, 'and')} adhesives, ${n} product${plural}">
+        <span class="application-icon" aria-hidden="true">${app.icon}</span>
+        <span class="application-text">
+          <span class="application-label">${app.label}</span>
+          <span class="application-blurb">${app.blurb}</span>
+        </span>
+        <span class="application-count">${n}<span>product${plural}</span></span>
+      </button>`;
+  }).join("");
+}
+
+// Apply a single industry filter and jump to the catalogue
+function filterByIndustry(industry) {
+  document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => {
+    cb.checked = (cb.dataset.type === "industry" && cb.value === industry);
+  });
+  const search = document.getElementById("searchInput");
+  if (search) search.value = "";
+  applyFilters();
+  const target = document.getElementById("catalogue");
+  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// Highlight the application tile matching the active industry filter
+function syncApplicationCards() {
+  document.querySelectorAll(".application-card").forEach(card => {
+    card.classList.toggle("active", activeFilters.industries.includes(card.dataset.industry));
+  });
+}
+
 // ─── Apply search + filters + sort ───────────────────────────────
 function applyFilters(opts = {}) {
   const query   = document.getElementById("searchInput").value.toLowerCase().trim();
@@ -148,6 +210,7 @@ function applyFilters(opts = {}) {
   if (!opts.skipUrlWrite) writeStateToURL();
   updateClearVisibility();
   updateFilterGroupBadges();
+  syncApplicationCards();
 }
 
 function updateFilterGroupBadges() {
@@ -282,7 +345,8 @@ function productCardHTML(p) {
   const compareListFull = getCompareList().length >= COMPARE_MAX;
   const compareDisabled = !inCompare && compareListFull;
 
-  const industryTags = p.industries.slice(0, 2).map(i => `<span class="product-tag">${i}</span>`).join("");
+  const primaryApps = p.industries.slice(0, 2).join(", ");
+  const surfaceTags = p.surfaces.slice(0, 3).map(s => `<span class="product-tag">${s}</span>`).join("");
 
   const hasRealImage = p.images && p.images.length > 0;
   const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
@@ -316,9 +380,10 @@ function productCardHTML(p) {
         <span class="brand-badge">${p.brand}</span>
         <h3>${p.name}</h3>
         <p>${p.shortDescription}</p>
-        <div class="product-tags">${industryTags}</div>
+        ${primaryApps ? `<div class="card-application"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><span>${primaryApps}</span></div>` : ""}
+        ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces">${surfaceTags}</div>` : ""}
         <div class="product-card-actions">
-          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline">View Product</a>
+          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline">View Details</a>
           <button
             class="btn btn-primary ${inBasket ? "btn-added" : ""}"
             onclick="toggleBasket('${p.id}')"

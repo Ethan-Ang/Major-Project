@@ -7,24 +7,63 @@
   <meta name="description" content="Browse Yee Lim's full range of industrial and commercial adhesives — Deer™, Horsemen™, Premier™, and Rhino™ brands. Filter by industry and surface.">
   <link rel="stylesheet" href="css/products.css">
   <script src="js/widgets/navbar.js"></script>
+  <script src="js/widgets/footer.js"></script>
 </head>
 <body>
 
-<!-- Hero / Search -->
+<!-- Hero / positioning -->
 <section class="page-hero">
-  <h1>Our Products</h1>
-  <p>50 years of adhesive expertise. Find the right product for your application.</p>
-  <div class="search-bar" role="search">
-    <label for="searchInput" class="sr-only">Search products</label>
-    <input type="text" id="searchInput" placeholder="Search by product name, industry, or surface…" autocomplete="off" aria-label="Search products by name, industry, or surface">
-    <button onclick="applyFilters()" aria-label="Search">Search</button>
+  <div class="hero-inner">
+    <span class="hero-eyebrow">Adhesive Solutions</span>
+    <h1>Commercial &amp; Industrial Adhesive Solutions</h1>
+    <p class="hero-lead">
+      One of Singapore's earliest and largest adhesive manufacturers, engineering bonding
+      solutions for industry for over 50 years. No single product suits every job, so we
+      formulate our adhesives around your application.
+    </p>
+    <div class="search-bar" role="search">
+      <label for="searchInput" class="sr-only">Search products</label>
+      <input type="text" id="searchInput" placeholder="Search by product, industry, or surface…" autocomplete="off" aria-label="Search products by name, industry, or surface">
+      <button onclick="applyFilters()" aria-label="Search">Search</button>
+    </div>
+    <div class="hero-ai-prompt">
+      <span>Not sure which adhesive fits your job?</span>
+      <button class="hero-ai-btn" onclick="openProductAdvisor()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Ask our AI
+      </button>
+    </div>
   </div>
-  <div class="hero-ai-prompt">
-    <span>Not sure which adhesive?</span>
-    <button class="hero-ai-btn" onclick="openProductAdvisor()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-      Ask our AI
-    </button>
+</section>
+
+<!-- Trust strip -->
+<section class="trust-strip" aria-label="Yee Lim at a glance">
+  <ul class="trust-strip-inner">
+    <li class="trust-item"><span class="trust-num">50<span class="trust-plus">+</span></span><span class="trust-label">Years Manufacturing</span></li>
+    <li class="trust-item"><span class="trust-num">4</span><span class="trust-label">House Brands</span></li>
+    <li class="trust-item"><span class="trust-num">12</span><span class="trust-label">Industries Served</span></li>
+    <li class="trust-item"><span class="trust-num">ISO</span><span class="trust-label">Certified &amp; Green Label</span></li>
+  </ul>
+</section>
+
+<!-- Browse by Application -->
+<section class="applications" id="applications" aria-labelledby="applicationsHeading">
+  <div class="applications-inner">
+    <div class="section-head">
+      <span class="section-eyebrow">Solutions by Industry</span>
+      <h2 id="applicationsHeading">Browse by Application</h2>
+      <p>Select your industry to see the adhesive solutions matched to it.</p>
+    </div>
+    <div class="application-grid" id="applicationGrid"></div>
+  </div>
+</section>
+
+<!-- Full range -->
+<section class="catalogue-head" id="catalogue">
+  <div class="catalogue-head-inner">
+    <span class="section-eyebrow">Full Catalogue</span>
+    <h2>Full Adhesive Range</h2>
+    <p>Every Yee Lim product. Refine by brand, industry, or surface to narrow your selection.</p>
   </div>
 </section>
 
@@ -81,10 +120,7 @@
 <!-- Toast -->
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-<!-- Footer -->
-<footer class="footer">
-  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved. | 1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
-</footer>
+<!-- Footer injected by js/widgets/footer.js -->
 
 <!-- Compare tray -->
 <div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">

@@ -7,7 +7,25 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(mkdir -p \"c:\\\\Users\\\\user\\\\OneDrive\\\\Desktop\\\\devops project\\\\Major-Project\\\\frontend\\\\css\")",
-      "Bash(mkdir -p \"c:\\\\Users\\\\user\\\\OneDrive\\\\Desktop\\\\devops project\\\\Major-Project\\\\frontend\\\\images\\\\products\")"
+      "Bash(mkdir -p \"c:\\\\Users\\\\user\\\\OneDrive\\\\Desktop\\\\devops project\\\\Major-Project\\\\frontend\\\\images\\\\products\")",
+      "Bash(php -l \"c:/Users/user/OneDrive/Desktop/devops project/Major-Project/frontend/api/advisor.php\")",
+      "Bash(node --check \"c:/Users/user/OneDrive/Desktop/devops project/Major-Project/frontend/js/widgets/chatbot.js\")",
+      "Bash(node --check \"C:/Users/user/AppData/Local/Temp/yeelim-preview-server.js\")",
+      "Bash(curl -s -X POST http://localhost:5500/api/advisor.php -H \"Content-Type: application/json\" -d '{\"messages\":[{\"role\":\"user\",\"content\":\"what adhesive for tiles in a wet bathroom\"}]}')",
+      "Bash(curl -s -X POST http://localhost:5500/api/advisor.php -H \"Content-Type: application/json\" -d '{\"messages\":[{\"role\":\"user\",\"content\":\"bonding foam to metal in a humid area\"}]}')",
+      "Bash(curl -s -X POST http://localhost:5500/api/advisor.php -H \"Content-Type: application/json\" -d '{\"messages\":[{\"role\":\"user\",\"content\":\"zzzz\"}]}')",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --virtual-time-budget=4000 --window-size=900,1000 --screenshot=\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\yl-advisor.png\" \"http://localhost:5500/_advisortest.html\")",
+      "Bash(rm -f \"c:/Users/user/OneDrive/Desktop/devops project/Major-Project/frontend/_advisortest.html\")",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --virtual-time-budget=4000 --window-size=1320,1400 --screenshot=\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\yl-final.png\" \"http://localhost:5500/products.html\")",
+      "Bash(curl -s -X POST http://localhost:5500/api/advisor.php -H \"Content-Type: application/json\" -d '{\"messages\":[{\"role\":\"user\",\"content\":\"oh okay\"}]}')",
+      "Bash(curl -s -X POST http://localhost:5500/api/advisor.php -H \"Content-Type: application/json\" -d '{\"messages\":[{\"role\":\"user\",\"content\":\"thanks!\"}]}')",
+      "Bash(curl -s -X POST http://localhost:5500/api/advisor.php -H \"Content-Type: application/json\" -d '{\"messages\":[{\"role\":\"user\",\"content\":\"metal bonding\"}]}')",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --virtual-time-budget=5000 --window-size=760,820 --screenshot=\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\yl-chat2.png\" \"http://localhost:5500/_advisortest.html\")",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --virtual-time-budget=6000 --window-size=760,860 --screenshot=\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\yl-chat3.png\" \"http://localhost:5500/_advisortest.html\")",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --virtual-time-budget=6000 --window-size=760,860 --screenshot=\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\yl-chat4.png\" \"http://localhost:5500/_advisortest.html\")",
+      "Bash(git check-ignore *)",
+      "Bash(git ls-files *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

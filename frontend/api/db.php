@@ -4,8 +4,9 @@ header("Content-Type: application/json");
 require_once __DIR__ . "/config.php";
 
 try {
+    $port = defined("DB_PORT") ? DB_PORT : 3306;
     $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+        "mysql:host=" . DB_HOST . ";port=" . $port . ";dbname=" . DB_NAME . ";charset=utf8mb4",
         DB_USER,
         DB_PASS
     );

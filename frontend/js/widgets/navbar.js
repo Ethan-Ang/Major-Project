@@ -67,33 +67,42 @@
       flex-shrink: 0;
     }
     .nav-basket {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
       color: #fff;
       text-decoration: none;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
+      font-weight: 600;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #CC2929;
-      padding: 0.4rem 0.9rem;
-      border-radius: 6px;
-      transition: background 0.2s;
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      transition: background 0.2s, box-shadow 0.2s;
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .nav-basket:hover { background: #a82020; }
+    .nav-basket:hover {
+      background: #a82020;
+      box-shadow: 0 2px 10px rgba(204, 41, 41, 0.35);
+    }
+    .nav-basket svg { flex-shrink: 0; opacity: 0.95; }
     .nav-basket-count {
-      background: #fff;
-      color: #CC2929;
-      font-size: 0.75rem;
+      background: rgba(0, 0, 0, 0.28);
+      color: #fff;
+      font-size: 0.72rem;
       font-weight: 700;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      display: flex;
+      font-variant-numeric: tabular-nums;
+      border-radius: 999px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      line-height: 1;
     }
+    .nav-basket-count.is-empty { display: none; }
     .nav-compare,
     .nav-compare-count { display: none !important; }
     .nav-hamburger {
@@ -138,56 +147,11 @@
     }
     .nav-signin:hover { color: #fff; background: rgba(255,255,255,0.06); }
 
-    .floating-whatsapp {
-      position: fixed;
-      right: 24px;
-      bottom: 24px;
-      z-index: 999;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      background: #25D366;
-      color: #fff;
-      text-decoration: none;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.9rem;
-      font-weight: 700;
-      padding: 0.85rem 1.05rem;
-      border-radius: 999px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.22);
-      transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-    }
-
-    .floating-whatsapp:hover {
-      background: #1ebe5d;
-      color: #fff;
-      transform: translateY(-2px);
-      box-shadow: 0 16px 36px rgba(0,0,0,0.28);
-    }
-
-    .floating-whatsapp-icon {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.22);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.95rem;
-    }
-
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .nav-signin { display: none; }
       .nav-compare { display: none !important; }
       .nav-hamburger { display: block; }
-
-      .floating-whatsapp {
-        right: 16px;
-        bottom: 16px;
-        padding: 0.8rem 0.9rem;
-        font-size: 0.85rem;
-      }
     }
   `;
   document.head.appendChild(style);
@@ -231,6 +195,7 @@
     <div class="nav-right">
       <a href="auth/login.html" class="nav-signin">Sign In</a>
       <a href="enquiry.html" class="nav-basket">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 11 4-7"></path><path d="m19 11-4-7"></path><path d="M2 11h20"></path><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.6-7.4"></path><path d="m9 11 1 9"></path><path d="m15 11-1 9"></path></svg>
         Enquiry Basket
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
@@ -247,24 +212,10 @@
     <a href="auth/login.html">Sign In</a>
   `;
 
-  const whatsappNumber = "6588755786"; // Replace with Yee Lim's actual WhatsApp number
-  const whatsappMessage = encodeURIComponent("Hello Yee Lim, I would like to enquire about your adhesive products.");
-  const whatsappEl = document.createElement("a");
-  whatsappEl.className = "floating-whatsapp";
-  whatsappEl.href = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
-  whatsappEl.target = "_blank";
-  whatsappEl.rel = "noopener noreferrer";
-  whatsappEl.setAttribute("aria-label", "Chat with Yee Lim on WhatsApp");
-  whatsappEl.innerHTML = `
-    <span class="floating-whatsapp-icon" aria-hidden="true">☎</span>
-
-  `;
-
   // ─── Insert at top of body ────────────────────────────────────
   function insert() {
     document.body.insertBefore(drawerEl, document.body.firstChild);
     document.body.insertBefore(navEl, document.body.firstChild);
-    document.body.appendChild(whatsappEl);
 
     document.getElementById("_navHamburger").addEventListener("click", function () {
       const drawer = document.getElementById("_navDrawer");
@@ -282,7 +233,11 @@
 
   function updateCounts() {
     const basketEl = document.getElementById("basketCount");
-    if (basketEl) basketEl.textContent = getBasketCount();
+    if (basketEl) {
+      const n = getBasketCount();
+      basketEl.textContent = n;
+      basketEl.classList.toggle("is-empty", n === 0);
+    }
 
     const compareCountEl = document.getElementById("navCompareCount");
     const compareLinkEl  = document.getElementById("navCompareLink");
