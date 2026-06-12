@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   readStateFromURL();
+  if (typeof enhanceCustomSelect === "function") {
+    enhanceCustomSelect(document.getElementById("sortSelect"));
+  }
   buildFilterCheckboxes();
   renderApplications();
   applyStateToCheckboxes();
@@ -48,7 +51,10 @@ function readStateFromURL() {
   const sortSelect  = document.getElementById("sortSelect");
 
   if (params.get("q")) searchInput.value = params.get("q");
-  if (params.get("sort") && sortSelect) sortSelect.value = params.get("sort");
+  if (params.get("sort") && sortSelect) {
+    sortSelect.value = params.get("sort");
+    if (typeof refreshCustomSelect === "function") refreshCustomSelect(sortSelect);
+  }
 
   activeFilters.brands     = params.get("brand")    ? params.get("brand").split("|")    : [];
   activeFilters.industries = params.get("industry") ? params.get("industry").split("|") : [];
@@ -244,7 +250,9 @@ function updateClearVisibility() {
 function clearFilters() {
   document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => cb.checked = false);
   document.getElementById("searchInput").value = "";
-  document.getElementById("sortSelect").value = "default";
+  const sortSelect = document.getElementById("sortSelect");
+  sortSelect.value = "default";
+  if (typeof refreshCustomSelect === "function") refreshCustomSelect(sortSelect);
   activeFilters = { brands: [], industries: [], surfaces: [] };
   renderFilterChips();
   renderGrid(PRODUCTS);

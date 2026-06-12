@@ -33,6 +33,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.addEventListener("compareUpdated", () => updateSidebarCompareBtn(product.id));
 });
 
+// ─── Back to catalogue ────────────────────────────────────────────
+// If the visitor arrived from the products listing, Back returns them
+// to that exact scroll / filter / search state. Otherwise the link's
+// href (products.html#catalogue) is followed normally. The navbar
+// Products link is unaffected.
+function backToProducts(e) {
+  try {
+    const ref = document.referrer ? new URL(document.referrer) : null;
+    if (ref && ref.origin === location.origin && ref.pathname.endsWith("/products.html")) {
+      e.preventDefault();
+      history.back();
+      return false;
+    }
+  } catch (_) { /* fall through to the href fallback */ }
+  return true;
+}
+
 // ─── Gallery ─────────────────────────────────────────────────────
 function renderGallery(product) {
   const el     = document.getElementById("detailGallery");
@@ -167,9 +184,8 @@ function renderSidebar(product) {
       </button>
     </div>
     <div class="sidebar-foot">
-      <a href="enquiry.html" class="sidebar-enquiry-link">View Product Enquiry &rarr;</a>
-      <a href="contact.html" class="sidebar-enquiry-link">Speak to Yee Lim &rarr;</a>
-      <p class="sidebar-note">Submit an enquiry to receive pricing and lead times from our sales team.</p>
+      <a href="enquiry.html" class="sidebar-enquiry-link" id="sidebarEnquiryLink"${inBasket ? "" : " hidden"}>View Product Enquiry &rarr;</a>
+      <p class="sidebar-note">Need advice before choosing? Add this product to your enquiry and Yee Lim's team will advise on suitability, pricing, and lead time.</p>
     </div>`;
 }
 
@@ -248,6 +264,7 @@ function toggleBasket(productId) {
   const basket = getBasket();
   const idx    = basket.indexOf(productId);
   const btn    = document.getElementById("sidebarBasketBtn");
+  const enquiryLink = document.getElementById("sidebarEnquiryLink");
 
   if (idx === -1) {
     basket.push(productId);
@@ -255,6 +272,7 @@ function toggleBasket(productId) {
       btn.innerHTML = "&#10003; Selected";
       btn.classList.add("btn-added");
     }
+    if (enquiryLink) enquiryLink.hidden = false;
     showToast("Added to your product enquiry");
   } else {
     basket.splice(idx, 1);
@@ -262,6 +280,7 @@ function toggleBasket(productId) {
       btn.textContent = "Add to Product Enquiry";
       btn.classList.remove("btn-added");
     }
+    if (enquiryLink) enquiryLink.hidden = true;
     showToast("Removed from your product enquiry");
   }
   saveBasket(basket);

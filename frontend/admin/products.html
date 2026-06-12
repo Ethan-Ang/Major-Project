@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Products | Yee Lim Adhesives Admin</title>
   <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="../css/dropdown-ui.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
@@ -110,7 +111,7 @@
               <i data-lucide="search" class="search-icon"></i>
               <input type="text" id="tableSearch" class="table-search" placeholder="Search products…" oninput="onSearch()">
             </div>
-            <select class="page-size-select" id="pageSizeSelect" onchange="onPageSizeChange()">
+            <select class="page-size-select" id="pageSizeSelect" onchange="onPageSizeChange()" aria-label="Products per page">
               <option value="10">10 per page</option>
               <option value="25">25 per page</option>
               <option value="50">50 per page</option>
@@ -302,6 +303,7 @@
 <div class="admin-toast" id="adminToast"></div>
 
 <script src="../js/data.js"></script>
+<script src="../js/widgets/custom-select.js"></script>
 <script src="admin.js"></script>
 <script>
   // Reflect logged-in username into the sidebar

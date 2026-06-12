@@ -26,6 +26,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
 
+  if (typeof enhanceCustomSelect === "function") {
+    enhanceCustomSelect(document.getElementById("pageSizeSelect"));
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/me.php`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -262,7 +266,7 @@ function goToPage(n) {
 }
 
 function onPageSizeChange() {
-  pageSize    = parseInt(document.getElementById("pageSizeSelect").value);
+  pageSize    = parseInt(document.getElementById("pageSizeSelect").value, 10);
   currentPage = 1;
   renderTable();
 }

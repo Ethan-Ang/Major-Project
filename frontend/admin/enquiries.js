@@ -39,6 +39,11 @@ let repliedIds   = new Set();
 document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
+
+  if (typeof enhanceCustomSelect === "function") {
+    enhanceCustomSelect(document.getElementById("filterStatus"));
+  }
+
   loadEnquiries();
 });
 

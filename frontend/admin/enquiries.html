@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Enquiries | Yee Lim Adhesives Admin</title>
   <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="../css/dropdown-ui.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
@@ -96,10 +97,10 @@
               <i data-lucide="search" class="search-icon"></i>
               <input type="text" id="tableSearch" class="table-search" placeholder="Search enquiries…" oninput="filterEnquiries()">
             </div>
-            <select class="filter-select" id="filterStatus" onchange="filterEnquiries()">
+            <select class="filter-select" id="filterStatus" onchange="filterEnquiries()" aria-label="Filter enquiries by status">
               <option value="all">All</option>
-              <option value="new">New only</option>
-              <option value="replied">Replied only</option>
+              <option value="new">New</option>
+              <option value="replied">Replied</option>
             </select>
           </div>
         </div>
@@ -143,6 +144,7 @@
 <div class="admin-toast" id="adminToast"></div>
 
 <script src="../js/data.js"></script>
+<script src="../js/widgets/custom-select.js"></script>
 <script src="enquiries.js"></script>
 <script>
   (function () {
