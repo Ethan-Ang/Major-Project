@@ -1,0 +1,140 @@
+{
+  "checks": [
+    {
+      "id": "hero-cta-primary-text",
+      "foreground": "#ffffff",
+      "background": "#CC2929",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Browse Products button label on red, 0.9rem 600"
+    },
+    {
+      "id": "hero-cta-primary-text-hover",
+      "foreground": "#ffffff",
+      "background": "#a82020",
+      "type": "text-normal",
+      "state": "hover",
+      "notes": "Browse Products hover"
+    },
+    {
+      "id": "hero-cta-ghost-text",
+      "foreground": "#e5e7eb",
+      "background": "#0e1116",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Ghost CTA label on dark hero"
+    },
+    {
+      "id": "hero-cta-ghost-border",
+      "foreground": "#626468",
+      "background": "#0e1116",
+      "type": "ui",
+      "state": "default",
+      "notes": "rgba(255,255,255,0.35) composited over #0e1116"
+    },
+    {
+      "id": "hero-cta-focus-ring",
+      "foreground": "#ffffff",
+      "background": "#0e1116",
+      "type": "ui",
+      "state": "focus",
+      "notes": "White 2px outline on dark hero"
+    },
+    {
+      "id": "hero-lead-text",
+      "foreground": "#aeb6c2",
+      "background": "#0e1116",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Hero subtext"
+    },
+    {
+      "id": "footer-bottom-text",
+      "foreground": "#8a93a0",
+      "background": "#0e1116",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Footer bottom bar text 0.78rem (raised from #6b7484)"
+    },
+    {
+      "id": "footer-admin-link",
+      "foreground": "#8a93a0",
+      "background": "#0e1116",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Admin Login link, underlined"
+    },
+    {
+      "id": "footer-contact-dt",
+      "foreground": "#8a93a0",
+      "background": "#0e1116",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Footer contact labels 0.68rem 700 (raised from #6b7484)"
+    },
+    {
+      "id": "navbar-product-enquiry-pill",
+      "foreground": "#ffffff",
+      "background": "#CC2929",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Product Enquiry nav pill 0.875rem 600"
+    },
+    {
+      "id": "filter-sub-helper",
+      "foreground": "#6b7480",
+      "background": "#ffffff",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Refine Products helper copy 0.8rem on white card"
+    },
+    {
+      "id": "card-best-for-label",
+      "foreground": "#6b7480",
+      "background": "#ffffff",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "BEST FOR label 0.7rem 600 on white card"
+    },
+    {
+      "id": "guidance-title",
+      "foreground": "#1b212b",
+      "background": "#ffffff",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Enquiry guidance heading"
+    },
+    {
+      "id": "guidance-body",
+      "foreground": "#6b7480",
+      "background": "#ffffff",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Enquiry guidance paragraph 0.9rem"
+    },
+    {
+      "id": "guidance-link",
+      "foreground": "#CC2929",
+      "background": "#ffffff",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Send Product Enquiry link, underlined"
+    },
+    {
+      "id": "enquiry-error-text",
+      "foreground": "#c0392b",
+      "background": "#ffffff",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Enquiry form validation error message"
+    },
+    {
+      "id": "card-outline-btn-text",
+      "foreground": "#1b212b",
+      "background": "#ffffff",
+      "type": "text-normal",
+      "state": "default",
+      "notes": "Add to Product Enquiry outline button label"
+    }
+  ]
+}
