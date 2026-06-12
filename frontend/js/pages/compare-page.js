@@ -39,7 +39,7 @@ function renderComparePage() {
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${p.status}
         </div>
-        <button class="btn-add-enquiry" onclick="addToBasket('${p.id}')">Add to Product Enquiry</button>
+        <button class="btn-add-enquiry" onclick="addToBasket('${p.id}')">Select Product</button>
         <button class="compare-col-remove" onclick="removeFromCompare('${p.id}')">Remove</button>
       </td>`;
   }).join("");

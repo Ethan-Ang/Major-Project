@@ -42,6 +42,7 @@
       font-weight: 700;
       color: #fff;
       letter-spacing: 0.5px;
+      white-space: nowrap;
     }
     .nav-links {
       display: flex;
@@ -137,6 +138,9 @@
       .nav-links { display: none; }
       .nav-compare { display: none !important; }
       .nav-hamburger { display: block; }
+    }
+    @media (max-width: 480px) {
+      .nav-logo-text { font-size: 0.85rem; }
     }
   `;
   document.head.appendChild(style);
