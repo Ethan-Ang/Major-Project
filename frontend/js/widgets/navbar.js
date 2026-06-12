@@ -133,23 +133,8 @@
     }
     .nav-mobile-drawer a:last-child { border-bottom: none; }
     .nav-mobile-drawer a:hover { color: #fff; }
-    .nav-signin {
-      color: #d1d5db;
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 0.4rem 0.65rem;
-      border-radius: 6px;
-      transition: color 0.2s, background 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
-      font-weight: 500;
-    }
-    .nav-signin:hover { color: #fff; background: rgba(255,255,255,0.06); }
-
     @media (max-width: 768px) {
       .nav-links { display: none; }
-      .nav-signin { display: none; }
       .nav-compare { display: none !important; }
       .nav-hamburger { display: block; }
     }
@@ -183,7 +168,7 @@
   const navEl = document.createElement("nav");
   navEl.className = "nav";
   navEl.innerHTML = `
-    <a href="home.html" class="nav-logo" aria-label="Yee Lim home">
+    <a href="index.html" class="nav-logo" aria-label="Yee Lim home">
       <span class="nav-logo-mark" aria-hidden="true">YL</span>
       <span class="nav-logo-text">YEE LIM</span>
     </a>
@@ -193,10 +178,9 @@
       `).join("")}
     </ul>
     <div class="nav-right">
-      <a href="auth/login.html" class="nav-signin">Sign In</a>
       <a href="enquiry.html" class="nav-basket">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 11 4-7"></path><path d="m19 11-4-7"></path><path d="M2 11h20"></path><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.6-7.4"></path><path d="m9 11 1 9"></path><path d="m15 11-1 9"></path></svg>
-        Enquiry Basket
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
+        Product Enquiry
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
       <button class="nav-hamburger" id="_navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="_navDrawer">&#9776;</button>
@@ -208,8 +192,7 @@
   drawerEl.id = "_navDrawer";
   drawerEl.innerHTML = `
     ${links.map(l => `<a href="${l.href}">${l.label}</a>`).join("")}
-    <a href="enquiry.html">Enquiry Basket</a>
-    <a href="auth/login.html">Sign In</a>
+    <a href="enquiry.html">Product Enquiry</a>
   `;
 
   // ─── Insert at top of body ────────────────────────────────────

@@ -10,11 +10,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadProductsFromBackend();
   } catch (err) {
+    // Defensive only: loadProductsFromBackend() falls back to the bundled
+    // demo catalogue instead of throwing, so this branch should not be
+    // reachable in normal operation. The real offline UX is the fallback.
     console.error(err);
     document.getElementById("productGrid").innerHTML = `
       <div class="empty-state">
-        <h3>Could not load products</h3>
-        <p>Please make sure the backend is running at ${API_BASE_URL}.</p>
+        <h3>Products are temporarily unavailable</h3>
+        <p>Please refresh the page in a moment, or contact Yee Lim directly and our team will assist you.</p>
+        <a class="btn btn-outline" href="contact.html">Contact Yee Lim</a>
       </div>`;
     document.getElementById("resultCount").textContent = "0 products";
     return;
@@ -367,7 +371,6 @@ function productCardHTML(p) {
           class="card-compare-btn${inCompare ? " in-compare" : ""}"
           data-product-id="${p.id}" onclick="event.stopPropagation();toggleCompare('${p.id}')"
           ${compareDisabled ? "disabled" : ""}
-          aria-pressed="${inCompare}"
           title="${compareTitle}"
           aria-label="${compareTitle}">
           ${inCompare
@@ -379,16 +382,15 @@ function productCardHTML(p) {
       <div class="product-card-body">
         <span class="brand-badge">${p.brand}</span>
         <h3>${p.name}</h3>
+        ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span>${primaryApps}</span></div>` : ""}
         <p>${p.shortDescription}</p>
-        ${primaryApps ? `<div class="card-application"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><span>${primaryApps}</span></div>` : ""}
         ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces">${surfaceTags}</div>` : ""}
         <div class="product-card-actions">
-          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline">View Details</a>
+          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-primary">View Details</a>
           <button
-            class="btn btn-primary ${inBasket ? "btn-added" : ""}"
-            onclick="toggleBasket('${p.id}')"
-            aria-pressed="${inBasket}">
-            ${inBasket ? "&check; Added" : "Add to Enquiry"}
+            class="btn btn-outline ${inBasket ? "btn-added" : ""}"
+            onclick="toggleBasket('${p.id}')">
+            ${inBasket ? "&check; Selected" : "Add to Product Enquiry"}
           </button>
         </div>
       </div>
@@ -416,7 +418,6 @@ function syncCompareButtons() {
     btn.title     = disabled
       ? "Comparison full — remove one to add another"
       : inCompare ? "Remove from comparison" : "Add to compare";
-    btn.setAttribute("aria-pressed", String(inCompare));
     btn.setAttribute("aria-label", btn.title);
     btn.innerHTML = (inCompare
       ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
@@ -430,7 +431,7 @@ function toggleFilterSidebar() {
   document.getElementById("filterSidebar").classList.toggle("open");
 }
 
-// ─── Enquiry basket (localStorage) ───────────────────────────────
+// ─── Product enquiry selection (localStorage) ────────────────────
 function getBasket() {
   return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
 }
@@ -446,10 +447,10 @@ function toggleBasket(productId) {
 
   if (idx === -1) {
     basket.push(productId);
-    showToast("Added to enquiry basket");
+    showToast("Added to your product enquiry");
   } else {
     basket.splice(idx, 1);
-    showToast("Removed from basket");
+    showToast("Removed from your product enquiry");
   }
 
   saveBasket(basket);

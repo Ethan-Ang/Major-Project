@@ -156,20 +156,18 @@ function renderSidebar(product) {
       <button
         class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
         id="sidebarBasketBtn"
-        onclick="toggleBasket('${product.id}')"
-        aria-pressed="${inBasket}">
-        ${inBasket ? "&#10003; Added to Enquiry" : "Add to Enquiry Basket"}
+        onclick="toggleBasket('${product.id}')">
+        ${inBasket ? "&#10003; Selected" : "Add to Product Enquiry"}
       </button>
       <button
         class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
         id="sidebarCompareBtn"
-        onclick="toggleCompare('${product.id}')"
-        aria-pressed="${inCompare}">
+        onclick="toggleCompare('${product.id}')">
         ${inCompare ? "&#10003; In Comparison" : "+ Add to Compare"}
       </button>
     </div>
     <div class="sidebar-foot">
-      <a href="enquiry.html" class="sidebar-enquiry-link">View Enquiry Basket &rarr;</a>
+      <a href="enquiry.html" class="sidebar-enquiry-link">View Product Enquiry &rarr;</a>
       <a href="contact.html" class="sidebar-enquiry-link">Speak to Yee Lim &rarr;</a>
       <p class="sidebar-note">Submit an enquiry to receive pricing and lead times from our sales team.</p>
     </div>`;
@@ -181,7 +179,6 @@ function updateSidebarCompareBtn(productId) {
   const inCompare  = isInCompare(productId);
   btn.className    = `btn-compare-sidebar${inCompare ? " in-compare" : ""}`;
   btn.innerHTML    = inCompare ? "&#10003; In Comparison" : "+ Add to Compare";
-  btn.setAttribute("aria-pressed", String(inCompare));
 }
 
 // ─── Full Description + Usage ─────────────────────────────────────
@@ -192,7 +189,13 @@ function renderFullDesc(product) {
     <h2 class="section-heading">Product Description</h2>
     <p class="detail-product-desc">${product.fullDescription}</p>
     <h2 class="section-heading" style="margin-top:1.5rem">How to Use</h2>
-    <div class="usage-box">${product.usage}</div>`;
+    <div class="usage-box">${product.usage}</div>
+    <div class="enquiry-guidance">
+      <h2 class="enquiry-guidance-title">Not sure if this product fits your application?</h2>
+      <p>Send your surface, application, and quantity requirements to Yee Lim.
+      Our team will advise on suitability and quotation.</p>
+      <a href="enquiry.html" class="enquiry-guidance-link">Send Product Enquiry &rarr;</a>
+    </div>`;
 }
 
 // ─── Related Products ─────────────────────────────────────────────
@@ -249,19 +252,17 @@ function toggleBasket(productId) {
   if (idx === -1) {
     basket.push(productId);
     if (btn) {
-      btn.innerHTML = "&#10003; Added to Enquiry";
+      btn.innerHTML = "&#10003; Selected";
       btn.classList.add("btn-added");
-      btn.setAttribute("aria-pressed", "true");
     }
-    showToast("Added to enquiry basket");
+    showToast("Added to your product enquiry");
   } else {
     basket.splice(idx, 1);
     if (btn) {
-      btn.textContent = "Add to Enquiry Basket";
+      btn.textContent = "Add to Product Enquiry";
       btn.classList.remove("btn-added");
-      btn.setAttribute("aria-pressed", "false");
     }
-    showToast("Removed from basket");
+    showToast("Removed from your product enquiry");
   }
   saveBasket(basket);
 }

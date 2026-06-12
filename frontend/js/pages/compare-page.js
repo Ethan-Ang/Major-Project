@@ -39,7 +39,7 @@ function renderComparePage() {
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${p.status}
         </div>
-        <button class="btn-add-enquiry" onclick="addToBasket('${p.id}')">Add to Enquiry Basket</button>
+        <button class="btn-add-enquiry" onclick="addToBasket('${p.id}')">Add to Product Enquiry</button>
         <button class="compare-col-remove" onclick="removeFromCompare('${p.id}')">Remove</button>
       </td>`;
   }).join("");
@@ -82,7 +82,7 @@ function addToBasket(productId) {
     localStorage.setItem("enquiryBasket", JSON.stringify(basket));
     window.dispatchEvent(new Event("basketUpdated"));
   }
-  showToast("Added to enquiry basket");
+  showToast("Added to your product enquiry");
 }
 
 function clearAll() {

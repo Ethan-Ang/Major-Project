@@ -112,7 +112,7 @@
       margin: 0 0 1.25rem;
     }
     .site-footer-contact dt {
-      color: #6b7484;
+      color: #8a93a0;
       font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -152,9 +152,20 @@
       justify-content: space-between;
       gap: 0.5rem;
       font-size: 0.78rem;
-      color: #6b7484;
+      color: #8a93a0;
     }
     .site-footer-bottom strong { color: #9aa4b2; font-weight: 600; }
+    .site-footer-admin {
+      color: #8a93a0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .site-footer-admin:hover { color: #fff; }
+    .site-footer-admin:focus-visible {
+      outline: 2px solid #CC2929;
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
 
     @media (max-width: 900px) {
       .site-footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
@@ -234,7 +245,7 @@
 
     <div class="site-footer-bottom">
       <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries</strong>. All rights reserved.</span>
-      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore</span>
+      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore · <a class="site-footer-admin" href="admin/login.html">Admin Login</a></span>
     </div>
   `;
 

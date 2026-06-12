@@ -33,7 +33,9 @@ async function loadOverview() {
   let products = [];
   let enquiries = [];
 
-  try { products = await loadProductsFromBackend(); } catch (e) { products = []; }
+  // demoFallback:false — admin KPIs must reflect live data only, never the
+  // bundled public demo catalogue. A dead backend shows an empty dashboard.
+  try { products = await loadProductsFromBackend({ demoFallback: false }); } catch (e) { products = []; }
   try {
     const res = await fetch(`${API_BASE_URL}/api/enquiries.php`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }

@@ -318,41 +318,6 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Hero trigger button */
-    .hero-ai-prompt {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      margin-top: 1rem;
-      font-size: 0.875rem;
-      color: #9ca3af;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    .hero-ai-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 20px;
-      padding: 0.35rem 0.85rem;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #e5e7eb;
-      cursor: pointer;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      transition: background 0.18s, border-color 0.18s, color 0.18s;
-    }
-
-    .hero-ai-btn:hover {
-      background: rgba(255,255,255,0.18);
-      border-color: rgba(255,255,255,0.35);
-      color: #fff;
-    }
-
-    .hero-ai-btn svg { flex-shrink: 0; }
   `;
 
   const styleEl = document.createElement("style");
@@ -392,7 +357,7 @@
             </svg>
           </button>
         </div>
-        <div class="yl-adv-note">AI-generated. Verify specs with our team before purchase.</div>
+        <div class="yl-adv-note">Suggestions are for guidance only. Yee Lim staff will confirm suitability after enquiry.</div>
       </div>
     </div>
   `;
