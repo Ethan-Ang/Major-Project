@@ -7,6 +7,22 @@ define("DB_NAME", "yeelimad_website");
 define("DB_USER", "your_db_username");
 define("DB_PASS", "your_db_password");
 
+// ── Enquiry email notification (optional) ──────────────────────────
+// When a customer submits an enquiry it is ALWAYS saved to the database
+// (the admin "Enquiries" inbox). If ENQUIRY_NOTIFY_TO is set, the site
+// ALSO emails the sales team so a new lead is never missed. The email is
+// best-effort: if it fails, the enquiry is still safely saved.
+//
+//   define("ENQUIRY_NOTIFY_TO", "sales@yeelimadhesives.com"); // who gets notified
+//   define("ENQUIRY_FROM",      "no-reply@yeelimadhesives.com"); // optional "From"
+//   define("SITE_URL",          "https://yeelimadhesives.com");  // for the "Mark as replied" link
+//
+// SITE_URL is used to build the one-tap "Mark as replied" link inside the
+// notification email. If omitted it is guessed from the request host.
+//
+// Uses PHP mail() (fine for cPanel). If notifications land in spam, switch to
+// authenticated SMTP from a real mailbox (PHPMailer). See the spec doc.
+
 // ── AI Product Advisor (optional) ──────────────────────────────────
 // Leave LLM_PROVIDER empty (or omit these lines) to use the free, built-in
 // catalogue matcher — the chatbot still works, it just isn't conversational.

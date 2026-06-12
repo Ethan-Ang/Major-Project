@@ -11,7 +11,7 @@ let sortCol        = "";
 let sortDir        = "asc";
 let demoMode       = false;
 
-// Demo fallback when backend is unreachable — mirrors enquiries.js SAMPLE_ENQUIRIES pattern
+// Demo fallback when backend is unreachable:mirrors enquiries.js SAMPLE_ENQUIRIES pattern
 const SAMPLE_ADMIN_PRODUCTS = PRODUCTS.map(p => ({
   ...p,
   _id: String(p.id)
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadProducts();
   } catch (err) {
     if (isNetworkError(err)) {
-      // Backend unreachable — fall back to demo data so the page is still navigable
+      // Backend unreachable:fall back to demo data so the page is still navigable
       demoMode = true;
       loadProducts();
     } else {
@@ -71,7 +71,7 @@ async function loadProducts() {
     finishLoad(products);
   } catch (err) {
     if (isNetworkError(err)) {
-      // Network error — fall back to demo so the admin is still reviewable
+      // Network error:fall back to demo so the admin is still reviewable
       demoMode = true;
       showDemoBanner();
       return finishLoad([...SAMPLE_ADMIN_PRODUCTS]);
@@ -93,7 +93,7 @@ function finishLoad(products) {
 }
 
 function showDemoBanner() {
-  // Demo fallback is silent now — sample data loads without a visible banner.
+  // Demo fallback is silent now:sample data loads without a visible banner.
   // Re-enable by uncommenting the banner creation if you want a visible warning.
 }
 
@@ -162,10 +162,15 @@ function renderTable() {
             ${checked} onchange="toggleRowSelect('${p._id}', this.checked)">
         </td>
         <td>
-          <div class="product-name">${escapeHtml(p.name)}</div>
-          <div class="product-desc">${escapeHtml(p.shortDescription || "")}</div>
+          <div class="cell-product">
+            <div class="product-thumb"><span>${escapeHtml(brandMonogram(p))}</span></div>
+            <div>
+              <div class="product-name">${escapeHtml(p.name)}</div>
+              <div class="product-desc">${escapeHtml(p.shortDescription || "")}</div>
+            </div>
+          </div>
         </td>
-        <td>${escapeHtml(p.category)}</td>
+        <td><span class="cat-pill">${escapeHtml(p.category)}</span></td>
         <td>
           <span class="status-badge status-${p.status === "Available" ? "available" : "unavailable"}">
             ${escapeHtml(p.status)}
@@ -173,24 +178,24 @@ function renderTable() {
         </td>
         <td>
           <div class="table-actions">
-            <button class="btn btn-ghost" title="${p.status === "Available" ? "Mark Unavailable" : "Mark Available"}"
+            <button class="icon-btn" title="${p.status === "Available" ? "Mark Unavailable" : "Mark Available"}"
               onclick="toggleStatus('${p._id}', '${p.status}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
                 <line x1="12" y1="2" x2="12" y2="12"/>
               </svg>
             </button>
-            <button class="btn btn-ghost" title="Edit product" onclick="openEditModal('${p._id}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+            <button class="icon-btn" title="Edit product" onclick="openEditModal('${p._id}')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="btn btn-ghost btn-ghost-red" title="Delete product"
+            <button class="icon-btn danger" title="Delete product"
               onclick="openDeleteModal('${p._id}', '${escapeAttr(p.name)}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -655,4 +660,13 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
   return String(str).replace(/'/g, "&#39;");
+}
+
+// Two-letter monogram for the product thumbnail (from brand, else name)
+function brandMonogram(p) {
+  const src = (p.brand || p.name || "")
+    .replace(/™/g, "").replace(/\bBrand\b/i, "").trim();
+  const letters = src.replace(/[^A-Za-z ]/g, "").trim();
+  if (!letters) return "YL";
+  return letters.slice(0, 2).toUpperCase();
 }

@@ -53,7 +53,7 @@
     </div>
     <div class="form-submit">
       <p id="enquiryError" role="alert" style="display:none;color:#c0392b;font-size:0.875rem;margin-bottom:0.75rem"></p>
-      <button class="btn btn-primary" style="padding:0.75rem 2rem;font-size:1rem" onclick="submitEnquiry()">
+      <button class="btn btn-primary" id="submitEnquiryBtn" style="padding:0.75rem 2rem;font-size:1rem" onclick="submitEnquiry()">
         Submit Enquiry
       </button>
     </div>
@@ -140,11 +140,14 @@ function removeFromBasket(id) {
   renderBasket();
 }
 
-function submitEnquiry() {
+async function submitEnquiry() {
   const name    = document.getElementById("eName").value.trim();
   const company = document.getElementById("eCompany").value.trim();
   const email   = document.getElementById("eEmail").value.trim();
+  const phone   = document.getElementById("ePhone").value.trim();
+  const message = document.getElementById("eMessage").value.trim();
   const errorEl = document.getElementById("enquiryError");
+  const btn     = document.getElementById("submitEnquiryBtn");
 
   if (!name || !company || !email) {
     errorEl.textContent   = "Please fill in your full name, company name, and email address before submitting.";
@@ -154,11 +157,41 @@ function submitEnquiry() {
   }
   errorEl.style.display = "none";
 
-  localStorage.removeItem("enquiryBasket");
-  window.dispatchEvent(new Event("basketUpdated"));
+  // Resolve the basket's product IDs into product names for the enquiry record
+  const ids = getBasket();
+  const products = ids
+    .map(id => PRODUCTS.find(p => String(p.id) === String(id)))
+    .filter(Boolean)
+    .map(p => p.name);
 
-  document.getElementById("mainContent").style.display = "none";
-  document.getElementById("confirmation").style.display = "block";
+  btn.disabled    = true;
+  btn.textContent = "Submitting…";
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/enquiries.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, company, email, phone, message, products })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || "Something went wrong. Please try again.");
+    }
+
+    // Success — clear the basket and show the confirmation screen
+    localStorage.removeItem("enquiryBasket");
+    window.dispatchEvent(new Event("basketUpdated"));
+    document.getElementById("mainContent").style.display = "none";
+    document.getElementById("confirmation").style.display = "block";
+
+  } catch (err) {
+    errorEl.textContent   = err.message;
+    errorEl.style.display = "block";
+    btn.disabled    = false;
+    btn.textContent = "Submit Enquiry";
+    window.scrollTo({ top: errorEl.offsetTop - 100, behavior: "smooth" });
+  }
 }
 </script>
 </body>
