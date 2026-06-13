@@ -65,10 +65,8 @@ try {
         ]
     ]);
 } catch (PDOException $e) {
+    error_log("me.php: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        "message" => "Failed to verify admin.",
-        "error" => $e->getMessage()
-    ]);
+    echo json_encode(["message" => "Something went wrong. Please try again later."]);
 }
 ?>

@@ -1,5 +1,6 @@
 <?php
 require_once "db.php";
+require_once "auth.php";
 
 function decodeJsonField($value) {
     $decoded = json_decode($value ?? "[]", true);
@@ -122,8 +123,9 @@ try {
         exit;
     }
 
-    // ─── POST: Add new product ─────────────────────────────────────
+    // ─── POST: Add new product (admin only) ────────────────────────
     if ($method === "POST") {
+        requireAdmin($pdo);
         $data = getJsonInput();
 
         $name = trim($data["name"] ?? "");
@@ -179,8 +181,9 @@ try {
         exit;
     }
 
-    // ─── PUT: Update product ───────────────────────────────────────
+    // ─── PUT: Update product (admin only) ──────────────────────────
     if ($method === "PUT") {
+        requireAdmin($pdo);
         if (!$id) {
             http_response_code(400);
             echo json_encode(["message" => "Product ID is required."]);
@@ -260,8 +263,9 @@ try {
         exit;
     }
 
-    // ─── DELETE: Delete product ────────────────────────────────────
+    // ─── DELETE: Delete product (admin only) ───────────────────────
     if ($method === "DELETE") {
+        requireAdmin($pdo);
         if (!$id) {
             http_response_code(400);
             echo json_encode(["message" => "Product ID is required."]);
@@ -290,10 +294,8 @@ try {
     echo json_encode(["message" => "Method not allowed."]);
 
 } catch (PDOException $e) {
+    error_log("products.php: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        "message" => "Database error.",
-        "error" => $e->getMessage()
-    ]);
+    echo json_encode(["message" => "Something went wrong. Please try again later."]);
 }
 ?>

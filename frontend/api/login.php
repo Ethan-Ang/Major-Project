@@ -59,10 +59,8 @@ try {
         ]
     ]);
 } catch (PDOException $e) {
+    error_log("login.php: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        "message" => "Login failed.",
-        "error" => $e->getMessage()
-    ]);
+    echo json_encode(["message" => "Something went wrong. Please try again later."]);
 }
 ?>

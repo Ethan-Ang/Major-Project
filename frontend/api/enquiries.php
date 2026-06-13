@@ -1,5 +1,6 @@
 <?php
 require_once "db.php";
+require_once "auth.php";
 
 /* ─────────────────────────────────────────────────────────────
    Enquiries API
@@ -193,8 +194,9 @@ try {
         exit;
     }
 
-    /* ─── GET: admin list / single ────────────────────────────── */
+    /* ─── GET: admin list / single (admin only) ───────────────── */
     if ($method === "GET") {
+        requireAdmin($pdo);
         if ($id) {
             $stmt = $pdo->prepare("SELECT * FROM enquiries WHERE id = ?");
             $stmt->execute([$id]);
@@ -213,8 +215,9 @@ try {
         exit;
     }
 
-    /* ─── PATCH: update replied status ────────────────────────── */
+    /* ─── PATCH: update replied status (admin only) ───────────── */
     if ($method === "PATCH") {
+        requireAdmin($pdo);
         if (!$id) {
             http_response_code(400);
             echo json_encode(["message" => "Enquiry ID is required."]);
@@ -230,8 +233,9 @@ try {
         exit;
     }
 
-    /* ─── DELETE ──────────────────────────────────────────────── */
+    /* ─── DELETE (admin only) ─────────────────────────────────── */
     if ($method === "DELETE") {
+        requireAdmin($pdo);
         if (!$id) {
             http_response_code(400);
             echo json_encode(["message" => "Enquiry ID is required."]);
@@ -247,7 +251,8 @@ try {
     echo json_encode(["message" => "Method not allowed."]);
 
 } catch (PDOException $e) {
+    error_log("enquiries.php: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["message" => "Database error.", "error" => $e->getMessage()]);
+    echo json_encode(["message" => "Something went wrong. Please try again later."]);
 }
 ?>
