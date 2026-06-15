@@ -64,13 +64,13 @@ Two background processes are running:
 | MySQL 8.4 | `mysqld --datadir=C:\mysql84-data --port=3307` | 3307 |
 | PHP built-in server | `php -S localhost:8000 -t frontend` | 8000 |
 
-This matches what `frontend/api/config.php` already expected (`DB_HOST=127.0.0.1`, `DB_PORT=3307`, `DB_NAME=yeelimad_website`, `DB_USER=root`, `DB_PASS=devpassword123`).
+This matches what `frontend/api/config.php` already expected (`DB_HOST=127.0.0.1`, `DB_PORT=3307`, `DB_NAME=yeelimad_website`, `DB_USER=root`, `DB_PASS=[local DB root password redacted]`).
 
-**Database:** fresh MySQL 8.4 instance, initialized with `--initialize-insecure`, root password set to `devpassword123`. `database/schema.sql` + `database/seed_products.sql` loaded (12 products, correct UTF-8 ™ symbols — re-imported with `--default-character-set=utf8mb4` to fix initial mojibake).
+**Database:** fresh MySQL 8.4 instance, initialized with `--initialize-insecure`, root password set to `[local DB root password redacted]`. `database/schema.sql` + `database/seed_products.sql` loaded (12 products, correct UTF-8 ™ symbols — re-imported with `--default-character-set=utf8mb4` to fix initial mojibake).
 
 **Local admin login** (created this session, DB-only, not a live credential):
 - Username: `admin`
-- Password: `admin123`
+- Password: `[local admin test password redacted]`
 
 ### Key URLs (with both services running)
 
