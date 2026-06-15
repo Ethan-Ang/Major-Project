@@ -31,6 +31,8 @@ CREATE TABLE products (
   usage_text TEXT,
   image_url VARCHAR(255),
   images JSON,
+  sds_url VARCHAR(255) NULL,            -- optional Safety Data Sheet link (URL or relative path); blank = hidden
+  tds_url VARCHAR(255) NULL,            -- optional Technical Data Sheet link (URL or relative path); blank = hidden
   status ENUM('Available', 'Unavailable') DEFAULT 'Available',
   industries JSON,
   surfaces JSON,

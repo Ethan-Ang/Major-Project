@@ -7,21 +7,26 @@ define("DB_NAME", "yeelimad_website");
 define("DB_USER", "your_db_username");
 define("DB_PASS", "your_db_password");
 
-// ── Enquiry email notification (optional) ──────────────────────────
+// ── Enquiry email notification (recommended) ───────────────────────
 // When a customer submits an enquiry it is ALWAYS saved to the database
 // (the admin "Enquiries" inbox). If ENQUIRY_NOTIFY_TO is set, the site
 // ALSO emails the sales team so a new lead is never missed. The email is
 // best-effort: if it fails, the enquiry is still safely saved.
 //
-//   define("ENQUIRY_NOTIFY_TO", "sales@yeelimadhesives.com"); // who gets notified
-//   define("ENQUIRY_FROM",      "no-reply@yeelimadhesives.com"); // optional "From"
-//   define("SITE_URL",          "https://yeelimadhesives.com");  // for the "Mark as replied" link
+// On the LIVE cPanel server, set ENQUIRY_NOTIFY_TO to the Yee Lim inbox
+// the client gave us so new leads reach the sales team:
+//
+//   define("ENQUIRY_NOTIFY_TO", "contact@yeelimadhesives.com.sg"); // Yee Lim sales inbox (client's address)
+//   define("ENQUIRY_FROM",      "no-reply@yeelimadhesives.com.sg"); // optional "From" (use a mailbox on this domain)
+//   define("SITE_URL",          "https://yeelimadhesives.com.sg");  // your LIVE site URL, for the "Mark as replied" link
 //
 // SITE_URL is used to build the one-tap "Mark as replied" link inside the
-// notification email. If omitted it is guessed from the request host.
+// notification email. Set it to the real public domain. If omitted it is
+// guessed from the request host.
 //
-// Uses PHP mail() (fine for cPanel). If notifications land in spam, switch to
-// authenticated SMTP from a real mailbox (PHPMailer). See the spec doc.
+// Uses PHP mail() (fine for cPanel). For best deliverability use a "From"
+// address that is a real mailbox on the site's own domain. If notifications
+// land in spam, switch to authenticated SMTP from a real mailbox (PHPMailer).
 
 // ── AI Product Advisor (optional) ──────────────────────────────────
 // Leave LLM_PROVIDER empty (or omit these lines) to use the free, built-in

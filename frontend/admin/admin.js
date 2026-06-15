@@ -446,11 +446,11 @@ async function toggleStatus(id, currentStatus) {
 
 // ─── Export CSV ───────────────────────────────────────────────────
 function exportCSV() {
-  const headers = ["Name", "Brand", "Category", "Status", "Industries", "Surfaces", "Features", "Short Description", "Full Description", "Usage", "Image URL", "Images"];
+  const headers = ["Name", "Brand", "Category", "Status", "Industries", "Surfaces", "Features", "Short Description", "Full Description", "Usage", "Image URL", "Images", "SDS URL", "TDS URL"];
   const rows = allProducts.map(p => [
     p.name, p.brand, p.category, p.status,
     joinList(p.industries), joinList(p.surfaces), joinList(p.features),
-    p.shortDescription, p.fullDescription, p.usage, p.imageUrl, joinList(p.images)
+    p.shortDescription, p.fullDescription, p.usage, p.imageUrl, joinList(p.images), p.sdsUrl, p.tdsUrl
   ].map(v => `"${(v || "").replace(/"/g, '""')}"`));
 
   const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
@@ -485,6 +485,8 @@ function openEditModal(id) {
   document.getElementById("fieldUsage").value         = p.usage || "";
   document.getElementById("fieldImageUrl").value      = p.imageUrl || "";
   document.getElementById("fieldImages").value        = joinList(p.images);
+  document.getElementById("fieldSdsUrl").value        = p.sdsUrl || "";
+  document.getElementById("fieldTdsUrl").value        = p.tdsUrl || "";
   document.getElementById("fieldIndustries").value    = joinList(p.industries);
   document.getElementById("fieldSurfaces").value      = joinList(p.surfaces);
   document.getElementById("fieldFeatures").value      = joinList(p.features);
@@ -499,7 +501,7 @@ function closeModal() {
 }
 
 function clearForm() {
-  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl","fieldImages","fieldIndustries","fieldSurfaces","fieldFeatures"].forEach(id => {
+  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl","fieldImages","fieldSdsUrl","fieldTdsUrl","fieldIndustries","fieldSurfaces","fieldFeatures"].forEach(id => {
     document.getElementById(id).value = "";
   });
   document.getElementById("fieldCategory").value      = "Industrial";
@@ -551,6 +553,8 @@ async function saveProduct() {
     usage:            document.getElementById("fieldUsage").value.trim(),
     imageUrl:         document.getElementById("fieldImageUrl").value.trim(),
     images:           splitList(document.getElementById("fieldImages").value),
+    sdsUrl:           document.getElementById("fieldSdsUrl").value.trim(),
+    tdsUrl:           document.getElementById("fieldTdsUrl").value.trim(),
     industries:       splitList(document.getElementById("fieldIndustries").value),
     surfaces:         splitList(document.getElementById("fieldSurfaces").value),
     features:         splitList(document.getElementById("fieldFeatures").value),

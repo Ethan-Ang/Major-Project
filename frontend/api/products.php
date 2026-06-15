@@ -20,6 +20,8 @@ function formatProduct($row) {
         "usage" => $row["usage_text"],
         "imageUrl" => $row["image_url"],
         "images" => decodeJsonField($row["images"]),
+        "sdsUrl" => $row["sds_url"] ?? "",
+        "tdsUrl" => $row["tds_url"] ?? "",
         "status" => $row["status"],
         "industries" => decodeJsonField($row["industries"]),
         "surfaces" => decodeJsonField($row["surfaces"]),
@@ -136,6 +138,8 @@ try {
         $usage = trim($data["usage"] ?? "");
         $imageUrl = trim($data["imageUrl"] ?? "");
         $images = jsonList($data["images"] ?? []);
+        $sdsUrl = trim($data["sdsUrl"] ?? $data["sds_url"] ?? "");
+        $tdsUrl = trim($data["tdsUrl"] ?? $data["tds_url"] ?? "");
         $status = $data["status"] ?? "Available";
         $industries = jsonList($data["industries"] ?? []);
         $surfaces = jsonList($data["surfaces"] ?? []);
@@ -150,9 +154,9 @@ try {
         $stmt = $pdo->prepare("
             INSERT INTO products (
                 name, brand, category, short_description, full_description,
-                usage_text, image_url, images, status, industries, surfaces, features
+                usage_text, image_url, images, sds_url, tds_url, status, industries, surfaces, features
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
@@ -164,6 +168,8 @@ try {
             $usage,
             $imageUrl,
             $images,
+            $sdsUrl !== "" ? $sdsUrl : null,
+            $tdsUrl !== "" ? $tdsUrl : null,
             $status,
             $industries,
             $surfaces,
@@ -210,6 +216,10 @@ try {
         $usage = trim($data["usage"] ?? $existing["usage_text"]);
         $imageUrl = trim($data["imageUrl"] ?? $existing["image_url"]);
         $images = array_key_exists("images", $data) ? jsonList($data["images"]) : $existing["images"];
+        $sdsUrl = array_key_exists("sdsUrl", $data) ? trim($data["sdsUrl"])
+                : (array_key_exists("sds_url", $data) ? trim($data["sds_url"]) : $existing["sds_url"]);
+        $tdsUrl = array_key_exists("tdsUrl", $data) ? trim($data["tdsUrl"])
+                : (array_key_exists("tds_url", $data) ? trim($data["tds_url"]) : $existing["tds_url"]);
         $status = $data["status"] ?? $existing["status"];
         $industries = array_key_exists("industries", $data) ? jsonList($data["industries"]) : $existing["industries"];
         $surfaces = array_key_exists("surfaces", $data) ? jsonList($data["surfaces"]) : $existing["surfaces"];
@@ -232,6 +242,8 @@ try {
                 usage_text = ?,
                 image_url = ?,
                 images = ?,
+                sds_url = ?,
+                tds_url = ?,
                 status = ?,
                 industries = ?,
                 surfaces = ?,
@@ -248,6 +260,8 @@ try {
             $usage,
             $imageUrl,
             $images,
+            $sdsUrl !== "" ? $sdsUrl : null,
+            $tdsUrl !== "" ? $tdsUrl : null,
             $status,
             $industries,
             $surfaces,

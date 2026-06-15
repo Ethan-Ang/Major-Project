@@ -3,3 +3,7 @@
 .superpowers/
 frontend/api/config.php
 qa/
+
+# Dependencies and local artifacts (defense in depth; never deploy these)
+node_modules/
+screenshots/

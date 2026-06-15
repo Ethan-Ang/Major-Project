@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderGallery(product);
   renderHeader(product);
   renderSpecTable(product);
+  renderDownloads(product);
   renderSidebar(product);
   renderFullDesc(product);
   renderRelated(product);
@@ -67,7 +68,7 @@ function renderGallery(product) {
     </div>`;
 
   const mainImgContent = images.length
-    ? `<img id="galleryMainImg" src="${images[0]}" alt="${product.name}">`
+    ? `<img id="galleryMainImg" src="${images[0]}" alt="${product.name}" onerror="ylImageFallback(this,'${brandLabel}')">`
     : placeholderSVG;
 
   const thumbsHTML = [0, 1, 2, 3].map(i => {
@@ -151,6 +152,54 @@ function renderSpecTable(product) {
     </div>`;
 }
 
+// ─── Product Documents (SDS / TDS downloads) ──────────────────────
+// Renders a clean download section ONLY when a document URL exists.
+// If neither SDS nor TDS is set, the whole section stays hidden.
+function escapeDocAttr(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderDownloads(product) {
+  const el = document.getElementById("detailDownloads");
+  if (!el) return;
+
+  const sds = (product.sdsUrl || "").trim();
+  const tds = (product.tdsUrl || "").trim();
+
+  // Hide the entire section when there are no documents.
+  if (!sds && !tds) { el.innerHTML = ""; return; }
+
+  const docLink = (href, label) => `
+    <a class="doc-download" href="${escapeDocAttr(href)}" target="_blank" rel="noopener">
+      <span class="doc-download-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <polyline points="9 15 12 18 15 15"/>
+        </svg>
+      </span>
+      <span class="doc-download-text">
+        <span class="doc-download-label">${label}</span>
+        <span class="doc-download-sub">PDF document, opens in a new tab</span>
+      </span>
+      <span class="doc-download-go" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a>`;
+
+  el.innerHTML = `
+    <section class="detail-downloads" aria-label="Product documents">
+      <h2 class="section-heading">Product Documents</h2>
+      <div class="doc-download-list">
+        ${sds ? docLink(sds, "Download Safety Data Sheet") : ""}
+        ${tds ? docLink(tds, "Download Technical Data Sheet") : ""}
+      </div>
+    </section>`;
+}
+
 // ─── Sticky Sidebar ───────────────────────────────────────────────
 function renderSidebar(product) {
   const el        = document.getElementById("detailSidebar");
@@ -160,6 +209,7 @@ function renderSidebar(product) {
   const inCompare = isInCompare(product.id);
   const availClass = product.status === "Available" ? "available" : "unavailable";
   const availLabel = product.status === "Available" ? "Available for Enquiry" : "Currently Unavailable";
+  const enquiryLabel = product.status === "Available" ? "Add to Product Enquiry" : "Enquire About Availability";
 
   el.innerHTML = `
     <div class="sidebar-avail-bar ${availClass}" aria-label="Availability: ${product.status}">
@@ -173,8 +223,9 @@ function renderSidebar(product) {
       <button
         class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
         id="sidebarBasketBtn"
+        data-enquiry-label="${enquiryLabel}"
         onclick="toggleBasket('${product.id}')">
-        ${inBasket ? "&#10003; Selected" : "Add to Product Enquiry"}
+        ${inBasket ? "&#10003; Selected" : enquiryLabel}
       </button>
       <button
         class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
@@ -277,7 +328,7 @@ function toggleBasket(productId) {
   } else {
     basket.splice(idx, 1);
     if (btn) {
-      btn.textContent = "Add to Product Enquiry";
+      btn.textContent = btn.dataset.enquiryLabel || "Add to Product Enquiry";
       btn.classList.remove("btn-added");
     }
     if (enquiryLink) enquiryLink.hidden = true;

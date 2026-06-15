@@ -31,11 +31,26 @@ function normaliseProduct(product) {
     usage: product.usage || "",
     imageUrl: product.imageUrl || "",
     images: images.length ? images : (product.imageUrl ? [product.imageUrl] : []),
+    sdsUrl: product.sdsUrl || product.sds_url || "",
+    tdsUrl: product.tdsUrl || product.tds_url || "",
     status: product.status || "Available",
     industries: Array.isArray(product.industries) ? product.industries : [],
     surfaces: Array.isArray(product.surfaces) ? product.surfaces : [],
     features: Array.isArray(product.features) ? product.features : []
   };
+}
+
+// Shared UI helper: if a product image URL fails to load (missing file, wrong
+// path, or images not uploaded yet), swap it for the branded text placeholder so
+// the catalogue shows a clean professional placeholder instead of a broken icon.
+function ylImageFallback(img, label) {
+  const box = img.parentElement;
+  if (box) box.classList.add("no-image");
+  const mark = document.createElement("div");
+  mark.className = "no-image-mark";
+  mark.setAttribute("aria-hidden", "true");
+  mark.textContent = label || "";
+  img.replaceWith(mark);
 }
 
 // ─── Demo catalogue fallback ─────────────────────────────────────

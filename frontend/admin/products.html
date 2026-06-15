@@ -253,6 +253,19 @@
           </select>
         </div>
       </div>
+
+      <div class="form-section-label">Product Documents <span class="form-section-optional">optional</span></div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldSdsUrl">Safety Data Sheet URL</label>
+          <input type="text" id="fieldSdsUrl" placeholder="uploads/documents/sds-name.pdf or https://…">
+        </div>
+        <div class="form-group">
+          <label for="fieldTdsUrl">Technical Data Sheet URL</label>
+          <input type="text" id="fieldTdsUrl" placeholder="uploads/documents/tds-name.pdf or https://…">
+        </div>
+      </div>
+      <p class="form-help-text">Leave blank if no document is available. Customers only see a download link when a URL is set. Accepts a full URL or a relative path such as uploads/documents/file.pdf.</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>

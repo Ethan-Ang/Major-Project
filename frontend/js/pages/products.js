@@ -357,13 +357,14 @@ function productCardHTML(p) {
   const compareListFull = getCompareList().length >= COMPARE_MAX;
   const compareDisabled = !inCompare && compareListFull;
 
+  const isUnavailable = p.status === "Unavailable";
   const primaryApps = p.industries.slice(0, 2).join(", ");
   const surfaceTags = p.surfaces.slice(0, 3).map(s => `<span class="product-tag">${s}</span>`).join("");
 
   const hasRealImage = p.images && p.images.length > 0;
   const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
   const imageContent = hasRealImage
-    ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy">`
+    ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
     : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
   const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
 
@@ -372,9 +373,10 @@ function productCardHTML(p) {
     : inCompare ? "Remove from comparison" : "Add to compare";
 
   return `
-    <article class="product-card" data-brand="${brandSlug(p.brand)}">
+    <article class="product-card${isUnavailable ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
       <div class="${imageClass}">
         ${imageContent}
+        ${isUnavailable ? `<span class="card-status-badge" aria-label="Availability: Currently Unavailable"><span class="card-status-dot" aria-hidden="true"></span>Currently Unavailable</span>` : ""}
         <button
           class="card-compare-btn${inCompare ? " in-compare" : ""}"
           data-product-id="${p.id}" onclick="event.stopPropagation();toggleCompare('${p.id}')"
@@ -398,7 +400,7 @@ function productCardHTML(p) {
           <button
             class="btn btn-outline ${inBasket ? "btn-added" : ""}"
             onclick="toggleBasket('${p.id}')">
-            ${inBasket ? "&check; Selected" : "Add to Product Enquiry"}
+            ${inBasket ? "&check; Selected" : (isUnavailable ? "Enquire About Availability" : "Add to Product Enquiry")}
           </button>
         </div>
       </div>
