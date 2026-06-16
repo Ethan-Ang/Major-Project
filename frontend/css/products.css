@@ -446,6 +446,19 @@ h1, h2, h3,
   object-fit: cover;
 }
 
+/* Clickable image -> product detail. The compare button + status badge sit
+   above this (z-index 3), so they stay independently clickable. */
+.product-card-image-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+}
+.product-card-image-link img { transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1); }
+.product-card:hover .product-card-image-link img { transform: scale(1.04); }
+
 /* "Currently Unavailable" overlay badge on listing cards.
    Dark pill keeps strong contrast over any product image or placeholder.
    Available cards intentionally show no badge to keep the single-red-accent look. */
@@ -508,6 +521,15 @@ h1, h2, h3,
   line-height: 1.3;
 }
 
+/* Clickable product title -> product detail. */
+.product-card-title-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.product-card-title-link:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
+.product-card-title-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
+
 .product-card-body p {
   font-size: 0.82rem;
   color: var(--muted);
@@ -563,7 +585,7 @@ h1, h2, h3,
 
 .product-card-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.5rem;
   margin-top: auto;
 }
@@ -617,16 +639,28 @@ h1, h2, h3,
   background: #fafafa;
 }
 
-/* Card-action buttons share width 50/50 inside the actions row, but can
-   shrink to their own content size (and wrap onto their own line) rather
-   than being clipped by the card. */
-.product-card-actions .btn { flex: 1 1 auto; min-width: 0; }
+/* Card actions stack full-width so the row never reflows when the enquiry
+   button toggles between its long default label ("Add to Product Enquiry" /
+   "Enquire About Availability") and the short "Selected" state. Full-width
+   also gives larger, consistent tap targets on mobile and prevents clipping. */
+.product-card-actions .btn { width: 100%; min-width: 0; }
 .detail-cta .btn { flex: 1; }
 
+/* Selected ("In Product Enquiry") state: calm, confirmed red-tint. Not an
+   alert, not a checkbox, not a cart button. Same height/width as the default
+   so toggling never shifts the card. */
 .btn-added {
   background: var(--red-tint) !important;
   color: var(--red) !important;
   border: 1px solid var(--red-tint-bdr) !important;
+}
+
+/* "In Product Enquiry" on wider screens, "In Enquiry" on narrow mobile. The
+   action button is full-width, so neither label truncates or shifts layout. */
+.enq-label-short { display: none; }
+@media (max-width: 480px) {
+  .enq-label-full { display: none; }
+  .enq-label-short { display: inline; }
 }
 
 /* legacy .btn-compare-card removed in Sprint 2 — replaced by .card-compare-btn */
@@ -1046,6 +1080,12 @@ h1, h2, h3,
   pointer-events: none;
 }
 
+/* Real product photo inside the compact enquiry thumb. */
+.basket-item-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
+.basket-item-thumb:has(img) { background: #fff; }
+.basket-item-thumb:has(img)::after { display: none; }
+.basket-item-thumb .no-image-mark { font-size: 0.6rem; letter-spacing: 0.3px; padding: 0 3px; text-align: center; }
+
 .basket-item-info { flex: 1; min-width: 0; }
 .basket-item-brand {
   display: block;
@@ -1093,6 +1133,14 @@ h1, h2, h3,
   background: var(--red-tint);
   color: var(--red);
   border-color: var(--red-tint-bdr);
+}
+
+.basket-remove:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+/* Larger, comfortable remove target on touch devices (keeps the tidy 32px
+   button for mouse/trackpad users). */
+@media (pointer: coarse) {
+  .basket-remove { width: 44px; height: 44px; }
 }
 
 .basket-empty {
@@ -1425,22 +1473,71 @@ h1, h2, h3,
 
 /* ─── Gallery ────────────────────────────────────────────────── */
 .gallery-main {
+  position: relative;
   width: 100%;
   aspect-ratio: 4/3;
-  background: #e8e8e8;
+  background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   cursor: default;
 }
 
-.gallery-main img { background: var(--bg); }
+.gallery-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
 
-.gallery-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Product shots sit cleanly inside the frame (no awkward crop). */
+.gallery-main img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* Subtle prev/next controls + counter - only rendered when >1 image. */
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink, #0e1116);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  z-index: 2;
+}
+.gallery-nav:hover { background: #fff; border-color: #bbb; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); }
+.gallery-nav:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.gallery-prev { left: 0.6rem; }
+.gallery-next { right: 0.6rem; }
+
+.gallery-counter {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  background: rgba(14, 17, 22, 0.72);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  z-index: 2;
+  user-select: none;
+}
 
 .gallery-placeholder {
   display: flex;
@@ -1472,12 +1569,21 @@ h1, h2, h3,
   background: var(--border);
 }
 
-.gallery-thumbs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.gallery-thumbs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
 
 .gallery-thumb {
-  width: 64px;
-  height: 50px;
-  background: var(--bg);
+  width: 66px;
+  height: 56px;
+  background: #fff;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
@@ -1486,13 +1592,22 @@ h1, h2, h3,
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: border-color 0.15s;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .gallery-thumb:hover { border-color: #aaa; }
-.gallery-thumb.active { border-color: var(--red); }
-.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.gallery-thumb.active { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+.gallery-thumb:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.gallery-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
 .gallery-thumb svg { opacity: 0.25; }
+
+@media (max-width: 560px) {
+  .gallery-stage { padding: 0.75rem; }
+  .gallery-nav { width: 34px; height: 34px; }
+  .gallery-prev { left: 0.4rem; }
+  .gallery-next { right: 0.4rem; }
+}
 
 /* ─── Product Header (availability + name + desc) ────────────── */
 .detail-product-header { margin-bottom: 1rem; }
@@ -1756,9 +1871,10 @@ h1, h2, h3,
     grid-template-columns: 1fr;
     align-items: start;
   }
-  .detail-sidebar {
-    order: -1;
-  }
+  /* Natural mobile order: show the product image first, then the action
+     sidebar (name, availability, Add to Enquiry / Compare). Previously the
+     sidebar was forced above the gallery (order:-1), which made the page feel
+     CTA-first before the visitor had even seen the product. */
 }
 
 /* ─── Compare Tray (fixed bottom) ───────────────────────────── */
@@ -1820,10 +1936,17 @@ h1, h2, h3,
 .compare-slot-thumb {
   width: 44px;
   height: 44px;
-  background: #e8e8e8;
+  background: #fff;
+  border: 1px solid var(--border);
   border-radius: 4px;
   flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.compare-slot-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; }
+.compare-slot-thumb .no-image-mark { font-size: 0.58rem; letter-spacing: 0.3px; text-align: center; padding: 0 2px; }
 
 .compare-slot-name {
   flex: 1;
@@ -1892,6 +2015,49 @@ h1, h2, h3,
 }
 
 .compare-tray-clear:hover { color: var(--text); }
+
+/* Mobile compare tray: stack into clean rows instead of one cramped line.
+   "Comparing:" gets its own row, the selected products scroll horizontally if
+   space is tight (no wrapping, no page overflow), and the Compare / Clear all
+   actions sit in a tidy row with Compare leading and Clear all secondary. */
+@media (max-width: 640px) {
+  .compare-tray {
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  }
+  .compare-tray-label { width: 100%; }
+  .compare-tray-slots {
+    flex: 1;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.5rem;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+  .compare-slot-filled {
+    flex-shrink: 0;
+    width: 9.75rem;
+    max-width: none;
+  }
+  .compare-slot-empty {
+    flex-shrink: 0;
+    min-width: 8rem;
+    padding: 0.55rem 0.85rem;
+  }
+  .compare-slot-name { max-width: none; }
+  .compare-tray-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .compare-tray-btn { flex: 1; text-align: center; }
+  /* Easier-to-tap remove control on the mobile compare tray. */
+  .compare-slot-remove { width: 28px; height: 28px; }
+}
 
 /* ─── Comparison overlay removed; comparison now uses dedicated compare.html page ─── */
 
@@ -2112,6 +2278,14 @@ h1, h2, h3,
 }
 
 .compare-page-table-wrap .compare-table { border-radius: var(--radius); }
+
+/* On narrow screens, give each product column a readable width and let the
+   wrapper scroll horizontally instead of crushing 3 columns into ~80px each.
+   The scroll is contained in the wrapper, so the page itself never overflows. */
+@media (max-width: 640px) {
+  .compare-page-table-wrap .compare-table { min-width: 540px; }
+  .compare-page-table-wrap .compare-label-col { width: 116px; min-width: 116px; }
+}
 
 .compare-product-name {
   font-size: 1rem;
@@ -2449,7 +2623,10 @@ body:has(.compare-tray.visible) .toast {
 }
 
 /* ─── Contact Page ───────────────────────────────────────────── */
-.contact-hero {
+/* Hero spacing now comes from the shared .hero-inner container (max-width +
+   side padding) so the heading lines up with every other page hero instead of
+   sitting flush against the viewport edge. */
+.contact-hero .hero-inner {
   padding-bottom: 3.25rem;
 }
 
@@ -2961,7 +3138,23 @@ body:has(.compare-tray.visible) .toast {
   .trust-item:nth-child(2) { border-right: none; padding-right: 0; }
   .trust-item:nth-child(3) { padding-left: 0; }
   .trust-num { font-size: 1.5rem; }
-  .applications { padding: 2.75rem 1.25rem; }
-  .application-grid { grid-template-columns: 1fr; }
+  .applications { padding: 2.25rem 1.25rem; }
+  /* Compact guided-shortcut rows on mobile: icon, label/blurb, count on one
+     line so the section stays short instead of six tall stacked cards. */
+  .application-grid { grid-template-columns: 1fr; gap: 0.6rem; }
+  .application-card {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "icon text count";
+    align-items: center;
+    column-gap: 0.85rem;
+    row-gap: 0;
+    padding: 0.8rem 1rem;
+  }
+  .application-icon { width: 40px; height: 40px; }
+  .application-text { gap: 0.15rem; }
+  .application-label { font-size: 0.98rem; }
+  .application-blurb { font-size: 0.8rem; }
+  .application-count { align-self: center; font-size: 1.15rem; }
+  .application-count span { margin-top: 0.15rem; }
   .catalogue-head { padding: 0 1.25rem; margin-top: 2.75rem; }
 }

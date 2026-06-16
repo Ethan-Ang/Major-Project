@@ -59,9 +59,14 @@ function renderCompareTray() {
     if (id !== undefined) {
       const p    = PRODUCTS.find(p => String(p.id) === String(id));
       const name = p ? p.name : "Unknown product";
+      const brandLabel = p ? p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase() : "YL";
+      const hasImg = p && p.images && p.images.length > 0;
+      const thumb = hasImg
+        ? `<div class="compare-slot-thumb"><img src="${p.images[0]}" alt="" onerror="ylImageFallback(this,'${brandLabel}')"></div>`
+        : `<div class="compare-slot-thumb no-image"><span class="no-image-mark" aria-hidden="true">${brandLabel}</span></div>`;
       slots.push(`
         <div class="compare-slot compare-slot-filled">
-          <div class="compare-slot-thumb" aria-hidden="true"></div>
+          ${thumb}
           <span class="compare-slot-name" title="${name}">${name}</span>
           <button class="compare-slot-remove"
             onclick="removeFromCompare('${id}')"
@@ -76,7 +81,14 @@ function renderCompareTray() {
   if (slotsEl) slotsEl.innerHTML = slots.join("");
 
   const btn = document.getElementById("compareBtn");
-  if (btn) btn.disabled = list.length < 2;
+  if (btn) {
+    const notEnough = list.length < 2;
+    btn.disabled = notEnough;
+    // Explain why the button is inactive instead of leaving a silent greyed button.
+    const hint = notEnough ? "Select at least 2 products to compare" : "Open comparison view";
+    btn.title = hint;
+    btn.setAttribute("aria-label", hint);
+  }
 }
 
 // ─── Init ───────────────────────────────────────────────────────

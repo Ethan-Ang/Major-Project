@@ -1,5 +1,5 @@
 // ─── State ──────────────────────────────────────────────────────
-let activeFilters  = { brands: [], industries: [], surfaces: [] };
+let activeFilters  = { productTypes: [], brands: [], industries: [], surfaces: [] };
 let currentResults = [];
 let initialLoadDone = false;
 
@@ -39,8 +39,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     initialLoadDone = true;
   });
 
+  // Live filtering while typing (does NOT scroll the page).
   document.getElementById("searchInput").addEventListener("input", () => applyFilters());
+
+  // Intentional submit (Enter key) applies the search and scrolls to results.
+  document.getElementById("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitHeroSearch();
+    }
+  });
 });
+
+// ─── Hero search submit ───────────────────────────────────────────
+// Called by the hero Search button and the Enter key. Applies the current
+// search/filters as usual, then smoothly scrolls down to the catalogue so the
+// user sees the matching results (or the "no results" state) without having to
+// scroll manually. Typing alone never triggers this — only an explicit submit.
+function submitHeroSearch() {
+  applyFilters();
+  scrollToCatalogue();
+}
+
+// Scroll to the catalogue results, accounting for the sticky navbar so the
+// "Full Adhesive Range" heading is not hidden underneath it.
+function scrollToCatalogue() {
+  const target = document.getElementById("catalogue");
+  if (!target) return;
+  const nav = document.querySelector(".nav");
+  const offset = (nav ? nav.offsetHeight : 0) + 8;
+  const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+  window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+}
 
 window.addEventListener("compareUpdated", syncCompareButtons);
 
@@ -56,9 +86,10 @@ function readStateFromURL() {
     if (typeof refreshCustomSelect === "function") refreshCustomSelect(sortSelect);
   }
 
-  activeFilters.brands     = params.get("brand")    ? params.get("brand").split("|")    : [];
-  activeFilters.industries = params.get("industry") ? params.get("industry").split("|") : [];
-  activeFilters.surfaces   = params.get("surface")  ? params.get("surface").split("|")  : [];
+  activeFilters.productTypes = params.get("type")     ? params.get("type").split("|")     : [];
+  activeFilters.brands       = params.get("brand")    ? params.get("brand").split("|")    : [];
+  activeFilters.industries   = params.get("industry") ? params.get("industry").split("|") : [];
+  activeFilters.surfaces     = params.get("surface")  ? params.get("surface").split("|")  : [];
 }
 
 function writeStateToURL() {
@@ -68,6 +99,7 @@ function writeStateToURL() {
 
   if (search) params.set("q", search);
   if (sort && sort !== "default") params.set("sort", sort);
+  if (activeFilters.productTypes.length) params.set("type",  activeFilters.productTypes.join("|"));
   if (activeFilters.brands.length)     params.set("brand",    activeFilters.brands.join("|"));
   if (activeFilters.industries.length) params.set("industry", activeFilters.industries.join("|"));
   if (activeFilters.surfaces.length)   params.set("surface",  activeFilters.surfaces.join("|"));
@@ -82,6 +114,7 @@ function applyStateToCheckboxes() {
   document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => {
     const type = cb.dataset.type;
     const val  = cb.value;
+    if (type === "producttype") cb.checked = activeFilters.productTypes.includes(val);
     if (type === "brand")    cb.checked = activeFilters.brands.includes(val);
     if (type === "industry") cb.checked = activeFilters.industries.includes(val);
     if (type === "surface")  cb.checked = activeFilters.surfaces.includes(val);
@@ -90,7 +123,14 @@ function applyStateToCheckboxes() {
 
 // ─── Filter checkboxes with counts ───────────────────────────────
 function buildFilterCheckboxes() {
-  buildCheckboxGroup("brandFilters",    BRANDS,     "brand",    p => [p.brand]);
+  // Brand filter shows only the four real adhesive brands. Accessories stay in
+  // the catalogue and remain findable via search; they are not a brand.
+  const brandList = (typeof PUBLIC_BRANDS !== "undefined") ? PUBLIC_BRANDS
+    : BRANDS.filter(b => b !== "Others & Accessories");
+  // Product Type is the broadest split: Adhesives vs Spray Guns & Accessories.
+  // This is where the spray guns are discoverable now that they are not a brand.
+  buildCheckboxGroup("productTypeFilters", PRODUCT_TYPES, "producttype", p => [productType(p)]);
+  buildCheckboxGroup("brandFilters",    brandList,  "brand",    p => [p.brand]);
   buildCheckboxGroup("industryFilters", INDUSTRIES, "industry", p => p.industries);
   buildCheckboxGroup("surfaceFilters",  SURFACES,   "surface",  p => p.surfaces);
 }
@@ -165,8 +205,7 @@ function filterByIndustry(industry) {
   const search = document.getElementById("searchInput");
   if (search) search.value = "";
   applyFilters();
-  const target = document.getElementById("catalogue");
-  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+  scrollToCatalogue();
 }
 
 // Highlight the application tile matching the active industry filter
@@ -181,9 +220,10 @@ function applyFilters(opts = {}) {
   const query   = document.getElementById("searchInput").value.toLowerCase().trim();
   const sortVal = document.getElementById("sortSelect").value;
 
-  activeFilters = { brands: [], industries: [], surfaces: [] };
+  activeFilters = { productTypes: [], brands: [], industries: [], surfaces: [] };
   document.querySelectorAll(".filter-sidebar input[type=checkbox]:checked").forEach(cb => {
     const type = cb.dataset.type;
+    if (type === "producttype") activeFilters.productTypes.push(cb.value);
     if (type === "brand")    activeFilters.brands.push(cb.value);
     if (type === "industry") activeFilters.industries.push(cb.value);
     if (type === "surface")  activeFilters.surfaces.push(cb.value);
@@ -193,10 +233,15 @@ function applyFilters(opts = {}) {
     const matchesQuery = !query ||
       p.name.toLowerCase().includes(query) ||
       p.brand.toLowerCase().includes(query) ||
+      brandDisplay(p.brand).toLowerCase().includes(query) ||
+      productType(p).toLowerCase().includes(query) ||
       p.shortDescription.toLowerCase().includes(query) ||
       p.industries.some(i => i.toLowerCase().includes(query)) ||
       p.surfaces.some(s => s.toLowerCase().includes(query)) ||
       p.features.some(f => f.toLowerCase().includes(query));
+
+    const matchesType = activeFilters.productTypes.length === 0 ||
+      activeFilters.productTypes.includes(productType(p));
 
     const matchesBrand = activeFilters.brands.length === 0 ||
       activeFilters.brands.includes(p.brand);
@@ -207,7 +252,7 @@ function applyFilters(opts = {}) {
     const matchesSurface = activeFilters.surfaces.length === 0 ||
       p.surfaces.some(s => activeFilters.surfaces.includes(s));
 
-    return matchesQuery && matchesBrand && matchesIndustry && matchesSurface;
+    return matchesQuery && matchesType && matchesBrand && matchesIndustry && matchesSurface;
   });
 
   if (sortVal === "az")    results.sort((a, b) => a.name.localeCompare(b.name));
@@ -242,8 +287,9 @@ function updateFilterGroupBadges() {
 function updateClearVisibility() {
   const btn = document.querySelector(".filter-clear");
   if (!btn) return;
-  const any = activeFilters.brands.length || activeFilters.industries.length ||
-              activeFilters.surfaces.length || document.getElementById("searchInput").value.trim();
+  const any = activeFilters.productTypes.length || activeFilters.brands.length ||
+              activeFilters.industries.length || activeFilters.surfaces.length ||
+              document.getElementById("searchInput").value.trim();
   btn.style.display = any ? "block" : "none";
 }
 
@@ -253,12 +299,13 @@ function clearFilters() {
   const sortSelect = document.getElementById("sortSelect");
   sortSelect.value = "default";
   if (typeof refreshCustomSelect === "function") refreshCustomSelect(sortSelect);
-  activeFilters = { brands: [], industries: [], surfaces: [] };
+  activeFilters = { productTypes: [], brands: [], industries: [], surfaces: [] };
   renderFilterChips();
   renderGrid(PRODUCTS);
   writeStateToURL();
   updateClearVisibility();
   updateFilterGroupBadges();
+  syncApplicationCards();
 }
 
 // ─── Active filter chips ──────────────────────────────────────────
@@ -271,6 +318,9 @@ function renderFilterChips() {
     chips.push(`<button class="filter-chip" onclick="clearSearch()">Search: "${escapeHTML(query)}" &times;</button>`);
   }
 
+  activeFilters.productTypes.forEach(t => {
+    chips.push(`<button class="filter-chip" onclick="removeFilter('producttype','${t.replace(/'/g,"\\'")}')">${t} &times;</button>`);
+  });
   activeFilters.brands.forEach(b => {
     chips.push(`<button class="filter-chip" onclick="removeFilter('brand','${b.replace(/'/g,"\\'")}')">${b} &times;</button>`);
   });
@@ -350,6 +400,18 @@ function renderGrid(products) {
   });
 }
 
+// "Best for" line. Prefer real industry/application tags; if a product has
+// none (e.g. wallpaper or acrylic adhesives that map to no industry, or the
+// spray-gun accessories), fall back to surfaces, then accessory/category, so
+// the card never shows a blank "Best for" area.
+function bestForText(p) {
+  if (p.industries && p.industries.length) return p.industries.slice(0, 2).join(", ");
+  if (p.surfaces && p.surfaces.length)     return p.surfaces.slice(0, 2).join(", ");
+  if (p.brand === "Others & Accessories" || p.category === "Others") return "Accessory";
+  if (p.category) return p.category;
+  return "General Adhesive Use";
+}
+
 function productCardHTML(p) {
   const basket   = getBasket();
   const inBasket = basket.includes(p.id);
@@ -358,7 +420,7 @@ function productCardHTML(p) {
   const compareDisabled = !inCompare && compareListFull;
 
   const isUnavailable = p.status === "Unavailable";
-  const primaryApps = p.industries.slice(0, 2).join(", ");
+  const primaryApps = bestForText(p);
   const surfaceTags = p.surfaces.slice(0, 3).map(s => `<span class="product-tag">${s}</span>`).join("");
 
   const hasRealImage = p.images && p.images.length > 0;
@@ -367,6 +429,7 @@ function productCardHTML(p) {
     ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
     : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
   const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
+  const detailHref = `product-detail.html?id=${encodeURIComponent(p.id)}`;
 
   const compareTitle = compareDisabled
     ? "Comparison full — remove one to add another"
@@ -375,7 +438,7 @@ function productCardHTML(p) {
   return `
     <article class="product-card${isUnavailable ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
       <div class="${imageClass}">
-        ${imageContent}
+        <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
         ${isUnavailable ? `<span class="card-status-badge" aria-label="Availability: Currently Unavailable"><span class="card-status-dot" aria-hidden="true"></span>Currently Unavailable</span>` : ""}
         <button
           class="card-compare-btn${inCompare ? " in-compare" : ""}"
@@ -390,17 +453,20 @@ function productCardHTML(p) {
         </button>
       </div>
       <div class="product-card-body">
-        <span class="brand-badge">${p.brand}</span>
-        <h3>${p.name}</h3>
+        <span class="brand-badge">${brandDisplay(p.brand)}</span>
+        <h3><a class="product-card-title-link" href="${detailHref}">${p.name}</a></h3>
         ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span>${primaryApps}</span></div>` : ""}
         <p>${p.shortDescription}</p>
         ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces">${surfaceTags}</div>` : ""}
         <div class="product-card-actions">
-          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-primary">View Details</a>
+          <a href="${detailHref}" class="btn btn-primary">View Details</a>
           <button
             class="btn btn-outline ${inBasket ? "btn-added" : ""}"
+            aria-pressed="${inBasket ? "true" : "false"}"
             onclick="toggleBasket('${p.id}')">
-            ${inBasket ? "&check; Selected" : (isUnavailable ? "Enquire About Availability" : "Add to Product Enquiry")}
+            ${inBasket
+              ? `<span class="enq-label-full">In Product Enquiry</span><span class="enq-label-short">In Enquiry</span>`
+              : (isUnavailable ? "Enquire About Availability" : "Add to Product Enquiry")}
           </button>
         </div>
       </div>
@@ -449,6 +515,10 @@ function getBasket() {
 function saveBasket(basket) {
   localStorage.setItem("enquiryBasket", JSON.stringify(basket));
   updateBasketCount();
+  // Notify the shared navbar so the enquiry count (badge + mobile indicator +
+  // drawer count) updates immediately, the same way product-detail.js and
+  // enquiry.html do. Without this the card add updated text but not visibility.
+  window.dispatchEvent(new Event("basketUpdated"));
 }
 
 function toggleBasket(productId) {

@@ -24,7 +24,7 @@
     <div class="search-bar" role="search">
       <label for="searchInput" class="sr-only">Search products</label>
       <input type="text" id="searchInput" placeholder="Search by product, industry, or surface…" autocomplete="off" aria-label="Search products by name, industry, or surface">
-      <button onclick="applyFilters()" aria-label="Search">Search</button>
+      <button onclick="submitHeroSearch()" aria-label="Search">Search</button>
     </div>
     <div class="hero-cta-row">
       <a href="#catalogue" class="hero-cta hero-cta-primary">Browse Products</a>
@@ -38,7 +38,7 @@
 <section class="trust-strip" aria-label="Yee Lim at a glance">
   <ul class="trust-strip-inner">
     <li class="trust-item"><span class="trust-num">50<span class="trust-plus">+</span></span><span class="trust-label">Years Manufacturing</span></li>
-    <li class="trust-item"><span class="trust-num">4</span><span class="trust-label">Product Brands</span></li>
+    <li class="trust-item"><span class="trust-num">31</span><span class="trust-label">Real Products</span></li>
     <li class="trust-item"><span class="trust-num">12</span><span class="trust-label">Industries Served</span></li>
     <li class="trust-item"><span class="trust-num">ISO</span><span class="trust-label">Certified &amp; Green Label</span></li>
   </ul>
@@ -48,9 +48,9 @@
 <section class="applications" id="applications" aria-labelledby="applicationsHeading">
   <div class="applications-inner">
     <div class="section-head">
-      <span class="section-eyebrow">Solutions by Industry</span>
-      <h2 id="applicationsHeading">Browse by Application</h2>
-      <p>Select your industry to see the adhesive solutions matched to it.</p>
+      <span class="section-eyebrow">Quick start</span>
+      <h2 id="applicationsHeading">Common Applications</h2>
+      <p>Start with a common use case, then refine with filters below.</p>
     </div>
     <div class="application-grid" id="applicationGrid"></div>
   </div>
@@ -80,6 +80,11 @@
   <aside class="filter-sidebar" id="filterSidebar" aria-label="Refine products">
     <h2 class="filter-heading">Refine Products</h2>
     <p class="filter-sub">Refine by brand, industry, surface, or application.</p>
+
+    <div class="filter-group">
+      <h3>Product Type</h3>
+      <div id="productTypeFilters"></div>
+    </div>
 
     <div class="filter-group">
       <h3>Brand</h3>

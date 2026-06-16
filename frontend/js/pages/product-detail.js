@@ -52,52 +52,80 @@ function backToProducts(e) {
 }
 
 // ─── Gallery ─────────────────────────────────────────────────────
-function renderGallery(product) {
-  const el     = document.getElementById("detailGallery");
-  if (!el) return;
-  const images = (product.images && product.images.length) ? product.images : [];
+// Arrows, thumbnail row, and the "1 / N" counter only appear when a product
+// has more than one image. A single image (the usual case) shows a clean,
+// uncluttered frame. Broken/missing images fall back via ylImageFallback().
+let galleryState = { images: [], index: 0, label: "" };
 
+function renderGallery(product) {
+  const el = document.getElementById("detailGallery");
+  if (!el) return;
+  const images = (product.images && product.images.length) ? product.images.filter(Boolean) : [];
   const brandLabel = product.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
   const placeholderSub = (product.category && product.category !== "Others")
     ? product.category
     : "Adhesive Solution";
-  const placeholderSVG = `
-    <div class="gallery-placeholder" aria-label="${product.name}">
-      <div class="gallery-placeholder-brand" aria-hidden="true">${brandLabel}</div>
-      <span>${placeholderSub}</span>
-    </div>`;
 
-  const mainImgContent = images.length
+  galleryState = { images, index: 0, label: brandLabel };
+  const multi = images.length > 1;
+
+  const stageContent = images.length
     ? `<img id="galleryMainImg" src="${images[0]}" alt="${product.name}" onerror="ylImageFallback(this,'${brandLabel}')">`
-    : placeholderSVG;
+    : `<div class="gallery-placeholder" aria-label="${product.name}">
+         <div class="gallery-placeholder-brand" aria-hidden="true">${brandLabel}</div>
+         <span>${placeholderSub}</span>
+       </div>`;
 
-  const thumbsHTML = [0, 1, 2, 3].map(i => {
-    const src = images[i] || "";
-    const imgTag = src
-      ? `<img src="${src}" alt="Product view ${i + 1}">`
-      : `<span class="gallery-thumb-dot" aria-hidden="true"></span>`;
-    const activeClass = i === 0 ? " active" : "";
-    return `
-      <button class="gallery-thumb${activeClass}"
-        onclick="switchGalleryImage(${i}, this, '${src}')"
-        aria-label="Product image ${i + 1}">
-        ${imgTag}
-      </button>`;
-  }).join("");
+  const navHTML = multi ? `
+    <button class="gallery-nav gallery-prev" type="button" aria-label="Previous image" onclick="galleryStep(-1)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="gallery-nav gallery-next" type="button" aria-label="Next image" onclick="galleryStep(1)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <span class="gallery-counter" id="galleryCounter" aria-hidden="true">1 / ${images.length}</span>` : "";
+
+  const thumbsHTML = multi ? `
+    <div class="gallery-thumbs" aria-label="Product image thumbnails">
+      ${images.map((src, i) => `
+        <button class="gallery-thumb${i === 0 ? " active" : ""}" type="button"
+          onclick="gallerySet(${i})" aria-label="Show image ${i + 1}"${i === 0 ? ' aria-current="true"' : ""}>
+          <img src="${src}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">
+        </button>`).join("")}
+    </div>` : "";
 
   el.innerHTML = `
-    <div class="gallery-main" id="galleryMain">${mainImgContent}</div>
-    <div class="gallery-thumbs">${thumbsHTML}</div>`;
+    <div class="gallery-main${images.length ? "" : " no-image"}" id="galleryMain">
+      <div class="gallery-stage" id="galleryStage">${stageContent}</div>
+      ${navHTML}
+    </div>
+    ${thumbsHTML}`;
 }
 
-function switchGalleryImage(index, thumbEl, src) {
-  const main = document.getElementById("galleryMain");
-  if (!main) return;
-  if (src) {
-    main.innerHTML = `<img id="galleryMainImg" src="${src}" alt="Product image ${index + 1}">`;
+function gallerySet(i) {
+  const { images, label } = galleryState;
+  if (!images.length || i < 0 || i >= images.length) return;
+  galleryState.index = i;
+
+  const stage = document.getElementById("galleryStage");
+  if (stage) {
+    stage.innerHTML = `<img id="galleryMainImg" src="${images[i]}" alt="" onerror="ylImageFallback(this,'${label}')">`;
   }
-  document.querySelectorAll(".gallery-thumb").forEach(t => t.classList.remove("active"));
-  thumbEl.classList.add("active");
+  const counter = document.getElementById("galleryCounter");
+  if (counter) counter.textContent = `${i + 1} / ${images.length}`;
+
+  document.querySelectorAll(".gallery-thumb").forEach((t, idx) => {
+    const active = idx === i;
+    t.classList.toggle("active", active);
+    if (active) t.setAttribute("aria-current", "true");
+    else t.removeAttribute("aria-current");
+  });
+}
+
+function galleryStep(delta) {
+  const { images, index } = galleryState;
+  if (images.length < 2) return;
+  gallerySet((index + delta + images.length) % images.length);
 }
 
 // ─── Product Header ───────────────────────────────────────────────
@@ -108,7 +136,7 @@ function renderHeader(product) {
   el.innerHTML = `
     <div class="detail-product-header">
       <div class="detail-product-meta">
-        <span class="brand-badge">${product.brand}</span>
+        <span class="brand-badge">${brandDisplay(product.brand)}</span>
         <span class="avail-badge ${availClass}" aria-label="Availability: ${product.status}">
           <span class="avail-dot" aria-hidden="true"></span>${product.status}
         </span>
@@ -119,36 +147,43 @@ function renderHeader(product) {
 }
 
 // ─── Spec Table ───────────────────────────────────────────────────
+// Rows are built conditionally so the table never shows blank cells. Empty
+// Industries / Surfaces / Key Features (common for accessories and a few
+// adhesives) are omitted entirely. Accessories show a clear "Product Type"
+// instead of the internal "Brand: Others & Accessories".
 function renderSpecTable(product) {
   const el = document.getElementById("detailSpecs");
   if (!el) return;
-  const industryTags = product.industries.map(i => `<span class="spec-tag">${i}</span>`).join("");
-  const surfaceTags  = product.surfaces.map(s => `<span class="spec-tag">${s}</span>`).join("");
-  const featureItems = product.features.map(f => `<span class="spec-feature">${f}</span>`).join("");
+
+  const isAccessory = product.brand === "Others & Accessories" || product.category === "Others";
+  const tagList = arr => `<div class="spec-tags">${arr.map(x => `<span class="spec-tag">${x}</span>`).join("")}</div>`;
+
+  const rows = [];
+  if (isAccessory) {
+    // Not an adhesive brand: present it as a product type, not a fake brand.
+    rows.push({ key: "Product Type", val: "Spray Guns &amp; Accessories" });
+  } else {
+    if (product.brand)    rows.push({ key: "Brand",    val: product.brand });
+    if (product.category) rows.push({ key: "Category", val: product.category });
+  }
+
+  if (product.industries.length) rows.push({ key: "Industries", val: tagList(product.industries) });
+  if (product.surfaces.length)   rows.push({ key: "Surfaces",   val: tagList(product.surfaces) });
+  if (product.features.length) {
+    rows.push({
+      key: "Key Features",
+      val: `<div class="spec-features">${product.features.map(f => `<span class="spec-feature">${f}</span>`).join("")}</div>`
+    });
+  }
 
   el.innerHTML = `
     <div class="spec-table-wrap">
       <div class="spec-table-heading">Specifications</div>
+      ${rows.map(r => `
       <div class="spec-row">
-        <div class="spec-key">Brand</div>
-        <div class="spec-val">${product.brand}</div>
-      </div>
-      <div class="spec-row">
-        <div class="spec-key">Category</div>
-        <div class="spec-val">${product.category}</div>
-      </div>
-      <div class="spec-row">
-        <div class="spec-key">Industries</div>
-        <div class="spec-val"><div class="spec-tags">${industryTags}</div></div>
-      </div>
-      <div class="spec-row">
-        <div class="spec-key">Surfaces</div>
-        <div class="spec-val"><div class="spec-tags">${surfaceTags}</div></div>
-      </div>
-      <div class="spec-row">
-        <div class="spec-key">Key Features</div>
-        <div class="spec-val"><div class="spec-features">${featureItems}</div></div>
-      </div>
+        <div class="spec-key">${r.key}</div>
+        <div class="spec-val">${r.val}</div>
+      </div>`).join("")}
     </div>`;
 }
 
@@ -217,15 +252,16 @@ function renderSidebar(product) {
     </div>
     <div class="sidebar-identity">
       <div class="sidebar-product-name">${product.name}</div>
-      <div class="sidebar-brand">${product.brand}</div>
+      <div class="sidebar-brand">${brandDisplay(product.brand)}</div>
     </div>
     <div class="sidebar-actions">
       <button
         class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
         id="sidebarBasketBtn"
         data-enquiry-label="${enquiryLabel}"
+        aria-pressed="${inBasket ? "true" : "false"}"
         onclick="toggleBasket('${product.id}')">
-        ${inBasket ? "&#10003; Selected" : enquiryLabel}
+        ${inBasket ? "In Product Enquiry" : enquiryLabel}
       </button>
       <button
         class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
@@ -261,7 +297,7 @@ function renderFullDesc(product) {
       <h2 class="enquiry-guidance-title">Not sure if this product fits your application?</h2>
       <p>Send your surface, application, and quantity requirements to Yee Lim.
       Our team will advise on suitability and quotation.</p>
-      <a href="enquiry.html" class="enquiry-guidance-link">Send Product Enquiry &rarr;</a>
+      <a href="enquiry.html" class="enquiry-guidance-link" onclick="enquireAboutProduct('${product.id}')">Send Product Enquiry &rarr;</a>
     </div>`;
 }
 
@@ -282,18 +318,23 @@ function renderRelated(product) {
   section.style.display = "block";
   grid.innerHTML = related.map(p => {
     const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+    const hasRealImage = p.images && p.images.length > 0;
+    const imageContent = hasRealImage
+      ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+      : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
+    const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
+    const detailHref = `product-detail.html?id=${encodeURIComponent(p.id)}`;
     return `
     <div class="product-card">
-      <div class="product-card-image no-image">
-        <div class="no-image-icon" aria-hidden="true">&#9783;</div>
-        <div class="no-image-label" aria-hidden="true">${brandLabel}</div>
+      <div class="${imageClass}">
+        <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
       </div>
       <div class="product-card-body">
-        <span class="brand-badge">${p.brand}</span>
-        <h3>${p.name}</h3>
+        <span class="brand-badge">${brandDisplay(p.brand)}</span>
+        <h3><a class="product-card-title-link" href="${detailHref}">${p.name}</a></h3>
         <p>${p.shortDescription}</p>
         <div class="product-card-actions">
-          <a href="product-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline">View Product</a>
+          <a href="${detailHref}" class="btn btn-outline">View Product</a>
         </div>
       </div>
     </div>`;
@@ -320,8 +361,9 @@ function toggleBasket(productId) {
   if (idx === -1) {
     basket.push(productId);
     if (btn) {
-      btn.innerHTML = "&#10003; Selected";
+      btn.textContent = "In Product Enquiry";
       btn.classList.add("btn-added");
+      btn.setAttribute("aria-pressed", "true");
     }
     if (enquiryLink) enquiryLink.hidden = false;
     showToast("Added to your product enquiry");
@@ -330,11 +372,27 @@ function toggleBasket(productId) {
     if (btn) {
       btn.textContent = btn.dataset.enquiryLabel || "Add to Product Enquiry";
       btn.classList.remove("btn-added");
+      btn.setAttribute("aria-pressed", "false");
     }
     if (enquiryLink) enquiryLink.hidden = true;
     showToast("Removed from your product enquiry");
   }
   saveBasket(basket);
+}
+
+// Bottom "Send Product Enquiry" CTA: the visitor is already looking at a
+// specific product, so add it to the enquiry first (no duplicates), then let
+// the link's href carry them to enquiry.html where it will be pre-selected.
+// localStorage writes are synchronous, so the basket is saved before the
+// default navigation runs — no preventDefault needed. Works for unavailable
+// products too. The navbar Product Enquiry link is untouched (navigation only).
+function enquireAboutProduct(productId) {
+  const id = String(productId);
+  const basket = getBasket();
+  if (!basket.map(String).includes(id)) {
+    basket.push(id);
+    saveBasket(basket);
+  }
 }
 
 function updateBasketCount() {

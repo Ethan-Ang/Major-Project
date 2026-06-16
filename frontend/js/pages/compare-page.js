@@ -28,14 +28,17 @@ function renderComparePage() {
     const availClass  = p.status === "Available" ? "available" : "unavailable";
     const brandLabel  = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
     const placeholderSub = (p.category && p.category !== "Others") ? p.category : "Adhesive Solution";
+    const hasRealImage = p.images && p.images.length > 0;
+    const imgContent = hasRealImage
+      ? `<img src="${p.images[0]}" alt="${p.name}" onerror="ylImageFallback(this,'${brandLabel}')">`
+      : `<span class="compare-img-placeholder">${brandLabel}</span><span class="compare-img-placeholder-sub">${placeholderSub}</span>`;
     return `
       <td class="compare-col-header">
         <div class="compare-product-img">
-          <span class="compare-img-placeholder">${brandLabel}</span>
-          <span class="compare-img-placeholder-sub">${placeholderSub}</span>
+          ${imgContent}
         </div>
         <a class="compare-product-name" href="product-detail.html?id=${encodeURIComponent(p.id)}">${p.name}</a>
-        <div class="compare-product-brand">${p.brand}</div>
+        <div class="compare-product-brand">${brandDisplay(p.brand)}</div>
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${p.status}
         </div>

@@ -117,6 +117,8 @@ function buildSystemPrompt($products) {
          . "Catalogue:\n" . $catalogue . "\n\n"
          . "Rules:\n"
          . "- Only recommend products from the catalogue above. Never invent products or specifications.\n"
+         . "- If a product is marked Unavailable, do not present it as in stock. Say it is currently "
+         . "unavailable and suggest enquiring about availability.\n"
          . "- If the need is unclear, ask one short clarifying question (which surfaces, what conditions).\n"
          . "- If nothing fits, say so and point them to [submit an enquiry](enquiry.html).\n"
          . "- For pricing, MOQ or lead time, direct them to [submit an enquiry](enquiry.html) "
@@ -321,7 +323,11 @@ function ruleBasedReply($query, $products) {
     $bullets = [];
     foreach ($top as $x) {
         $p = $x["p"];
-        $bullets[] = "- **{$p['name']}**: {$p['short_description']} ([details](product-detail.html?id={$p['id']}))";
+        // Never present an unavailable product as if it's in stock.
+        $avail = (($p["status"] ?? "Available") !== "Available")
+            ? " (currently unavailable, ask us about availability)"
+            : "";
+        $bullets[] = "- **{$p['name']}**: {$p['short_description']}{$avail} ([details](product-detail.html?id={$p['id']}))";
     }
     return "Based on that, here's what I'd recommend:\n\n" . implode("\n", $bullets)
          . "\n\nFor pricing, MOQ and lead time, [submit an enquiry](enquiry.html).";
