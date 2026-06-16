@@ -1,21 +1,6 @@
 <?php
 require_once "db.php";
-
-function getBearerToken() {
-    $headers = getallheaders();
-
-    $authHeader = $headers["Authorization"] ?? $headers["authorization"] ?? "";
-
-    if (!$authHeader && isset($_SERVER["HTTP_AUTHORIZATION"])) {
-        $authHeader = $_SERVER["HTTP_AUTHORIZATION"];
-    }
-
-    if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-        return $matches[1];
-    }
-
-    return null;
-}
+require_once "auth.php"; // shared getBearerToken() — single source of truth
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
     http_response_code(405);
