@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard | Yee Lim Adhesives</title>
+  <title>Overview | Yee Lim Adhesives Admin</title>
   <link rel="stylesheet" href="admin.css">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -20,356 +20,136 @@
         <div class="brand-sub">Admin Panel</div>
       </div>
     </div>
-
     <nav class="admin-nav">
-      <div class="nav-section-label">Catalogue</div>
+      <div class="nav-section-label">Menu</div>
       <ul>
-        <li>
-          <a href="#" class="active">
-            <i data-lucide="package" aria-hidden="true"></i>
-            Products
-          </a>
-        </li>
+        <li><a href="dashboard.html" class="active"><i data-lucide="layout-dashboard"></i> Overview</a></li>
+        <li><a href="products.html"><i data-lucide="package"></i> Products</a></li>
+        <li><a href="enquiries.html"><i data-lucide="mail"></i> Enquiries <span class="nav-badge" id="navUnread" style="display:none">0</span></a></li>
       </ul>
-      <div class="nav-section-label" style="margin-top:0.75rem">Customer</div>
+      <div class="nav-section-label">Shortcuts</div>
       <ul>
-        <li>
-          <a href="enquiries.html">
-            <i data-lucide="mail" aria-hidden="true"></i>
-            Enquiries
-          </a>
-        </li>
+        <li><a href="../products.html"><i data-lucide="external-link"></i> View Live Site</a></li>
       </ul>
     </nav>
-
-    <div class="admin-sidebar-footer">
-      <a href="../products.html" class="btn-view-site">
-        <i data-lucide="external-link" aria-hidden="true"></i>
-        View Live Site
-      </a>
-      <button class="btn-logout" onclick="logout()">
-        <i data-lucide="log-out" aria-hidden="true"></i>
-        Sign Out
-      </button>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">YL</div>
+      <div class="user-meta">
+        <div class="user-name" id="userName">admin</div>
+        <div class="user-role">Administrator</div>
+      </div>
+      <button class="user-logout" onclick="logout()" aria-label="Sign out"><i data-lucide="log-out"></i></button>
     </div>
   </aside>
 
   <!-- Main -->
   <main class="admin-main">
+    <div class="admin-body">
 
-    <!-- Top bar -->
-    <div class="admin-topbar">
-      <div>
-        <h1 class="admin-page-title">Products</h1>
-        <p class="admin-page-sub">Manage the Yee Lim product catalogue</p>
+      <!-- Greeting -->
+      <div class="greeting">
+        <div>
+          <div class="eyebrow">Dashboard</div>
+          <h1 id="greetingTitle">Welcome back</h1>
+          <p id="greetingSub">Here's what's happening across your catalogue today</p>
+        </div>
       </div>
-      <div class="topbar-actions">
-        <button class="btn btn-outline" onclick="exportCSV()">
-          <i data-lucide="download" aria-hidden="true"></i>
-          Export CSV
-        </button>
-        <button class="btn btn-primary" onclick="openAddModal()">
-          <i data-lucide="plus" aria-hidden="true"></i>
-          Add Product
-        </button>
-      </div>
-    </div>
 
-    <!-- Stats cards -->
-    <div class="stats-row" id="statsRow">
-      <div class="stat-card">
-        <div class="stat-icon stat-icon-blue">
-          <i data-lucide="layers" aria-hidden="true"></i>
-        </div>
-        <div class="stat-info">
-          <div class="stat-value" id="statTotal">—</div>
-          <div class="stat-label">Total Products</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon stat-icon-green">
-          <i data-lucide="check-circle" aria-hidden="true"></i>
-        </div>
-        <div class="stat-info">
-          <div class="stat-value" id="statAvailable">—</div>
-          <div class="stat-label">Available</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon stat-icon-red">
-          <i data-lucide="x-circle" aria-hidden="true"></i>
-        </div>
-        <div class="stat-info">
-          <div class="stat-value" id="statUnavailable">—</div>
-          <div class="stat-label">Unavailable</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="alert alert-error" id="pageError" style="display:none"></div>
-
-    <!-- Empty state — shown only when allProducts.length === 0 -->
-    <div class="admin-empty-state" id="productsEmptyState" style="display:none">
-      <div class="admin-empty-state-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m7.5 4.27 9 5.15"/>
-          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-          <path d="m3.3 7 8.7 5 8.7-5"/>
-          <path d="M12 22V12"/>
-        </svg>
-      </div>
-      <h2>No products yet</h2>
-      <p>Add your first adhesive to start building the Yee Lim catalogue. Products you add here appear instantly on the public site.</p>
-      <div class="admin-empty-state-actions">
-        <button class="btn btn-primary" onclick="openAddModal()">
-          <i data-lucide="plus" aria-hidden="true"></i>
-          Add Your First Product
-        </button>
-      </div>
-    </div>
-
-    <!-- Product table card -->
-    <div class="admin-card" id="productsCard">
-
-      <!-- Card header -->
-      <div class="admin-card-header">
-        <div class="card-header-left">
-          <h2>All Products</h2>
-          <span class="table-count" id="tableCount"></span>
-        </div>
-        <div class="card-header-right">
-          <div class="table-search-wrap">
-            <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
-            <input type="text" id="tableSearch" class="table-search" placeholder="Search products…" oninput="onSearch()">
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-icon red"><i data-lucide="package"></i></div>
+            <span class="kpi-delta flat">Live</span>
           </div>
-          <select class="page-size-select" id="pageSizeSelect" onchange="onPageSizeChange()">
-            <option value="10">10 per page</option>
-            <option value="25">25 per page</option>
-            <option value="50">50 per page</option>
-          </select>
+          <div class="kpi-label">Total Products</div>
+          <div class="kpi-value" id="kpiTotal">0</div>
+          <svg class="kpi-spark" viewBox="0 0 120 30" preserveAspectRatio="none"><polyline fill="none" stroke="#CC2929" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,22 20,18 40,20 60,12 80,14 100,8 120,10"/></svg>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-icon green"><i data-lucide="check-circle"></i></div>
+            <span class="kpi-delta up" id="kpiAvailPct">0</span>
+          </div>
+          <div class="kpi-label">Available</div>
+          <div class="kpi-value" id="kpiAvailable">0</div>
+          <svg class="kpi-spark" viewBox="0 0 120 30" preserveAspectRatio="none"><polyline fill="none" stroke="#2e9e5b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,20 20,21 40,16 60,17 80,11 100,12 120,7"/></svg>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-icon amber"><i data-lucide="mail"></i></div>
+            <span class="kpi-delta up" id="kpiNewDelta">0</span>
+          </div>
+          <div class="kpi-label">New Enquiries · 7d</div>
+          <div class="kpi-value" id="kpiNew">0</div>
+          <svg class="kpi-spark" viewBox="0 0 120 30" preserveAspectRatio="none"><polyline fill="none" stroke="#c98a16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,24 20,16 40,20 60,9 80,14 100,6 120,11"/></svg>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <div class="kpi-icon ink"><i data-lucide="inbox"></i></div>
+            <span class="kpi-delta flat" id="kpiUnreadTag">Inbox</span>
+          </div>
+          <div class="kpi-label">New Leads</div>
+          <div class="kpi-value" id="kpiUnread">0</div>
+          <svg class="kpi-spark" viewBox="0 0 120 30" preserveAspectRatio="none"><polyline fill="none" stroke="#6b7480" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="0,12 20,14 40,10 60,16 80,12 100,18 120,14"/></svg>
         </div>
       </div>
 
-      <!-- Bulk action bar (hidden until items selected) -->
-      <div class="bulk-bar" id="bulkBar" style="display:none">
-        <span class="bulk-selected" id="bulkSelected">0 selected</span>
-        <div class="bulk-actions">
-          <button class="btn btn-outline btn-sm" onclick="bulkMarkAvailable()">Mark Available</button>
-          <button class="btn btn-outline btn-sm" onclick="bulkMarkUnavailable()">Mark Unavailable</button>
-          <button class="btn btn-danger btn-sm" onclick="bulkDelete()">
-            <i data-lucide="trash-2" aria-hidden="true"></i>
-            Delete Selected
-          </button>
+      <!-- Chart + catalogue -->
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Enquiries</h3>
+              <div class="sub">Leads received over the last 7 days</div>
+            </div>
+            <a href="enquiries.html" class="head-link">View all <i data-lucide="arrow-right"></i></a>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-figs"><span class="chart-big" id="chartTotal">0</span><span class="chart-cap" id="chartCap"></span></div>
+            <svg class="chart-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#CC2929" stop-opacity="0.28"/>
+                  <stop offset="100%" stop-color="#CC2929" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="50" x2="600" y2="50" stroke="#eef0f3" stroke-width="1"/>
+              <line x1="0" y1="100" x2="600" y2="100" stroke="#eef0f3" stroke-width="1"/>
+              <line x1="0" y1="150" x2="600" y2="150" stroke="#eef0f3" stroke-width="1"/>
+              <path id="chartArea" d="" fill="url(#area)"/>
+              <path id="chartLine" d="" fill="none" stroke="#CC2929" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle id="chartDot" r="4.5" fill="#fff" stroke="#CC2929" stroke-width="2.5" style="display:none"/>
+            </svg>
+            <div class="chart-xlabels" id="chartLabels"></div>
+          </div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="clearSelection()" aria-label="Clear selection">
-          <i data-lucide="x" aria-hidden="true"></i>
-        </button>
+
+        <div class="card">
+          <div class="card-head"><div><h3>Catalogue</h3><div class="sub">Products by category</div></div></div>
+          <div class="cat-list" id="catList">
+            <div class="overview-empty">Loading…</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Table -->
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th class="th-check">
-                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" class="row-check">
-              </th>
-              <th class="sortable" onclick="sortBy('name')">
-                Product Name
-                <span class="sort-icon" id="sort-name"></span>
-              </th>
-              <th class="sortable" onclick="sortBy('category')">
-                Category
-                <span class="sort-icon" id="sort-category"></span>
-              </th>
-              <th class="sortable" onclick="sortBy('status')">
-                Status
-                <span class="sort-icon" id="sort-status"></span>
-              </th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="productTableBody">
-            <tr class="loading-row"><td colspan="5">Loading products…</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination bar -->
-      <div class="pagination-bar" id="paginationBar" style="display:none">
-        <span class="pagination-info" id="paginationInfo"></span>
-        <div class="pagination-controls">
-          <button class="btn btn-ghost btn-sm" id="btnPrevPage" onclick="changePage(-1)">
-            <i data-lucide="chevron-left" aria-hidden="true"></i>
-            Prev
-          </button>
-          <div class="page-numbers" id="pageNumbers"></div>
-          <button class="btn btn-ghost btn-sm" id="btnNextPage" onclick="changePage(1)">
-            Next
-            <i data-lucide="chevron-right" aria-hidden="true"></i>
-          </button>
+      <!-- Recent enquiries -->
+      <div class="card">
+        <div class="card-head">
+          <div><h3>Recent Enquiries</h3><div class="sub">Your latest leads. Reply straight from here</div></div>
+          <a href="enquiries.html" class="head-link">View all <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="enq-list" id="recentEnq">
+          <div class="overview-empty">Loading…</div>
         </div>
       </div>
 
     </div>
-
   </main>
 </div>
 
-<!-- Add / Edit Modal -->
-<div class="modal-overlay" id="productModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="modalTitle">Add Product</h2>
-      <button class="modal-close" onclick="closeModal()" aria-label="Close modal">
-        <i data-lucide="x" aria-hidden="true"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="alert alert-error" id="modalError" style="display:none"></div>
-      <input type="hidden" id="editingId">
-
-      <div class="form-row-2">
-        <div class="form-group">
-          <label for="fieldName">Product Name *</label>
-          <input type="text" id="fieldName" required placeholder="e.g. Deer™ Wood Contact Adhesive">
-        </div>
-        <div class="form-group">
-          <label for="fieldCategory">Category *</label>
-          <select id="fieldCategory">
-            <option value="Industrial">Industrial</option>
-            <option value="Commercial">Commercial</option>
-            <option value="Others">Others</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="fieldShortDesc">Short Description *</label>
-        <input type="text" id="fieldShortDesc" required placeholder="One line summary of the product">
-      </div>
-
-      <div class="form-row-2">
-        <div class="form-group">
-          <label for="fieldBrand">Brand</label>
-          <select id="fieldBrand">
-            <option value="Deer™ Brand">Deer™ Brand</option>
-            <option value="Horsemen™ Brand">Horsemen™ Brand</option>
-            <option value="Premier™ Brand">Premier™ Brand</option>
-            <option value="Rhino™ Brand">Rhino™ Brand</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="fieldIndustries">Industries</label>
-          <input type="text" id="fieldIndustries" placeholder="Carpentry, Flooring">
-        </div>
-      </div>
-
-      <div class="form-row-2">
-        <div class="form-group">
-          <label for="fieldSurfaces">Surfaces</label>
-          <input type="text" id="fieldSurfaces" placeholder="Wood, Laminates">
-        </div>
-        <div class="form-group">
-          <label for="fieldFeatures">Features</label>
-          <input type="text" id="fieldFeatures" placeholder="Fast setting, Heat resistant">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="fieldFullDesc">Full Description</label>
-        <textarea id="fieldFullDesc" rows="4" placeholder="Detailed product description…"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="fieldUsage">How to Use</label>
-        <textarea id="fieldUsage" rows="3" placeholder="Application instructions…"></textarea>
-      </div>
-
-      <div class="form-row-2">
-        <div class="form-group">
-          <label for="fieldImageUrl">Image URL</label>
-          <input type="text" id="fieldImageUrl" placeholder="images/products/name.jpg" oninput="updateImagePreview()">
-          <label for="fieldImages" style="margin-top:0.75rem">Additional Image URLs</label>
-          <input type="text" id="fieldImages" placeholder="url1.jpg, url2.jpg">
-          <div class="image-preview-box" id="imagePreview">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-            <span>No image URL entered</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="fieldStatus">Status</label>
-          <select id="fieldStatus">
-            <option value="Available">Available</option>
-            <option value="Unavailable">Unavailable</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" id="saveBtn" onclick="saveProduct()">Save Product</button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Confirm Modal -->
-<div class="modal-overlay" id="deleteModal">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <h2>Delete Product</h2>
-      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close modal">
-        <i data-lucide="x" aria-hidden="true"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="delete-confirm-icon">
-        <i data-lucide="trash-2" aria-hidden="true"></i>
-      </div>
-      <p class="delete-confirm-text">Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
-      <p class="delete-confirm-sub">This action cannot be undone.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
-      <button class="btn btn-danger-solid" id="confirmDeleteBtn" onclick="confirmDelete()">Delete Product</button>
-    </div>
-  </div>
-</div>
-
-<!-- Bulk Delete Confirm Modal -->
-<div class="modal-overlay" id="bulkDeleteModal">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <h2>Delete Selected Products</h2>
-      <button class="modal-close" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')" aria-label="Close modal">
-        <i data-lucide="x" aria-hidden="true"></i>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="delete-confirm-icon">
-        <i data-lucide="trash-2" aria-hidden="true"></i>
-      </div>
-      <p class="delete-confirm-text" id="bulkDeleteText">Delete selected products?</p>
-      <p class="delete-confirm-sub">This action cannot be undone.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')">Cancel</button>
-      <button class="btn btn-danger-solid" id="confirmBulkDeleteBtn" onclick="confirmBulkDelete()">Delete All</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="admin-toast" id="adminToast"></div>
-
 <script src="../js/data.js"></script>
-<script src="admin.js"></script>
+<script src="overview.js"></script>
 <script>lucide.createIcons();</script>
 </body>
 </html>

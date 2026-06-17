@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products | Yee Lim Adhesives Admin</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="../css/dropdown-ui.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <span class="brand-mark">YL</span>
+      <div>
+        <div class="brand-name">Yee Lim</div>
+        <div class="brand-sub">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <div class="nav-section-label">Menu</div>
+      <ul>
+        <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i> Overview</a></li>
+        <li><a href="products.html" class="active"><i data-lucide="package"></i> Products</a></li>
+        <li><a href="enquiries.html"><i data-lucide="mail"></i> Enquiries</a></li>
+      </ul>
+      <div class="nav-section-label">Shortcuts</div>
+      <ul>
+        <li><a href="../products.html"><i data-lucide="external-link"></i> View Live Site</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">YL</div>
+      <div class="user-meta">
+        <div class="user-name" id="userName">admin</div>
+        <div class="user-role">Administrator</div>
+      </div>
+      <button class="user-logout" onclick="logout()" aria-label="Sign out"><i data-lucide="log-out"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-body">
+
+      <!-- Page header -->
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Catalogue</div>
+          <h1 class="admin-page-title">Products</h1>
+          <p class="admin-page-sub">Manage the Yee Lim adhesive catalogue. Changes appear instantly on the live site</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-outline" onclick="exportCSV()"><i data-lucide="download"></i> Export CSV</button>
+          <button class="btn btn-primary" onclick="openAddModal()"><i data-lucide="plus"></i> Add Product</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <div class="stat-icon red"><i data-lucide="layers"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Total Products</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i data-lucide="check-circle"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statAvailable">0</div>
+            <div class="stat-label">Available</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i data-lucide="eye-off"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="statUnavailable">0</div>
+            <div class="stat-label">Unavailable</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-error" id="pageError" style="display:none"></div>
+
+      <!-- Empty state -->
+      <div class="admin-empty-state" id="productsEmptyState" style="display:none">
+        <div class="admin-empty-state-icon">
+          <i data-lucide="package"></i>
+        </div>
+        <h2>No products yet</h2>
+        <p>Add your first adhesive to start building the Yee Lim catalogue. Products you add here appear instantly on the public site.</p>
+        <div class="admin-empty-state-actions">
+          <button class="btn btn-primary" onclick="openAddModal()"><i data-lucide="plus"></i> Add Your First Product</button>
+        </div>
+      </div>
+
+      <!-- Product table card -->
+      <div class="admin-card" id="productsCard">
+        <div class="admin-card-header">
+          <div class="card-header-left">
+            <h2>All Products</h2>
+            <span class="table-count" id="tableCount"></span>
+          </div>
+          <div class="card-header-right">
+            <div class="table-search-wrap">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="tableSearch" class="table-search" placeholder="Search products…" oninput="onSearch()">
+            </div>
+            <select class="page-size-select" id="pageSizeSelect" onchange="onPageSizeChange()" aria-label="Products per page">
+              <option value="10">10 per page</option>
+              <option value="25">25 per page</option>
+              <option value="50">50 per page</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bulk action bar -->
+        <div class="bulk-bar" id="bulkBar" style="display:none">
+          <span class="bulk-selected" id="bulkSelected">0 selected</span>
+          <div class="bulk-actions">
+            <button class="btn btn-outline btn-sm" onclick="bulkMarkAvailable()">Mark Available</button>
+            <button class="btn btn-outline btn-sm" onclick="bulkMarkUnavailable()">Mark Unavailable</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkDelete()">
+              <i data-lucide="trash-2"></i> Delete Selected
+            </button>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearSelection()" aria-label="Clear selection">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="th-check"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()" class="row-check"></th>
+                <th class="sortable" onclick="sortBy('name')">Product Name <span class="sort-icon" id="sort-name"></span></th>
+                <th class="sortable" onclick="sortBy('category')">Category <span class="sort-icon" id="sort-category"></span></th>
+                <th class="sortable" onclick="sortBy('status')">Status <span class="sort-icon" id="sort-status"></span></th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productTableBody">
+              <tr class="loading-row"><td colspan="5">Loading products…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" id="paginationBar" style="display:none">
+          <span class="pagination-info" id="paginationInfo"></span>
+          <div class="pagination-controls">
+            <button class="page-btn" id="btnPrevPage" onclick="changePage(-1)"><i data-lucide="chevron-left"></i> Prev</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button class="page-btn" id="btnNextPage" onclick="changePage(1)">Next <i data-lucide="chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Product</h2>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close modal"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" id="modalError" style="display:none"></div>
+      <input type="hidden" id="editingId">
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldName">Product Name *</label>
+          <input type="text" id="fieldName" required placeholder="e.g. Deer™ Wood Contact Adhesive">
+        </div>
+        <div class="form-group">
+          <label for="fieldCategory">Category *</label>
+          <select id="fieldCategory">
+            <option value="Industrial">Industrial</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fieldShortDesc">Short Description *</label>
+        <input type="text" id="fieldShortDesc" required placeholder="One line summary of the product">
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldBrand">Brand</label>
+          <select id="fieldBrand">
+            <option value="Deer™ Brand">Deer™ Brand</option>
+            <option value="Horsemen™ Brand">Horsemen™ Brand</option>
+            <option value="Premier™ Brand">Premier™ Brand</option>
+            <option value="Rhino™ Brand">Rhino™ Brand</option>
+            <option value="Others & Accessories">Others &amp; Accessories</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fieldIndustries">Industries</label>
+          <input type="text" id="fieldIndustries" placeholder="Carpentry, Flooring">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldSurfaces">Surfaces</label>
+          <input type="text" id="fieldSurfaces" placeholder="Wood, Laminates">
+        </div>
+        <div class="form-group">
+          <label for="fieldFeatures">Features</label>
+          <input type="text" id="fieldFeatures" placeholder="Fast setting, Heat resistant">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fieldFullDesc">Full Description</label>
+        <textarea id="fieldFullDesc" rows="4" placeholder="Detailed product description…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="fieldUsage">How to Use</label>
+        <textarea id="fieldUsage" rows="3" placeholder="Application instructions…"></textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldImageUrl">Image URL</label>
+          <input type="text" id="fieldImageUrl" placeholder="images/products/name.jpg" oninput="updateImagePreview()">
+          <label for="fieldImages" style="margin-top:0.75rem">Additional Image URLs</label>
+          <input type="text" id="fieldImages" placeholder="url1.jpg, url2.jpg">
+          <div class="image-preview-box" id="imagePreview">
+            <span>No image URL entered</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fieldStatus">Status</label>
+          <select id="fieldStatus">
+            <option value="Available">Available</option>
+            <option value="Unavailable">Unavailable</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-label">Product Documents <span class="form-section-optional">optional</span></div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="fieldSdsUrl">Safety Data Sheet URL</label>
+          <input type="text" id="fieldSdsUrl" placeholder="uploads/documents/sds-name.pdf or https://…">
+        </div>
+        <div class="form-group">
+          <label for="fieldTdsUrl">Technical Data Sheet URL</label>
+          <input type="text" id="fieldTdsUrl" placeholder="uploads/documents/tds-name.pdf or https://…">
+        </div>
+      </div>
+      <p class="form-help-text">Leave blank if no document is available. Customers only see a download link when a URL is set. Accepts a full URL or a relative path such as uploads/documents/file.pdf.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Delete Product</h2>
+      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close modal"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirm-icon"><i data-lucide="trash-2"></i></div>
+      <p class="delete-confirm-text">Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+      <p class="delete-confirm-sub">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger-solid" id="confirmDeleteBtn" onclick="confirmDelete()">Delete Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Delete Confirm Modal -->
+<div class="modal-overlay" id="bulkDeleteModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Delete Selected Products</h2>
+      <button class="modal-close" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')" aria-label="Close modal"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirm-icon"><i data-lucide="trash-2"></i></div>
+      <p class="delete-confirm-text" id="bulkDeleteText">Delete selected products?</p>
+      <p class="delete-confirm-sub">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('bulkDeleteModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-danger-solid" id="confirmBulkDeleteBtn" onclick="confirmBulkDelete()">Delete All</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="admin-toast" id="adminToast"></div>
+
+<script src="../js/data.js"></script>
+<script src="../js/widgets/custom-select.js"></script>
+<script src="admin.js"></script>
+<script>
+  // Reflect logged-in username into the sidebar
+  (function () {
+    var n = localStorage.getItem("adminUsername");
+    if (n) {
+      document.getElementById("userName").textContent = n;
+      document.getElementById("userAv").textContent =
+        n.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ""; }).join("").toUpperCase() || "YL";
+    }
+  })();
+  lucide.createIcons();
+</script>
+</body>
+</html>

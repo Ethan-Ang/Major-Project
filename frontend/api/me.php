@@ -1,21 +1,6 @@
 <?php
 require_once "db.php";
-
-function getBearerToken() {
-    $headers = getallheaders();
-
-    $authHeader = $headers["Authorization"] ?? $headers["authorization"] ?? "";
-
-    if (!$authHeader && isset($_SERVER["HTTP_AUTHORIZATION"])) {
-        $authHeader = $_SERVER["HTTP_AUTHORIZATION"];
-    }
-
-    if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-        return $matches[1];
-    }
-
-    return null;
-}
+require_once "auth.php"; // shared getBearerToken() — single source of truth
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
     http_response_code(405);
@@ -65,10 +50,8 @@ try {
         ]
     ]);
 } catch (PDOException $e) {
+    error_log("me.php: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        "message" => "Failed to verify admin.",
-        "error" => $e->getMessage()
-    ]);
+    echo json_encode(["message" => "Something went wrong. Please try again later."]);
 }
 ?>

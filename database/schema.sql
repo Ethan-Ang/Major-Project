@@ -31,6 +31,8 @@ CREATE TABLE products (
   usage_text TEXT,
   image_url VARCHAR(255),
   images JSON,
+  sds_url VARCHAR(255) NULL,            -- optional Safety Data Sheet link (URL or relative path); blank = hidden
+  tds_url VARCHAR(255) NULL,            -- optional Technical Data Sheet link (URL or relative path); blank = hidden
   status ENUM('Available', 'Unavailable') DEFAULT 'Available',
   industries JSON,
   surfaces JSON,
@@ -39,7 +41,18 @@ CREATE TABLE products (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- enquiries table exists on the live DB (currently empty) but its structure
--- and the corresponding api/enquiries.php endpoint have not been built yet.
--- frontend/admin/enquiries.js already expects GET /api/enquiries.php,
--- and frontend/enquiry.html's submit form does not yet POST anywhere.
+-- Customer enquiries submitted from the public enquiry basket (enquiry.html).
+-- Served by api/enquiries.php: POST (public submit) + GET/PATCH (admin).
+CREATE TABLE enquiries (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  company VARCHAR(255),
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  message TEXT,
+  products JSON,                       -- array of product names enquired about
+  reply_token VARCHAR(64),             -- unguessable token for the email "Mark as replied" one-tap link
+  replied TINYINT(1) NOT NULL DEFAULT 0, -- 0 = New (needs a response), 1 = Replied
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_enquiries_created (created_at)
+);

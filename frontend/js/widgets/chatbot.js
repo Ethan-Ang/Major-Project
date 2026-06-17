@@ -2,8 +2,9 @@
  * Yee Lim AI Product Advisor
  * Triggered from a button in the page (not a floating bubble).
  * Exposes window.openProductAdvisor() — call it from any button.
- * Waits for PRODUCTS to be populated before building the system prompt.
- * Requires: data.js loaded first (loadProductsFromBackend must have been called).
+ * Sends the chat history to api/advisor.php, which grounds the answer in the
+ * live catalogue and (optionally) forwards it to a hosted LLM. Falls back to a
+ * free rule-based matcher server-side when no LLM is configured.
  */
 (function () {
 
@@ -29,16 +30,17 @@
     #yl-advisor-panel {
       position: fixed;
       z-index: 9991;
-      width: 460px;
-      height: 580px;
+      width: 440px;
+      height: 600px;
       top: 50%;
       left: 50%;
       transform: translate(-50%, calc(-50% + 20px)) scale(0.97);
       opacity: 0;
       pointer-events: none;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 28px 70px -16px rgba(8,11,16,0.40), 0 0 0 1px rgba(8,11,16,0.04);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -70,24 +72,26 @@
 
     /* Header */
     .yl-adv-header {
-      background: #111827;
-      padding: 0.9rem 1rem;
+      background: #0e1116;
+      padding: 0.95rem 1.05rem;
       display: flex;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.7rem;
       flex-shrink: 0;
+      border-bottom: 2px solid #CC2929;
     }
 
     .yl-adv-mark {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       background: #CC2929;
-      border-radius: 7px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.72rem;
-      font-weight: 800;
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-size: 0.74rem;
+      font-weight: 700;
       color: #fff;
       letter-spacing: 0.5px;
       flex-shrink: 0;
@@ -99,19 +103,21 @@
     }
 
     .yl-adv-title {
-      font-size: 0.9rem;
-      font-weight: 700;
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
       color: #fff;
       line-height: 1.2;
+      letter-spacing: -0.01em;
     }
 
     .yl-adv-subtitle {
       font-size: 0.72rem;
-      color: #9ca3af;
+      color: #8a93a0;
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      margin-top: 0.1rem;
+      gap: 0.35rem;
+      margin-top: 0.15rem;
     }
 
     .yl-status-dot {
@@ -168,24 +174,24 @@
     .yl-msg-assistant { align-self: flex-start; align-items: flex-start; }
 
     .yl-msg-bubble {
-      padding: 0.65rem 0.875rem;
-      border-radius: 10px;
-      font-size: 0.865rem;
-      line-height: 1.55;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 0.7rem 0.95rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     .yl-msg-user .yl-msg-bubble {
       background: #CC2929;
       color: #fff;
-      border-bottom-right-radius: 3px;
+      border-bottom-right-radius: 4px;
     }
 
     .yl-msg-assistant .yl-msg-bubble {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      color: #111827;
-      border-bottom-left-radius: 3px;
+      background: #f7f8fa;
+      border: 1px solid #e4e7ec;
+      color: #1b212b;
+      border-bottom-left-radius: 4px;
     }
 
     .yl-msg-bubble a { color: #CC2929; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
@@ -200,11 +206,11 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      padding: 0.65rem 0.875rem;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      border-bottom-left-radius: 3px;
+      padding: 0.7rem 0.95rem;
+      background: #f7f8fa;
+      border: 1px solid #e4e7ec;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px;
       animation: ylMsgIn 0.22s cubic-bezier(0.23,1,0.32,1) both;
     }
 
@@ -235,18 +241,19 @@
 
     .yl-suggestion {
       background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 20px;
-      padding: 0.3rem 0.75rem;
-      font-size: 0.78rem;
+      border: 1px solid #e4e7ec;
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.79rem;
       font-weight: 500;
-      color: #374151;
+      color: #3a4250;
       cursor: pointer;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: border-color 0.18s cubic-bezier(0.23,1,0.32,1), color 0.18s, background 0.18s, transform 0.12s;
     }
 
-    .yl-suggestion:hover { border-color: #CC2929; color: #CC2929; background: #fff0f0; }
+    .yl-suggestion:hover { border-color: #CC2929; color: #CC2929; background: #fdecec; transform: translateY(-1px); }
+    .yl-suggestion:active { transform: scale(0.97); }
 
     /* Input */
     .yl-adv-footer {
@@ -259,8 +266,8 @@
     .yl-adv-input-row {
       display: flex;
       align-items: stretch;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      background: #f7f8fa;
+      border: 1px solid #e4e7ec;
       border-radius: 8px;
       overflow: hidden;
       transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
@@ -274,17 +281,17 @@
 
     .yl-adv-input {
       flex: 1;
-      padding: 0.65rem 0.875rem;
+      padding: 0.7rem 0.9rem;
       border: none;
       background: transparent;
       font-size: 0.875rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #111827;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1b212b;
       outline: none;
       min-width: 0;
     }
 
-    .yl-adv-input::placeholder { color: #9ca3af; }
+    .yl-adv-input::placeholder { color: #8a93a0; }
 
     .yl-adv-send {
       background: #CC2929;
@@ -306,46 +313,11 @@
     .yl-adv-note {
       text-align: center;
       font-size: 0.67rem;
-      color: #9ca3af;
-      margin-top: 0.4rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #8a93a0;
+      margin-top: 0.45rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Hero trigger button */
-    .hero-ai-prompt {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      margin-top: 1rem;
-      font-size: 0.875rem;
-      color: #9ca3af;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    .hero-ai-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 20px;
-      padding: 0.35rem 0.85rem;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #e5e7eb;
-      cursor: pointer;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      transition: background 0.18s, border-color 0.18s, color 0.18s;
-    }
-
-    .hero-ai-btn:hover {
-      background: rgba(255,255,255,0.18);
-      border-color: rgba(255,255,255,0.35);
-      color: #fff;
-    }
-
-    .hero-ai-btn svg { flex-shrink: 0; }
   `;
 
   const styleEl = document.createElement("style");
@@ -385,7 +357,7 @@
             </svg>
           </button>
         </div>
-        <div class="yl-adv-note">AI-generated — verify specs with our team before purchase</div>
+        <div class="yl-adv-note">Suggestions are for guidance only. Yee Lim staff will confirm suitability after enquiry.</div>
       </div>
     </div>
   `;
@@ -432,7 +404,7 @@
   function showGreeting() {
     greeted = true;
     addMessage("assistant",
-      "Hello. I can help you find the right adhesive for your job. Tell me the surfaces you're bonding and the environment — or pick a common question below.",
+      "Hello. I can help you find the right adhesive for your job. Tell me the surfaces you're bonding and the environment, or pick a common question below.",
       [
         "Tiles in wet areas",
         "Foam & upholstery",
@@ -441,39 +413,6 @@
         "Carpet & flooring",
       ]
     );
-  }
-
-  // ─── System prompt ─────────────────────────────────────────────
-  function buildSystemPrompt() {
-    const catalogue = (typeof PRODUCTS !== "undefined" ? PRODUCTS : []).map(p => ({
-      id:          p.id,
-      name:        p.name,
-      brand:       p.brand,
-      industries:  (p.industries || []).join(", "),
-      surfaces:    (p.surfaces || []).join(", "),
-      description: p.shortDescription,
-      usage:       p.usage,
-      features:    (p.features || []).join(", "),
-      status:      p.status,
-    }));
-
-    return `You are the Product Advisor for Yee Lim Adhesives Industries — a Singapore B2B adhesives company with 50+ years of experience.
-
-Help buyers find the right adhesive. Be precise, professional, and brief. No emoji, no filler.
-
-When recommending a product, always link it: [Product Name](product-detail.html?id=ID)
-
-Product catalogue:
-${JSON.stringify(catalogue, null, 2)}
-
-Rules:
-- Only recommend products from the catalogue. Never invent specs.
-- If nothing matches, say so and direct them to submit an enquiry.
-- Ask a clarifying question if surface or environment is unclear.
-- Keep answers under 120 words unless a comparison is asked for.
-- Use bullets for multiple products.
-- For pricing, lead time, or MOQ: direct to the enquiry form.
-- Tone: authoritative, efficient. Like a knowledgeable technical sales rep.`;
   }
 
   // ─── Add message ───────────────────────────────────────────────
@@ -547,17 +486,17 @@ Rules:
     showTyping();
 
     try {
-      // Wait for products to be loaded before building prompt
-      let attempts = 0;
-      while ((!PRODUCTS || PRODUCTS.length === 0) && attempts < 20) {
-        await new Promise(r => setTimeout(r, 300));
-        attempts++;
-      }
-
-      const reply = await window.claude.complete({
-        system: buildSystemPrompt(),
-        messages: history,
+      const res = await fetch(`${API_BASE_URL}/api/advisor.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }),
       });
+      if (!res.ok) throw new Error("Advisor request failed: " + res.status);
+
+      const data  = await res.json();
+      const reply = (data && typeof data.reply === "string" && data.reply.trim())
+        ? data.reply
+        : "I couldn't find an answer for that. Please [submit an enquiry](enquiry.html) and our team will help.";
 
       hideTyping();
       history.push({ role: "assistant", content: reply });
