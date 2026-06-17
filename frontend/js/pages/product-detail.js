@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderSpecTable(product);
   renderDownloads(product);
   renderSidebar(product);
+  renderStickyCta(product);
   renderFullDesc(product);
   renderRelated(product);
   updateBasketCount();
@@ -277,11 +278,54 @@ function renderSidebar(product) {
 }
 
 function updateSidebarCompareBtn(productId) {
+  const inCompare = isInCompare(productId);
+
   const btn = document.getElementById("sidebarCompareBtn");
-  if (!btn) return;
-  const inCompare  = isInCompare(productId);
-  btn.className    = `btn-compare-sidebar${inCompare ? " in-compare" : ""}`;
-  btn.innerHTML    = inCompare ? "&#10003; In Comparison" : "+ Add to Compare";
+  if (btn) {
+    btn.className = `btn-compare-sidebar${inCompare ? " in-compare" : ""}`;
+    btn.innerHTML = inCompare ? "&#10003; In Comparison" : "+ Add to Compare";
+  }
+
+  // Keep the mobile sticky-bar compare button in step with the sidebar.
+  const sticky = document.getElementById("stickyCompareBtn");
+  if (sticky) {
+    sticky.classList.toggle("on", inCompare);
+    sticky.setAttribute("aria-pressed", inCompare ? "true" : "false");
+    sticky.setAttribute("aria-label", inCompare ? "Remove from comparison" : "Add to comparison");
+    const lbl = document.getElementById("stickyCompareLabel");
+    if (lbl) lbl.textContent = inCompare ? "Added" : "Compare";
+  }
+}
+
+// ─── Mobile sticky action bar (≤640px) ────────────────────────────
+// A fixed Compare + Add-to-Enquiry bar so the primary actions stay in
+// reach once the sidebar scrolls away. Mirrors the sidebar button state;
+// hidden on desktop via CSS.
+function renderStickyCta(product) {
+  if (document.getElementById("stickyCta")) return;
+  const inBasket  = getBasket().includes(product.id);
+  const inCompare = isInCompare(product.id);
+  const addLabel  = product.status === "Available" ? "Add to Enquiry" : "Enquire";
+
+  const bar = document.createElement("div");
+  bar.id = "stickyCta";
+  bar.className = "sticky-cta";
+  bar.innerHTML = `
+    <button class="sticky-cta-cmp${inCompare ? " on" : ""}" id="stickyCompareBtn"
+      onclick="toggleCompare('${product.id}')"
+      aria-pressed="${inCompare ? "true" : "false"}"
+      aria-label="${inCompare ? "Remove from comparison" : "Add to comparison"}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+      <span id="stickyCompareLabel">${inCompare ? "Added" : "Compare"}</span>
+    </button>
+    <button class="sticky-cta-add${inBasket ? " added" : ""}" id="stickyBasketBtn"
+      data-add-label="${addLabel}"
+      aria-pressed="${inBasket ? "true" : "false"}"
+      onclick="toggleBasket('${product.id}')">
+      ${inBasket ? "In Enquiry" : addLabel}
+    </button>`;
+  document.body.appendChild(bar);
+  document.body.classList.add("detail-has-cta");
 }
 
 // ─── Full Description + Usage ─────────────────────────────────────
@@ -356,6 +400,7 @@ function toggleBasket(productId) {
   const basket = getBasket();
   const idx    = basket.indexOf(productId);
   const btn    = document.getElementById("sidebarBasketBtn");
+  const sticky = document.getElementById("stickyBasketBtn");
   const enquiryLink = document.getElementById("sidebarEnquiryLink");
 
   if (idx === -1) {
@@ -365,6 +410,11 @@ function toggleBasket(productId) {
       btn.classList.add("btn-added");
       btn.setAttribute("aria-pressed", "true");
     }
+    if (sticky) {
+      sticky.textContent = "In Enquiry";
+      sticky.classList.add("added");
+      sticky.setAttribute("aria-pressed", "true");
+    }
     if (enquiryLink) enquiryLink.hidden = false;
     showToast("Added to your product enquiry");
   } else {
@@ -373,6 +423,11 @@ function toggleBasket(productId) {
       btn.textContent = btn.dataset.enquiryLabel || "Add to Product Enquiry";
       btn.classList.remove("btn-added");
       btn.setAttribute("aria-pressed", "false");
+    }
+    if (sticky) {
+      sticky.textContent = sticky.dataset.addLabel || "Add to Enquiry";
+      sticky.classList.remove("added");
+      sticky.setAttribute("aria-pressed", "false");
     }
     if (enquiryLink) enquiryLink.hidden = true;
     showToast("Removed from your product enquiry");

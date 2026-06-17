@@ -91,6 +91,113 @@ function renderCompareTray() {
   }
 }
 
+// ─── Mobile compare: edge tab + review sheet (≤640px) ───────────
+// One implementation, injected once into <body>, shared by the products
+// and product-detail pages. Replaces the bottom tray on phones (the tray
+// is hidden by CSS at ≤640px). Skipped on compare.html itself.
+function onComparePage() {
+  return /compare\.html$/.test(location.pathname);
+}
+
+function ensureMobileCompareUI() {
+  if (onComparePage() || document.getElementById("cmpTab")) return;
+
+  const tab = document.createElement("button");
+  tab.id = "cmpTab";
+  tab.className = "cmp-tab";
+  tab.type = "button";
+  tab.setAttribute("aria-label", "Open product comparison");
+  tab.onclick = openCompareSheet;
+  tab.innerHTML =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>'
+    + '<span class="cmp-tab-count" id="cmpTabCount">0</span>';
+
+  const modal = document.createElement("div");
+  modal.id = "cmpModal";
+  modal.className = "cmp-modal";
+  modal.innerHTML =
+    '<div class="cmp-modal-backdrop" onclick="closeCompareSheet()"></div>'
+    + '<div class="cmp-sheet" role="dialog" aria-modal="true" aria-label="Product comparison">'
+    +   '<div class="cmp-sheet-head">'
+    +     '<h3 id="cmpSheetTitle">Compare</h3>'
+    +     '<button class="cmp-sheet-x" onclick="closeCompareSheet()" aria-label="Close">&times;</button>'
+    +   '</div>'
+    +   '<div class="cmp-sheet-list" id="cmpSheetList"></div>'
+    +   '<div class="cmp-sheet-foot">'
+    +     '<button class="cmp-sheet-clear" onclick="clearCompare()">Clear all</button>'
+    +     '<button class="cmp-sheet-go" id="cmpSheetGo" onclick="location.href=\'compare.html\'">Compare</button>'
+    +   '</div>'
+    + '</div>';
+
+  document.body.appendChild(tab);
+  document.body.appendChild(modal);
+}
+
+function openCompareSheet() {
+  ensureMobileCompareUI();
+  const m = document.getElementById("cmpModal");
+  if (!m) return;
+  m.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeCompareSheet() {
+  const m = document.getElementById("cmpModal");
+  if (!m) return;
+  m.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function renderCompareMobile() {
+  if (onComparePage()) return;
+  ensureMobileCompareUI();
+
+  const list  = getCompareList();
+  const tab   = document.getElementById("cmpTab");
+  const count = document.getElementById("cmpTabCount");
+  if (!tab) return;
+
+  if (list.length === 0) {
+    tab.classList.remove("show");
+    closeCompareSheet();
+  } else {
+    tab.classList.add("show");
+    if (count) count.textContent = list.length;
+  }
+
+  // Sheet contents
+  const title = document.getElementById("cmpSheetTitle");
+  if (title) title.textContent = `Compare (${list.length}/${COMPARE_MAX})`;
+
+  const listEl = document.getElementById("cmpSheetList");
+  if (listEl) {
+    listEl.innerHTML = list.map(id => {
+      const p = PRODUCTS.find(pr => String(pr.id) === String(id));
+      if (!p) return "";
+      const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+      const hasImg = p.images && p.images.length > 0;
+      const thumb = hasImg
+        ? `<img src="${p.images[0]}" alt="" onerror="ylImageFallback(this,'${brandLabel}')">`
+        : brandLabel;
+      return `
+        <div class="cmp-sheet-item">
+          <div class="cmp-sheet-thumb">${thumb}</div>
+          <span class="cmp-sheet-name">${p.name}</span>
+          <button class="cmp-sheet-rm" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${p.name} from comparison">&times;</button>
+        </div>`;
+    }).join("");
+  }
+
+  const go = document.getElementById("cmpSheetGo");
+  if (go) {
+    const notEnough = list.length < 2;
+    go.disabled    = notEnough;
+    go.textContent = notEnough ? "Select 2 to compare" : "Compare products";
+  }
+}
+
 // ─── Init ───────────────────────────────────────────────────────
 window.addEventListener("compareUpdated", renderCompareTray);
 window.addEventListener("DOMContentLoaded", renderCompareTray);
+window.addEventListener("compareUpdated", renderCompareMobile);
+window.addEventListener("DOMContentLoaded", renderCompareMobile);

@@ -259,6 +259,10 @@ function openPanel(id) {
     .map(p => `<span class="product-tag-pill">${escapeHtml(p)}</span>`).join("");
 
   document.getElementById("detailPanelBody").innerHTML = `
+    ${enq.reference ? `<div class="detail-field">
+      <div class="detail-field-label">Reference</div>
+      <div class="detail-field-value" style="font-weight:600;letter-spacing:0.3px">${escapeHtml(enq.reference)}</div>
+    </div>` : ""}
     <div class="detail-field">
       <div class="detail-field-label">From</div>
       <div class="detail-field-value" style="font-weight:600">${escapeHtml(enq.name)}</div>

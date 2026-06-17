@@ -29,16 +29,24 @@ function decodeJsonField($value) {
 
 function formatEnquiry($row) {
     return [
-        "id"       => strval($row["id"]),
-        "name"     => $row["name"],
-        "company"  => $row["company"],
-        "email"    => $row["email"],
-        "phone"    => $row["phone"],
-        "message"  => $row["message"],
-        "products" => decodeJsonField($row["products"]),
-        "date"     => $row["created_at"],
-        "replied"  => intval($row["replied"]) === 1,
+        "id"        => strval($row["id"]),
+        "reference" => enquiryReference($row["id"], $row["created_at"] ?? null),
+        "name"      => $row["name"],
+        "company"   => $row["company"],
+        "email"     => $row["email"],
+        "phone"     => $row["phone"],
+        "message"   => $row["message"],
+        "products"  => decodeJsonField($row["products"]),
+        "date"      => $row["created_at"],
+        "replied"   => intval($row["replied"]) === 1,
     ];
+}
+
+/* Human-friendly reference, derived from the row id + creation year.
+   Stable and needs no schema change, e.g. YL-2026-0042. */
+function enquiryReference($id, $createdAt = null) {
+    $year = $createdAt ? date("Y", strtotime($createdAt)) : date("Y");
+    return "YL-" . $year . "-" . str_pad((string)$id, 4, "0", STR_PAD_LEFT);
 }
 
 function siteBaseUrl() {
@@ -48,8 +56,37 @@ function siteBaseUrl() {
     return $scheme . "://" . $host;
 }
 
-/* Best-effort email notification. Returns true/false; never throws. */
-function notifySalesTeam($enq, $replyToken) {
+/* Strip CR/LF so user-supplied values can't inject extra mail headers. */
+function mailHeaderSafe($s) {
+    return trim(str_replace(["\r", "\n", "%0a", "%0d", "%0A", "%0D"], "", (string)$s));
+}
+
+/* Shared best-effort sender. Returns true/false; never throws.
+   Sets a matching From and an envelope sender (-f) so the message aligns
+   with SPF for the site's own domain — the main lever for staying out of
+   spam. For full deliverability also publish SPF + DKIM DNS for that domain
+   (see config.example.php). */
+function ylSendMail($to, $subject, $body, $replyName = "", $replyEmail = "") {
+    $fromAddr = (defined("ENQUIRY_FROM") && ENQUIRY_FROM !== "")
+        ? ENQUIRY_FROM
+        : ("no-reply@" . ($_SERVER["SERVER_NAME"] ?? "localhost"));
+    $fromAddr = mailHeaderSafe($fromAddr);
+
+    $headers  = "From: Yee Lim Adhesives <" . $fromAddr . ">\r\n";
+    if (mailHeaderSafe($replyEmail) !== "") {
+        $headers .= "Reply-To: " . mailHeaderSafe($replyName) . " <" . mailHeaderSafe($replyEmail) . ">\r\n";
+    }
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+
+    // The 5th arg sets the envelope-from (Return-Path), improving SPF
+    // alignment. Some hosts disable it; the @ swallows any warning and the
+    // message still sends with the default envelope sender.
+    return @mail(mailHeaderSafe($to), mailHeaderSafe($subject), $body, $headers, "-f" . $fromAddr);
+}
+
+/* Best-effort notification to the sales team. Returns true/false; never throws. */
+function notifySalesTeam($enq, $replyToken, $reference) {
     $to = defined("ENQUIRY_NOTIFY_TO") ? ENQUIRY_NOTIFY_TO : "";
     if ($to === "") {
         return false; // not configured (e.g. local dev) — silently skip
@@ -57,11 +94,13 @@ function notifySalesTeam($enq, $replyToken) {
 
     $products    = is_array($enq["products"]) ? implode(", ", $enq["products"]) : "";
     $repliedLink = siteBaseUrl() . "/api/enquiries.php?action=replied&id=" . $enq["id"] . "&token=" . $replyToken;
-    $subject     = "New enquiry from " . $enq["name"]
+    $subject     = "New enquiry " . $reference . " from " . $enq["name"]
                  . ($enq["company"] ? " (" . $enq["company"] . ")" : "");
 
     $lines = [
         "You have a new product enquiry from the Yee Lim website.",
+        "",
+        "Reference: " . $reference,
         "",
         "Name:     " . $enq["name"],
         "Company:  " . ($enq["company"] ?: "-"),
@@ -78,14 +117,74 @@ function notifySalesTeam($enq, $replyToken) {
         $repliedLink,
         "-------------------------------------------",
     ];
-    $body = implode("\n", $lines);
 
-    $from    = defined("ENQUIRY_FROM") ? ENQUIRY_FROM : ("no-reply@" . ($_SERVER["SERVER_NAME"] ?? "localhost"));
-    $headers = "From: Yee Lim Website <" . $from . ">\r\n"
-             . "Reply-To: " . $enq["name"] . " <" . $enq["email"] . ">\r\n"
-             . "Content-Type: text/plain; charset=UTF-8\r\n";
+    // Reply-To the customer so a one-tap reply reaches them directly.
+    return ylSendMail($to, $subject, implode("\n", $lines), $enq["name"], $enq["email"]);
+}
 
-    return @mail($to, $subject, $body, $headers);
+/* Best-effort acknowledgement to the customer, with their reference and the
+   products they asked about. Replies route to the sales inbox (when set), so
+   a customer reply still lands with the team. Returns true/false; never throws. */
+function confirmToCustomer($enq, $reference) {
+    $to = trim($enq["email"] ?? "");
+    if ($to === "") return false;
+
+    $products = (is_array($enq["products"]) && $enq["products"])
+        ? "\n  - " . implode("\n  - ", $enq["products"])
+        : " (none specified)";
+
+    $salesInbox = defined("ENQUIRY_NOTIFY_TO") ? ENQUIRY_NOTIFY_TO : "";
+
+    $subject = "We received your enquiry (" . $reference . ") - Yee Lim Adhesives";
+    $lines = [
+        "Hi " . $enq["name"] . ",",
+        "",
+        "Thank you for your enquiry. Our team will review it and get back to you",
+        "within 1-2 business days.",
+        "",
+        "Your reference: " . $reference,
+        "",
+        "Products you asked about:" . $products,
+        "",
+        ($enq["message"] ? "Your message:\n" . $enq["message"] . "\n" : ""),
+        "If you need to add anything, just reply to this email.",
+        "",
+        "Yee Lim Adhesives Industries",
+    ];
+
+    return ylSendMail($to, $subject, implode("\n", $lines), "Yee Lim Adhesives", $salesInbox);
+}
+
+/* Lightweight, file-based rate limit. Invisible to real users (no CAPTCHA):
+   allows $max submissions per $windowSeconds per client IP, then returns 429.
+   Self-failures are swallowed so the limiter can never block a real enquiry. */
+function enforceEnquiryRateLimit($max = 5, $windowSeconds = 600) {
+    try {
+        $ip   = $_SERVER["REMOTE_ADDR"] ?? "0";
+        $file = sys_get_temp_dir() . "/yl_enq_rl_" . md5($ip);
+        $now  = time();
+
+        $hits = [];
+        if (is_file($file)) {
+            $decoded = json_decode((string) @file_get_contents($file), true);
+            if (is_array($decoded)) $hits = $decoded;
+        }
+        // Keep only timestamps still inside the window.
+        $hits = array_values(array_filter($hits, function ($t) use ($now, $windowSeconds) {
+            return is_numeric($t) && ($now - $t) < $windowSeconds;
+        }));
+
+        if (count($hits) >= $max) {
+            http_response_code(429);
+            echo json_encode(["message" => "Too many enquiries in a short time. Please wait a few minutes and try again."]);
+            exit;
+        }
+
+        $hits[] = $now;
+        @file_put_contents($file, json_encode($hits), LOCK_EX);
+    } catch (Throwable $e) {
+        // Never let the limiter itself block a legitimate enquiry.
+    }
 }
 
 /* Small branded HTML page for the email "Mark as replied" link. */
@@ -144,6 +243,19 @@ try {
     if ($method === "POST") {
         $data = getJsonInput();
 
+        // Spam guard 1 — honeypot: a hidden field real users never see or fill.
+        // If it carries any value, treat the sender as a bot: report success
+        // (so the bot moves on) but save nothing and email no one.
+        if (trim($data["website"] ?? "") !== "") {
+            http_response_code(201);
+            echo json_encode(["message" => "Enquiry submitted successfully."]);
+            exit;
+        }
+
+        // Spam guard 2 — per-IP rate limit. Emits 429 and exits if exceeded.
+        // Invisible to real users (no CAPTCHA).
+        enforceEnquiryRateLimit();
+
         $name    = trim($data["name"] ?? "");
         $company = trim($data["company"] ?? "");
         $email   = trim($data["email"] ?? "");
@@ -181,15 +293,19 @@ try {
         $stmt->execute([$newId]);
         $enq = formatEnquiry($stmt->fetch(PDO::FETCH_ASSOC));
 
-        // 2. Best-effort notification — must never affect the response/save.
-        $emailed = false;
-        try { $emailed = notifySalesTeam($enq, $replyToken); } catch (Throwable $e) { $emailed = false; }
+        // 2. Best-effort emails — must never affect the response/save.
+        $emailed   = false;
+        $confirmed = false;
+        try { $emailed   = notifySalesTeam($enq, $replyToken, $enq["reference"]); } catch (Throwable $e) { $emailed = false; }
+        try { $confirmed = confirmToCustomer($enq, $enq["reference"]); }            catch (Throwable $e) { $confirmed = false; }
 
         http_response_code(201);
         echo json_encode([
-            "message"  => "Enquiry submitted successfully.",
-            "id"       => $enq["id"],
-            "notified" => $emailed,
+            "message"   => "Enquiry submitted successfully.",
+            "id"        => $enq["id"],
+            "reference" => $enq["reference"],
+            "notified"  => $emailed,
+            "confirmed" => $confirmed,
         ]);
         exit;
     }

@@ -7,26 +7,38 @@ define("DB_NAME", "yeelimad_website");
 define("DB_USER", "your_db_username");
 define("DB_PASS", "your_db_password");
 
-// ── Enquiry email notification (recommended) ───────────────────────
+// ── Enquiry emails (recommended) ───────────────────────────────────
 // When a customer submits an enquiry it is ALWAYS saved to the database
-// (the admin "Enquiries" inbox). If ENQUIRY_NOTIFY_TO is set, the site
-// ALSO emails the sales team so a new lead is never missed. The email is
-// best-effort: if it fails, the enquiry is still safely saved.
+// (the admin "Enquiries" inbox). On top of that the site sends, best-effort
+// (if a send fails, the enquiry is still safely saved):
+//   1. A notification to the sales team  — only if ENQUIRY_NOTIFY_TO is set.
+//   2. A confirmation to the customer    — always attempted; includes their
+//      reference number (e.g. YL-2026-0042) and the products they asked about.
 //
-// On the LIVE cPanel server, set ENQUIRY_NOTIFY_TO to the Yee Lim inbox
-// the client gave us so new leads reach the sales team:
+// On the LIVE cPanel server, set these so leads reach the team and the
+// confirmation looks like it comes from Yee Lim:
 //
 //   define("ENQUIRY_NOTIFY_TO", "contact@yeelimadhesives.com.sg"); // Yee Lim sales inbox (client's address)
-//   define("ENQUIRY_FROM",      "no-reply@yeelimadhesives.com.sg"); // optional "From" (use a mailbox on this domain)
+//   define("ENQUIRY_FROM",      "no-reply@yeelimadhesives.com.sg"); // "From" — MUST be a real mailbox on THIS domain
 //   define("SITE_URL",          "https://yeelimadhesives.com.sg");  // your LIVE site URL, for the "Mark as replied" link
 //
 // SITE_URL is used to build the one-tap "Mark as replied" link inside the
 // notification email. Set it to the real public domain. If omitted it is
 // guessed from the request host.
 //
-// Uses PHP mail() (fine for cPanel). For best deliverability use a "From"
-// address that is a real mailbox on the site's own domain. If notifications
-// land in spam, switch to authenticated SMTP from a real mailbox (PHPMailer).
+// ── Deliverability (so the emails don't land in spam) ──────────────
+// The site sends via PHP mail() (fine for cPanel) and sets the From and the
+// envelope sender (Return-Path) to ENQUIRY_FROM, so the message aligns with
+// SPF for your domain. For this to actually pass, publish DNS for the domain
+// in ENQUIRY_FROM:
+//   • SPF  — a TXT record on the domain authorising your host's mail servers,
+//            e.g.  v=spf1 +mx +a include:_spf.<your-host> ~all
+//            (cPanel can add this for you: Email Deliverability → Manage).
+//   • DKIM — enable in cPanel (Email Deliverability → it generates the key and
+//            the TXT record to publish). Signs outgoing mail so it isn't forged.
+//   • Use an ENQUIRY_FROM mailbox that really exists on the domain.
+// If mail still lands in spam after SPF + DKIM, switch to authenticated SMTP
+// from a real mailbox (PHPMailer) — same domain, even better alignment.
 
 // ── AI Product Advisor (optional) ──────────────────────────────────
 // Leave LLM_PROVIDER empty (or omit these lines) to use the free, built-in

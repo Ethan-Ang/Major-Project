@@ -3158,3 +3158,762 @@ body:has(.compare-tray.visible) .toast {
   .application-count span { margin-top: 0.15rem; }
   .catalogue-head { padding: 0 1.25rem; margin-top: 2.75rem; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   MOBILE REDESIGN — phones ≤640px
+   Desktop layout is untouched below this line.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ─── Mobile card: floating enquiry button on image ─────────── */
+.pcard-add {
+  display: none; /* revealed at ≤640px */
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(204,41,41,0.30);
+  transition: transform 0.12s, background 0.15s;
+  cursor: pointer;
+  z-index: 4;
+}
+.pcard-add:active { transform: scale(0.88); }
+.pcard-add.added {
+  background: var(--green);
+  box-shadow: 0 2px 8px rgba(15,122,55,0.28);
+}
+
+/* ─── Mobile card: compare checkbox row in card footer ─────── */
+.pcard-cmp-row {
+  display: none; /* revealed at ≤640px */
+  margin-top: auto;
+  padding-top: 0.7rem;
+}
+.pcard-cmp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+}
+.pcard-cb {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1.5px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.pcard-cb svg { width: 10px; height: 10px; opacity: 0; }
+.pcard-cmp.on          { color: var(--red); }
+.pcard-cmp.on .pcard-cb { background: var(--red); border-color: var(--red); }
+.pcard-cmp.on .pcard-cb svg { opacity: 1; }
+.pcard-cmp:disabled    { opacity: 0.45; cursor: not-allowed; }
+
+/* ─── Filter group bar — desktop appearance (button replaces h3) */
+.filter-group-bar {
+  width: 100%;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+  padding: 0 0 0.4rem;
+  border-bottom: 1px solid var(--border);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.filter-group-bar .r   { display: flex; align-items: center; gap: 0.55rem; }
+.fg-chev               { display: none; } /* revealed on mobile */
+.filter-group-panel    { display: block; } /* always visible on desktop */
+.drawer-head           { display: none; } /* mobile only */
+.drawer-foot           { display: none; } /* mobile only */
+.mobile-filter-bar     { display: none; } /* mobile only */
+
+/* ─── Step 1: 2-col grid + stripped cards ────────────────────── */
+@media (max-width: 640px) {
+  .product-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+
+  /* Reveal mobile-only card controls */
+  .pcard-add     { display: flex; }
+  .pcard-cmp-row { display: flex; }
+
+  /* Hide desktop card extras that don't fit the 2-col layout */
+  .product-card .card-application,
+  .product-card .product-card-body > p,
+  .product-card .product-tags,
+  .product-card .product-card-actions,
+  .product-card .card-compare-btn { display: none !important; }
+
+  /* Tight card body */
+  .product-card .product-card-body {
+    padding: 0.65rem 0.7rem 0.7rem;
+    gap: 0.2rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .product-card .brand-badge {
+    font-size: 0.6rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0;
+  }
+  .product-card .product-card-body h3 {
+    font-size: 0.86rem;
+    margin-bottom: 0;
+    line-height: 1.25;
+  }
+
+  /* Catalogue layout padding */
+  .catalogue-layout { padding: 0 0.75rem; margin-top: 0.75rem; }
+  .grid-meta        { padding: 0.4rem 0 0.2rem; font-size: 0.74rem; }
+
+  /* Filter chips: horizontal scroll, no wrap */
+  .active-filter-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.5rem 0.75rem;
+    margin: 0;
+  }
+  .active-filter-chips::-webkit-scrollbar { display: none; }
+  .filter-chip, .filter-chip-clear        { flex-shrink: 0; white-space: nowrap; }
+
+  /* Hide desktop sort select (mirrored in mobile filter bar) */
+  .grid-meta .sort-select { display: none; }
+
+  /* Hide existing 768px filter toggle (replaced by mobile filter bar) */
+  .filter-toggle { display: none; }
+
+  /* ─── Step 2: mobile filter bar ───────────────────────────── */
+  .mobile-filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    position: sticky;
+    top: 60px;
+    z-index: 30;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    margin: 0 -0.75rem;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mfb-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.55rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .mfb-btn:active { opacity: 0.85; }
+
+  .mfb-count {
+    background: var(--red);
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+
+  .mfb-sort-wrap {
+    flex: 1;
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .mfb-sort-sel {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    background: transparent;
+    padding: 0.55rem 2rem 0.55rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+  }
+
+  /* ─── Step 2: full-screen drawer ─────────────────────────── */
+  .filter-sidebar.open {
+    position: fixed !important;
+    inset: 0;
+    z-index: 1000;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .drawer-head h2 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  .drawer-x {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 1rem 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-heading { display: none; }
+  .filter-sub     { display: none; }
+  .filter-clear   { display: none; }
+
+  /* ─── Step 2: accordion filter groups ────────────────────── */
+  .filter-group-bar {
+    cursor: pointer !important;
+    padding: 1rem 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    margin-bottom: 0 !important;
+    font-size: 0.95rem;
+  }
+
+  .fg-chev {
+    display: block;
+    color: #888;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .filter-group.open .fg-chev  { transform: rotate(180deg); }
+
+  .filter-group-panel          { display: none; }
+  .filter-group.open .filter-group-panel {
+    display: block;
+    padding-bottom: 0.85rem;
+  }
+
+  .filter-group label {
+    padding: 0.5rem 0.55rem;
+    margin: 0.05rem 0;
+    border-radius: 6px;
+    font-size: 0.88rem;
+  }
+  .filter-group label:hover { background: var(--panel); }
+
+  /* ─── Step 2: drawer footer ─────────────────────────────── */
+  .drawer-foot {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    border-top: 1px solid var(--border);
+    background: #fff;
+    flex-shrink: 0;
+  }
+  .drawer-clear {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 0.7rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .drawer-apply {
+    flex: 2;
+    background: var(--red);
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.7rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MOBILE STEP 3–5 — product detail CTA, compare tab/sheet, compare page
+   All hidden on desktop; revealed only at ≤640px.
+   ════════════════════════════════════════════════════════════════ */
+.sticky-cta,
+.cmp-tab,
+.cmp-modal,
+.cx-wrap { display: none; }
+
+@media (max-width: 640px) {
+  /* ─── Step 3: product detail spec fixes ─────────────────────── */
+  .spec-features { grid-template-columns: 1fr; gap: 0.4rem 0; }
+
+  /* ─── Step 3: sticky bottom action bar ──────────────────────── */
+  body.detail-has-cta { padding-bottom: 4.9rem; }
+  .sticky-cta {
+    display: flex;
+    gap: 0.5rem;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 900;
+    padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+  }
+  .sticky-cta-cmp {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 62px;
+    flex-shrink: 0;
+    background: #fff;
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sticky-cta-cmp.on {
+    color: var(--red);
+    border-color: var(--red);
+    background: var(--red-tint);
+  }
+  .sticky-cta-add {
+    flex: 1;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .sticky-cta-add:active { transform: scale(0.99); }
+  .sticky-cta-add.added { background: var(--green); }
+
+  /* The desktop compare tray is replaced on phones by the edge tab + sheet */
+  .compare-tray { display: none !important; }
+
+  /* ─── Step 4: compare edge tab ──────────────────────────────── */
+  .cmp-tab {
+    position: fixed;
+    left: 0;
+    top: 45%;
+    transform: translateY(-50%);
+    z-index: 850;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 0 12px 12px 0;
+    padding: 0.6rem 0.5rem;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    cursor: pointer;
+  }
+  .cmp-tab.show { display: flex; }
+  .cmp-tab-count {
+    background: #fff;
+    color: var(--red);
+    font-size: 0.66rem;
+    font-weight: 700;
+    min-width: 17px;
+    height: 17px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ─── Step 4: compare review sheet ──────────────────────────── */
+  .cmp-modal.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+  }
+  .cmp-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,17,22,0.5);
+    animation: cmpFade 0.18s ease;
+  }
+  .cmp-sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: cmpSlide 0.22s ease;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @keyframes cmpFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes cmpSlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .cmp-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.1rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .cmp-sheet-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+  }
+  .cmp-sheet-x {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .cmp-sheet-list {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.25rem 1.1rem;
+    flex: 1;
+  }
+  .cmp-sheet-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cmp-sheet-item:last-child { border-bottom: none; }
+  .cmp-sheet-thumb {
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .cmp-sheet-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .cmp-sheet-name {
+    flex: 1;
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .cmp-sheet-rm {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .cmp-sheet-foot {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.8rem 1.1rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .cmp-sheet-clear {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 9px;
+    padding: 0.75rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .cmp-sheet-go {
+    flex: 2;
+    background: var(--red);
+    border: none;
+    color: #fff;
+    border-radius: 9px;
+    padding: 0.75rem;
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .cmp-sheet-go:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ─── Step 5: compare page — mobile column view ─────────────── */
+  .compare-page-table-wrap { display: none; }
+  .cx-wrap { display: block; padding: 0 0.75rem 1.5rem; }
+
+  .cx-difftoggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 0.85rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .cx-switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    border-radius: 12px;
+    border: none;
+    background: var(--line-2);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.18s;
+  }
+  .cx-switch.on { background: var(--red); }
+  .cx-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.18s;
+  }
+  .cx-switch.on .cx-knob { transform: translateX(18px); }
+
+  .cx-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .cx-grid {
+    display: grid;
+    min-width: min-content;
+  }
+  .cx-corner {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .cx-head {
+    padding: 0.7rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .cx-head-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--bg);
+    border-radius: 7px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-align: center;
+  }
+  .cx-head-img img { width: 100%; height: 100%; object-fit: cover; }
+  .cx-head-name {
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .cx-head-avail {
+    font-size: 0.66rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .cx-head-avail.available   { color: var(--green); }
+  .cx-head-avail.unavailable { color: var(--muted); }
+  .cx-head-select {
+    margin-top: 0.15rem;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 0.4rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .cx-head-rm {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+  .cx-rowlabel {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+  }
+  .cx-cell {
+    padding: 0.6rem 0.55rem;
+    border-bottom: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .cx-grid > .cx-cell:nth-last-child(-n + 1),
+  .cx-grid > .cx-rowlabel:last-of-type { }
+  .cx-celltag {
+    display: inline-block;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.64rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    margin: 0 0.2rem 0.2rem 0;
+  }
+  .cx-cellfeat {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.2rem;
+  }
+  .cx-cellfeat::before {
+    content: "✓";
+    color: var(--red);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  /* Diff highlight — only active when the toggle is on */
+  .cx-grid.diffon .cx-diff { background: #fff7e6; }
+  .cx-grid.diffon .cx-rowlabel.cx-diff { background: #fdf3da; }
+
+  .cx-add {
+    display: block;
+    width: 100%;
+    margin-top: 0.85rem;
+    background: #fff;
+    border: 1.5px dashed var(--line-2);
+    color: var(--red);
+    border-radius: 10px;
+    padding: 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+}

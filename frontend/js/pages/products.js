@@ -84,6 +84,8 @@ function readStateFromURL() {
   if (params.get("sort") && sortSelect) {
     sortSelect.value = params.get("sort");
     if (typeof refreshCustomSelect === "function") refreshCustomSelect(sortSelect);
+    const mobileSortSelect = document.getElementById("mobileSortSelect");
+    if (mobileSortSelect) mobileSortSelect.value = params.get("sort");
   }
 
   activeFilters.productTypes = params.get("type")     ? params.get("type").split("|")     : [];
@@ -269,19 +271,24 @@ function applyFilters(opts = {}) {
 }
 
 function updateFilterGroupBadges() {
+  let totalActive = 0;
+
   document.querySelectorAll(".filter-sidebar .filter-group").forEach(group => {
-    const heading = group.querySelector("h3");
-    if (!heading) return;
-    const existing = heading.querySelector(".filter-group-badge");
-    if (existing) existing.remove();
+    const badge   = group.querySelector(".filter-group-badge");
     const checked = group.querySelectorAll("input[type=checkbox]:checked").length;
-    if (checked > 0) {
-      const badge = document.createElement("span");
-      badge.className = "filter-group-badge";
-      badge.textContent = checked;
-      heading.appendChild(badge);
+    totalActive  += checked;
+    if (badge) {
+      badge.textContent   = checked || "";
+      badge.style.display = checked > 0 ? "inline-flex" : "none";
     }
   });
+
+  // Mobile filter bar total count badge
+  const mobileCount = document.getElementById("mobileFilterCount");
+  if (mobileCount) {
+    mobileCount.textContent   = totalActive || "";
+    mobileCount.style.display = totalActive > 0 ? "inline-flex" : "none";
+  }
 }
 
 function updateClearVisibility() {
@@ -381,6 +388,9 @@ function renderGrid(products) {
 
   countEl.textContent = `${products.length} product${products.length !== 1 ? "s" : ""}`;
 
+  const applyBtn = document.getElementById("drawerApplyBtn");
+  if (applyBtn) applyBtn.textContent = `Show ${products.length} result${products.length !== 1 ? "s" : ""}`;
+
   if (products.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
@@ -451,6 +461,15 @@ function productCardHTML(p) {
             : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`}
           <span>${inCompare ? "In compare" : "Compare"}</span>
         </button>
+        <button
+          class="pcard-add${inBasket ? ' added' : ''}"
+          onclick="event.stopPropagation();toggleBasket('${p.id}')"
+          title="${inBasket ? 'Remove from Enquiry' : 'Add to Enquiry'}"
+          aria-label="${inBasket ? 'Remove from Enquiry' : 'Add to Enquiry'}">
+          ${inBasket
+            ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+            : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>`}
+        </button>
       </div>
       <div class="product-card-body">
         <span class="brand-badge">${brandDisplay(p.brand)}</span>
@@ -469,6 +488,19 @@ function productCardHTML(p) {
               : (isUnavailable ? "Enquire About Availability" : "Add to Product Enquiry")}
           </button>
         </div>
+        <div class="pcard-cmp-row">
+          <button
+            class="pcard-cmp${inCompare ? ' on' : ''}"
+            data-product-id="${p.id}"
+            onclick="event.stopPropagation();toggleCompare('${p.id}')"
+            ${compareDisabled ? 'disabled' : ''}
+            aria-label="${compareTitle}">
+            <span class="pcard-cb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            Compare
+          </button>
+        </div>
       </div>
     </article>`;
 }
@@ -481,6 +513,7 @@ function brandSlug(brand) {
 function syncCompareButtons() {
   const list = getCompareList();
   const full = list.length >= COMPARE_MAX;
+
   document.querySelectorAll(".product-card").forEach(card => {
     const btn = card.querySelector(".card-compare-btn");
     if (!btn) return;
@@ -500,11 +533,43 @@ function syncCompareButtons() {
       : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`)
       + `<span>${inCompare ? "In compare" : "Compare"}</span>`;
   });
+
+  // Sync mobile compare checkboxes (.pcard-cmp)
+  document.querySelectorAll(".pcard-cmp[data-product-id]").forEach(btn => {
+    const id      = btn.dataset.productId;
+    const inCmp   = list.includes(id);
+    const dis     = !inCmp && full;
+    btn.className = `pcard-cmp${inCmp ? " on" : ""}`;
+    btn.disabled  = dis;
+    btn.setAttribute("aria-label", dis
+      ? "Comparison full — remove one to add another"
+      : inCmp ? "Remove from comparison" : "Add to compare");
+  });
 }
 
 // ─── Filter sidebar toggle ────────────────────────────────────────
 function toggleFilterSidebar() {
   document.getElementById("filterSidebar").classList.toggle("open");
+}
+
+function closeFilterDrawer() {
+  document.getElementById("filterSidebar").classList.remove("open");
+}
+
+function toggleFilterGroup(btn) {
+  if (window.innerWidth > 640) return; // desktop: always expanded
+  const group = btn.closest(".filter-group");
+  group.classList.toggle("open");
+  btn.setAttribute("aria-expanded", group.classList.contains("open"));
+}
+
+function onMobileSortChange(sel) {
+  const desktop = document.getElementById("sortSelect");
+  if (desktop) {
+    desktop.value = sel.value;
+    if (typeof refreshCustomSelect === "function") refreshCustomSelect(desktop);
+  }
+  applyFilters();
 }
 
 // ─── Product enquiry selection (localStorage) ────────────────────

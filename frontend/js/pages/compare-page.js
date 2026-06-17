@@ -75,7 +75,93 @@ function renderComparePage() {
           ${specRows}
         </tbody>
       </table>
+    </div>
+    ${buildCompareMobile(products)}`;
+}
+
+// ─── Mobile column comparison (≤640px) ────────────────────────────
+// A horizontally-scrollable grid: a sticky spec-label column on the left,
+// one column per product. A "Highlight differences" switch shades the rows
+// where products disagree. Hidden on desktop (the table above is shown
+// instead). Rebuilt whenever renderComparePage runs (incl. compareUpdated).
+function cxTags(arr) {
+  if (!arr || !arr.length) return "&ndash;";
+  return arr.map(x => `<span class="cx-celltag">${x}</span>`).join("");
+}
+
+function cxFeatures(arr) {
+  if (!arr || !arr.length) return "&ndash;";
+  return arr.map(f => `<div class="cx-cellfeat">${f}</div>`).join("");
+}
+
+function buildCompareMobile(products) {
+  const n    = products.length;
+  const cols = `90px repeat(${n}, minmax(148px, 1fr))`;
+
+  // Header row: corner + one product card per column
+  let cells = `<div class="cx-corner"></div>`;
+  cells += products.map(p => {
+    const availClass = p.status === "Available" ? "available" : "unavailable";
+    const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+    const hasImg     = p.images && p.images.length > 0;
+    const img        = hasImg
+      ? `<img src="${p.images[0]}" alt="" onerror="ylImageFallback(this,'${brandLabel}')">`
+      : brandLabel;
+    return `
+      <div class="cx-head">
+        <div class="cx-head-img">${img}</div>
+        <a class="cx-head-name" href="product-detail.html?id=${encodeURIComponent(p.id)}">${p.name}</a>
+        <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${p.status}</span>
+        <button class="cx-head-select" onclick="addToBasket('${p.id}')">Select</button>
+        <button class="cx-head-rm" onclick="removeFromCompare('${p.id}')">Remove</button>
+      </div>`;
+  }).join("");
+
+  // Spec rows. `cmp` builds a normalised string used only for diff detection.
+  const specs = [
+    { label: "Category",     render: p => p.category || "&ndash;", cmp: p => p.category || "" },
+    { label: "Industries",   render: p => cxTags(p.industries),    cmp: p => [...p.industries].sort().join("|") },
+    { label: "Surfaces",     render: p => cxTags(p.surfaces),      cmp: p => [...p.surfaces].sort().join("|") },
+    { label: "Key Features", render: p => cxFeatures(p.features),  cmp: p => [...p.features].sort().join("|") }
+  ];
+
+  specs.forEach(s => {
+    const values    = products.map(s.cmp);
+    const allSame   = values.every(v => v === values[0]);
+    const diffClass = allSame ? "" : " cx-diff";
+    cells += `<div class="cx-rowlabel${diffClass}">${s.label}</div>`;
+    cells += products.map(p => `<div class="cx-cell${diffClass}">${s.render(p)}</div>`).join("");
+  });
+
+  const addSlot = n < COMPARE_MAX
+    ? `<button class="cx-add" onclick="location.href='products.html'">+ Add another product</button>`
+    : "";
+
+  return `
+    <div class="cx-wrap">
+      <div class="cx-difftoggle">
+        <span class="cx-difflabel">Highlight differences</span>
+        <button class="cx-switch" id="cxSwitch" role="switch" aria-checked="false"
+          aria-label="Highlight differences between products" onclick="toggleDiff()">
+          <span class="cx-knob"></span>
+        </button>
+      </div>
+      <div class="cx-scroll">
+        <div class="cx-grid" id="cxGrid" style="grid-template-columns:${cols}">
+          ${cells}
+        </div>
+      </div>
+      ${addSlot}
     </div>`;
+}
+
+function toggleDiff() {
+  const grid = document.getElementById("cxGrid");
+  const sw   = document.getElementById("cxSwitch");
+  if (!grid || !sw) return;
+  const on = grid.classList.toggle("diffon");
+  sw.classList.toggle("on", on);
+  sw.setAttribute("aria-checked", on ? "true" : "false");
 }
 
 function addToBasket(productId) {
