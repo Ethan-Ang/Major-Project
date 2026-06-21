@@ -442,7 +442,7 @@ function productCardHTML(p) {
   const detailHref = `/product-detail?id=${encodeURIComponent(p.id)}`;
 
   const compareTitle = compareDisabled
-    ? "Comparison full — remove one to add another"
+    ? "Comparison full: remove one to add another"
     : inCompare ? "Remove from comparison" : "Add to compare";
 
   return `
@@ -525,7 +525,7 @@ function syncCompareButtons() {
     btn.className = `card-compare-btn${inCompare ? " in-compare" : ""}`;
     btn.disabled  = disabled;
     btn.title     = disabled
-      ? "Comparison full — remove one to add another"
+      ? "Comparison full: remove one to add another"
       : inCompare ? "Remove from comparison" : "Add to compare";
     btn.setAttribute("aria-label", btn.title);
     btn.innerHTML = (inCompare
@@ -542,7 +542,7 @@ function syncCompareButtons() {
     btn.className = `pcard-cmp${inCmp ? " on" : ""}`;
     btn.disabled  = dis;
     btn.setAttribute("aria-label", dis
-      ? "Comparison full — remove one to add another"
+      ? "Comparison full: remove one to add another"
       : inCmp ? "Remove from comparison" : "Add to compare");
   });
 }

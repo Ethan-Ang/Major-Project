@@ -240,7 +240,7 @@
     </div>
 
     <div class="site-footer-bottom">
-      <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries</strong>. All rights reserved.</span>
+      <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
       <span>Commercial &amp; Industrial Adhesive Solutions · Singapore · <a class="site-footer-admin" href="admin/login.html">Admin Login</a></span>
     </div>
   `;
