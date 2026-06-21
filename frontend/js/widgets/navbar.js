@@ -222,16 +222,16 @@
 
   // ─── Build nav HTML ───────────────────────────────────────────
   const links = [
-    { name: "home",     label: "Home",    href: "index.html" },
-    { name: "products", label: "Products", href: "products.html" },
-    { name: "about",    label: "About",   href: "about.html" },
-    { name: "contact",  label: "Contact", href: "contact.html" },
+    { name: "home",     label: "Home",    href: "/" },
+    { name: "products", label: "Products", href: "/products" },
+    { name: "about",    label: "About",   href: "/about" },
+    { name: "contact",  label: "Contact", href: "/contact" },
   ];
 
   const navEl = document.createElement("nav");
   navEl.className = "nav";
   navEl.innerHTML = `
-    <a href="index.html" class="nav-logo" aria-label="Yee Lim home">
+    <a href="/" class="nav-logo" aria-label="Yee Lim home">
       <span class="nav-logo-mark" aria-hidden="true">YL</span>
       <span class="nav-logo-text">YEE LIM</span>
     </a>
@@ -241,12 +241,12 @@
       `).join("")}
     </ul>
     <div class="nav-right">
-      <a href="enquiry.html" class="nav-basket">
+      <a href="/enquiry" class="nav-basket">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
         <span class="nav-basket-label nav-basket-label-full">Product Enquiry</span>
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
-      <a href="enquiry.html" class="nav-enquiry-compact" id="navEnquiryCompact" aria-label="Product Enquiry">
+      <a href="/enquiry" class="nav-enquiry-compact" id="navEnquiryCompact" aria-label="Product Enquiry">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
         <span id="navEnquiryCompactCount">${getBasketCount()}</span>
       </a>
@@ -259,7 +259,7 @@
   drawerEl.id = "_navDrawer";
   drawerEl.innerHTML = `
     ${links.map(l => `<a href="${l.href}">${l.label}</a>`).join("")}
-    <a href="enquiry.html">Product Enquiry<span class="nav-drawer-count" id="navDrawerCount">${getBasketCount()}</span></a>
+    <a href="/enquiry">Product Enquiry<span class="nav-drawer-count" id="navDrawerCount">${getBasketCount()}</span></a>
   `;
 
   // ─── Insert at top of body ────────────────────────────────────

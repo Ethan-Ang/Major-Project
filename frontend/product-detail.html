@@ -1,20 +1,20 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Detail | Yee Lim Adhesives Industries</title>
   <meta id="metaDescription" name="description" content="Detailed specifications, application surfaces, and usage guide for Yee Lim Adhesives industrial products. Submit an enquiry directly to our sales team.">
-  <link rel="stylesheet" href="css/products.css">
-  <script src="js/widgets/navbar.js"></script>
-  <script src="js/widgets/footer.js"></script>
+  <link rel="stylesheet" href="/css/products.css?v=2">
+  <script src="/js/widgets/navbar.js?v=2"></script>
+  <script src="/js/widgets/footer.js?v=2"></script>
 </head>
 <body>
 
 <nav class="breadcrumb page-breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
-  <a href="index.html">Home</a>
+  <a href="/">Home</a>
   <span aria-hidden="true">&rsaquo;</span>
-  <a href="products.html#catalogue" id="breadcrumbProducts" onclick="return backToProducts(event)">Products</a>
+  <a href="/products#catalogue" id="breadcrumbProducts" onclick="return backToProducts(event)">Products</a>
   <span aria-hidden="true">&rsaquo;</span>
   <span id="breadcrumbProduct">Loading&hellip;</span>
 </nav>
@@ -44,7 +44,7 @@
   <div class="compare-tray-slots" id="compareTraySlots"></div>
   <div class="compare-tray-actions">
     <button class="compare-tray-btn" id="compareBtn"
-      onclick="location.href='compare.html'" disabled
+      onclick="location.href='/compare'" disabled
       aria-label="Open comparison view">Compare &#8594;</button>
     <button class="compare-tray-clear" onclick="clearCompare()"
       aria-label="Clear all products from comparison">Clear all</button>
@@ -55,8 +55,8 @@
 
 <!-- Footer injected by js/widgets/footer.js -->
 
-<script src="js/data.js"></script>
-<script src="js/widgets/compare.js"></script>
-<script src="js/pages/product-detail.js"></script>
+<script src="/js/data.js?v=2"></script>
+<script src="/js/widgets/compare.js?v=2"></script>
+<script src="/js/pages/product-detail.js?v=2"></script>
 </body>
 </html>

@@ -496,7 +496,7 @@
       const data  = await res.json();
       const reply = (data && typeof data.reply === "string" && data.reply.trim())
         ? data.reply
-        : "I couldn't find an answer for that. Please [submit an enquiry](enquiry.html) and our team will help.";
+        : "I couldn't find an answer for that. Please [submit an enquiry](/enquiry) and our team will help.";
 
       hideTyping();
       history.push({ role: "assistant", content: reply });
@@ -504,7 +504,7 @@
     } catch (err) {
       hideTyping();
       addMessage("assistant",
-        "Sorry, I can't connect right now. Please [submit an enquiry](enquiry.html) or [WhatsApp us](https://wa.me/6590292613) directly."
+        "Sorry, I can't connect right now. Please [submit an enquiry](/enquiry) directly."
       );
     } finally {
       isLoading = false;

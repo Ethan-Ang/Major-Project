@@ -27,3 +27,25 @@ Options -Indexes
 #   RewriteCond %{HTTPS} !=on
 #   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # </IfModule>
+
+# 4. Canonical clean URLs: /products is the only public URL; /products.html redirects.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 4a. Redirect browser requests for .html pages to their clean URL (301).
+  #     THE_REQUEST matches the raw HTTP request line so this never fires when
+  #     Apache internally fetches the .html file via rule 4b -- no redirect loop.
+
+  # Special case: /index.html -> / (root, not /index)
+  RewriteCond %{THE_REQUEST} \s/+index\.html[?\s] [NC]
+  RewriteRule ^index\.html$ / [R=301,L]
+
+  RewriteCond %{THE_REQUEST} \s/+(products|about|contact|enquiry|compare|product-detail)\.html[?\s] [NC]
+  RewriteRule ^(products|about|contact|enquiry|compare|product-detail)\.html$ /$1 [R=301,L]
+
+  # 4b. Serve /page transparently from page.html (clean URL stays in address bar).
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+?)/?$ $1.html [L]
+</IfModule>

@@ -96,7 +96,7 @@ function renderCompareTray() {
 // and product-detail pages. Replaces the bottom tray on phones (the tray
 // is hidden by CSS at ≤640px). Skipped on compare.html itself.
 function onComparePage() {
-  return /compare\.html$/.test(location.pathname);
+  return location.pathname === '/compare' || /compare\.html$/.test(location.pathname);
 }
 
 function ensureMobileCompareUI() {
@@ -125,7 +125,7 @@ function ensureMobileCompareUI() {
     +   '<div class="cmp-sheet-list" id="cmpSheetList"></div>'
     +   '<div class="cmp-sheet-foot">'
     +     '<button class="cmp-sheet-clear" onclick="clearCompare()">Clear all</button>'
-    +     '<button class="cmp-sheet-go" id="cmpSheetGo" onclick="location.href=\'compare.html\'">Compare</button>'
+    +     '<button class="cmp-sheet-go" id="cmpSheetGo" onclick="location.href=\'/compare\'">Compare</button>'
     +   '</div>'
     + '</div>';
 

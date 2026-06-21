@@ -7,3 +7,5 @@ qa/
 # Dependencies and local artifacts (defense in depth; never deploy these)
 node_modules/
 screenshots/
+*.zip
+deploy_package*.zip

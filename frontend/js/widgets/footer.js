@@ -179,7 +179,7 @@
   document.head.appendChild(style);
 
   // Brand filter deep-links reuse the products page ?brand= URL state
-  const brandLink = b => `products.html?brand=${encodeURIComponent(b)}`;
+  const brandLink = b => `/products?brand=${encodeURIComponent(b)}`;
 
   const footer = document.createElement("footer");
   footer.className = "site-footer";
@@ -187,7 +187,7 @@
   footer.innerHTML = `
     <div class="site-footer-inner">
       <div class="site-footer-col site-footer-col-brand">
-        <a href="index.html" class="site-footer-brand" aria-label="Yee Lim Adhesives Industries home">
+        <a href="/" class="site-footer-brand" aria-label="Yee Lim Adhesives Industries home">
           <span class="site-footer-mark" aria-hidden="true">YL</span>
           <span>
             <span class="site-footer-name">YEE LIM</span><br>
@@ -209,17 +209,17 @@
       <nav class="site-footer-col" aria-label="Company">
         <h4>Company</h4>
         <ul class="site-footer-links">
-          <li><a href="about.html">About Yee Lim</a></li>
-          <li><a href="about.html">Our Heritage</a></li>
-          <li><a href="about.html">Quality &amp; Environment</a></li>
-          <li><a href="contact.html">Contact</a></li>
+          <li><a href="/about">About Yee Lim</a></li>
+          <li><a href="/about">Our Heritage</a></li>
+          <li><a href="/about">Quality &amp; Environment</a></li>
+          <li><a href="/contact">Contact</a></li>
         </ul>
       </nav>
 
       <nav class="site-footer-col" aria-label="Products and brands">
         <h4>Products &amp; Brands</h4>
         <ul class="site-footer-links">
-          <li><a href="products.html">All Adhesive Solutions</a></li>
+          <li><a href="/products">All Adhesive Solutions</a></li>
           <li><a href="${brandLink("Deer™ Brand")}">Deer™ Brand</a></li>
           <li><a href="${brandLink("Horsemen™ Brand")}">Horsemen™ Brand</a></li>
           <li><a href="${brandLink("Premier™ Brand")}">Premier™ Brand</a></li>
@@ -234,12 +234,8 @@
             <dt>Address</dt>
             <dd>1 Ang Mo Kio Street 65,<br>#03-17, Singapore 569063</dd>
           </div>
-          <div>
-            <dt>WhatsApp</dt>
-            <dd><a href="https://wa.me/6590292613" target="_blank" rel="noopener noreferrer">+65 9029 2613</a></dd>
-          </div>
         </dl>
-        <a class="site-footer-cta" href="contact.html">Speak to Yee Lim &rarr;</a>
+        <a class="site-footer-cta" href="/contact">Speak to Yee Lim &rarr;</a>
       </div>
     </div>
 

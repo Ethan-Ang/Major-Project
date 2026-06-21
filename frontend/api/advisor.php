@@ -113,16 +113,15 @@ function buildSystemPrompt($products) {
          . "Help buyers find the right adhesive from the catalogue below. Be precise, "
          . "professional and brief (under 100 words unless asked to compare). No emoji, no filler.\n\n"
          . "When you recommend a product, link it exactly like this: "
-         . "[Product Name](product-detail.html?id=ID) using its id from the catalogue.\n\n"
+         . "[Product Name](/product-detail?id=ID) using its id from the catalogue.\n\n"
          . "Catalogue:\n" . $catalogue . "\n\n"
          . "Rules:\n"
          . "- Only recommend products from the catalogue above. Never invent products or specifications.\n"
          . "- If a product is marked Unavailable, do not present it as in stock. Say it is currently "
          . "unavailable and suggest enquiring about availability.\n"
          . "- If the need is unclear, ask one short clarifying question (which surfaces, what conditions).\n"
-         . "- If nothing fits, say so and point them to [submit an enquiry](enquiry.html).\n"
-         . "- For pricing, MOQ or lead time, direct them to [submit an enquiry](enquiry.html) "
-         . "or WhatsApp +65 9029 2613.\n"
+         . "- If nothing fits, say so and point them to [submit an enquiry](/enquiry).\n"
+         . "- For pricing, MOQ or lead time, direct them to [submit an enquiry](/enquiry).\n"
          . "- For greetings, thanks or small talk, reply briefly and warmly, then invite the next question.\n"
          . "- Do not use em dashes (the long dash). Write plainly with commas or periods.\n"
          . "- Tone: a knowledgeable technical sales rep. Reply with your final answer only.";
@@ -239,19 +238,19 @@ function callOpenAI($apiKey, $model, $baseUrl, $system, $messages) {
 function smallTalkReply($q) {
     $q = trim($q);
     if (preg_match('/\b(thank|thanks|thx|cheers|appreciate)\b/', $q)) {
-        return "You're welcome. Describe another job and I'll match it, or [submit an enquiry](enquiry.html) when you're ready.";
+        return "You're welcome. Describe another job and I'll match it, or [submit an enquiry](/enquiry) when you're ready.";
     }
     if (preg_match('/^(ok|okay|kk|oh okay|i see|noted|cool|great|nice|got it|alright|sure|fine|perfect|ya|yeah|yep)\b/', $q)) {
-        return "Glad that helps. Want a recommendation for another surface or condition? Just describe the job, or [submit an enquiry](enquiry.html) to reach our sales team.";
+        return "Glad that helps. Want a recommendation for another surface or condition? Just describe the job, or [submit an enquiry](/enquiry) to reach our sales team.";
     }
     if (preg_match('/\b(bye|goodbye|see ya|cya|good night)\b/', $q)) {
-        return "Thanks for visiting Yee Lim. [Submit an enquiry](enquiry.html) any time and our team will follow up.";
+        return "Thanks for visiting Yee Lim. [Submit an enquiry](/enquiry) any time and our team will follow up.";
     }
     if (preg_match('/^(hi|hello|hey|yo|hiya|good (morning|afternoon|evening))\b/', $q)) {
         return "Hello! Tell me what you're bonding and the conditions (for example: foam to metal, in a humid area) and I'll match it to our range.";
     }
     if (preg_match('/\b(what can you do|who are you|how does this work|how do you work)\b/', $q)) {
-        return "I'm Yee Lim's product advisor. Describe your bonding job (the surfaces and the environment) and I'll recommend adhesives from our range. For pricing or lead time, [submit an enquiry](enquiry.html).";
+        return "I'm Yee Lim's product advisor. Describe your bonding job (the surfaces and the environment) and I'll recommend adhesives from our range. For pricing or lead time, [submit an enquiry](/enquiry).";
     }
     return null;
 }
@@ -260,7 +259,7 @@ function ruleBasedReply($query, $products) {
     $q = strtolower($query);
     if (trim($q) === "") {
         return "Tell me what you're bonding and the conditions (for example: foam to metal, "
-             . "in a humid area) and I'll match it to our range. For pricing, [submit an enquiry](enquiry.html).";
+             . "in a humid area) and I'll match it to our range. For pricing, [submit an enquiry](/enquiry).";
     }
 
     $small = smallTalkReply($q);
@@ -317,7 +316,7 @@ function ruleBasedReply($query, $products) {
     if (empty($top)) {
         return "I couldn't find a confident match for that. Could you tell me the two surfaces "
              . "you're bonding and whether there's water or heat exposure? Or "
-             . "[submit an enquiry](enquiry.html) and our team will advise.";
+             . "[submit an enquiry](/enquiry) and our team will advise.";
     }
 
     $bullets = [];
@@ -327,9 +326,9 @@ function ruleBasedReply($query, $products) {
         $avail = (($p["status"] ?? "Available") !== "Available")
             ? " (currently unavailable, ask us about availability)"
             : "";
-        $bullets[] = "- **{$p['name']}**: {$p['short_description']}{$avail} ([details](product-detail.html?id={$p['id']}))";
+        $bullets[] = "- **{$p['name']}**: {$p['short_description']}{$avail} ([details](/product-detail?id={$p['id']}))";
     }
     return "Based on that, here's what I'd recommend:\n\n" . implode("\n", $bullets)
-         . "\n\nFor pricing, MOQ and lead time, [submit an enquiry](enquiry.html).";
+         . "\n\nFor pricing, MOQ and lead time, [submit an enquiry](/enquiry).";
 }
 ?>

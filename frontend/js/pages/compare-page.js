@@ -19,7 +19,7 @@ function renderComparePage() {
       <div class="empty-state">
         <h3>Add at least 2 products to compare</h3>
         <p>Browse the catalogue and click <strong>+ Compare</strong> on the cards you want to compare side by side.</p>
-        <a href="products.html" class="btn btn-primary" style="display:inline-flex;margin-top:1.25rem">Browse Products</a>
+        <a href="/products" class="btn btn-primary" style="display:inline-flex;margin-top:1.25rem">Browse Products</a>
       </div>`;
     return;
   }
@@ -37,7 +37,7 @@ function renderComparePage() {
         <div class="compare-product-img">
           ${imgContent}
         </div>
-        <a class="compare-product-name" href="product-detail.html?id=${encodeURIComponent(p.id)}">${p.name}</a>
+        <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${p.name}</a>
         <div class="compare-product-brand">${brandDisplay(p.brand)}</div>
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${p.status}
@@ -110,7 +110,7 @@ function buildCompareMobile(products) {
     return `
       <div class="cx-head">
         <div class="cx-head-img">${img}</div>
-        <a class="cx-head-name" href="product-detail.html?id=${encodeURIComponent(p.id)}">${p.name}</a>
+        <a class="cx-head-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${p.name}</a>
         <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${p.status}</span>
         <button class="cx-head-select" onclick="addToBasket('${p.id}')">Select</button>
         <button class="cx-head-rm" onclick="removeFromCompare('${p.id}')">Remove</button>
@@ -134,7 +134,7 @@ function buildCompareMobile(products) {
   });
 
   const addSlot = n < COMPARE_MAX
-    ? `<button class="cx-add" onclick="location.href='products.html'">+ Add another product</button>`
+    ? `<button class="cx-add" onclick="location.href='/products'">+ Add another product</button>`
     : "";
 
   return `

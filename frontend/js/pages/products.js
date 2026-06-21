@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="empty-state">
         <h3>Products are temporarily unavailable</h3>
         <p>Please refresh the page in a moment, or contact Yee Lim directly and our team will assist you.</p>
-        <a class="btn btn-outline" href="contact.html">Contact Yee Lim</a>
+        <a class="btn btn-outline" href="/contact">Contact Yee Lim</a>
       </div>`;
     document.getElementById("resultCount").textContent = "0 products";
     return;
@@ -439,7 +439,7 @@ function productCardHTML(p) {
     ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
     : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
   const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
-  const detailHref = `product-detail.html?id=${encodeURIComponent(p.id)}`;
+  const detailHref = `/product-detail?id=${encodeURIComponent(p.id)}`;
 
   const compareTitle = compareDisabled
     ? "Comparison full — remove one to add another"

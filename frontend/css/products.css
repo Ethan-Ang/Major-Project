@@ -2575,52 +2575,6 @@ body:has(.compare-tray.visible) .toast {
    Added for floating contact feature and contact.html page
    ════════════════════════════════════════════════════════════════ */
 
-/* ─── WhatsApp buttons inside product cards/detail sidebar ───── */
-.btn-whatsapp-card,
-.btn-whatsapp-sidebar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  background: #25D366;
-  color: #fff;
-  border: 1px solid #25D366;
-  border-radius: var(--radius);
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
-}
-
-.btn-whatsapp-card {
-  margin-top: 0.6rem;
-  padding: 0.55rem 0.95rem;
-}
-
-.btn-whatsapp-sidebar {
-  padding: 0.6rem 0.95rem;
-}
-
-.btn-whatsapp-card:hover,
-.btn-whatsapp-sidebar:hover {
-  background: #1ebe5d;
-  border-color: #1ebe5d;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
-}
-
-.btn-whatsapp-card:active,
-.btn-whatsapp-sidebar:active {
-  transform: scale(0.97);
-}
-
-.btn-whatsapp-card:focus-visible,
-.btn-whatsapp-sidebar:focus-visible {
-  outline: 2px solid #25D366;
-  outline-offset: 2px;
-}
 
 /* ─── Contact Page ───────────────────────────────────────────── */
 /* Hero spacing now comes from the shared .hero-inner container (max-width +
@@ -2700,35 +2654,6 @@ body:has(.compare-tray.visible) .toast {
   line-height: 1.5;
 }
 
-.contact-whatsapp-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #25D366;
-  color: #fff;
-  text-decoration: none;
-  border: 1px solid #25D366;
-  border-radius: var(--radius);
-  padding: 0.75rem 1.2rem;
-  font-weight: 700;
-  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
-}
-
-.contact-whatsapp-btn:hover {
-  background: #1ebe5d;
-  border-color: #1ebe5d;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
-}
-
-.contact-whatsapp-btn:active {
-  transform: scale(0.98);
-}
-
-.contact-whatsapp-btn:focus-visible {
-  outline: 2px solid #25D366;
-  outline-offset: 2px;
-}
 
 .contact-form {
   margin-top: 1rem;
@@ -2781,7 +2706,6 @@ body:has(.compare-tray.visible) .toast {
     font-size: 1.3rem;
   }
 
-  .contact-whatsapp-btn,
   .contact-submit-btn {
     width: 100%;
   }

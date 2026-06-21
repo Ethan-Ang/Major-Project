@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!product) {
     const grid = document.getElementById("detailPageGrid");
     if (grid) grid.innerHTML =
-      "<p style='padding:3rem 1.5rem;color:var(--muted)'>Product not found. <a href='products.html' style='color:var(--red)'>Back to products</a></p>";
+      "<p style='padding:3rem 1.5rem;color:var(--muted)'>Product not found. <a href='/products' style='color:var(--red)'>Back to products</a></p>";
     return;
   }
 
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function backToProducts(e) {
   try {
     const ref = document.referrer ? new URL(document.referrer) : null;
-    if (ref && ref.origin === location.origin && ref.pathname.endsWith("/products.html")) {
+    if (ref && ref.origin === location.origin && (ref.pathname === "/products" || ref.pathname.endsWith("/products.html"))) {
       e.preventDefault();
       history.back();
       return false;
@@ -272,7 +272,7 @@ function renderSidebar(product) {
       </button>
     </div>
     <div class="sidebar-foot">
-      <a href="enquiry.html" class="sidebar-enquiry-link" id="sidebarEnquiryLink"${inBasket ? "" : " hidden"}>View Product Enquiry &rarr;</a>
+      <a href="/enquiry" class="sidebar-enquiry-link" id="sidebarEnquiryLink"${inBasket ? "" : " hidden"}>View Product Enquiry &rarr;</a>
       <p class="sidebar-note">Need advice before choosing? Add this product to your enquiry and Yee Lim's team will advise on suitability, pricing, and lead time.</p>
     </div>`;
 }
@@ -341,7 +341,7 @@ function renderFullDesc(product) {
       <h2 class="enquiry-guidance-title">Not sure if this product fits your application?</h2>
       <p>Send your surface, application, and quantity requirements to Yee Lim.
       Our team will advise on suitability and quotation.</p>
-      <a href="enquiry.html" class="enquiry-guidance-link" onclick="enquireAboutProduct('${product.id}')">Send Product Enquiry &rarr;</a>
+      <a href="/enquiry" class="enquiry-guidance-link" onclick="enquireAboutProduct('${product.id}')">Send Product Enquiry &rarr;</a>
     </div>`;
 }
 
@@ -367,7 +367,7 @@ function renderRelated(product) {
       ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
     const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
-    const detailHref = `product-detail.html?id=${encodeURIComponent(p.id)}`;
+    const detailHref = `/product-detail?id=${encodeURIComponent(p.id)}`;
     return `
     <div class="product-card">
       <div class="${imageClass}">
