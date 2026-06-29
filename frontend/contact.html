@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,7 +6,7 @@
   <title>Contact Us | Yee Lim Adhesives Industries</title>
   <meta name="description" content="Contact Yee Lim Adhesives Industries for product enquiries, quotations, and technical adhesive support.">
   <link rel="stylesheet" href="/css/products.css?v=2">
-  <script src="/js/widgets/navbar.js?v=2"></script>
+  <script src="/js/widgets/navbar.js?v=3"></script>
   <script src="/js/widgets/footer.js?v=3"></script>
 </head>
 <body>
@@ -120,10 +120,13 @@ ${message}`
 
   window.location.href = `mailto:contact@yeelimadhesives.com.sg?subject=${mailSubject}&body=${mailBody}`;
 
-  status.textContent = "Opening your email app. Please send the email to complete your enquiry.";
-  status.className = "contact-form-status success";
-
-  event.target.reset();
+  // Do not claim success: a mailto only opens a mail app, and many devices have
+  // none configured. Show a neutral message with a fallback address, and keep
+  // the user's input so nothing is lost if their email app did not open.
+  status.innerHTML = 'If your email app opened, please send the message to complete your enquiry. '
+    + 'If it did not, email us directly at '
+    + '<a href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a>.';
+  status.className = "contact-form-status";
 }
 </script>
 

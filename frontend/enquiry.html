@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,7 +6,7 @@
   <title>Product Enquiry | Yee Lim Adhesives Industries</title>
   <meta name="description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
   <link rel="stylesheet" href="/css/products.css?v=2">
-  <script src="/js/widgets/navbar.js?v=2"></script>
+  <script src="/js/widgets/navbar.js?v=3"></script>
   <script src="/js/widgets/footer.js?v=3"></script>
 </head>
 <body>
@@ -82,9 +82,38 @@
 
 <!-- Footer injected by js/widgets/footer.js -->
 
-<script src="/js/data.js?v=2"></script>
+<script src="/js/data.js?v=5"></script>
 <script>
+// Safety net: ylEscapeHtml is defined in data.js. If a stale cached data.js is
+// served (its ?v= was not bumped after a change), fall back to a local escaper
+// and warn, so the enquiry page still renders instead of throwing.
+if (typeof window.ylEscapeHtml !== "function") {
+  window.ylEscapeHtml = function (s) {
+    if (!window.__ylHelperWarned) {
+      console.warn("[Yee Lim] ylEscapeHtml missing from data.js (stale cache?). Using fallback. Bump the ?v= on data.js and redeploy.");
+      window.__ylHelperWarned = true;
+    }
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+}
+// Loading skeleton (catalogue shimmer style) while product data is fetched,
+// so the basket area is not blank on a slow connection.
+function renderBasketSkeleton() {
+  const list = document.getElementById("basketList");
+  if (!list) return;
+  const row = '<div class="basket-item" aria-hidden="true" style="align-items:center">' +
+    '<div class="skeleton-img" style="width:64px;height:64px;aspect-ratio:auto;border-radius:6px;flex:none"></div>' +
+    '<div style="flex:1">' +
+    '<div class="skeleton-line skeleton-line-short"></div>' +
+    '<div class="skeleton-line skeleton-line-title"></div>' +
+    '<div class="skeleton-line skeleton-line-mid"></div></div></div>';
+  list.innerHTML = row + row;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+  renderBasketSkeleton();
   try {
     await loadProductsFromBackend();
   } catch (err) {
@@ -120,20 +149,20 @@ function renderBasket() {
   }
 
   list.innerHTML = products.map(p => {
-    const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+    const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
     const hasRealImage = p.images && p.images.length > 0;
     const thumb = hasRealImage
-      ? `<img src="${p.images[0]}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : brandLabel;
     return `
       <div class="basket-item">
         <div class="basket-item-thumb" aria-hidden="true">${thumb}</div>
         <div class="basket-item-info">
-          <span class="basket-item-brand">${brandDisplay(p.brand)}</span>
-          <h4>${p.name}</h4>
-          <p>${p.shortDescription}</p>
+          <span class="basket-item-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
+          <h4>${ylEscapeHtml(p.name)}</h4>
+          <p>${ylEscapeHtml(p.shortDescription)}</p>
         </div>
-        <button class="basket-remove" onclick="removeFromBasket('${p.id}')" aria-label="Remove ${p.name} from your product enquiry">
+        <button class="basket-remove" onclick="removeFromBasket('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from your product enquiry">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -141,7 +170,7 @@ function renderBasket() {
   }).join("");
 
   formSection.style.display = "block";
-  const productLines = products.map(p => `<li>${p.name}</li>`).join("");
+  const productLines = products.map(p => `<li>${ylEscapeHtml(p.name)}</li>`).join("");
   selectedDisplay.innerHTML = `
     <div class="enquiring-about-label">Enquiring about</div>
     <ul class="enquiring-about-list">${productLines}</ul>

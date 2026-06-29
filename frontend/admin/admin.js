@@ -11,11 +11,12 @@ let sortCol        = "";
 let sortDir        = "asc";
 let demoMode       = false;
 
-// Demo fallback when backend is unreachable:mirrors enquiries.js SAMPLE_ENQUIRIES pattern
-const SAMPLE_ADMIN_PRODUCTS = PRODUCTS.map(p => ({
-  ...p,
-  _id: String(p.id)
-}));
+// Demo fallback when the backend is unreachable. Built from the bundled
+// DEMO_PRODUCTS catalogue (the same data the public pages fall back to), not the
+// empty live PRODUCTS array, so the offline admin list is populated rather than
+// blank. normaliseProduct sets a string _id, which the table/selection rely on.
+const SAMPLE_ADMIN_PRODUCTS = (typeof DEMO_PRODUCTS !== "undefined" ? DEMO_PRODUCTS : [])
+  .map(normaliseProduct);
 
 function isNetworkError(err) {
   return err instanceof TypeError;
@@ -96,9 +97,28 @@ function finishLoad(products) {
   if (window.lucide) lucide.createIcons();
 }
 
+// Non-dismissable banner so demo/offline data is never mistaken for the live
+// catalogue. Shown when the backend is unreachable and we fall back to demo data.
+function showAdminBanner(id, text) {
+  const host = document.querySelector(".admin-body");
+  if (!host) return;
+  let bar = document.getElementById(id);
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = id;
+    bar.setAttribute("role", "alert");
+    bar.style.cssText = "background:#fdecec;border:1px solid #f0b4b4;color:#8a1f1f;" +
+      "padding:0.85rem 1.1rem;border-radius:10px;margin-bottom:1.25rem;font-size:0.9rem;" +
+      "font-weight:500;display:flex;gap:0.5rem;align-items:flex-start;line-height:1.5";
+    bar.innerHTML = '<span aria-hidden="true">&#9888;</span><span class="yl-banner-text"></span>';
+    host.insertBefore(bar, host.firstChild);
+  }
+  bar.querySelector(".yl-banner-text").textContent = text;
+}
+
 function showDemoBanner() {
-  // Demo fallback is silent now:sample data loads without a visible banner.
-  // Re-enable by uncommenting the banner creation if you want a visible warning.
+  showAdminBanner("adminDemoBanner",
+    "Could not reach the server. Showing example products only. Changes will not save until the connection is restored.");
 }
 
 function updateStats(products) {

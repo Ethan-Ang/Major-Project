@@ -1,3 +1,18 @@
+// Safety net: ylEscapeHtml is defined in data.js. If a stale cached data.js is
+// served (its ?v= was not bumped after a change), fall back to a local escaper
+// and warn, so compare UI still renders instead of throwing a ReferenceError.
+if (typeof window !== "undefined" && typeof window.ylEscapeHtml !== "function") {
+  window.ylEscapeHtml = function (s) {
+    if (!window.__ylHelperWarned) {
+      console.warn("[Yee Lim] ylEscapeHtml missing from data.js (stale cache?). Using fallback. Bump the ?v= on data.js and redeploy.");
+      window.__ylHelperWarned = true;
+    }
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+}
+
 // ─── Compare state ──────────────────────────────────────────────
 const COMPARE_KEY  = "compareList";
 const COMPARE_MAX  = 3;
@@ -58,11 +73,11 @@ function renderCompareTray() {
     const id = list[i];
     if (id !== undefined) {
       const p    = PRODUCTS.find(p => String(p.id) === String(id));
-      const name = p ? p.name : "Unknown product";
-      const brandLabel = p ? p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase() : "YL";
+      const name = ylEscapeHtml(p ? p.name : "Unknown product");
+      const brandLabel = ylEscapeHtml(p ? p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase() : "YL");
       const hasImg = p && p.images && p.images.length > 0;
       const thumb = hasImg
-        ? `<div class="compare-slot-thumb"><img src="${p.images[0]}" alt="" onerror="ylImageFallback(this,'${brandLabel}')"></div>`
+        ? `<div class="compare-slot-thumb"><img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')"></div>`
         : `<div class="compare-slot-thumb no-image"><span class="no-image-mark" aria-hidden="true">${brandLabel}</span></div>`;
       slots.push(`
         <div class="compare-slot compare-slot-filled">
@@ -133,12 +148,19 @@ function ensureMobileCompareUI() {
   document.body.appendChild(modal);
 }
 
+let cmpSheetRelease = null;
+
 function openCompareSheet() {
   ensureMobileCompareUI();
   const m = document.getElementById("cmpModal");
   if (!m) return;
   m.classList.add("open");
   document.body.style.overflow = "hidden";
+  // Trap focus in the sheet, Escape closes, focus returns to the opener on close.
+  const sheet = m.querySelector(".cmp-sheet");
+  if (sheet && typeof ylFocusTrap === "function") {
+    cmpSheetRelease = ylFocusTrap(sheet, { onEscape: closeCompareSheet });
+  }
 }
 
 function closeCompareSheet() {
@@ -146,6 +168,7 @@ function closeCompareSheet() {
   if (!m) return;
   m.classList.remove("open");
   document.body.style.overflow = "";
+  if (cmpSheetRelease) { cmpSheetRelease(); cmpSheetRelease = null; }
 }
 
 function renderCompareMobile() {
@@ -174,16 +197,17 @@ function renderCompareMobile() {
     listEl.innerHTML = list.map(id => {
       const p = PRODUCTS.find(pr => String(pr.id) === String(id));
       if (!p) return "";
-      const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+      const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
+      const safeName = ylEscapeHtml(p.name);
       const hasImg = p.images && p.images.length > 0;
       const thumb = hasImg
-        ? `<img src="${p.images[0]}" alt="" onerror="ylImageFallback(this,'${brandLabel}')">`
+        ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
         : brandLabel;
       return `
         <div class="cmp-sheet-item">
           <div class="cmp-sheet-thumb">${thumb}</div>
-          <span class="cmp-sheet-name">${p.name}</span>
-          <button class="cmp-sheet-rm" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${p.name} from comparison">&times;</button>
+          <span class="cmp-sheet-name">${safeName}</span>
+          <button class="cmp-sheet-rm" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${safeName} from comparison">&times;</button>
         </div>`;
     }).join("");
   }

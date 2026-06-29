@@ -111,11 +111,14 @@ function notifySalesTeam($enq, $replyToken, $reference) {
         "Message:",
         ($enq["message"] ?: "(none)"),
         "",
-        "-------------------------------------------",
-        "Reply to this customer: just reply to this email, or write to " . $enq["email"],
-        "Once you have responded, mark it done here so it clears from your New list:",
-        $repliedLink,
-        "-------------------------------------------",
+        "To reply: just reply to this email, or write to " . $enq["email"] . ".",
+        "",
+        "===========================================",
+        "DID YOU REPLY? Click here to mark this enquiry as done",
+        "so it clears from your New list in the admin inbox:",
+        "",
+        "  >>  " . $repliedLink,
+        "===========================================",
     ];
 
     // Reply-To the customer so a one-tap reply reaches them directly.
@@ -156,35 +159,32 @@ function confirmToCustomer($enq, $reference) {
 }
 
 /* Lightweight, file-based rate limit. Invisible to real users (no CAPTCHA):
-   allows $max submissions per $windowSeconds per client IP, then returns 429.
-   Self-failures are swallowed so the limiter can never block a real enquiry. */
+   allows $max submissions per $windowSeconds per client IP, then returns 429
+   with the real remaining time (same helpers + phrasing as the login limiter).
+   The shared helpers swallow their own failures, so the limiter can never block
+   a legitimate enquiry. */
 function enforceEnquiryRateLimit($max = 5, $windowSeconds = 600) {
-    try {
-        $ip   = $_SERVER["REMOTE_ADDR"] ?? "0";
-        $file = sys_get_temp_dir() . "/yl_enq_rl_" . md5($ip);
-        $now  = time();
-
-        $hits = [];
-        if (is_file($file)) {
-            $decoded = json_decode((string) @file_get_contents($file), true);
-            if (is_array($decoded)) $hits = $decoded;
+    $bucket = "enq_" . ($_SERVER["REMOTE_ADDR"] ?? "0");
+    if (ylRateRecentCount($bucket, $windowSeconds) >= $max) {
+        $retryAfter = ylRateRetryAfter($bucket, $windowSeconds, $max);
+        if ($retryAfter < 1) $retryAfter = 1;
+        // Round UP to the next minute so we never invite a retry before the
+        // window clears; show seconds when under a minute.
+        if ($retryAfter >= 60) {
+            $mins   = (int) ceil($retryAfter / 60);
+            $phrase = "Please try again in about " . $mins . " minute" . ($mins === 1 ? "" : "s") . ".";
+        } else {
+            $phrase = "Please try again in about " . $retryAfter . " second" . ($retryAfter === 1 ? "" : "s") . ".";
         }
-        // Keep only timestamps still inside the window.
-        $hits = array_values(array_filter($hits, function ($t) use ($now, $windowSeconds) {
-            return is_numeric($t) && ($now - $t) < $windowSeconds;
-        }));
-
-        if (count($hits) >= $max) {
-            http_response_code(429);
-            echo json_encode(["message" => "Too many enquiries in a short time. Please wait a few minutes and try again."]);
-            exit;
-        }
-
-        $hits[] = $now;
-        @file_put_contents($file, json_encode($hits), LOCK_EX);
-    } catch (Throwable $e) {
-        // Never let the limiter itself block a legitimate enquiry.
+        header("Retry-After: " . $retryAfter);
+        http_response_code(429);
+        echo json_encode([
+            "message"    => "Too many enquiries in a short time. " . $phrase,
+            "retryAfter" => $retryAfter,
+        ]);
+        exit;
     }
+    ylRateAdd($bucket, $windowSeconds);
 }
 
 /* Small branded HTML page for the email "Mark as replied" link. */
@@ -221,6 +221,7 @@ try {
     if ($method === "GET" && $action === "replied") {
         $token = $_GET["token"] ?? "";
         if (!$id || $token === "") {
+            http_response_code(400); // malformed link (missing id or token)
             renderConfirmPage("Invalid link", "This link is missing information. Please open the admin inbox instead.", false);
             exit;
         }
@@ -229,6 +230,7 @@ try {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row || !hash_equals((string)($row["reply_token"] ?? ""), (string)$token)) {
+            http_response_code(404); // unknown id or bad/unrecognised token
             renderConfirmPage("Link not recognised", "This link is no longer valid. Please open the admin inbox to update the lead.", false);
             exit;
         }
@@ -274,6 +276,14 @@ try {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             http_response_code(400);
             echo json_encode(["message" => "Please enter a valid email address."]);
+            exit;
+        }
+        // Length caps: reject obviously abusive payloads before they hit the DB.
+        if (mb_strlen($name) > 200 || mb_strlen($company) > 200
+            || mb_strlen($email) > 254 || mb_strlen($phone) > 50
+            || mb_strlen($message) > 5000 || count($products) > 100) {
+            http_response_code(400);
+            echo json_encode(["message" => "One or more fields are too long. Please shorten your enquiry and try again."]);
             exit;
         }
 

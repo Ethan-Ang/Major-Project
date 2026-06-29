@@ -150,6 +150,11 @@ try {
             echo json_encode(["message" => "Product name and short description are required."]);
             exit;
         }
+        if (mb_strlen($name) > 200 || mb_strlen($shortDescription) > 5000) {
+            http_response_code(400);
+            echo json_encode(["message" => "Product name (max 200 characters) or short description (max 5000) is too long."]);
+            exit;
+        }
 
         $stmt = $pdo->prepare("
             INSERT INTO products (
@@ -228,6 +233,11 @@ try {
         if ($name === "" || $shortDescription === "") {
             http_response_code(400);
             echo json_encode(["message" => "Product name and short description are required."]);
+            exit;
+        }
+        if (mb_strlen($name) > 200 || mb_strlen($shortDescription) > 5000) {
+            http_response_code(400);
+            echo json_encode(["message" => "Product name (max 200 characters) or short description (max 5000) is too long."]);
             exit;
         }
 

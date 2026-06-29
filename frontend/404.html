@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found | Yee Lim Adhesives Industries</title>
+  <meta name="robots" content="noindex">
+  <style>
+    /* Brand fonts already used site-wide and allowed by the site CSP. */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+    :root {
+      --red:      #CC2929;
+      --red-dark: #a82020;
+      --ink:      #0e1116;
+      --paper:    #f4f5f7;
+      --muted:    #9aa3af;
+      --faint:    #5b636e;
+      --line:     rgba(255, 255, 255, 0.08);
+      --ease:     cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--paper);
+      background: var(--ink);
+      /* Subtle depth, near-black to black. Not a hero gradient, not on text. */
+      background-image: radial-gradient(1100px 560px at 50% -8%, #161b22 0%, var(--ink) 62%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .nf {
+      flex: 1;
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 1.85rem 1.5rem 2rem;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 2rem;
+    }
+
+    /* Brand lockup anchors the page to the rest of the site */
+    .nf-brand { display: flex; align-items: center; gap: 0.6rem; }
+    .nf-logo {
+      width: 34px; height: 34px; border-radius: 7px;
+      background: var(--red); color: #fff;
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 700; font-size: 0.82rem; letter-spacing: 0.5px;
+      display: grid; place-items: center;
+    }
+    .nf-word {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 600; font-size: 0.95rem; letter-spacing: 0.01em;
+    }
+
+    .nf-main { align-self: center; max-width: 560px; }
+
+    .nf-code {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: clamp(5rem, 17vw, 9rem);
+      line-height: 0.88;
+      letter-spacing: -0.045em;
+      margin: 0 0 1.3rem;
+      display: flex;
+      align-items: flex-end;
+      gap: 0.12em;
+    }
+    /* The one red detail in the numeral: a precise marker, not a glow */
+    .nf-code .nf-dot {
+      width: 0.15em; height: 0.15em;
+      background: var(--red);
+      border-radius: 2px;
+      margin-bottom: 0.14em;
+    }
+
+    .nf-title {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      margin: 0 0 0.8rem;
+    }
+
+    .nf-text {
+      font-size: 1rem;
+      line-height: 1.65;
+      color: var(--muted);
+      margin: 0 0 2rem;
+      max-width: 46ch;
+    }
+
+    .nf-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.85rem; }
+    .nf-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      text-decoration: none; font-weight: 600; font-size: 0.92rem;
+      padding: 0.8rem 1.4rem; border-radius: 6px;
+      transition: background 0.18s var(--ease), border-color 0.18s var(--ease), transform 0.12s var(--ease);
+    }
+    .nf-btn svg { width: 17px; height: 17px; }
+    .nf-btn-primary { background: var(--red); color: #fff; }
+    .nf-btn-primary:hover { background: var(--red-dark); }
+    .nf-btn-ghost { color: var(--paper); border: 1px solid var(--line); }
+    .nf-btn-ghost:hover { border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.04); }
+    .nf-btn:active { transform: translateY(1px); }
+
+    .nf-help { font-size: 0.9rem; color: var(--muted); margin: 0; }
+    .nf-help a {
+      color: var(--paper); font-weight: 500;
+      text-decoration: underline; text-decoration-color: var(--red); text-underline-offset: 3px;
+    }
+    .nf-help a:hover { color: #fff; }
+
+    .nf-foot {
+      color: var(--faint);
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line);
+    }
+
+    :focus-visible { outline: 2px solid var(--red); outline-offset: 3px; border-radius: 4px; }
+
+    /* Quiet staggered entrance: opacity + transform only, ease-out, no bounce */
+    @keyframes nfUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .nf-main > * { animation: nfUp 0.5s var(--ease) both; }
+    .nf-main > *:nth-child(1) { animation-delay: 0.02s; }
+    .nf-main > *:nth-child(2) { animation-delay: 0.08s; }
+    .nf-main > *:nth-child(3) { animation-delay: 0.14s; }
+    .nf-main > *:nth-child(4) { animation-delay: 0.20s; }
+    .nf-main > *:nth-child(5) { animation-delay: 0.26s; }
+    @media (prefers-reduced-motion: reduce) { .nf-main > * { animation: none; } }
+
+    @media (max-width: 560px) {
+      .nf { padding: 1.4rem 1.25rem 1.6rem; gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nf">
+    <header class="nf-brand">
+      <span class="nf-logo" aria-hidden="true">YL</span>
+      <span class="nf-word">Yee Lim Adhesives</span>
+    </header>
+
+    <main class="nf-main">
+      <div class="nf-code" aria-hidden="true">404<span class="nf-dot"></span></div>
+      <h1 class="nf-title">We could not find that page</h1>
+      <p class="nf-text">The page may have moved, or the link may be out of date. Let's get you back to the adhesives you need.</p>
+      <div class="nf-actions">
+        <a class="nf-btn nf-btn-primary" href="/products">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          Browse Products
+        </a>
+        <a class="nf-btn nf-btn-ghost" href="/">Back to Home</a>
+      </div>
+      <p class="nf-help">Know exactly what you need? <a href="/enquiry">Submit an enquiry</a> and our team will help.</p>
+    </main>
+
+    <footer class="nf-foot">Yee Lim Adhesives Industries Pte Ltd</footer>
+  </div>
+</body>
+</html>

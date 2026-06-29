@@ -18,15 +18,60 @@ Options -Indexes
   </IfModule>
 </FilesMatch>
 
-# 3. Force HTTPS (OPTIONAL).
-#    Leave this commented until the live SSL certificate is confirmed working,
-#    otherwise it can cause a redirect loop behind some cPanel/proxy setups.
-#    To enable, uncomment the three lines below.
+# 2b. Security response headers (sent on every response when mod_headers is on).
+#     CSP is deliberately conservative: it keeps 'unsafe-inline' for scripts and
+#     styles because the existing pages rely heavily on inline onclick handlers
+#     and inline style="" attributes, and removing those would be a large rewrite.
+#     Hosts allow-listed and why:
+#       img-src    www.yeelim.com.sg  -> the product photos (WordPress CDN) + data: placeholders
+#       style-src  fonts.googleapis.com -> the @import Google Fonts stylesheet in the CSS
+#       font-src   fonts.gstatic.com    -> the actual font files
+#       script-src unpkg.com            -> lucide icons on the admin pages
+#     connect-src stays 'self' (the LLM call is made server-side, not from the browser).
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' https://www.yeelim.com.sg data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://unpkg.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+</IfModule>
+
+# 2c. Static asset caching. Long-lived for assets (they are cache-busted with a
+#     ?v= query string, so a new version is a new URL and updates immediately).
+#     HTML and JSON are never cached, so clean-URL pages and the API stay fresh.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css                "access plus 7 days"
+  ExpiresByType application/javascript  "access plus 7 days"
+  ExpiresByType text/javascript         "access plus 7 days"
+  ExpiresByType image/jpeg              "access plus 30 days"
+  ExpiresByType image/png               "access plus 30 days"
+  ExpiresByType image/gif               "access plus 30 days"
+  ExpiresByType image/webp              "access plus 30 days"
+  ExpiresByType image/svg+xml           "access plus 30 days"
+  ExpiresByType image/x-icon            "access plus 30 days"
+  ExpiresByType font/woff               "access plus 30 days"
+  ExpiresByType font/woff2              "access plus 30 days"
+  ExpiresByType text/html               "access plus 0 seconds"
+  ExpiresByType application/json        "access plus 0 seconds"
+</IfModule>
+
+# 3. Force HTTPS (OPTIONAL, proxy-safe, DISABLED until SSL is confirmed).
+#    Proxy-safe form: behind the cPanel proxy %{HTTPS} can read "off" even on a
+#    request that arrived over HTTPS, which would cause a redirect loop. We also
+#    check X-Forwarded-Proto and only redirect when the request really came in
+#    over plain http. DO NOT enable until SSL is confirmed on the live host;
+#    then uncomment the block below.
 # <IfModule mod_rewrite.c>
 #   RewriteEngine On
+#   RewriteCond %{HTTP:X-Forwarded-Proto} !https
 #   RewriteCond %{HTTPS} !=on
-#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 # </IfModule>
+
+# 3b. Custom error page for unknown routes (served after the clean-URL rules
+#     below fall through). 404.html is a real file, so it is returned directly
+#     and is not affected by the rewrites.
+ErrorDocument 404 /404.html
 
 # 4. Canonical clean URLs: /products is the only public URL; /products.html redirects.
 <IfModule mod_rewrite.c>

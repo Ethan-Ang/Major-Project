@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 /* ─── Animations ─────────────────────────────────────────────── */
 @keyframes fadeInPage {
@@ -55,6 +55,7 @@
   --shadow:    0 1px 2px rgba(16,24,40,0.05);
   --shadow-md: 0 6px 20px -6px rgba(16,24,40,0.14);
   --ease:      cubic-bezier(0.23, 1, 0.32, 1);
+  --mono:      'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2821,6 +2822,272 @@ body:has(.compare-tray.visible) .toast {
   line-height: 1.6;
   max-width: 56ch;
   margin: 1.3rem 0 0;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Hero: Bold Red Rail (Direction C)
+   Scoped to .page-hero--rail so the contact-page hero is untouched.
+   ════════════════════════════════════════════════════════════════ */
+.page-hero.page-hero--rail {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+}
+
+/* The rail carries the red accent, so drop the dot-grid + red top line */
+.page-hero.page-hero--rail::before,
+.page-hero.page-hero--rail::after {
+  content: none;
+}
+
+/* Vertical red rail with rotated heritage line (desktop) */
+.hero-rail {
+  background: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-rail-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+}
+
+/* Horizontal red strip: shown only on mobile */
+.hero-strip { display: none; }
+
+/* Two-column content: text/actions on the left, brand stack on the right */
+.page-hero--rail .hero-inner {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  overflow: hidden;
+}
+
+.hero-main {
+  padding: 58px 56px 56px;
+  position: relative;
+  min-width: 0;
+}
+
+/* Shop-by-brand column */
+.hero-brands {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 46px 40px;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  min-width: 0;
+}
+
+.hero-brands-head {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted-2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.hero-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 4px;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+
+.hero-brand-row:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.hero-brand-row:hover { background: rgba(255, 255, 255, 0.03); }
+.hero-brand-row:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+.hero-brand-mark {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: var(--ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+}
+
+.hero-brand-mark.red { background: var(--red); }
+
+/* Official white-knockout brand logo inside the tile */
+.hero-brand-mark img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.hero-brand-name {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.hero-brand-name small {
+  display: block;
+  margin-top: 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--muted-2);
+}
+
+.hero-brand-arrow {
+  margin-left: auto;
+  color: #5a626e;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Eyebrow: mono, dim, no leading dash for this variant */
+.page-hero--rail .hero-eyebrow {
+  font-family: var(--mono);
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
+}
+.page-hero--rail .hero-eyebrow::before { content: none; }
+
+/* Headline + red highlight on "perform" */
+.page-hero--rail .hero-inner h1 {
+  font-size: 56px;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  max-width: 13ch;
+}
+/* line-height + asymmetric padding stop the red box clipping descenders */
+.page-hero--rail .hero-inner h1 mark {
+  background: var(--red);
+  color: #fff;
+  padding: 0.02em 0.12em 0.1em;
+  border-radius: 4px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Intro line */
+.page-hero--rail .hero-lead {
+  font-size: 16.5px;
+  line-height: 1.6;
+  max-width: 46ch;
+  margin: 20px 0 0;
+}
+
+/* Actions: kept balanced against the open right side */
+.page-hero--rail .hero-actions {
+  max-width: 620px;
+  margin-top: 28px;
+}
+.page-hero--rail .hero-actions .search-bar {
+  max-width: none;
+  margin: 0 0 0.85rem;
+}
+.page-hero--rail .hero-cta-row {
+  margin-top: 0;
+  flex-wrap: nowrap;
+}
+.page-hero--rail .hero-cta {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* ── Rail → horizontal strip + scaled type (single breakpoint) ── */
+@media (max-width: 860px) {
+  .page-hero.page-hero--rail {
+    grid-template-columns: 1fr;
+  }
+  .hero-rail { display: none; }
+  .hero-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--red);
+    padding: 0.5rem 1.1rem;
+  }
+  .hero-strip span {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .hero-strip span:last-child {
+    opacity: 0.8;
+    letter-spacing: 0.12em;
+  }
+  /* Brand stack drops below the text as a full-width single column */
+  .page-hero--rail .hero-inner {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+  .hero-main {
+    padding: 30px 22px 30px;
+  }
+  .hero-brands {
+    padding: 4px 22px 30px;
+    border-left: none;
+    justify-content: flex-start;
+  }
+  .page-hero--rail .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    margin-bottom: 14px;
+  }
+  .page-hero--rail .hero-inner h1 {
+    font-size: 33px;
+    line-height: 1.02;
+    max-width: none;
+  }
+  .page-hero--rail .hero-lead {
+    font-size: 15px;
+    margin-top: 14px;
+  }
+  .page-hero--rail .hero-actions {
+    max-width: none;
+    margin-top: 22px;
+  }
+  .page-hero--rail .hero-actions .search-bar { margin-bottom: 0.65rem; }
+  .page-hero--rail .hero-cta-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .page-hero--rail .hero-cta {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 /* ─── Stats strip (dark continuation of hero) ────────────────── */

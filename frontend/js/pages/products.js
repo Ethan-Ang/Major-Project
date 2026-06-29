@@ -210,6 +210,18 @@ function filterByIndustry(industry) {
   scrollToCatalogue();
 }
 
+// Apply a single brand filter (from the hero "Shop by brand" rows) and jump to
+// the catalogue. Mirrors filterByIndustry so the hero stays a same-page filter.
+function filterByBrand(brand) {
+  document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => {
+    cb.checked = (cb.dataset.type === "brand" && cb.value === brand);
+  });
+  const search = document.getElementById("searchInput");
+  if (search) search.value = "";
+  applyFilters();
+  scrollToCatalogue();
+}
+
 // Highlight the application tile matching the active industry filter
 function syncApplicationCards() {
   document.querySelectorAll(".application-card").forEach(card => {
@@ -430,13 +442,13 @@ function productCardHTML(p) {
   const compareDisabled = !inCompare && compareListFull;
 
   const isUnavailable = p.status === "Unavailable";
-  const primaryApps = bestForText(p);
-  const surfaceTags = p.surfaces.slice(0, 3).map(s => `<span class="product-tag">${s}</span>`).join("");
+  const primaryApps = escapeHTML(bestForText(p));
+  const surfaceTags = p.surfaces.slice(0, 3).map(s => `<span class="product-tag">${escapeHTML(s)}</span>`).join("");
 
   const hasRealImage = p.images && p.images.length > 0;
-  const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+  const brandLabel = escapeHTML(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
   const imageContent = hasRealImage
-    ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+    ? `<img src="${encodeURI(p.images[0])}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
     : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
   const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
   const detailHref = `/product-detail?id=${encodeURIComponent(p.id)}`;
@@ -472,10 +484,10 @@ function productCardHTML(p) {
         </button>
       </div>
       <div class="product-card-body">
-        <span class="brand-badge">${brandDisplay(p.brand)}</span>
-        <h3><a class="product-card-title-link" href="${detailHref}">${p.name}</a></h3>
+        <span class="brand-badge">${escapeHTML(brandDisplay(p.brand))}</span>
+        <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
         ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span>${primaryApps}</span></div>` : ""}
-        <p>${p.shortDescription}</p>
+        <p>${escapeHTML(p.shortDescription)}</p>
         ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces">${surfaceTags}</div>` : ""}
         <div class="product-card-actions">
           <a href="${detailHref}" class="btn btn-primary">View Details</a>
@@ -548,12 +560,36 @@ function syncCompareButtons() {
 }
 
 // ─── Filter sidebar toggle ────────────────────────────────────────
+let filterDrawerRelease = null;
+
 function toggleFilterSidebar() {
-  document.getElementById("filterSidebar").classList.toggle("open");
+  const el = document.getElementById("filterSidebar");
+  const willOpen = !el.classList.contains("open");
+  el.classList.toggle("open");
+  willOpen ? openFilterDrawerA11y(el) : closeFilterDrawerA11y(el);
 }
 
 function closeFilterDrawer() {
-  document.getElementById("filterSidebar").classList.remove("open");
+  const el = document.getElementById("filterSidebar");
+  el.classList.remove("open");
+  closeFilterDrawerA11y(el);
+}
+
+// Focus handling applies only in drawer mode (mobile). On desktop the sidebar is
+// always visible and is not a modal, so we leave it untouched.
+function openFilterDrawerA11y(el) {
+  if (window.innerWidth > 640) return;
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  if (typeof ylFocusTrap === "function") {
+    filterDrawerRelease = ylFocusTrap(el, { onEscape: closeFilterDrawer });
+  }
+}
+
+function closeFilterDrawerA11y(el) {
+  el.removeAttribute("aria-modal");
+  el.removeAttribute("role");
+  if (filterDrawerRelease) { filterDrawerRelease(); filterDrawerRelease = null; }
 }
 
 function toggleFilterGroup(btn) {

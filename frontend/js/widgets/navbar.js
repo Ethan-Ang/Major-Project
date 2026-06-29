@@ -24,25 +24,10 @@
       text-decoration: none;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    .nav-logo-mark {
-      width: 30px;
-      height: 30px;
-      background: #CC2929;
-      color: #fff;
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-    .nav-logo-text {
-      font-size: 1.02rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
+    .nav-logo-img {
+      height: 38px;
+      width: auto;
+      display: block;
     }
     .nav-links {
       display: flex;
@@ -196,7 +181,7 @@
          products are selected), hamburger. The full red pill is hidden here;
          Product Enquiry stays reachable in the drawer. */
       .nav { padding: 0 1rem; gap: 0.4rem; }
-      .nav-logo-text { font-size: 0.9rem; }
+      .nav-logo-img { height: 32px; }
       .nav-right { gap: 0.5rem; }
       .nav-basket { display: none; }
       .nav-enquiry-compact.has-items { display: inline-flex; }
@@ -231,9 +216,8 @@
   const navEl = document.createElement("nav");
   navEl.className = "nav";
   navEl.innerHTML = `
-    <a href="/" class="nav-logo" aria-label="Yee Lim home">
-      <span class="nav-logo-mark" aria-hidden="true">YL</span>
-      <span class="nav-logo-text">YEE LIM</span>
+    <a href="/" class="nav-logo" aria-label="Yee Lim Adhesives Industries home">
+      <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries" class="nav-logo-img">
     </a>
     <ul class="nav-links">
       ${links.map(l => `

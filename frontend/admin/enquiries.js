@@ -4,36 +4,36 @@
 // when you reply from the admin, tap "Mark as replied" in the notification
 // email, or toggle it manually. Opening a lead does NOT change its status.
 
-// ─── Sample data (only used if the API is unreachable) ────────────
-const SAMPLE_ENQUIRIES = [
-  {
-    id: "enq001", name: "David Lim", company: "Sunrise Carpentry Pte Ltd",
-    email: "david.lim@sunrisecarpentry.com.sg", phone: "+65 9123 4567",
-    message: "Hi, we are looking for adhesives suitable for bonding high-pressure laminates to MDF boards. We have a large order coming up and need to know if you offer bulk pricing.",
-    products: ["Deer™ Laminate Contact Adhesive", "Deer™ Wood Contact Adhesive"],
-    date: "2026-05-21T09:14:00Z", replied: false
-  },
-  {
-    id: "enq002", name: "Michelle Tan", company: "Pacific Marine Engineering",
-    email: "m.tan@pacificmarine.com.sg", phone: "+65 8234 5678",
-    message: "We need a marine-grade sealant that can handle saltwater exposure both above and below the waterline. Please advise on suitable products and lead time for 50 units.",
-    products: ["Rhino™ Marine Sealant", "Rhino™ Heavy Duty Metal Adhesive"],
-    date: "2026-05-20T14:32:00Z", replied: false
-  },
-  {
-    id: "enq003", name: "Kevin Wong", company: "CoolTech HVAC Solutions",
-    email: "kwong@cooltech.sg", phone: "+65 6789 0123",
-    message: "We are tendering for a large cooling tower project and require adhesives for fibreglass wool insulation. Can you provide technical data sheets and MOQ details?",
-    products: ["Rhino™ Cooling Tower Adhesive"],
-    date: "2026-05-19T11:05:00Z", replied: false
-  }
-];
-
 // ─── State ────────────────────────────────────────────────────────
 let enquiries    = [];
 let filteredEnqs = [];
 let currentEnqId = null;
 let repliedIds   = new Set();
+let loadFailed   = false; // true when the API could not be reached
+
+// Non-dismissable banner at the top of the page. Used to make a load failure
+// obvious instead of silently showing fake or stale data.
+function showAdminBanner(id, text) {
+  const host = document.querySelector(".admin-body");
+  if (!host) return;
+  let bar = document.getElementById(id);
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = id;
+    bar.setAttribute("role", "alert");
+    bar.style.cssText = "background:#fdecec;border:1px solid #f0b4b4;color:#8a1f1f;" +
+      "padding:0.85rem 1.1rem;border-radius:10px;margin-bottom:1.25rem;font-size:0.9rem;" +
+      "font-weight:500;display:flex;gap:0.5rem;align-items:flex-start;line-height:1.5";
+    bar.innerHTML = '<span aria-hidden="true">&#9888;</span><span class="yl-banner-text"></span>';
+    host.insertBefore(bar, host.firstChild);
+  }
+  bar.querySelector(".yl-banner-text").textContent = text;
+}
+
+function hideAdminBanner(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
 
 // ─── Auth guard ───────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -57,17 +57,26 @@ async function loadEnquiries() {
   const tbody = document.getElementById("enquiryTableBody");
   tbody.innerHTML = adminSkeletonRows(6, 5);
 
+  // No demo/sample fallback here: a real inbox must never show fake leads. On a
+  // failure we show a clear error state and a banner instead.
+  loadFailed = false;
   try {
     const res = await fetch(`${API_BASE_URL}/api/enquiries.php`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }
     });
-    if (res.ok) {
-      enquiries = await res.json();
-    } else {
-      throw new Error("Use sample data");
-    }
+    if (!res.ok) throw new Error("status " + res.status);
+    const data = await res.json();
+    enquiries = Array.isArray(data) ? data : [];
   } catch {
-    enquiries = SAMPLE_ENQUIRIES;
+    loadFailed = true;
+    enquiries = [];
+  }
+
+  if (loadFailed) {
+    showAdminBanner("enqLoadError",
+      "Could not reach the server, so enquiries could not be loaded. Nothing shown here is a real lead. Refresh the page to try again.");
+  } else {
+    hideAdminBanner("enqLoadError");
   }
 
   // Normalise the MySQL datetime ("YYYY-MM-DD HH:MM:SS") for reliable Date parsing
@@ -135,7 +144,14 @@ function renderTable() {
     `${filteredEnqs.length} enquir${filteredEnqs.length !== 1 ? "ies" : "y"}`;
 
   if (filteredEnqs.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No enquiries found.</td></tr>`;
+    // Distinguish a load failure, a genuinely empty inbox, and a filter/search
+    // that matched nothing. If there are enquiries but none are showing, the
+    // current search or status filter is the reason.
+    let msg;
+    if (loadFailed)                  msg = "Could not load enquiries. Please refresh the page to try again.";
+    else if (enquiries.length === 0) msg = "No enquiries yet. New leads from the website will appear here.";
+    else                             msg = "No enquiries match your filters.";
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${msg}</td></tr>`;
     return;
   }
 
@@ -164,7 +180,7 @@ function renderTable() {
         <td style="white-space:nowrap;color:var(--muted);font-size:0.82rem">${date}</td>
         <td onclick="event.stopPropagation()">
           <div class="table-actions">
-            <button class="icon-btn" title="Reply by email" onclick="replyTo('${e.id}', '${e.email}')">
+            <button class="icon-btn" title="Reply by email" onclick="replyTo('${e.id}')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>
@@ -217,11 +233,21 @@ function markReplied(id) {
   if (currentEnqId === id) updateToggleBtn(id);
 }
 
-// Reply from the admin: marks the lead Replied, then opens the email client
-function replyTo(id, email) {
+// Reply from the admin: marks the lead Replied, then opens the email client.
+// The address is looked up from the loaded enquiry (never passed through the
+// inline attribute) and encoded, so a crafted email value cannot inject markup.
+function replyTo(id) {
+  const enq = enquiries.find(e => String(e.id) === String(id));
+  if (!enq) return;
   markReplied(id);
   showToast("Marked as replied", "success");
-  window.location.href = `mailto:${email}?subject=Re: Your enquiry to Yee Lim Adhesives`;
+  window.location.href = mailtoFor(enq.email);
+}
+
+// Build a safe mailto: link for a customer address.
+function mailtoFor(email) {
+  return `mailto:${encodeURIComponent(email || "")}`
+       + `?subject=${encodeURIComponent("Re: Your enquiry to Yee Lim Adhesives")}`;
 }
 
 function toggleReplied(id) {
@@ -271,7 +297,7 @@ function openPanel(id) {
     <div class="detail-field">
       <div class="detail-field-label">Contact</div>
       <div class="detail-field-value">
-        <a href="mailto:${enq.email}" style="color:var(--red)">${escapeHtml(enq.email)}</a>
+        <a href="${escapeHtml(mailtoFor(enq.email))}" style="color:var(--red)">${escapeHtml(enq.email)}</a>
       </div>
       <div class="detail-field-value" style="color:var(--muted)">${escapeHtml(enq.phone || "Not provided")}</div>
     </div>
@@ -292,7 +318,7 @@ function openPanel(id) {
   `;
 
   const replyBtn = document.getElementById("replyBtn");
-  replyBtn.href = `mailto:${enq.email}?subject=Re: Your enquiry to Yee Lim Adhesives`;
+  replyBtn.href = mailtoFor(enq.email);
   replyBtn.onclick = () => markReplied(id); // replying from the admin marks it Replied
   updateToggleBtn(id);
 

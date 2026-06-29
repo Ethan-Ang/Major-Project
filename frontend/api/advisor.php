@@ -23,6 +23,20 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
+// ─── Rate limit ────────────────────────────────────────────────
+// Caps cost/abuse once a paid LLM key is configured. Invisible to real users:
+// 30 messages per 10 minutes per client IP, then 429. (Helpers live in db.php.)
+$advBucket = "advisor_" . ($_SERVER["REMOTE_ADDR"] ?? "0");
+if (ylRateRecentCount($advBucket, 600) >= 30) {
+    http_response_code(429);
+    echo json_encode([
+        "reply"  => "You have sent a lot of messages in a short time. Please wait a minute and try again, or [submit an enquiry](/enquiry).",
+        "source" => "error",
+    ]);
+    exit;
+}
+ylRateAdd($advBucket);
+
 // ─── Parse + sanitise incoming conversation ────────────────────
 $raw  = file_get_contents("php://input");
 $data = json_decode($raw, true);

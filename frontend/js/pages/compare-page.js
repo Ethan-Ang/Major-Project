@@ -1,4 +1,34 @@
+// Safety net: ylEscapeHtml is defined in data.js. If a stale cached data.js is
+// served (its ?v= was not bumped after a change), fall back to a local escaper
+// and warn, so the page still renders instead of throwing a ReferenceError.
+if (typeof window !== "undefined" && typeof window.ylEscapeHtml !== "function") {
+  window.ylEscapeHtml = function (s) {
+    if (!window.__ylHelperWarned) {
+      console.warn("[Yee Lim] ylEscapeHtml missing from data.js (stale cache?). Using fallback. Bump the ?v= on data.js and redeploy.");
+      window.__ylHelperWarned = true;
+    }
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+}
+
+// Loading skeleton (catalogue shimmer style) while product data is fetched.
+function renderCompareSkeleton() {
+  const content = document.getElementById("comparePageContent");
+  if (!content) return;
+  const col = '<div aria-hidden="true">' +
+    '<div class="skeleton-img" style="border-radius:8px;aspect-ratio:1/1"></div>' +
+    '<div class="skeleton-line skeleton-line-title" style="margin-top:0.75rem"></div>' +
+    '<div class="skeleton-line skeleton-line-mid"></div>' +
+    '<div class="skeleton-line"></div></div>';
+  content.innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5rem;max-width:640px">' +
+    col + col + '</div>';
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+  renderCompareSkeleton();
   try {
     await loadProductsFromBackend();
   } catch (err) {
@@ -26,21 +56,21 @@ function renderComparePage() {
 
   const headerCols = products.map(p => {
     const availClass  = p.status === "Available" ? "available" : "unavailable";
-    const brandLabel  = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
-    const placeholderSub = (p.category && p.category !== "Others") ? p.category : "Adhesive Solution";
+    const brandLabel  = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
+    const placeholderSub = ylEscapeHtml((p.category && p.category !== "Others") ? p.category : "Adhesive Solution");
     const hasRealImage = p.images && p.images.length > 0;
     const imgContent = hasRealImage
-      ? `<img src="${p.images[0]}" alt="${p.name}" onerror="ylImageFallback(this,'${brandLabel}')">`
+      ? `<img src="${encodeURI(p.images[0])}" alt="${ylEscapeHtml(p.name)}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : `<span class="compare-img-placeholder">${brandLabel}</span><span class="compare-img-placeholder-sub">${placeholderSub}</span>`;
     return `
       <td class="compare-col-header">
         <div class="compare-product-img">
           ${imgContent}
         </div>
-        <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${p.name}</a>
-        <div class="compare-product-brand">${brandDisplay(p.brand)}</div>
+        <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
+        <div class="compare-product-brand">${ylEscapeHtml(brandDisplay(p.brand))}</div>
         <div class="compare-col-avail ${availClass}">
-          <span class="avail-dot"></span>${p.status}
+          <span class="avail-dot"></span>${ylEscapeHtml(p.status)}
         </div>
         <button class="btn-add-enquiry" onclick="addToBasket('${p.id}')">Select Product</button>
         <button class="compare-col-remove" onclick="removeFromCompare('${p.id}')">Remove</button>
@@ -48,10 +78,10 @@ function renderComparePage() {
   }).join("");
 
   const specRows = [
-    { label: "Category",     render: p => p.category },
-    { label: "Industries",   render: p => p.industries.map(i => `<span class="compare-tag">${i}</span>`).join("") },
-    { label: "Surfaces",     render: p => p.surfaces.map(s => `<span class="compare-tag">${s}</span>`).join("") },
-    { label: "Key Features", render: p => p.features.map(f => `<div class="compare-feature">${f}</div>`).join("") }
+    { label: "Category",     render: p => ylEscapeHtml(p.category) },
+    { label: "Industries",   render: p => p.industries.map(i => `<span class="compare-tag">${ylEscapeHtml(i)}</span>`).join("") },
+    { label: "Surfaces",     render: p => p.surfaces.map(s => `<span class="compare-tag">${ylEscapeHtml(s)}</span>`).join("") },
+    { label: "Key Features", render: p => p.features.map(f => `<div class="compare-feature">${ylEscapeHtml(f)}</div>`).join("") }
   ].map(row => `
     <tr>
       <td class="compare-row-label">${row.label}</td>
@@ -86,12 +116,12 @@ function renderComparePage() {
 // instead). Rebuilt whenever renderComparePage runs (incl. compareUpdated).
 function cxTags(arr) {
   if (!arr || !arr.length) return "&ndash;";
-  return arr.map(x => `<span class="cx-celltag">${x}</span>`).join("");
+  return arr.map(x => `<span class="cx-celltag">${ylEscapeHtml(x)}</span>`).join("");
 }
 
 function cxFeatures(arr) {
   if (!arr || !arr.length) return "&ndash;";
-  return arr.map(f => `<div class="cx-cellfeat">${f}</div>`).join("");
+  return arr.map(f => `<div class="cx-cellfeat">${ylEscapeHtml(f)}</div>`).join("");
 }
 
 function buildCompareMobile(products) {
@@ -102,16 +132,16 @@ function buildCompareMobile(products) {
   let cells = `<div class="cx-corner"></div>`;
   cells += products.map(p => {
     const availClass = p.status === "Available" ? "available" : "unavailable";
-    const brandLabel = p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase();
+    const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
     const hasImg     = p.images && p.images.length > 0;
     const img        = hasImg
-      ? `<img src="${p.images[0]}" alt="" onerror="ylImageFallback(this,'${brandLabel}')">`
+      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : brandLabel;
     return `
       <div class="cx-head">
         <div class="cx-head-img">${img}</div>
-        <a class="cx-head-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${p.name}</a>
-        <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${p.status}</span>
+        <a class="cx-head-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
+        <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${ylEscapeHtml(p.status)}</span>
         <button class="cx-head-select" onclick="addToBasket('${p.id}')">Select</button>
         <button class="cx-head-rm" onclick="removeFromCompare('${p.id}')">Remove</button>
       </div>`;
@@ -119,7 +149,7 @@ function buildCompareMobile(products) {
 
   // Spec rows. `cmp` builds a normalised string used only for diff detection.
   const specs = [
-    { label: "Category",     render: p => p.category || "&ndash;", cmp: p => p.category || "" },
+    { label: "Category",     render: p => ylEscapeHtml(p.category) || "&ndash;", cmp: p => p.category || "" },
     { label: "Industries",   render: p => cxTags(p.industries),    cmp: p => [...p.industries].sort().join("|") },
     { label: "Surfaces",     render: p => cxTags(p.surfaces),      cmp: p => [...p.surfaces].sort().join("|") },
     { label: "Key Features", render: p => cxFeatures(p.features),  cmp: p => [...p.features].sort().join("|") }

@@ -376,6 +376,7 @@
   let history   = [];
   let isLoading = false;
   let greeted   = false;
+  let advisorRelease = null;
 
   // ─── Open / close ──────────────────────────────────────────────
   window.openProductAdvisor = function () {
@@ -383,22 +384,25 @@
     panel.classList.add("open");
     document.body.style.overflow = "hidden";
     if (!greeted) showGreeting();
-    setTimeout(() => input.focus(), 260);
+    // Trap focus in the dialog, close on Escape, and return focus to the opener
+    // on close. Falls back to a plain focus if the shared helper is unavailable.
+    if (typeof ylFocusTrap === "function") {
+      advisorRelease = ylFocusTrap(panel, {
+        onEscape: window.closeProductAdvisor, initialFocus: input, focusDelay: 260,
+      });
+    } else {
+      setTimeout(() => input.focus(), 260);
+    }
   };
 
   window.closeProductAdvisor = function () {
     backdrop.classList.remove("open");
     panel.classList.remove("open");
     document.body.style.overflow = "";
+    if (advisorRelease) { advisorRelease(); advisorRelease = null; }
   };
 
   backdrop.addEventListener("click", window.closeProductAdvisor);
-
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && panel.classList.contains("open")) {
-      window.closeProductAdvisor();
-    }
-  });
 
   // ─── Greeting ──────────────────────────────────────────────────
   function showGreeting() {
@@ -445,9 +449,28 @@
     messages.scrollTop = messages.scrollHeight;
   }
 
+  // Escape HTML first so any markup in the reply (especially once a real LLM is
+  // wired up) renders as text, not live HTML. Then apply our limited markdown.
+  function escapeAdvHtml(s) {
+    return String(s).replace(/[&<>"]/g, ch =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  }
+
+  // Only allow http(s) and site-relative ("/...") links. Anything else
+  // (javascript:, data:, etc.) is rejected and rendered as plain text.
+  function safeHref(url) {
+    const u = String(url).trim();
+    return (/^https?:\/\//i.test(u) || u.startsWith("/")) ? u : null;
+  }
+
   function formatText(t) {
-    return t
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    let s = escapeAdvHtml(t);
+    // Links: [text](url) — emit an anchor only for safe hrefs, else keep the label.
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, url) => {
+      const href = safeHref(url);
+      return href ? `<a href="${href}">${label}</a>` : label;
+    });
+    return s
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
       .replace(/(<li>.*<\/li>(\n|$))+/gs, m => `<ul>${m}</ul>`)

@@ -71,7 +71,7 @@ function renderKpis(products, enquiries) {
   document.getElementById("kpiAvailPct").innerHTML = `<i data-lucide="arrow-up-right"></i>${pct}%`;
   document.getElementById("kpiNewDelta").innerHTML = `<i data-lucide="arrow-up-right"></i>+${recentCount}`;
   const tag = document.getElementById("kpiUnreadTag");
-  tag.textContent = newLeads > 0 ? "Action" : "Clear";
+  tag.textContent = newLeads > 0 ? "Needs reply" : "All replied";
 }
 
 // ─── Catalogue breakdown ──────────────────────────────────────────

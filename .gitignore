@@ -4,8 +4,14 @@
 frontend/api/config.php
 qa/
 
+# Local-only Claude Browser context pack (never commit)
+claude_browser_context_pack/
+claude_browser_context_pack.zip
+
 # Dependencies and local artifacts (defense in depth; never deploy these)
 node_modules/
 screenshots/
 *.zip
 deploy_package*.zip
+
+ftp.env

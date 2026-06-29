@@ -1,5 +1,58 @@
 const API_BASE_URL = "";
 
+// Shared HTML-escape for any product/user text rendered via innerHTML on the
+// public pages. Product fields are admin-controlled, so this is defense in depth
+// plus correctness (names with & or < render properly). Escapes the quote and
+// apostrophe too, so values are safe inside attribute strings.
+function ylEscapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, ch =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+
+// Shared accessibility helper for modal overlays (advisor, compare sheet, filter
+// drawer). Traps Tab focus inside `container`, runs `onEscape` on the Escape key,
+// and on release returns focus to whatever was focused when it opened (mirrors
+// how the custom-select widget returns focus to its trigger). Returns a release()
+// function the caller invokes when the overlay closes.
+function ylFocusTrap(container, opts = {}) {
+  if (!container) return function () {};
+  const prevFocus = document.activeElement;
+  const onEscape  = typeof opts.onEscape === "function" ? opts.onEscape : null;
+  const SEL = 'a[href], button:not([disabled]), input:not([disabled]),' +
+              ' select:not([disabled]), textarea:not([disabled]),' +
+              ' [tabindex]:not([tabindex="-1"])';
+
+  function focusables() {
+    return Array.from(container.querySelectorAll(SEL))
+      .filter(el => el.offsetParent !== null || el === document.activeElement);
+  }
+
+  function onKeydown(e) {
+    if (e.key === "Escape") { if (onEscape) { e.preventDefault(); onEscape(); } return; }
+    if (e.key !== "Tab") return;
+    const f = focusables();
+    if (!f.length) { e.preventDefault(); return; }
+    const first = f[0], last = f[f.length - 1], active = document.activeElement;
+    if (e.shiftKey && (active === first || !container.contains(active))) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && (active === last || !container.contains(active))) {
+      e.preventDefault(); first.focus();
+    }
+  }
+
+  document.addEventListener("keydown", onKeydown, true);
+
+  const initial = opts.initialFocus || focusables()[0] || container;
+  setTimeout(() => { try { initial.focus(); } catch (e) {} }, opts.focusDelay || 0);
+
+  return function release(restoreFocus = true) {
+    document.removeEventListener("keydown", onKeydown, true);
+    if (restoreFocus && prevFocus && typeof prevFocus.focus === "function") {
+      try { prevFocus.focus(); } catch (e) {}
+    }
+  };
+}
+
 const BRANDS = ["Deer™ Brand", "Horsemen™ Brand", "Premier™ Brand", "Rhino™ Brand", "Others & Accessories"];
 
 // The four real Yee Lim adhesive brands. "Others & Accessories" is a catalogue
