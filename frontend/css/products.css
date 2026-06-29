@@ -407,6 +407,8 @@ h1, h2, h3,
 /* Mobile filter toggle */
 .filter-toggle {
   display: none;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
   padding: 0.75rem 1rem;
   background: var(--card);
@@ -418,6 +420,7 @@ h1, h2, h3,
   text-align: left;
   font-weight: 600;
 }
+.filter-toggle svg { flex-shrink: 0; color: var(--muted); }
 
 /* ─── Product Grid ────────────────────────────────────────────── */
 .product-grid-section {
@@ -1514,10 +1517,10 @@ h1, h2, h3,
   .nav-hamburger { display: block; }
   .catalogue-layout { flex-direction: column; padding: 0 1rem; }
   .active-filter-chips { padding: 0 1rem; }
-  .filter-toggle { display: block; }
+  .filter-toggle { display: flex; }
   .filter-sidebar { width: 100%; display: none; }
   .filter-sidebar.open { display: block; }
-  .product-grid { grid-template-columns: 1fr; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
   .detail-cta { flex-direction: column; }
   .detail-cta .btn { width: 100%; text-align: center; }
