@@ -76,13 +76,16 @@
     .nav-basket svg { flex-shrink: 0; opacity: 0.9; }
     .nav-basket-label-short { display: none; }
     /* Count reads as part of the pill: a soft translucent chip, not a blob. */
+    /* Crisp white badge with red text reads clean on the red pill (the old
+       translucent fill looked muddy). Single digits sit in an 18px circle;
+       2+ digits grow into a pill via min-width + horizontal padding. */
     .nav-basket-count {
-      background: rgba(255, 255, 255, 0.22);
-      color: #fff;
+      background: #fff;
+      color: #CC2929;
       font-size: 0.72rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      border-radius: 999px;
+      border-radius: 9px;
       min-width: 18px;
       height: 18px;
       padding: 0 5px;

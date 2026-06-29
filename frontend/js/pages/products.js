@@ -229,6 +229,15 @@ function syncApplicationCards() {
   });
 }
 
+// Highlight the hero "Shop by brand" row matching the active brand filter so
+// its tile stays red. Runs through applyFilters(), so it also covers brand
+// state restored from the URL on load and brands toggled from the sidebar.
+function syncBrandRows() {
+  document.querySelectorAll(".hero-brand-row").forEach(row => {
+    row.classList.toggle("active", activeFilters.brands.includes(row.dataset.brand));
+  });
+}
+
 // ─── Apply search + filters + sort ───────────────────────────────
 function applyFilters(opts = {}) {
   const query   = document.getElementById("searchInput").value.toLowerCase().trim();
@@ -280,6 +289,7 @@ function applyFilters(opts = {}) {
   updateClearVisibility();
   updateFilterGroupBadges();
   syncApplicationCards();
+  syncBrandRows();
 }
 
 function updateFilterGroupBadges() {
@@ -331,6 +341,7 @@ function clearFilters() {
   updateClearVisibility();
   updateFilterGroupBadges();
   syncApplicationCards();
+  syncBrandRows();
 }
 
 // ─── Active filter chips ──────────────────────────────────────────
@@ -659,3 +670,132 @@ function showToast(message) {
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 2500);
 }
+
+// ─── Hero search typeahead ────────────────────────────────────────
+// Additive suggestion dropdown under the hero search. It does NOT change the
+// existing live-filter or submit behaviour: typing still filters the catalogue
+// below (separate input listener), and the Search button / a plain Enter still
+// run submitHeroSearch(). This only adds quick-jump suggestions on top.
+(function initSearchTypeahead() {
+  const input = document.getElementById("searchInput");
+  const panel = document.getElementById("searchTypeahead");
+  if (!input || !panel) return;
+
+  const MAX = 6;
+  let matches = [];
+  let highlight = -1;
+
+  const brandName = p =>
+    (typeof brandDisplay === "function" ? brandDisplay(p.brand) : p.brand) || "";
+
+  function computeMatches(q) {
+    const query = q.toLowerCase();
+    return (PRODUCTS || []).filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      brandName(p).toLowerCase().includes(query) ||
+      (p.brand || "").toLowerCase().includes(query) ||
+      (p.industries || []).some(i => i.toLowerCase().includes(query)) ||
+      (p.surfaces || []).some(s => s.toLowerCase().includes(query))
+    ).slice(0, MAX);
+  }
+
+  function isOpen() { return !panel.hidden; }
+
+  // The panel is position:fixed, so glue it to the search bar's current rect.
+  function reposition() {
+    const anchor = input.closest(".search-bar") || input;
+    const r = anchor.getBoundingClientRect();
+    panel.style.left = `${Math.round(r.left)}px`;
+    panel.style.top = `${Math.round(r.bottom + 6)}px`;
+    panel.style.width = `${Math.round(r.width)}px`;
+  }
+
+  function open() {
+    panel.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    reposition();
+  }
+
+  function close() {
+    if (panel.hidden) return;
+    panel.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+    highlight = -1;
+  }
+
+  function render() {
+    if (!matches.length) {
+      panel.innerHTML =
+        `<li class="search-typeahead-empty" role="option" aria-disabled="true">No products found — press Search to browse all</li>`;
+      return;
+    }
+    panel.innerHTML = matches.map((p, i) => `
+      <li class="search-typeahead-row" role="option" id="st-opt-${i}" data-id="${escapeHTML(String(p.id))}" aria-selected="${i === highlight}">
+        <span class="st-name">${escapeHTML(p.name)}</span>
+        <span class="st-brand">${escapeHTML(brandName(p))}</span>
+      </li>`).join("");
+  }
+
+  function setHighlight(i) {
+    if (!matches.length) return;
+    highlight = (i + matches.length) % matches.length;
+    render();
+    input.setAttribute("aria-activedescendant", `st-opt-${highlight}`);
+    const row = panel.querySelector(`#st-opt-${highlight}`);
+    if (row) row.scrollIntoView({ block: "nearest" });
+  }
+
+  function go(p) {
+    window.location.href = `/product-detail?id=${encodeURIComponent(p.id)}`;
+  }
+
+  // Suggestions appear only at 2+ characters. Runs alongside the existing
+  // live-filter input listener, so the catalogue still filters as you type.
+  input.addEventListener("input", () => {
+    const q = input.value.trim();
+    if (q.length < 2) { matches = []; close(); return; }
+    matches = computeMatches(q);
+    highlight = -1;
+    render();
+    open();
+  });
+
+  // Capture phase so we can intercept before the page's own Enter handler:
+  // a highlighted suggestion opens that product; a plain Enter falls through
+  // to submitHeroSearch() (the existing behaviour).
+  input.addEventListener("keydown", (e) => {
+    if (!isOpen()) return;
+    if (e.key === "ArrowDown") {
+      if (matches.length) { e.preventDefault(); e.stopImmediatePropagation(); setHighlight(highlight + 1); }
+    } else if (e.key === "ArrowUp") {
+      if (matches.length) { e.preventDefault(); e.stopImmediatePropagation(); setHighlight(highlight - 1); }
+    } else if (e.key === "Enter") {
+      if (highlight >= 0 && matches[highlight]) {
+        e.preventDefault(); e.stopImmediatePropagation(); go(matches[highlight]);
+      } else {
+        close(); // let the existing handler run submitHeroSearch()
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault(); e.stopImmediatePropagation(); close();
+    }
+  }, true);
+
+  // mousedown (not click) so selection wins the race against the input's blur.
+  panel.addEventListener("mousedown", (e) => {
+    const row = e.target.closest(".search-typeahead-row");
+    if (!row) return;
+    e.preventDefault();
+    const p = matches.find(m => String(m.id) === row.dataset.id);
+    if (p) go(p);
+  });
+
+  input.addEventListener("blur", () => setTimeout(close, 120));
+  document.addEventListener("mousedown", (e) => {
+    if (e.target !== input && !panel.contains(e.target)) close();
+  });
+
+  // Keep the fixed panel glued to the search bar while it is open.
+  window.addEventListener("scroll", () => { if (isOpen()) reposition(); }, true);
+  window.addEventListener("resize", () => { if (isOpen()) reposition(); });
+})();

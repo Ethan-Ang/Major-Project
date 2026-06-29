@@ -1,14 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Commercial &amp; Industrial Adhesives Singapore | Yee Lim Products</title>
   <meta name="description" content="Browse Yee Lim's commercial and industrial adhesive products by brand, industry, surface, or application. Submit a product enquiry for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=6">
+  <link rel="stylesheet" href="/css/products.css?v=10">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=2">
-  <script src="/js/widgets/navbar.js?v=3"></script>
-  <script src="/js/widgets/footer.js?v=3"></script>
+  <script src="/js/widgets/navbar.js?v=4"></script>
+  <script src="/js/widgets/footer.js?v=5"></script>
 </head>
 <body>
 
@@ -32,10 +32,15 @@
         one consolidated enquiry to our team.
       </p>
       <div class="hero-actions">
-        <div class="search-bar" role="search">
-          <label for="searchInput" class="sr-only">Search products</label>
-          <input type="text" id="searchInput" placeholder="Search by product, industry, or surface..." autocomplete="off" aria-label="Search products by name, industry, or surface">
-          <button onclick="submitHeroSearch()" aria-label="Search">Search</button>
+        <div class="hero-search">
+          <div class="search-bar" role="search">
+            <label for="searchInput" class="sr-only">Search products</label>
+            <input type="text" id="searchInput" placeholder="Search by product, industry, or surface..." autocomplete="off"
+              aria-label="Search products by name, industry, or surface"
+              role="combobox" aria-expanded="false" aria-controls="searchTypeahead" aria-autocomplete="list" aria-haspopup="listbox">
+            <button onclick="submitHeroSearch()" aria-label="Search">Search</button>
+          </div>
+          <ul class="search-typeahead" id="searchTypeahead" role="listbox" aria-label="Product suggestions" hidden></ul>
         </div>
         <div class="hero-cta-row">
           <a href="#catalogue" class="hero-cta hero-cta-primary">Browse Products</a>
@@ -50,22 +55,22 @@
          catalogue below in place (same behaviour as the application tiles). -->
     <aside class="hero-brands" aria-label="Shop by brand">
       <span class="hero-brands-head">Shop by brand</span>
-      <button type="button" class="hero-brand-row" onclick="filterByBrand('Deer&trade; Brand')">
-        <span class="hero-brand-mark red" aria-hidden="true"><img src="/images/logos/Deer-white.png" alt=""></span>
+      <button type="button" class="hero-brand-row" data-brand="Deer&trade; Brand" onclick="filterByBrand('Deer&trade; Brand')">
+        <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Deer-white.png" alt=""></span>
         <span class="hero-brand-name">Deer&trade;<small>General-purpose contact adhesives</small></span>
         <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
       </button>
-      <button type="button" class="hero-brand-row" onclick="filterByBrand('Horsemen&trade; Brand')">
+      <button type="button" class="hero-brand-row" data-brand="Horsemen&trade; Brand" onclick="filterByBrand('Horsemen&trade; Brand')">
         <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Horsemen-white.png" alt=""></span>
         <span class="hero-brand-name">Horsemen&trade;<small>Heavy-duty industrial bonding</small></span>
         <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
       </button>
-      <button type="button" class="hero-brand-row" onclick="filterByBrand('Premier&trade; Brand')">
+      <button type="button" class="hero-brand-row" data-brand="Premier&trade; Brand" onclick="filterByBrand('Premier&trade; Brand')">
         <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Premier-white.png" alt=""></span>
         <span class="hero-brand-name">Premier&trade;<small>Premium &amp; specialty grades</small></span>
         <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
       </button>
-      <button type="button" class="hero-brand-row" onclick="filterByBrand('Rhino&trade; Brand')">
+      <button type="button" class="hero-brand-row" data-brand="Rhino&trade; Brand" onclick="filterByBrand('Rhino&trade; Brand')">
         <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Rhino-white.png" alt=""></span>
         <span class="hero-brand-name">Rhino&trade;<small>Construction &amp; high-strength</small></span>
         <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
@@ -240,7 +245,7 @@
 <script src="/js/data.js?v=5"></script>
 <script src="/js/widgets/compare.js?v=5"></script>
 <script src="/js/widgets/custom-select.js?v=2"></script>
-<script src="/js/pages/products.js?v=7"></script>
+<script src="/js/pages/products.js?v=10"></script>
 <script src="/js/widgets/chatbot.js?v=5"></script>
 </body>
 </html>

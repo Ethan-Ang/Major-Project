@@ -34,6 +34,11 @@
       margin-bottom: 0.9rem;
       text-decoration: none;
     }
+    .site-footer-logo {
+      height: 52px;
+      width: auto;
+      display: block;
+    }
     .site-footer-mark {
       width: 34px;
       height: 34px;
@@ -188,11 +193,7 @@
     <div class="site-footer-inner">
       <div class="site-footer-col site-footer-col-brand">
         <a href="/" class="site-footer-brand" aria-label="Yee Lim Adhesives Industries home">
-          <span class="site-footer-mark" aria-hidden="true">YL</span>
-          <span>
-            <span class="site-footer-name">YEE LIM</span><br>
-            <span class="site-footer-tagline">For a Better Job</span>
-          </span>
+          <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries" class="site-footer-logo">
         </a>
         <p class="site-footer-blurb">
           One of Singapore's earliest and largest adhesive manufacturers. For over
@@ -235,7 +236,7 @@
             <dd>1 Ang Mo Kio Street 65,<br>#03-17, Singapore 569063</dd>
           </div>
         </dl>
-        <a class="site-footer-cta" href="/contact">Speak to Yee Lim &rarr;</a>
+        <a class="site-footer-cta" href="https://wa.me/6590292613?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer">Speak to Yee Lim &rarr;</a>
       </div>
     </div>
 
