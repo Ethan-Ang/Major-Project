@@ -2921,8 +2921,8 @@ body:has(.compare-tray.visible) .toast {
 
 .hero-brand-mark {
   flex-shrink: 0;
-  width: 46px;
-  height: 46px;
+  width: 56px;
+  height: 56px;
   border-radius: 8px;
   background: var(--ink-3);
   display: flex;
@@ -2938,8 +2938,8 @@ body:has(.compare-tray.visible) .toast {
 
 /* Official white-knockout brand logo inside the tile */
 .hero-brand-mark img {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
 }
 
@@ -3117,7 +3117,8 @@ body:has(.compare-tray.visible) .toast {
   border-right: 1px solid rgba(255,255,255,0.08);
 }
 
-.trust-item:first-child { padding-left: 0; }
+/* Align first stat with hero content (past the 62px rail + 56px content indent) */
+.trust-item:first-child { padding-left: calc(62px + 56px - 2rem); }
 .trust-item:last-child { border-right: none; }
 
 .trust-num {
