@@ -63,7 +63,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #CC2929;
       padding: 0.38rem 0.85rem;
-      border-radius: 999px;
+      border-radius: 6px;
       transition: background 0.2s, box-shadow 0.2s;
       white-space: nowrap;
       flex-shrink: 0;
@@ -75,20 +75,19 @@
     .nav-basket:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     .nav-basket svg { flex-shrink: 0; opacity: 0.9; }
     .nav-basket-label-short { display: none; }
-    /* Count reads as part of the pill: a soft translucent chip, not a blob. */
-    /* Crisp white badge with red text reads clean on the red pill (the old
-       translucent fill looked muddy). Single digits sit in an 18px circle;
-       2+ digits grow into a pill via min-width + horizontal padding. */
+    /* Crisp white badge with red text reads clean on the red button. Squared
+       corners (3px) match the de-pilled 6px button; min-width lets 2+ digits
+       grow horizontally. */
     .nav-basket-count {
       background: #fff;
       color: #CC2929;
       font-size: 0.72rem;
-      font-weight: 700;
+      font-weight: 800;
       font-variant-numeric: tabular-nums;
-      border-radius: 9px;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 5px;
+      border-radius: 3px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
       display: inline-flex;
       align-items: center;
       justify-content: center;

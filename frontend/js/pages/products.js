@@ -681,22 +681,52 @@ function showToast(message) {
   const panel = document.getElementById("searchTypeahead");
   if (!input || !panel) return;
 
-  const MAX = 6;
+  const MAX = 7;
   let matches = [];
   let highlight = -1;
+  let lastQuery = "";
 
   const brandName = p =>
     (typeof brandDisplay === "function" ? brandDisplay(p.brand) : p.brand) || "";
 
+  // Escape the query for use inside a RegExp so special characters are literal.
+  const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Render `text` with the matched substring wrapped in a red <mark>. Escapes
+  // first, so the highlight is applied to already-safe HTML.
+  function highlightMatch(text, query) {
+    const safe = escapeHTML(text);
+    if (!query) return safe;
+    const re = new RegExp(escapeRe(escapeHTML(query)), "ig");
+    return safe.replace(re, m => `<mark class="st-hit">${m}</mark>`);
+  }
+
+  // Lower score = more relevant. Name-prefix beats name-substring beats brand
+  // beats industry/surface, so a broad query (e.g. "a") still surfaces a
+  // product whose name starts with it (ASG001) instead of burying it behind
+  // catalogue-order substring matches. Infinity means "no match".
+  function scoreMatch(p, query) {
+    const name = p.name.toLowerCase();
+    const brand = brandName(p).toLowerCase();
+    const raw = (p.brand || "").toLowerCase();
+    if (name.startsWith(query)) return 0;
+    if (name.includes(query)) return 1;
+    if (brand.startsWith(query) || raw.startsWith(query)) return 2;
+    if (brand.includes(query) || raw.includes(query)) return 3;
+    if ((p.industries || []).some(i => i.toLowerCase().includes(query))) return 4;
+    if ((p.surfaces || []).some(s => s.toLowerCase().includes(query))) return 5;
+    return Infinity;
+  }
+
   function computeMatches(q) {
     const query = q.toLowerCase();
-    return (PRODUCTS || []).filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      brandName(p).toLowerCase().includes(query) ||
-      (p.brand || "").toLowerCase().includes(query) ||
-      (p.industries || []).some(i => i.toLowerCase().includes(query)) ||
-      (p.surfaces || []).some(s => s.toLowerCase().includes(query))
-    ).slice(0, MAX);
+    // Array.sort is stable, so equal-score items keep catalogue order.
+    return (PRODUCTS || [])
+      .map(p => ({ p, s: scoreMatch(p, query) }))
+      .filter(x => x.s !== Infinity)
+      .sort((a, b) => a.s - b.s)
+      .slice(0, MAX)
+      .map(x => x.p);
   }
 
   function isOpen() { return !panel.hidden; }
@@ -732,8 +762,8 @@ function showToast(message) {
     }
     panel.innerHTML = matches.map((p, i) => `
       <li class="search-typeahead-row" role="option" id="st-opt-${i}" data-id="${escapeHTML(String(p.id))}" aria-selected="${i === highlight}">
-        <span class="st-name">${escapeHTML(p.name)}</span>
-        <span class="st-brand">${escapeHTML(brandName(p))}</span>
+        <span class="st-name">${highlightMatch(p.name, lastQuery)}</span>
+        <span class="st-brand">${highlightMatch(brandName(p), lastQuery)}</span>
       </li>`).join("");
   }
 
@@ -750,11 +780,12 @@ function showToast(message) {
     window.location.href = `/product-detail?id=${encodeURIComponent(p.id)}`;
   }
 
-  // Suggestions appear only at 2+ characters. Runs alongside the existing
+  // Suggestions appear from the first character. Runs alongside the existing
   // live-filter input listener, so the catalogue still filters as you type.
   input.addEventListener("input", () => {
     const q = input.value.trim();
-    if (q.length < 2) { matches = []; close(); return; }
+    if (q.length < 1) { matches = []; lastQuery = ""; close(); return; }
+    lastQuery = q;
     matches = computeMatches(q);
     highlight = -1;
     render();

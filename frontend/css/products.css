@@ -237,10 +237,10 @@ h1, h2, h3,
   background: var(--red);
   color: #fff;
   border: none;
-  padding: 0 1.5rem;
+  padding: 0 1.75rem;
   cursor: pointer;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   font-family: inherit;
   letter-spacing: 0.2px;
   transition: background 0.2s;
@@ -288,6 +288,12 @@ h1, h2, h3,
   color: var(--muted);
   font-size: 0.78rem;
   white-space: nowrap;
+}
+/* Red highlight on the matched substring (override the default yellow mark). */
+.search-typeahead-row .st-hit {
+  background: none;
+  color: var(--red);
+  font-weight: 700;
 }
 .search-typeahead-empty {
   padding: 0.7rem;
@@ -696,8 +702,9 @@ h1, h2, h3,
 
 .btn-outline {
   background: #fff;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   color: var(--text);
+  font-weight: 700;
 }
 
 .btn-outline:hover {
@@ -2882,12 +2889,13 @@ body:has(.compare-tray.visible) .toast {
 .hero-cta-ghost {
   background: transparent;
   color: #e5e7eb;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  font-weight: 700;
 }
 
 .hero-cta-ghost:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.65);
   color: #fff;
 }
 
@@ -2972,7 +2980,7 @@ body:has(.compare-tray.visible) .toast {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 46px 40px;
+  padding: 46px 40px 46px 48px;
   border-left: 1px solid rgba(255, 255, 255, 0.07);
   min-width: 0;
 }
@@ -3147,10 +3155,10 @@ body:has(.compare-tray.visible) .toast {
     padding: 0;
   }
   .hero-main {
-    padding: 30px 22px 30px;
+    padding: 30px 28px 30px;
   }
   .hero-brands {
-    padding: 4px 22px 30px;
+    padding: 4px 28px 30px;
     border-left: none;
     justify-content: flex-start;
   }
@@ -3542,6 +3550,39 @@ body:has(.compare-tray.visible) .toast {
 
 /* ─── Step 1: 2-col grid + stripped cards ────────────────────── */
 @media (max-width: 640px) {
+  /* Shop by brand: collapse the four full-width rows into one compact strip of
+     logo tiles so the panel stops pushing the catalogue down the page. Each
+     tile still filters in place (and goes red when active) like the rows do. */
+  .hero-brands {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 22px 24px;
+  }
+  .hero-brands-head { flex-basis: 100%; margin-bottom: 12px; }
+  .hero-brand-row {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+  }
+  .hero-brand-row:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+  .hero-brand-mark { width: 46px; height: 46px; }
+  .hero-brand-mark img { width: 32px; height: 32px; }
+  .hero-brand-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.15;
+  }
+  .hero-brand-name small,
+  .hero-brand-arrow { display: none; }
+
   .product-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
 
   /* Reveal mobile-only card controls */
