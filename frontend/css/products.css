@@ -431,7 +431,9 @@ h1, h2, h3,
 .product-card-image {
   width: 100%;
   aspect-ratio: 4 / 3;
-  background: var(--bg);
+  /* Uniform light plate so mismatched product photo backgrounds (some white,
+     some grey) read as one consistent set rather than scraped shots. */
+  background: var(--panel-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -444,7 +446,8 @@ h1, h2, h3,
 .product-card-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 1rem;
 }
 
 /* Clickable image -> product detail. The compare button + status badge sit
@@ -571,8 +574,20 @@ h1, h2, h3,
 .product-tags {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.3rem;
   margin-bottom: 0.75rem;
+}
+
+/* Labels the chips as a distinct taxonomy from the "Best for" line above */
+.product-tags-label {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.15rem;
+  flex-shrink: 0;
 }
 
 .product-tag {
@@ -3231,9 +3246,10 @@ body:has(.compare-tray.visible) .toast {
   height: 46px;
   flex-shrink: 0;
   border-radius: var(--radius);
-  background: var(--red-tint);
-  color: var(--red);
-  border: 1px solid var(--red-tint-bdr);
+  /* Neutral at rest for an industrial read; red is revealed on hover/active */
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;

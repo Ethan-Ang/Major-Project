@@ -290,8 +290,14 @@ function updateFilterGroupBadges() {
     const checked = group.querySelectorAll("input[type=checkbox]:checked").length;
     totalActive  += checked;
     if (badge) {
+      // Only show the count when the group is collapsed (checkboxes hidden).
+      // When expanded — always on desktop — the checked boxes already convey
+      // state, and the active-filter chips above are the single source of truth,
+      // so the badge would just double the same information.
+      const panel = group.querySelector(".filter-group-panel");
+      const collapsed = panel && getComputedStyle(panel).display === "none";
       badge.textContent   = checked || "";
-      badge.style.display = checked > 0 ? "inline-flex" : "none";
+      badge.style.display = (checked > 0 && collapsed) ? "inline-flex" : "none";
     }
   });
 
@@ -488,7 +494,7 @@ function productCardHTML(p) {
         <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
         ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span>${primaryApps}</span></div>` : ""}
         <p>${escapeHTML(p.shortDescription)}</p>
-        ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces">${surfaceTags}</div>` : ""}
+        ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces"><span class="product-tags-label">Surfaces</span>${surfaceTags}</div>` : ""}
         <div class="product-card-actions">
           <a href="${detailHref}" class="btn btn-primary">View Details</a>
           <button
@@ -597,6 +603,8 @@ function toggleFilterGroup(btn) {
   const group = btn.closest(".filter-group");
   group.classList.toggle("open");
   btn.setAttribute("aria-expanded", group.classList.contains("open"));
+  // A collapsed group shows its count badge; an expanded one hides it.
+  updateFilterGroupBadges();
 }
 
 function onMobileSortChange(sel) {
