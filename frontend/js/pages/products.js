@@ -27,12 +27,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   readStateFromURL();
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("sortSelect"));
+    // Same polished dropdown for the mobile filter bar's sort control, so the
+    // phone view matches desktop instead of showing the raw OS select.
+    enhanceCustomSelect(document.getElementById("mobileSortSelect"));
   }
   buildFilterCheckboxes();
   renderApplications();
   applyStateToCheckboxes();
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
+  // Also refresh the mobile compare tab/sheet now that PRODUCTS has loaded, so
+  // items persisted from a previous visit render instead of showing empty.
+  if (typeof renderCompareMobile === "function") renderCompareMobile();
 
   requestAnimationFrame(() => {
     applyFilters({ skipUrlWrite: true });
@@ -334,6 +340,11 @@ function clearFilters() {
   const sortSelect = document.getElementById("sortSelect");
   sortSelect.value = "default";
   if (typeof refreshCustomSelect === "function") refreshCustomSelect(sortSelect);
+  const mobileSortSelect = document.getElementById("mobileSortSelect");
+  if (mobileSortSelect) {
+    mobileSortSelect.value = "default";
+    if (typeof refreshCustomSelect === "function") refreshCustomSelect(mobileSortSelect);
+  }
   activeFilters = { productTypes: [], brands: [], industries: [], surfaces: [] };
   renderFilterChips();
   renderGrid(PRODUCTS);

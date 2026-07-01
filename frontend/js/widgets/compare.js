@@ -152,6 +152,10 @@ let cmpSheetRelease = null;
 
 function openCompareSheet() {
   ensureMobileCompareUI();
+  // Re-render from current PRODUCTS before opening: the initial render can run
+  // before the catalogue data has loaded (e.g. items persisted from a previous
+  // visit), which would otherwise leave the sheet list empty.
+  renderCompareMobile();
   const m = document.getElementById("cmpModal");
   if (!m) return;
   m.classList.add("open");

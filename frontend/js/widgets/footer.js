@@ -18,7 +18,7 @@
       grid-template-columns: 1.7fr 1fr 1fr 1.3fr;
       gap: 2.5rem;
     }
-    .site-footer-col h4 {
+    .site-footer-col-title {
       color: #fff;
       font-family: 'Space Grotesk', 'Inter', sans-serif;
       font-size: 0.82rem;
@@ -208,7 +208,7 @@
       </div>
 
       <nav class="site-footer-col" aria-label="Company">
-        <h4>Company</h4>
+        <p class="site-footer-col-title">Company</p>
         <ul class="site-footer-links">
           <li><a href="/about">About Yee Lim</a></li>
           <li><a href="/about">Our Heritage</a></li>
@@ -218,7 +218,7 @@
       </nav>
 
       <nav class="site-footer-col" aria-label="Products and brands">
-        <h4>Products &amp; Brands</h4>
+        <p class="site-footer-col-title">Products &amp; Brands</p>
         <ul class="site-footer-links">
           <li><a href="/products">All Adhesive Solutions</a></li>
           <li><a href="${brandLink("Deer™ Brand")}">Deer™ Brand</a></li>
@@ -229,7 +229,7 @@
       </nav>
 
       <div class="site-footer-col">
-        <h4>Contact &amp; Enquiry</h4>
+        <p class="site-footer-col-title">Contact &amp; Enquiry</p>
         <dl class="site-footer-contact">
           <div>
             <dt>Address</dt>

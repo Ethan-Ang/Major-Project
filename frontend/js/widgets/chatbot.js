@@ -38,7 +38,7 @@
       opacity: 0;
       pointer-events: none;
       background: #ffffff;
-      border-radius: 14px;
+      border-radius: 16px;
       box-shadow: 0 28px 70px -16px rgba(8,11,16,0.40), 0 0 0 1px rgba(8,11,16,0.04);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
@@ -73,29 +73,27 @@
     /* Header */
     .yl-adv-header {
       background: #0e1116;
-      padding: 0.95rem 1.05rem;
+      padding: 1.05rem 1.1rem;
       display: flex;
       align-items: center;
-      gap: 0.7rem;
+      gap: 0.75rem;
       flex-shrink: 0;
-      border-bottom: 2px solid #CC2929;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .yl-adv-mark {
-      width: 32px;
-      height: 32px;
-      background: #CC2929;
-      border-radius: 6px;
+      width: 38px;
+      height: 38px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Space Grotesk', 'Inter', sans-serif;
-      font-size: 0.74rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.5px;
       flex-shrink: 0;
+      overflow: hidden;
     }
+    .yl-adv-mark img { width: 28px; height: 28px; object-fit: contain; display: block; }
 
     .yl-adv-header-text {
       flex: 1;
@@ -153,6 +151,7 @@
       flex-direction: column;
       gap: 0.75rem;
       scroll-behavior: smooth;
+      background: #f8f9fb;
     }
 
     .yl-adv-messages::-webkit-scrollbar { width: 4px; }
@@ -160,8 +159,9 @@
 
     .yl-msg {
       display: flex;
-      flex-direction: column;
-      max-width: 88%;
+      gap: 0.45rem;
+      max-width: 90%;
+      align-items: flex-start;
       animation: ylMsgIn 0.22s cubic-bezier(0.23,1,0.32,1) both;
     }
 
@@ -170,8 +170,23 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .yl-msg-user  { align-self: flex-end; align-items: flex-end; }
-    .yl-msg-assistant { align-self: flex-start; align-items: flex-start; }
+    .yl-msg-user  { align-self: flex-end; }
+    .yl-msg-assistant { align-self: flex-start; }
+
+    .yl-msg-avatar {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      border-radius: 7px;
+      background: #fff;
+      border: 1px solid #e9ebf0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .yl-msg-avatar img { width: 18px; height: 18px; object-fit: contain; display: block; }
+    .yl-msg-body { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
 
     .yl-msg-bubble {
       padding: 0.7rem 0.95rem;
@@ -182,16 +197,17 @@
     }
 
     .yl-msg-user .yl-msg-bubble {
-      background: #CC2929;
+      background: #1b212b;
       color: #fff;
       border-bottom-right-radius: 4px;
     }
 
     .yl-msg-assistant .yl-msg-bubble {
-      background: #f7f8fa;
-      border: 1px solid #e4e7ec;
+      background: #fff;
+      border: 1px solid #e9ebf0;
       color: #1b212b;
       border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     }
 
     .yl-msg-bubble a { color: #CC2929; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
@@ -202,16 +218,14 @@
 
     /* Typing */
     .yl-typing {
-      align-self: flex-start;
       display: flex;
       align-items: center;
       gap: 4px;
       padding: 0.7rem 0.95rem;
-      background: #f7f8fa;
-      border: 1px solid #e4e7ec;
+      background: #fff;
+      border: 1px solid #e9ebf0;
       border-radius: 12px;
       border-bottom-left-radius: 4px;
-      animation: ylMsgIn 0.22s cubic-bezier(0.23,1,0.32,1) both;
     }
 
     .yl-typing span {
@@ -236,7 +250,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.4rem;
-      margin-top: 0.35rem;
     }
 
     .yl-suggestion {
@@ -252,7 +265,7 @@
       transition: border-color 0.18s cubic-bezier(0.23,1,0.32,1), color 0.18s, background 0.18s, transform 0.12s;
     }
 
-    .yl-suggestion:hover { border-color: #CC2929; color: #CC2929; background: #fdecec; transform: translateY(-1px); }
+    .yl-suggestion:hover { border-color: #c2c7d0; color: #1b212b; background: #f2f4f7; transform: translateY(-1px); }
     .yl-suggestion:active { transform: scale(0.97); }
 
     /* Input */
@@ -274,8 +287,8 @@
     }
 
     .yl-adv-input-row:focus-within {
-      border-color: #CC2929;
-      box-shadow: 0 0 0 3px rgba(204,41,41,0.12);
+      border-color: #6b7480;
+      box-shadow: 0 0 0 3px rgba(27, 33, 43, 0.10);
       background: #fff;
     }
 
@@ -317,7 +330,6 @@
       margin-top: 0.45rem;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-
   `;
 
   const styleEl = document.createElement("style");
@@ -329,11 +341,11 @@
     <div id="yl-advisor-backdrop"></div>
     <div id="yl-advisor-panel" role="dialog" aria-modal="true" aria-label="Yee Lim Product Advisor">
       <div class="yl-adv-header">
-        <div class="yl-adv-mark">YL</div>
+        <div class="yl-adv-mark"><img src="/images/logos/ylai-seal.png" alt="Yee Lim Adhesives"></div>
         <div class="yl-adv-header-text">
           <div class="yl-adv-title">Product Advisor</div>
           <div class="yl-adv-subtitle">
-            <span class="yl-status-dot"></span>AI-powered · Yee Lim Adhesives
+            <span class="yl-status-dot"></span>Yee Lim Adhesives
           </div>
         </div>
         <button class="yl-adv-close" onclick="closeProductAdvisor()" aria-label="Close product advisor">
@@ -347,6 +359,7 @@
       <div class="yl-adv-footer">
         <div class="yl-adv-input-row">
           <input class="yl-adv-input" id="ylAdvInput" type="text"
+            aria-label="Ask the product advisor a question"
             placeholder="e.g. What adhesive for tiles in wet areas?"
             maxlength="400" autocomplete="off" />
           <button class="yl-adv-send" id="ylAdvSend" aria-label="Send message" disabled>
@@ -424,10 +437,22 @@
     const wrap   = document.createElement("div");
     wrap.className = `yl-msg yl-msg-${role}`;
 
+    // Assistant messages carry the brand emblem avatar, the hallmark of a real
+    // chat UI. User messages stay avatar-less and right-aligned.
+    if (role === "assistant") {
+      const avatar = document.createElement("div");
+      avatar.className = "yl-msg-avatar";
+      avatar.innerHTML = '<img src="/images/logos/ylai-seal.png" alt="">';
+      wrap.appendChild(avatar);
+    }
+
+    const body = document.createElement("div");
+    body.className = "yl-msg-body";
+
     const bubble = document.createElement("div");
     bubble.className = "yl-msg-bubble";
     bubble.innerHTML = formatText(text);
-    wrap.appendChild(bubble);
+    body.appendChild(bubble);
 
     if (suggestions && suggestions.length) {
       const chips = document.createElement("div");
@@ -442,9 +467,10 @@
         });
         chips.appendChild(btn);
       });
-      wrap.appendChild(chips);
+      body.appendChild(chips);
     }
 
+    wrap.appendChild(body);
     messages.appendChild(wrap);
     messages.scrollTop = messages.scrollHeight;
   }
@@ -480,13 +506,15 @@
 
   // ─── Typing indicator ──────────────────────────────────────────
   function showTyping() {
-    const el = document.createElement("div");
-    el.className = "yl-typing";
-    el.id = "ylAdvTyping";
-    el.innerHTML = "<span></span><span></span><span></span>";
-    messages.appendChild(el);
+    const wrap = document.createElement("div");
+    wrap.className = "yl-msg yl-msg-assistant";
+    wrap.id = "ylAdvTyping";
+    wrap.innerHTML =
+      '<div class="yl-msg-avatar"><img src="/images/logos/ylai-seal.png" alt=""></div>' +
+      '<div class="yl-typing"><span></span><span></span><span></span></div>';
+    messages.appendChild(wrap);
     messages.scrollTop = messages.scrollHeight;
-    return el;
+    return wrap;
   }
 
   function hideTyping() {

@@ -1173,7 +1173,7 @@ h1, h2, h3,
   color: var(--muted);
   margin-bottom: 0.2rem;
 }
-.basket-item-info h4 {
+.basket-item-info .basket-item-name {
   font-size: 0.95rem;
   font-weight: 600;
   margin-bottom: 0.2rem;
@@ -1954,6 +1954,18 @@ h1, h2, h3,
      CTA-first before the visitor had even seen the product. */
 }
 
+/* On phones the action card sits directly above the full header (brand,
+   availability badge, h1 name, description), so its own name + availability
+   just repeat what the h1 block shows one screen down. Drop them here so the
+   card leads straight into the buttons; the h1 block is the single source of
+   identity. Desktop keeps the buy-box identity since the card sits beside the
+   gallery, not stacked above the header. */
+@media (max-width: 640px) {
+  .detail-sidebar .sidebar-avail-bar,
+  .detail-sidebar .sidebar-identity { display: none; }
+  .detail-sidebar .sidebar-actions { padding-top: 1.1rem; }
+}
+
 /* ─── Compare Tray (fixed bottom) ───────────────────────────── */
 .compare-tray {
   position: fixed;
@@ -2092,6 +2104,23 @@ h1, h2, h3,
 }
 
 .compare-tray-clear:hover { color: var(--text); }
+
+/* Tablet band (641-860px): keep the tray a single row. The desktop default
+   lets the slot cluster wrap, which dropped "+ Add product" onto a ragged
+   second line at this width. Scroll the chips horizontally instead so the
+   label and the Compare / Clear all actions stay pinned and the tray height
+   is constant. Phones (<=640px) use the stacked layout below. */
+@media (min-width: 641px) and (max-width: 860px) {
+  .compare-tray { flex-wrap: nowrap; gap: 1rem; }
+  .compare-tray-slots {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+  }
+  .compare-tray-slots .compare-slot { flex-shrink: 0; }
+}
 
 /* Mobile compare tray: stack into clean rows instead of one cramped line.
    "Comparing:" gets its own row, the selected products scroll horizontally if
@@ -2645,6 +2674,13 @@ body:has(.compare-tray.visible) .toast {
   background: var(--red);
 }
 
+/* On phones the basket list directly above already shows the selected products
+   (with remove controls), so this summary box just repeats them. Hide it here;
+   it stays on larger screens where the form sits beside, not below, the list. */
+@media (max-width: 640px) {
+  .enquiring-about { display: none; }
+}
+
 /* ─── Compare page polish ─────────────────────────────────────── */
 .compare-page-top h1 {
   font-size: 1.4rem;
@@ -3192,7 +3228,18 @@ body:has(.compare-tray.visible) .toast {
     flex: none;
     width: 100%;
     min-width: 0;
+    min-height: 44px;
   }
+}
+
+/* Phone hero: drop the "View Product Enquiry" shortcut so the hero leads with a
+   single primary action (Browse Products). The enquiry basket lives in the nav
+   (a count chip appears once items are added, and it is always in the menu), and
+   for a first visit that button only led to an empty page. The advisor is reached
+   from the inline prompt at the top of the catalogue (.advisor-prompt). Tablet
+   (641-860px) and desktop keep "View Product Enquiry". */
+@media (max-width: 640px) {
+  .page-hero--rail .hero-cta-enquiry { display: none; }
 }
 
 /* ─── Stats strip (dark continuation of hero) ────────────────── */
@@ -3423,6 +3470,65 @@ body:has(.compare-tray.visible) .toast {
   max-width: 62ch;
 }
 
+/* ─── Advisor prompt (companion to Common Applications) ──────────
+   The "describe your own job" option below the preset application tiles: same
+   find-by-job idea, for jobs the tiles do not cover. One placement, identical on
+   desktop and mobile; stacks on phones. */
+.advisor-prompt {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  background: var(--card, #fff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.advisor-prompt-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: var(--ink);
+  color: #fff;
+}
+.advisor-prompt-icon svg { width: 20px; height: 20px; }
+.advisor-prompt-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.advisor-prompt-text strong { font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+.advisor-prompt-text span { font-size: 0.85rem; color: var(--muted); line-height: 1.45; }
+.advisor-prompt-btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 1.15rem;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.advisor-prompt-btn:hover { border-color: var(--ink); background: var(--ink); color: #fff; }
+.advisor-prompt-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .advisor-prompt { flex-direction: column; align-items: flex-start; gap: 0.8rem; padding: 1rem; }
+  .advisor-prompt-btn { width: 100%; text-align: center; }
+}
+
 /* ─── Responsive — B2B sections ──────────────────────────────── */
 @media (max-width: 900px) {
   .application-grid { grid-template-columns: repeat(2, 1fr); }
@@ -3481,6 +3587,15 @@ body:has(.compare-tray.visible) .toast {
   z-index: 4;
 }
 .pcard-add:active { transform: scale(0.88); }
+/* Keep the visible circle at 34px but extend the tap target to ~44px. */
+.pcard-add::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: -5px;
+  right: -5px;
+}
 .pcard-add.added {
   background: var(--green);
   box-shadow: 0 2px 8px rgba(15,122,55,0.28);
@@ -3505,6 +3620,18 @@ body:has(.compare-tray.visible) .toast {
   color: var(--muted);
   cursor: pointer;
   line-height: 1;
+  position: relative; /* anchor the expanded hit area below */
+}
+/* The visible toggle stays compact (checkbox + label), but the tap target was
+   only ~15px tall. Extend the clickable area to ~44px via an overlay without
+   changing the visual layout. */
+.pcard-cmp::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  bottom: -14px;
+  left: -8px;
+  right: -8px;
 }
 .pcard-cb {
   width: 15px;
@@ -3553,38 +3680,11 @@ body:has(.compare-tray.visible) .toast {
 
 /* ─── Step 1: 2-col grid + stripped cards ────────────────────── */
 @media (max-width: 640px) {
-  /* Shop by brand: collapse the four full-width rows into one compact strip of
-     logo tiles so the panel stops pushing the catalogue down the page. Each
-     tile still filters in place (and goes red when active) like the rows do. */
-  .hero-brands {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 4px 22px 24px;
-  }
-  .hero-brands-head { flex-basis: 100%; margin-bottom: 12px; }
-  .hero-brand-row {
-    flex: 1 1 0;
-    min-width: 0;
-    width: auto;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-  }
-  .hero-brand-row:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-  .hero-brand-mark { width: 46px; height: 46px; }
-  .hero-brand-mark img { width: 32px; height: 32px; }
-  .hero-brand-name {
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-    line-height: 1.15;
-  }
-  .hero-brand-name small,
-  .hero-brand-arrow { display: none; }
+  /* Shop by brand is hidden on phones: it duplicates the Brand filter (in the
+     Refine Products drawer and the footer), and on a stacked mobile layout it
+     just pushes the catalogue down. Job-first entry (Common Applications) and
+     search stay. It remains on tablet/desktop where it fills the hero column. */
+  .page-hero--rail .hero-brands { display: none; }
 
   .product-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
 
@@ -3633,8 +3733,11 @@ body:has(.compare-tray.visible) .toast {
   .active-filter-chips::-webkit-scrollbar { display: none; }
   .filter-chip, .filter-chip-clear        { flex-shrink: 0; white-space: nowrap; }
 
-  /* Hide desktop sort select (mirrored in mobile filter bar) */
-  .grid-meta .sort-select { display: none; }
+  /* Hide desktop sort select (mirrored in mobile filter bar). custom-select.js
+     wraps #sortSelect in a styled .custom-select-wrap trigger that isn't
+     covered by hiding .sort-select alone, so hide the wrapper too. */
+  .grid-meta .sort-select,
+  .grid-meta .custom-select-wrap { display: none; }
 
   /* Hide existing 768px filter toggle (replaced by mobile filter bar) */
   .filter-toggle { display: none; }
@@ -3665,6 +3768,7 @@ body:has(.compare-tray.visible) .toast {
     border: none;
     border-radius: 8px;
     padding: 0.55rem;
+    min-height: 44px;
     font-size: 0.8rem;
     font-weight: 600;
     font-family: inherit;
@@ -3688,11 +3792,25 @@ body:has(.compare-tray.visible) .toast {
 
   .mfb-sort-wrap {
     flex: 1;
-    border: 1px solid var(--line-2);
-    border-radius: 8px;
-    background: #fff;
-    overflow: hidden;
+    min-width: 0;
+    /* The custom-select trigger (below) now supplies the border + background,
+       so the wrapper stays transparent and unclipped: overflow:hidden here
+       would cut off the dropdown listbox. */
   }
+  /* Mobile sort uses the same polished custom dropdown as desktop (enhanced by
+     custom-select.js) instead of the raw OS <select>. Size its trigger to fill
+     the slot at the 44px height of the neighbouring Filters button. */
+  .mfb-sort-wrap .custom-select-wrap { display: block; width: 100%; }
+  .mfb-sort-wrap .custom-select-trigger {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+  }
+  /* Comfortable touch height for each option in the mobile dropdown. */
+  .mfb-sort-wrap .custom-select-listbox { min-width: 180px; }
+  .mfb-sort-wrap .custom-select-option { min-height: 44px; }
 
   .mfb-sort-sel {
     width: 100%;
@@ -3700,7 +3818,7 @@ body:has(.compare-tray.visible) .toast {
     -webkit-appearance: none;
     border: none;
     background: transparent;
-    padding: 0.55rem 2rem 0.55rem 0.7rem;
+    padding: 0.7rem 2rem 0.7rem 0.7rem;
     font-size: 0.8rem;
     font-weight: 500;
     font-family: inherit;
@@ -4102,6 +4220,18 @@ body:has(.compare-tray.visible) .toast {
   }
   .cx-switch.on .cx-knob { transform: translateX(18px); }
 
+  .cx-scrollhint {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.6rem;
+    color: var(--red);
+    font-size: 0.76rem;
+    font-weight: 600;
+    transition: opacity 0.2s;
+  }
+  .cx-scrollhint svg { flex-shrink: 0; }
+  .cx-scrollhint[hidden] { display: none; }
   .cx-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

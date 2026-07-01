@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Commercial &amp; Industrial Adhesives Singapore | Yee Lim Products</title>
   <meta name="description" content="Browse Yee Lim's commercial and industrial adhesive products by brand, industry, surface, or application. Submit a product enquiry for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=14">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=2">
-  <script src="/js/widgets/navbar.js?v=5"></script>
-  <script src="/js/widgets/footer.js?v=5"></script>
+  <link rel="stylesheet" href="/css/products.css?v=24">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=4">
+  <script src="/js/widgets/navbar.js?v=6"></script>
+  <script src="/js/widgets/footer.js?v=6"></script>
 </head>
 <body>
 
@@ -44,8 +44,7 @@
         </div>
         <div class="hero-cta-row">
           <a href="#catalogue" class="hero-cta hero-cta-primary">Browse Products</a>
-          <a href="/enquiry" class="hero-cta hero-cta-ghost">View Product Enquiry</a>
-          <button type="button" class="hero-cta hero-cta-ghost" onclick="openProductAdvisor()">Need Help Choosing?</button>
+          <a href="/enquiry" class="hero-cta hero-cta-ghost hero-cta-enquiry">View Product Enquiry</a>
         </div>
       </div>
     </div>
@@ -98,6 +97,20 @@
       <p>Start with a common use case, then refine with filters below.</p>
     </div>
     <div class="application-grid" id="applicationGrid"></div>
+
+    <!-- The advisor is the "describe your own job" companion to the preset
+         application tiles above: same find-by-job idea, for jobs the tiles do
+         not cover. One placement, identical on desktop and mobile. -->
+    <div class="advisor-prompt">
+      <span class="advisor-prompt-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+      </span>
+      <div class="advisor-prompt-text">
+        <strong>Don't see your application?</strong>
+        <span>Describe your surface and job, and our advisor will recommend the right products.</span>
+      </div>
+      <button type="button" class="advisor-prompt-btn" onclick="openProductAdvisor()">Ask the advisor</button>
+    </div>
   </div>
 </section>
 
@@ -245,9 +258,9 @@
 </div>
 
 <script src="/js/data.js?v=5"></script>
-<script src="/js/widgets/compare.js?v=5"></script>
+<script src="/js/widgets/compare.js?v=6"></script>
 <script src="/js/widgets/custom-select.js?v=2"></script>
-<script src="/js/pages/products.js?v=12"></script>
-<script src="/js/widgets/chatbot.js?v=5"></script>
+<script src="/js/pages/products.js?v=14"></script>
+<script src="/js/widgets/chatbot.js?v=11"></script>
 </body>
 </html>

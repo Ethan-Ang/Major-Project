@@ -50,12 +50,10 @@
     /* Brand lockup anchors the page to the rest of the site */
     .nf-brand { display: flex; align-items: center; gap: 0.6rem; }
     .nf-logo {
-      width: 34px; height: 34px; border-radius: 7px;
-      background: var(--red); color: #fff;
-      font-family: 'Space Grotesk', 'Inter', sans-serif;
-      font-weight: 700; font-size: 0.82rem; letter-spacing: 0.5px;
-      display: grid; place-items: center;
+      width: 34px; height: 34px; border-radius: 7px; overflow: hidden;
+      background: #fff; display: grid; place-items: center;
     }
+    .nf-logo img { width: 25px; height: 25px; object-fit: contain; display: block; }
     .nf-word {
       font-family: 'Space Grotesk', 'Inter', sans-serif;
       font-weight: 600; font-size: 0.95rem; letter-spacing: 0.01em;
@@ -148,7 +146,7 @@
 <body>
   <div class="nf">
     <header class="nf-brand">
-      <span class="nf-logo" aria-hidden="true">YL</span>
+      <span class="nf-logo" aria-hidden="true"><img src="/images/logos/ylai-seal.png" alt=""></span>
       <span class="nf-word">Yee Lim Adhesives</span>
     </header>
 

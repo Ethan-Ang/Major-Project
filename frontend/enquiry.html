@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Enquiry | Yee Lim Adhesives Industries</title>
   <meta name="description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=2">
-  <script src="/js/widgets/navbar.js?v=5"></script>
-  <script src="/js/widgets/footer.js?v=5"></script>
+  <link rel="stylesheet" href="/css/products.css?v=24">
+  <script src="/js/widgets/navbar.js?v=6"></script>
+  <script src="/js/widgets/footer.js?v=6"></script>
 </head>
 <body>
 
@@ -159,7 +159,7 @@ function renderBasket() {
         <div class="basket-item-thumb" aria-hidden="true">${thumb}</div>
         <div class="basket-item-info">
           <span class="basket-item-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
-          <h4>${ylEscapeHtml(p.name)}</h4>
+          <div class="basket-item-name">${ylEscapeHtml(p.name)}</div>
           <p>${ylEscapeHtml(p.shortDescription)}</p>
         </div>
         <button class="basket-remove" onclick="removeFromBasket('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from your product enquiry">

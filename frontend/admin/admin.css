@@ -150,11 +150,11 @@ a { color: inherit; }
 .login-brand-panel::after { content: ""; position: absolute; top: 0; left: 0; width: 70px; height: 3px; background: var(--red); }
 .login-brand-content { flex: 1; position: relative; z-index: 1; }
 .login-brand-logo {
-  width: 54px; height: 54px; border-radius: 13px; margin-bottom: 2rem;
-  background: linear-gradient(145deg,#e23b3b,#b81f1f); color: #fff; font-size: 1.15rem; font-weight: 800;
-  font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center;
-  letter-spacing: 0.5px; box-shadow: 0 6px 16px -3px rgba(204,41,41,0.5);
+  width: 54px; height: 54px; border-radius: 13px; margin-bottom: 2rem; overflow: hidden;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 16px -3px rgba(0,0,0,0.4);
 }
+.login-brand-logo img { width: 40px; height: 40px; object-fit: contain; display: block; }
 .login-brand-name { font-size: 2.1rem; font-weight: 700; color: #fff; line-height: 1.15; margin-bottom: 1rem; }
 .login-brand-tagline { color: #aeb6c2; font-size: 0.92rem; line-height: 1.6; margin-bottom: 2.5rem; max-width: 320px; }
 .login-brand-features { display: flex; flex-direction: column; gap: 1.1rem; }
@@ -210,6 +210,9 @@ a { color: inherit; }
   .login-split { flex-direction: column; }
   .login-brand-panel { width: 100%; padding: 2rem; }
   .login-brand-features { display: none; }
+  /* Top-align the form under the brand band instead of vertically centering
+     it, which left a large empty gap when the split layout stacks. */
+  .login-form-panel { align-items: flex-start; padding: 2rem 2rem 3rem; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -234,11 +237,11 @@ a { color: inherit; }
 .admin-sidebar > * { position: relative; z-index: 1; }
 .admin-sidebar-brand { display: flex; align-items: center; gap: 0.8rem; padding: 1.5rem 1.4rem; }
 .brand-mark {
-  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
-  background: linear-gradient(145deg,#e23b3b,#b81f1f); color: #fff; font-size: 0.92rem; font-weight: 700;
-  font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; justify-content: center;
-  letter-spacing: 0.5px; box-shadow: 0 4px 12px -2px rgba(204,41,41,0.5);
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; overflow: hidden;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px -2px rgba(0,0,0,0.35);
 }
+.brand-mark img { width: 30px; height: 30px; object-fit: contain; display: block; }
 .brand-name { font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.15; }
 .brand-sub { font-size: 0.66rem; color: var(--muted-2); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 2px; }
 
@@ -280,6 +283,11 @@ a { color: inherit; }
 
 .admin-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .admin-body { padding: 2.25rem 2rem 2.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* ─── Mobile nav chrome (hidden on desktop, activated <=768px) ─── */
+.admin-topbar { display: none; }
+.admin-drawer-overlay { display: none; }
+.admin-drawer-close { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════
    OVERVIEW: greeting, KPIs, chart, recent enquiries
@@ -555,7 +563,49 @@ input[type="checkbox"] { accent-color: var(--red); }
 @media (max-width: 1024px) { td, th { padding-left: 0.7rem; padding-right: 0.7rem; } .table-search { width: 180px; } }
 @media (max-width: 900px) { .stats-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 768px) {
-  .admin-sidebar { display: none; }
+  /* Sidebar becomes an off-canvas drawer (same markup, reused as the menu) */
+  .admin-sidebar {
+    position: fixed; left: 0; top: 0; width: 270px; height: 100vh; height: 100dvh;
+    transform: translateX(-100%); transition: transform 0.28s var(--ease);
+    z-index: 300; box-shadow: var(--shadow-lg); animation: none;
+  }
+  .admin-sidebar.open { transform: translateX(0); }
+
+  .admin-drawer-overlay {
+    display: block; position: fixed; inset: 0; background: rgba(8,11,16,0.5);
+    opacity: 0; pointer-events: none; transition: opacity 0.28s var(--ease); z-index: 250;
+  }
+  .admin-drawer-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .admin-topbar {
+    display: flex; align-items: center; gap: 0.7rem;
+    position: sticky; top: 0; z-index: 150; padding: 0.6rem 0.9rem;
+    background: linear-gradient(180deg,#10141b 0%,#0b0e13 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .admin-burger {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09);
+    color: #fff; cursor: pointer; transition: transform 0.1s, background 0.15s;
+  }
+  .admin-burger:active { transform: scale(0.96); }
+  .admin-topbar-brand {
+    display: inline-flex; align-items: center; gap: 0.55rem; color: #fff;
+    font-weight: 700; font-size: 0.95rem; font-family: 'Space Grotesk','Inter',sans-serif;
+  }
+  .admin-topbar-mark {
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; overflow: hidden;
+    background: #fff; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .admin-topbar-mark img { width: 22px; height: 22px; object-fit: contain; display: block; }
+  .admin-drawer-close {
+    display: flex; align-items: center; justify-content: center;
+    position: absolute; top: 0.85rem; right: 0.85rem; width: 40px; height: 40px;
+    border-radius: 9px; z-index: 2; cursor: pointer; color: #fff;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09);
+  }
+
   .admin-body { padding: 1.25rem; }
   .page-head, .greeting { flex-direction: column; align-items: flex-start; gap: 0.85rem; }
   .kpi-row, .stats-row { grid-template-columns: 1fr; }

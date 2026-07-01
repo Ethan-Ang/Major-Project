@@ -140,6 +140,10 @@
     .nav-compare-count { display: none !important; }
     .nav-hamburger {
       display: none;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
       background: none;
       border: none;
       color: #fff;
@@ -176,7 +180,7 @@
       .nav { grid-template-columns: 1fr auto; }
       .nav-links { display: none; }
       .nav-compare { display: none !important; }
-      .nav-hamburger { display: block; }
+      .nav-hamburger { display: inline-flex; }
     }
     @media (max-width: 480px) {
       /* Narrow mobile: clean header = logo, compact enquiry chip (only when

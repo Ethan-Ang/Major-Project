@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderComparePage();
 });
 window.addEventListener("compareUpdated", renderComparePage);
+window.addEventListener("resize", updateCompareScrollHint);
 
 function renderComparePage() {
   const list     = getCompareList();
@@ -107,6 +108,9 @@ function renderComparePage() {
       </table>
     </div>
     ${buildCompareMobile(products)}`;
+
+  // Measure after layout so the swipe hint only appears when columns overflow.
+  requestAnimationFrame(updateCompareScrollHint);
 }
 
 // ─── Mobile column comparison (≤640px) ────────────────────────────
@@ -176,6 +180,10 @@ function buildCompareMobile(products) {
           <span class="cx-knob"></span>
         </button>
       </div>
+      <div class="cx-scrollhint" id="cxScrollHint" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+        Swipe to compare all ${n} products
+      </div>
       <div class="cx-scroll">
         <div class="cx-grid" id="cxGrid" style="grid-template-columns:${cols}">
           ${cells}
@@ -183,6 +191,20 @@ function buildCompareMobile(products) {
       </div>
       ${addSlot}
     </div>`;
+}
+
+// Show the swipe hint only when the product columns actually overflow the
+// viewport (3+ products at phone widths). Fades out once the user reaches the
+// end of the scroll so it does not nag.
+function updateCompareScrollHint() {
+  const sc   = document.querySelector(".cx-scroll");
+  const hint = document.getElementById("cxScrollHint");
+  if (!sc || !hint) return;
+  hint.hidden = !(sc.scrollWidth > sc.clientWidth + 4);
+  sc.onscroll = () => {
+    const atEnd = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 8;
+    hint.style.opacity = atEnd ? "0" : "1";
+  };
 }
 
 function toggleDiff() {
