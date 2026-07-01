@@ -7,13 +7,14 @@
   <meta id="metaDescription" name="description" content="Detailed specifications, application surfaces, and usage guide for Yee Lim Adhesives industrial products. Submit an enquiry directly to our sales team.">
   <link rel="stylesheet" href="css/products.css">
   <script src="js/widgets/navbar.js"></script>
+  <script src="js/widgets/footer.js"></script>
 </head>
 <body>
 
 <nav class="breadcrumb page-breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
-  <a href="home.html">Home</a>
+  <a href="index.html">Home</a>
   <span aria-hidden="true">&rsaquo;</span>
-  <a href="products.html">Products</a>
+  <a href="products.html#catalogue" id="breadcrumbProducts" onclick="return backToProducts(event)">Products</a>
   <span aria-hidden="true">&rsaquo;</span>
   <span id="breadcrumbProduct">Loading&hellip;</span>
 </nav>
@@ -28,11 +29,12 @@
 <div class="detail-content">
   <div id="detailHeader"></div>
   <div id="detailSpecs"></div>
+  <div id="detailDownloads"></div>
   <div id="detailDesc"></div>
 </div>
 
 <div class="related-section" id="relatedSection" style="display:none">
-  <h3>Related Products</h3>
+  <h2>Related Products</h2>
   <div class="related-grid" id="relatedGrid"></div>
 </div>
 
@@ -51,9 +53,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-<footer class="footer">
-  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
-</footer>
+<!-- Footer injected by js/widgets/footer.js -->
 
 <script src="js/data.js"></script>
 <script src="js/widgets/compare.js"></script>

@@ -7,12 +7,15 @@
   <meta name="description" content="Contact Yee Lim Adhesives Industries for product enquiries, quotations, and technical adhesive support.">
   <link rel="stylesheet" href="css/products.css">
   <script src="js/widgets/navbar.js"></script>
+  <script src="js/widgets/footer.js"></script>
 </head>
 <body>
 
 <section class="page-hero contact-hero">
-  <h1>Contact Us</h1>
-  <p>Need help choosing the right adhesive? Contact our team for product enquiries, quotations, and technical support.</p>
+  <div class="hero-inner">
+    <h1>Contact Us</h1>
+    <p>Need help choosing the right adhesive? Contact our team for product enquiries, quotations, and technical support.</p>
+  </div>
 </section>
 
 <main class="contact-page">
@@ -98,9 +101,7 @@
   </section>
 </main>
 
-<footer class="footer">
-  <p>&copy; 2025 Yee Lim Adhesives Industries. All rights reserved.</p>
-</footer>
+<!-- Footer injected by js/widgets/footer.js -->
 
 <script>
 function submitContactForm(event) {
@@ -131,7 +132,7 @@ Message:
 ${message}`
   );
 
-  window.location.href = `mailto:leedingxun409@gmail.com?subject=${mailSubject}&body=${mailBody}`;
+  window.location.href = `mailto:contact@yeelimadhesives.com.sg?subject=${mailSubject}&body=${mailBody}`;
 
   status.textContent = "Opening your email app. Please send the email to complete your enquiry.";
   status.className = "contact-form-status success";

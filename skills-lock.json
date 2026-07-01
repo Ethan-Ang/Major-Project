@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "21st-dev-builder-v2": {
+      "source": "trin-zenityx/21st-dev-builder-v2",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "4b999823f09d4b428b2bf63ec12ce8a84a04658a44e334ec57c8f265594e3c54"
+    },
     "brainstorming": {
       "source": "obra/superpowers",
       "sourceType": "github",
@@ -72,6 +78,12 @@
       "sourceType": "github",
       "skillPath": "skills/seo-audit/SKILL.md",
       "computedHash": "606da61224d9d5687020816292c88152a7fcb27ce375b22f92f429e074f07f34"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "0dc0edeeaec2ae491ae506806517866a3f9bd48d04e0458feb37e0252862891f"
     },
     "site-architecture": {
       "source": "coreyhaines31/marketingskills",

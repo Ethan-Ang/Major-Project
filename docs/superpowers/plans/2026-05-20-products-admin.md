@@ -2421,7 +2421,7 @@ async function confirmDelete() {
 
 Open `frontend/admin_login.html`. Expected:
 - Login form shows with Yee Lim branding
-- With backend running: enter `admin` / `admin123` → redirects to dashboard
+- With backend running: enter `admin` / `[local admin test password redacted]` → redirects to dashboard
 - Dashboard shows product table loaded from API
 - Add Product button opens modal — fill form and save → row appears in table
 - Edit button pre-fills modal with existing data

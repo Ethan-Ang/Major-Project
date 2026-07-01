@@ -1,0 +1,29 @@
+# Yee Lim Adhesives - public_html root .htaccess
+# Intentionally minimal. It must NOT interfere with the PHP API (/api/*.php),
+# static assets, or cPanel routing. Keep it that way.
+
+# 1. Do not expose directory listings.
+Options -Indexes
+
+# 2. Defense in depth: deny direct web access to sensitive files by name.
+#    config.php runs server-side so it never leaks as source, but deny it anyway.
+#    .sql / .md / .log / *.example.php should never be served if one ends up here.
+<FilesMatch "(?i)(^config\.php$|^config\.example\.php$|\.sql$|\.md$|\.log$|\.htaccess$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# 3. Force HTTPS (OPTIONAL).
+#    Leave this commented until the live SSL certificate is confirmed working,
+#    otherwise it can cause a redirect loop behind some cPanel/proxy setups.
+#    To enable, uncomment the three lines below.
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} !=on
+#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
