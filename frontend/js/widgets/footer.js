@@ -236,7 +236,7 @@
             <dd>1 Ang Mo Kio Street 65,<br>#03-17, Singapore 569063</dd>
           </div>
         </dl>
-        <a class="site-footer-cta" href="https://wa.me/6590292613?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer">Speak to Yee Lim &rarr;</a>
+        <a class="site-footer-cta" href="https://wa.me/6588755786?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer">Speak to Yee Lim &rarr;</a>
       </div>
     </div>
 
