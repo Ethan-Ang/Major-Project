@@ -176,9 +176,28 @@
       .site-footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
       .site-footer-col-brand { grid-column: 1 / -1; }
     }
+    /* Mobile: keep it short and premium. The two link groups sit side by side
+       instead of stacking, the marketing blurb is dropped, contact spans full
+       width, and spacing tightens so the footer is not a long single column. */
     @media (max-width: 560px) {
-      .site-footer-inner { grid-template-columns: 1fr; }
-      .site-footer-bottom { flex-direction: column; align-items: flex-start; }
+      .site-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.6rem 1.25rem;
+        padding: 2.25rem 1.25rem 1.75rem;
+      }
+      .site-footer-col-brand { grid-column: 1 / -1; margin-bottom: 0.25rem; }
+      .site-footer-blurb { display: none; }
+      .site-footer-logo { height: 44px; }
+      .site-footer-col:last-child { grid-column: 1 / -1; }
+      .site-footer-col-title { margin-bottom: 0.75rem; }
+      .site-footer-links { gap: 0.55rem; }
+      .site-footer-contact { margin-bottom: 1rem; }
+      .site-footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+        padding: 1rem 1.25rem;
+      }
     }
   `;
   document.head.appendChild(style);

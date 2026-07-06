@@ -14,6 +14,8 @@
       padding: 0 2rem;
       height: 60px;
       box-sizing: border-box;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
     }
     .nav-logo {
       justify-self: start;
@@ -37,14 +39,34 @@
       padding: 0;
     }
     .nav-links a {
-      color: #ccc;
+      position: relative;
+      color: #d4d8e0;
       text-decoration: none;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      transition: color 0.2s;
+      transition: color 0.2s ease;
+    }
+    /* Brand-red underline that grows in on hover and stays lit on the active
+       page. transform-based so it animates smoothly without reflow. */
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 2px;
+      border-radius: 1px;
+      background: #CC2929;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.2s ease;
     }
     .nav-links a:hover { color: #fff; }
-    .nav-links a.nav-active { color: #fff; }
+    .nav-links a:hover::after { transform: scaleX(1); }
+    .nav-links a.nav-active { color: #fff; font-weight: 600; }
+    .nav-links a.nav-active::after { transform: scaleX(1); }
     .nav-right {
       display: flex;
       align-items: center;

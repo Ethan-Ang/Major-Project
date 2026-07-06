@@ -235,12 +235,13 @@ function syncApplicationCards() {
   });
 }
 
-// Highlight the hero "Shop by brand" row matching the active brand filter so
-// its tile stays red. Runs through applyFilters(), so it also covers brand
-// state restored from the URL on load and brands toggled from the sidebar.
+// Highlight the hero "Our ranges" chip matching the active brand filter so it
+// stays lit while that brand is filtered. Runs through applyFilters(), so it
+// also covers brand state restored from the URL on load and brands toggled from
+// the sidebar.
 function syncBrandRows() {
-  document.querySelectorAll(".hero-brand-row").forEach(row => {
-    row.classList.toggle("active", activeFilters.brands.includes(row.dataset.brand));
+  document.querySelectorAll(".range-chip").forEach(chip => {
+    chip.classList.toggle("active", activeFilters.brands.includes(chip.dataset.brand));
   });
 }
 
@@ -259,6 +260,9 @@ function applyFilters(opts = {}) {
   });
 
   let results = PRODUCTS.filter(p => {
+    // Note: does not match against p.features. Those are internal spec bullets
+    // (e.g. "lab-tested", "Low VOC") — matching them let short, generic words
+    // like "test" surface unrelated products via substrings such as "tested".
     const matchesQuery = !query ||
       p.name.toLowerCase().includes(query) ||
       p.brand.toLowerCase().includes(query) ||
@@ -266,8 +270,7 @@ function applyFilters(opts = {}) {
       productType(p).toLowerCase().includes(query) ||
       p.shortDescription.toLowerCase().includes(query) ||
       p.industries.some(i => i.toLowerCase().includes(query)) ||
-      p.surfaces.some(s => s.toLowerCase().includes(query)) ||
-      p.features.some(f => f.toLowerCase().includes(query));
+      p.surfaces.some(s => s.toLowerCase().includes(query));
 
     const matchesType = activeFilters.productTypes.length === 0 ||
       activeFilters.productTypes.includes(productType(p));
@@ -489,7 +492,7 @@ function productCardHTML(p) {
     <article class="product-card${isUnavailable ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
       <div class="${imageClass}">
         <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
-        ${isUnavailable ? `<span class="card-status-badge" aria-label="Availability: Currently Unavailable"><span class="card-status-dot" aria-hidden="true"></span>Currently Unavailable</span>` : ""}
+        ${isUnavailable ? `<span class="card-status-badge" aria-label="Availability: Currently Unavailable"><span class="card-status-dot" aria-hidden="true"></span><span class="csb-full">Currently Unavailable</span><span class="csb-short">Unavailable</span></span>` : ""}
         <button
           class="card-compare-btn${inCompare ? " in-compare" : ""}"
           data-product-id="${p.id}" onclick="event.stopPropagation();toggleCompare('${p.id}')"

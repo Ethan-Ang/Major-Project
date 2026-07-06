@@ -212,14 +212,26 @@ h1, h2, h3,
   margin: 2rem 0 0;
   background: var(--ink-2);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: var(--radius);
+  border-radius: 12px;
   overflow: hidden;
-  transition: border-color 0.2s var(--ease);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+/* Leading magnifier so the field reads unmistakably as search, and gives the bar
+   a more considered, premium feel than a bare input. */
+.search-bar-icon {
+  display: flex;
+  align-items: center;
+  padding-left: 1.05rem;
+  color: #7b8492;
+  flex-shrink: 0;
+  transition: color 0.2s var(--ease);
 }
 
 .search-bar input {
   flex: 1;
-  padding: 0.9rem 1.1rem;
+  padding: 1rem 1.1rem 1rem 0.7rem;
   border: none;
   background: transparent;
   font-size: 0.97rem;
@@ -247,7 +259,13 @@ h1, h2, h3,
 }
 
 .search-bar button:hover { background: var(--red-dark); }
-.search-bar:focus-within { border-color: rgba(255,255,255,0.32); }
+
+/* Red focus ring: the field lifts and lights on focus, keyboard or click. */
+.search-bar:focus-within {
+  border-color: rgba(204, 41, 41, 0.6);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28), 0 0 0 3px rgba(204, 41, 41, 0.18);
+}
+.search-bar:focus-within .search-bar-icon { color: #cbd2db; }
 
 /* ─── Hero search typeahead ──────────────────────────────────────
    Lightweight suggestion dropdown under the hero search bar. The hero inner
@@ -544,6 +562,25 @@ h1, h2, h3,
   border-radius: 50%;
   background: #f59e0b;
   flex-shrink: 0;
+}
+
+/* Desktop shows the full label; the short label is swapped in on mobile where the
+   2-column card is too narrow for "Currently Unavailable". */
+.card-status-badge .csb-short { display: none; }
+
+/* On the narrow 2-column mobile card, shrink the badge and swap in the short
+   "Unavailable" label so it no longer spans the image or crowds the quick-add. */
+@media (max-width: 640px) {
+  .card-status-badge {
+    top: 0.4rem;
+    left: 0.4rem;
+    font-size: 0.6rem;
+    padding: 0.22rem 0.5rem;
+    gap: 0.28rem;
+    border-radius: 16px;
+  }
+  .card-status-badge .csb-full { display: none; }
+  .card-status-badge .csb-short { display: inline; }
 }
 
 /* Soften the imagery of unavailable products so the state reads at a glance */
@@ -2882,74 +2919,6 @@ body:has(.compare-tray.visible) .toast {
   margin-right: 0;
 }
 
-/* Hero CTA row */
-.hero-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1.6rem;
-}
-
-.hero-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  min-width: 12.5rem;
-  padding: 0.68rem 1.3rem;
-  border-radius: var(--radius);
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.1px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
-}
-
-.hero-cta:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-.hero-cta-primary {
-  background: var(--red);
-  color: #fff;
-  border: 1px solid var(--red);
-}
-
-.hero-cta-primary:hover {
-  background: var(--red-dark);
-  border-color: var(--red-dark);
-}
-
-.hero-cta-ghost {
-  background: transparent;
-  color: #e5e7eb;
-  border: 2px solid rgba(255, 255, 255, 0.45);
-  font-weight: 700;
-}
-
-.hero-cta-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.65);
-  color: #fff;
-}
-
-/* Stack the CTAs full-width on small screens so the group reads evenly
-   instead of as ragged, differently-sized pills. */
-@media (max-width: 480px) {
-  .hero-cta-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .hero-cta {
-    width: 100%;
-    min-width: 0;
-  }
-}
 
 .page-hero .hero-lead {
   color: #aeb6c2;
@@ -3003,109 +2972,101 @@ body:has(.compare-tray.visible) .toast {
   max-width: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 420px;
+  display: block;
   overflow: hidden;
 }
 
 .hero-main {
-  padding: 58px 56px 56px;
+  padding: 58px 56px 60px;
   position: relative;
   min-width: 0;
+  max-width: 1180px;
 }
 
-/* Shop-by-brand column */
-.hero-brands {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 46px 40px 46px 48px;
-  border-left: 1px solid rgba(255, 255, 255, 0.07);
-  min-width: 0;
+/* Ranges: a quiet, secondary shortcut below the search for buyers who already
+   know which Yee Lim range they want. Deliberately subordinate to the search:
+   small label, low-contrast chips, neutral until hover. The red stays earned. */
+.hero-ranges {
+  margin-top: 34px;
+  max-width: 700px;
 }
-
-.hero-brands-head {
+.hero-ranges-label {
+  display: block;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: var(--muted-2);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-bottom: 18px;
+  color: var(--muted-2);
+  margin-bottom: 12px;
 }
-
-.hero-brand-row {
+.hero-ranges-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.range-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  width: 100%;
-  padding: 16px 4px;
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: transparent;
+  gap: 11px;
+  padding: 8px 16px 8px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
   color: inherit;
   font-family: inherit;
-  text-align: left;
   cursor: pointer;
-  transition: background 0.15s var(--ease);
+  text-align: left;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
 }
+.range-chip:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.range-chip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-.hero-brand-row:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-.hero-brand-row:hover { background: rgba(255, 255, 255, 0.03); }
-.hero-brand-row:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
-
-.hero-brand-mark {
+/* Logo sits in a tile that mirrors the Common Applications icon: neutral at rest,
+   red on hover/active so the accent follows the user's intent and the ranges read
+   as part of the same family as the application cards below. */
+.range-chip-mark {
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: 8px;
-  background: var(--ink-3);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 15px;
-  color: #fff;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
 }
-
-.hero-brand-mark.red { background: var(--red); }
-
-/* The tile turns red on hover and stays red when its brand is the active
-   filter, so the accent follows the user's intent instead of being pinned
-   to one brand. */
-.hero-brand-row:hover .hero-brand-mark,
-.hero-brand-row.active .hero-brand-mark { background: var(--red); }
-
-/* Official white-knockout brand logo inside the tile */
-.hero-brand-mark img {
-  width: 44px;
-  height: 44px;
+.range-chip-mark img {
+  width: 27px;
+  height: 27px;
   object-fit: contain;
 }
+.range-chip:hover .range-chip-mark,
+.range-chip.active .range-chip-mark {
+  background: var(--red);
+  border-color: var(--red);
+}
 
-.hero-brand-name {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 17px;
-  font-weight: 600;
+.range-chip-text { display: flex; flex-direction: column; line-height: 1.2; }
+.range-chip-text strong {
+  font-size: 0.88rem;
+  font-weight: 700;
   color: #fff;
-  line-height: 1.2;
 }
-
-.hero-brand-name small {
-  display: block;
-  margin-top: 2px;
-  font-family: 'Inter', sans-serif;
-  font-size: 12.5px;
-  font-weight: 400;
+.range-chip-text small {
+  font-size: 0.71rem;
   color: var(--muted-2);
+  margin-top: 2px;
 }
 
-.hero-brand-arrow {
-  margin-left: auto;
-  color: #5a626e;
-  font-size: 1.1rem;
-  line-height: 1;
+/* Active range chip: lit while its brand is the current catalogue filter. */
+.range-chip.active {
+  border-color: var(--red);
+  background: rgba(204, 41, 41, 0.12);
 }
 
 /* Eyebrow: mono, dim, no leading dash for this variant */
@@ -3146,21 +3107,12 @@ body:has(.compare-tray.visible) .toast {
 
 /* Actions: kept balanced against the open right side */
 .page-hero--rail .hero-actions {
-  max-width: 620px;
-  margin-top: 28px;
+  max-width: 700px;
+  margin-top: 30px;
 }
 .page-hero--rail .hero-actions .search-bar {
   max-width: none;
-  margin: 0 0 0.85rem;
-}
-.page-hero--rail .hero-cta-row {
-  margin-top: 0;
-  flex-wrap: nowrap;
-}
-.page-hero--rail .hero-cta {
-  flex: 1 1 0;
-  min-width: 0;
-  white-space: nowrap;
+  margin: 0;
 }
 
 /* ── Rail → horizontal strip + scaled type (single breakpoint) ── */
@@ -3196,11 +3148,6 @@ body:has(.compare-tray.visible) .toast {
   .hero-main {
     padding: 30px 28px 30px;
   }
-  .hero-brands {
-    padding: 4px 28px 30px;
-    border-left: none;
-    justify-content: flex-start;
-  }
   .page-hero--rail .hero-eyebrow {
     font-size: 11px;
     letter-spacing: 0.07em;
@@ -3219,27 +3166,7 @@ body:has(.compare-tray.visible) .toast {
     max-width: none;
     margin-top: 22px;
   }
-  .page-hero--rail .hero-actions .search-bar { margin-bottom: 0.65rem; }
-  .page-hero--rail .hero-cta-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .page-hero--rail .hero-cta {
-    flex: none;
-    width: 100%;
-    min-width: 0;
-    min-height: 44px;
-  }
-}
-
-/* Phone hero: drop the "View Product Enquiry" shortcut so the hero leads with a
-   single primary action (Browse Products). The enquiry basket lives in the nav
-   (a count chip appears once items are added, and it is always in the menu), and
-   for a first visit that button only led to an empty page. The advisor is reached
-   from the inline prompt at the top of the catalogue (.advisor-prompt). Tablet
-   (641-860px) and desktop keep "View Product Enquiry". */
-@media (max-width: 640px) {
-  .page-hero--rail .hero-cta-enquiry { display: none; }
+  .page-hero--rail .hero-actions .search-bar { margin-bottom: 0; }
 }
 
 /* ─── Stats strip (dark continuation of hero) ────────────────── */
@@ -3247,10 +3174,13 @@ body:has(.compare-tray.visible) .toast {
   background: var(--ink);
 }
 
+/* Full-bleed to match the hero (which is edge-to-edge with the red rail), so the
+   first stat lines up with the hero content column at every viewport width
+   instead of drifting right once the viewport passes the old 1280 cap. */
 .trust-strip-inner {
   position: relative;
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   padding: 0 2rem;
   list-style: none;
   display: grid;
@@ -3274,22 +3204,25 @@ body:has(.compare-tray.visible) .toast {
 .trust-item:last-child { border-right: none; }
 
 .trust-num {
-  font-size: 1.7rem;
-  font-weight: 600;
+  font-size: 1.9rem;
+  font-weight: 700;
   color: #fff;
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
-.trust-plus { font-size: 1.05rem; vertical-align: top; color: var(--red); }
+.trust-plus { font-size: 1.05rem; vertical-align: top; color: var(--red); margin-left: 1px; }
 
+/* Uppercase, tracked labels read as precise spec-sheet data rather than soft
+   captions, matching the mono eyebrow language used across the page. */
 .trust-label {
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: var(--muted-2);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.35;
   overflow-wrap: break-word;
 }
 
@@ -3680,11 +3613,11 @@ body:has(.compare-tray.visible) .toast {
 
 /* ─── Step 1: 2-col grid + stripped cards ────────────────────── */
 @media (max-width: 640px) {
-  /* Shop by brand is hidden on phones: it duplicates the Brand filter (in the
-     Refine Products drawer and the footer), and on a stacked mobile layout it
-     just pushes the catalogue down. Job-first entry (Common Applications) and
-     search stay. It remains on tablet/desktop where it fills the hero column. */
-  .page-hero--rail .hero-brands { display: none; }
+  /* The ranges strip is hidden on phones: it duplicates the Brand filter (in the
+     Refine Products drawer and the footer), and on a narrow layout it just pushes
+     the catalogue down. Job-first entry (Common Applications) and search stay.
+     It remains on tablet/desktop below the search. */
+  .page-hero--rail .hero-ranges { display: none; }
 
   .product-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
 

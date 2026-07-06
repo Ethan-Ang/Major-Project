@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Commercial &amp; Industrial Adhesives Singapore | Yee Lim Products</title>
   <meta name="description" content="Browse Yee Lim's commercial and industrial adhesive products by brand, industry, surface, or application. Submit a product enquiry for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=24">
+  <link rel="stylesheet" href="/css/products.css?v=31">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=4">
-  <script src="/js/widgets/navbar.js?v=6"></script>
-  <script src="/js/widgets/footer.js?v=7"></script>
+  <script src="/js/widgets/navbar.js?v=7"></script>
+  <script src="/js/widgets/footer.js?v=8"></script>
 </head>
 <body>
 
@@ -35,6 +35,7 @@
         <div class="hero-search">
           <div class="search-bar" role="search">
             <label for="searchInput" class="sr-only">Search products</label>
+            <span class="search-bar-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
             <input type="text" id="searchInput" placeholder="Search by product, industry, or surface..." autocomplete="off"
               aria-label="Search products by name, industry, or surface"
               role="combobox" aria-expanded="false" aria-controls="searchTypeahead" aria-autocomplete="list" aria-haspopup="listbox">
@@ -42,39 +43,33 @@
           </div>
           <ul class="search-typeahead" id="searchTypeahead" role="listbox" aria-label="Product suggestions" hidden></ul>
         </div>
-        <div class="hero-cta-row">
-          <a href="#catalogue" class="hero-cta hero-cta-primary">Browse Products</a>
-          <a href="/enquiry" class="hero-cta hero-cta-ghost hero-cta-enquiry">View Product Enquiry</a>
+      </div>
+
+      <!-- Ranges: a quiet, secondary shortcut for buyers who already know which
+           Yee Lim range they want. Subordinate to the search above; each chip
+           filters the catalogue in place. -->
+      <div class="hero-ranges" aria-label="Our adhesive ranges">
+        <span class="hero-ranges-label">Our ranges</span>
+        <div class="hero-ranges-row">
+          <button type="button" class="range-chip" data-brand="Deer&trade; Brand" onclick="filterByBrand('Deer&trade; Brand')">
+            <span class="range-chip-mark"><img src="/images/logos/Deer-white.png" alt=""></span>
+            <span class="range-chip-text"><strong>Deer&trade;</strong><small>General-purpose</small></span>
+          </button>
+          <button type="button" class="range-chip" data-brand="Horsemen&trade; Brand" onclick="filterByBrand('Horsemen&trade; Brand')">
+            <span class="range-chip-mark"><img src="/images/logos/Horsemen-white.png" alt=""></span>
+            <span class="range-chip-text"><strong>Horsemen&trade;</strong><small>Heavy-duty</small></span>
+          </button>
+          <button type="button" class="range-chip" data-brand="Premier&trade; Brand" onclick="filterByBrand('Premier&trade; Brand')">
+            <span class="range-chip-mark"><img src="/images/logos/Premier-white.png" alt=""></span>
+            <span class="range-chip-text"><strong>Premier&trade;</strong><small>Premium &amp; specialty</small></span>
+          </button>
+          <button type="button" class="range-chip" data-brand="Rhino&trade; Brand" onclick="filterByBrand('Rhino&trade; Brand')">
+            <span class="range-chip-mark"><img src="/images/logos/Rhino-white.png" alt=""></span>
+            <span class="range-chip-text"><strong>Rhino&trade;</strong><small>Construction</small></span>
+          </button>
         </div>
       </div>
     </div>
-
-    <!-- Shop by brand: buyers often start from a known brand, so surface the four
-         adhesive ranges as a quiet clickable column. Each row filters the
-         catalogue below in place (same behaviour as the application tiles). -->
-    <aside class="hero-brands" aria-label="Shop by brand">
-      <span class="hero-brands-head">Shop by brand</span>
-      <button type="button" class="hero-brand-row" data-brand="Deer&trade; Brand" onclick="filterByBrand('Deer&trade; Brand')">
-        <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Deer-white.png" alt=""></span>
-        <span class="hero-brand-name">Deer&trade;<small>General-purpose contact adhesives</small></span>
-        <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
-      </button>
-      <button type="button" class="hero-brand-row" data-brand="Horsemen&trade; Brand" onclick="filterByBrand('Horsemen&trade; Brand')">
-        <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Horsemen-white.png" alt=""></span>
-        <span class="hero-brand-name">Horsemen&trade;<small>Heavy-duty industrial bonding</small></span>
-        <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
-      </button>
-      <button type="button" class="hero-brand-row" data-brand="Premier&trade; Brand" onclick="filterByBrand('Premier&trade; Brand')">
-        <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Premier-white.png" alt=""></span>
-        <span class="hero-brand-name">Premier&trade;<small>Premium &amp; specialty grades</small></span>
-        <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
-      </button>
-      <button type="button" class="hero-brand-row" data-brand="Rhino&trade; Brand" onclick="filterByBrand('Rhino&trade; Brand')">
-        <span class="hero-brand-mark" aria-hidden="true"><img src="/images/logos/Rhino-white.png" alt=""></span>
-        <span class="hero-brand-name">Rhino&trade;<small>Construction &amp; high-strength</small></span>
-        <span class="hero-brand-arrow" aria-hidden="true">&rarr;</span>
-      </button>
-    </aside>
   </div>
 </section>
 
@@ -260,7 +255,7 @@
 <script src="/js/data.js?v=5"></script>
 <script src="/js/widgets/compare.js?v=6"></script>
 <script src="/js/widgets/custom-select.js?v=2"></script>
-<script src="/js/pages/products.js?v=14"></script>
+<script src="/js/pages/products.js?v=17"></script>
 <script src="/js/widgets/chatbot.js?v=11"></script>
 </body>
 </html>
