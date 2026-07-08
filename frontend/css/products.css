@@ -45,12 +45,13 @@
   --panel-2:   #f0f2f5;
   --line:      #e4e7ec;
   --line-2:    #d6dae1;
-  --muted-2:   #8a93a0;
+  --muted-2:   #636d7b;
+  --muted-on-dark: #9aa3ad;
   --bg:        #f6f7f9;
   --card:      #ffffff;
   --border:    #e4e7ec;
   --text:      #1b212b;
-  --muted:     #6b7480;
+  --muted:     #5b6472;
   --radius:    6px;
   --shadow:    0 1px 2px rgba(16,24,40,0.05);
   --shadow-md: 0 6px 20px -6px rgba(16,24,40,0.14);
@@ -805,7 +806,7 @@ h1, h2, h3,
   margin-bottom: 0.5rem;
 }
 
-.empty-state h3 { font-size: 1.05rem; margin-bottom: 0.25rem; color: var(--text); font-weight: 700; }
+.empty-state h2, .empty-state h3 { font-size: 1.05rem; margin-bottom: 0.25rem; color: var(--text); font-weight: 700; }
 .empty-state p { margin-bottom: 1rem; font-size: 0.9rem; }
 .empty-state .btn { padding: 0.6rem 1.25rem; }
 
@@ -2350,6 +2351,13 @@ h1, h2, h3,
 .btn-add-enquiry:hover { background: var(--red-dark); }
 .btn-add-enquiry:active { transform: scale(0.97); }
 
+.btn-add-enquiry.added {
+  background: var(--red-tint);
+  color: var(--red);
+  border: 1px solid var(--red-tint-bdr);
+}
+.btn-add-enquiry.added:hover { background: var(--red-tint); }
+
 @media (max-width: 480px) {
   .compare-col-header { padding: 1rem 0.4rem 0.75rem; }
 
@@ -2587,7 +2595,7 @@ body:has(.compare-tray.visible) .toast {
 
 .filter-count {
   font-size: 0.7rem;
-  color: #9ca3af;
+  color: var(--muted-2);
   font-variant-numeric: tabular-nums;
   font-weight: 500;
   min-width: 18px;
@@ -2997,7 +3005,7 @@ body:has(.compare-tray.visible) .toast {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--muted-2);
+  color: var(--muted-on-dark);
   margin-bottom: 12px;
 }
 .hero-ranges-row {
@@ -3059,7 +3067,7 @@ body:has(.compare-tray.visible) .toast {
 }
 .range-chip-text small {
   font-size: 0.71rem;
-  color: var(--muted-2);
+  color: var(--muted-on-dark);
   margin-top: 2px;
 }
 
@@ -3072,7 +3080,7 @@ body:has(.compare-tray.visible) .toast {
 /* Eyebrow: mono, dim, no leading dash for this variant */
 .page-hero--rail .hero-eyebrow {
   font-family: var(--mono);
-  color: var(--muted-2);
+  color: var(--muted-on-dark);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -3137,7 +3145,6 @@ body:has(.compare-tray.visible) .toast {
     color: #fff;
   }
   .hero-strip span:last-child {
-    opacity: 0.8;
     letter-spacing: 0.12em;
   }
   /* Brand stack drops below the text as a full-width single column */
@@ -3218,7 +3225,7 @@ body:has(.compare-tray.visible) .toast {
    captions, matching the mono eyebrow language used across the page. */
 .trust-label {
   font-size: 0.72rem;
-  color: var(--muted-2);
+  color: var(--muted-on-dark);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3950,11 +3957,13 @@ body:has(.compare-tray.visible) .toast {
   .compare-tray { display: none !important; }
 
   /* ─── Step 4: compare edge tab ──────────────────────────────── */
+  /* Bottom-anchored (not vertical-center) so it never sits on top of the
+     hero search bar on load or scrolling product cards further down — the
+     same reasoning as the bottom-anchored .sticky-cta on product-detail. */
   .cmp-tab {
     position: fixed;
     left: 0;
-    top: 45%;
-    transform: translateY(-50%);
+    bottom: 6.5rem;
     z-index: 850;
     flex-direction: column;
     align-items: center;
@@ -4236,6 +4245,11 @@ body:has(.compare-tray.visible) .toast {
     font-weight: 700;
     font-family: inherit;
     cursor: pointer;
+  }
+  .cx-head-select.added {
+    background: var(--red-tint);
+    color: var(--red);
+    border: 1px solid var(--red-tint-bdr);
   }
   .cx-head-rm {
     background: none;

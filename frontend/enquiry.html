@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Enquiry | Yee Lim Adhesives Industries</title>
   <meta name="description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=33">
+  <link rel="stylesheet" href="/css/products.css?v=34">
   <script src="/js/widgets/navbar.js?v=7"></script>
   <script src="/js/widgets/footer.js?v=8"></script>
 </head>
 <body>
 
+<main>
 <!-- Main content -->
 <div class="page-content" id="mainContent">
   <h1>Product Enquiry</h1>
@@ -62,7 +63,7 @@
     <div class="form-submit">
       <p id="enquiryError" tabindex="-1" style="display:none;color:#c0392b;font-size:0.875rem;margin-bottom:0.75rem"></p>
       <button class="btn btn-primary" id="submitEnquiryBtn" style="padding:0.75rem 2rem;font-size:1rem" onclick="submitEnquiry()">
-        Send Product Enquiry
+        Submit Enquiry
       </button>
     </div>
   </div>
@@ -79,6 +80,7 @@
     Browse More Products
   </a>
 </div>
+</main>
 
 <!-- Footer injected by js/widgets/footer.js -->
 
@@ -267,7 +269,7 @@ async function submitEnquiry() {
     errorEl.textContent   = err.message;
     errorEl.style.display = "block";
     btn.disabled    = false;
-    btn.textContent = "Send Product Enquiry";
+    btn.textContent = "Submit Enquiry";
     // Move focus to the message so screen readers announce the failure
     errorEl.focus();
     window.scrollTo({ top: errorEl.offsetTop - 100, behavior: "smooth" });

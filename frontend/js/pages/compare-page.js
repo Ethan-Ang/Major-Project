@@ -37,7 +37,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderComparePage();
 });
 window.addEventListener("compareUpdated", renderComparePage);
+window.addEventListener("basketUpdated", renderComparePage);
 window.addEventListener("resize", updateCompareScrollHint);
+
+// Local basket helpers (compare-page.js does not load js/pages/products.js,
+// so it cannot rely on that file's getBasket()/toggleBasket()).
+function getEnquiryBasket() {
+  return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
+}
+
+function updateClearAllButton(hasItems) {
+  const btn = document.querySelector(".compare-page-clear");
+  if (!btn) return;
+  btn.disabled = !hasItems;
+  btn.style.visibility = hasItems ? "visible" : "hidden";
+}
 
 function renderComparePage() {
   const list     = getCompareList();
@@ -45,15 +59,19 @@ function renderComparePage() {
   const content  = document.getElementById("comparePageContent");
   if (!content) return;
 
+  updateClearAllButton(list.length > 0);
+
   if (products.length < 2) {
     content.innerHTML = `
       <div class="empty-state">
-        <h3>Add at least 2 products to compare</h3>
+        <h2>Add at least 2 products to compare</h2>
         <p>Browse the catalogue and click <strong>+ Compare</strong> on the cards you want to compare side by side.</p>
         <a href="/products" class="btn btn-primary" style="display:inline-flex;margin-top:1.25rem">Browse Products</a>
       </div>`;
     return;
   }
+
+  const basket = getEnquiryBasket();
 
   const headerCols = products.map(p => {
     const availClass  = p.status === "Available" ? "available" : "unavailable";
@@ -63,6 +81,7 @@ function renderComparePage() {
     const imgContent = hasRealImage
       ? `<img src="${encodeURI(p.images[0])}" alt="${ylEscapeHtml(p.name)}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : `<span class="compare-img-placeholder">${brandLabel}</span><span class="compare-img-placeholder-sub">${placeholderSub}</span>`;
+    const inBasket = basket.includes(String(p.id));
     return `
       <td class="compare-col-header">
         <div class="compare-product-img">
@@ -73,7 +92,7 @@ function renderComparePage() {
         <div class="compare-col-avail ${availClass}">
           <span class="avail-dot"></span>${ylEscapeHtml(p.status)}
         </div>
-        <button class="btn-add-enquiry" onclick="addToBasket('${p.id}')">Select Product</button>
+        <button class="btn-add-enquiry${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}')">${inBasket ? "In Product Enquiry" : "Add to Product Enquiry"}</button>
         <button class="compare-col-remove" onclick="removeFromCompare('${p.id}')">Remove</button>
       </td>`;
   }).join("");
@@ -129,8 +148,9 @@ function cxFeatures(arr) {
 }
 
 function buildCompareMobile(products) {
-  const n    = products.length;
-  const cols = `90px repeat(${n}, minmax(148px, 1fr))`;
+  const n      = products.length;
+  const cols   = `90px repeat(${n}, minmax(148px, 1fr))`;
+  const basket = getEnquiryBasket();
 
   // Header row: corner + one product card per column
   let cells = `<div class="cx-corner"></div>`;
@@ -141,12 +161,13 @@ function buildCompareMobile(products) {
     const img        = hasImg
       ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : brandLabel;
+    const inBasket = basket.includes(String(p.id));
     return `
       <div class="cx-head">
         <div class="cx-head-img">${img}</div>
         <a class="cx-head-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
         <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${ylEscapeHtml(p.status)}</span>
-        <button class="cx-head-select" onclick="addToBasket('${p.id}')">Select</button>
+        <button class="cx-head-select${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
         <button class="cx-head-rm" onclick="removeFromCompare('${p.id}')">Remove</button>
       </div>`;
   }).join("");
@@ -217,13 +238,16 @@ function toggleDiff() {
 }
 
 function addToBasket(productId) {
-  const basket = JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
-  if (!basket.includes(productId)) {
-    basket.push(productId);
+  const basket = getEnquiryBasket();
+  const id     = String(productId);
+  if (!basket.includes(id)) {
+    basket.push(id);
     localStorage.setItem("enquiryBasket", JSON.stringify(basket));
     window.dispatchEvent(new Event("basketUpdated"));
+    showToast("Added to your product enquiry");
+  } else {
+    showToast("Already in your product enquiry");
   }
-  showToast("Added to your product enquiry");
 }
 
 function clearAll() {

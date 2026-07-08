@@ -6,6 +6,19 @@
    ═══════════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ─── Animations ─────────────────────────────────────────────── */
 @keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -18,10 +31,10 @@
   --red:#CC2929; --red-dark:#a82020; --red-tint:#fdecec; --red-tint-bdr:#f3cccc;
   --ink:#0e1116; --ink-2:#161b22; --ink-3:#222a35;
   --panel:#f7f8fa; --panel-2:#f0f2f5;
-  --line:#e7eaee; --line-2:#dde1e7; --muted-2:#8a93a0;
+  --line:#e7eaee; --line-2:#dde1e7; --muted-2:#636d7b; --muted-on-dark:#9aa3ad;
   --bg:#eef1f5; --card:#ffffff;
-  --text:#1b212b; --muted:#6b7480;
-  --green:#2e9e5b; --green-tint:#e9f7ee; --green-bdr:#cfe9d9;
+  --text:#1b212b; --muted:#5b6472;
+  --green:#1f7a45; --green-tint:#e9f7ee; --green-bdr:#cfe9d9;
   --amber:#c98a16; --amber-tint:#fdf3e3;
   --radius:12px; --radius-sm:8px; --radius-xs:6px;
   --shadow-sm:0 1px 2px rgba(16,24,40,0.06);
@@ -243,7 +256,7 @@ a { color: inherit; }
 }
 .brand-mark img { width: 30px; height: 30px; object-fit: contain; display: block; }
 .brand-name { font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.15; }
-.brand-sub { font-size: 0.66rem; color: var(--muted-2); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 2px; }
+.brand-sub { font-size: 0.66rem; color: var(--muted-on-dark); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 2px; }
 
 .admin-nav { flex: 1; padding: 0.6rem 0; overflow-y: auto; }
 .nav-section-label { font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.3px; color: #566071; padding: 1rem 1.4rem 0.5rem; }
@@ -276,7 +289,7 @@ a { color: inherit; }
 .user-av { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; background: linear-gradient(145deg,#2a323d,#1a2029); color: #fff; font-weight: 700; font-size: 0.78rem; display: flex; align-items: center; justify-content: center; }
 .user-meta { min-width: 0; flex: 1; }
 .user-name { font-size: 0.8rem; font-weight: 600; color: #e8ebef; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role { font-size: 0.68rem; color: var(--muted-2); }
+.user-role { font-size: 0.68rem; color: var(--muted-on-dark); }
 .user-logout { background: none; border: none; color: #6b7480; cursor: pointer; padding: 0.25rem; display: flex; border-radius: 6px; transition: all 0.15s; }
 .user-logout:hover { color: var(--red); background: rgba(204,41,41,0.1); }
 .user-logout svg { width: 15px; height: 15px; }
@@ -327,7 +340,7 @@ a { color: inherit; }
 .dash-grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 1.1rem; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 .card-head { display: flex; align-items: center; justify-content: space-between; padding: 1.15rem 1.35rem; border-bottom: 1px solid var(--line); }
-.card-head h3 { font-size: 1rem; font-weight: 700; }
+.card-head h2, .card-head h3 { font-size: 1rem; font-weight: 700; }
 .card-head .sub { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
 .card-head .head-link { font-size: 0.8rem; color: var(--red); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
 .card-head .head-link svg { width: 14px; height: 14px; }
@@ -478,7 +491,6 @@ input[type="checkbox"] { accent-color: var(--red); }
    ═══════════════════════════════════════════════════════════════ */
 .enquiry-row { cursor: pointer; transition: background 0.15s; }
 .enquiry-row:hover td { background: var(--panel); }
-.enquiry-row.unread td:first-child { box-shadow: inset 3px 0 0 var(--red); }
 .enquiry-row.unread td { background: #fff7f7; }
 .enquiry-row.unread:hover td { background: #fff0f0; }
 .enquiry-row.unread .enq-name { font-weight: 700; }
@@ -611,6 +623,55 @@ input[type="checkbox"] { accent-color: var(--red); }
   .kpi-row, .stats-row { grid-template-columns: 1fr; }
   .form-row-2 { grid-template-columns: 1fr; }
 }
+
+/* ─── Products / Enquiries tables: card layout on phones ─────────
+   Below 640px a data table can only be read by scrolling sideways with
+   no visual hint that it happens, which reads as broken. Restack each
+   row into a self-contained card instead; nothing to scroll, nothing
+   hidden. Same markup, same data, just re-flowed with CSS. */
+@media (max-width: 640px) {
+  .table-wrap { overflow-x: visible; border: none; }
+  .table-wrap table, .table-wrap thead, .table-wrap tbody,
+  .table-wrap tr, .table-wrap th, .table-wrap td { display: block; width: 100%; }
+  .table-wrap thead {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  .table-wrap tbody tr {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .table-wrap tbody tr:hover td { background: none; }
+  .table-wrap tbody tr.unread { background: #fff7f7; }
+
+  .table-wrap td {
+    padding: 0.3rem 0 !important;
+    border: none !important;
+    text-align: left !important;
+  }
+  .table-wrap td.td-check { padding-bottom: 0.5rem !important; }
+
+  /* Label:value rows for the columns that follow the title row */
+  .table-wrap td[data-label] {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.75rem; border-top: 1px solid var(--line) !important; padding-top: 0.5rem !important; margin-top: 0.35rem;
+  }
+  .table-wrap td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted); flex-shrink: 0;
+  }
+  .table-wrap td[data-label="Actions"] { justify-content: flex-start; }
+  .table-wrap td[data-label="Actions"] .table-actions { display: flex; gap: 0.4rem; }
+
+  .product-desc { max-width: none; white-space: normal; }
+  .enq-products { max-width: none; white-space: normal; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
 }

@@ -174,19 +174,20 @@ function renderTable() {
           <div class="enq-name">${escapeHtml(e.name)}</div>
           <div class="enq-products">${escapeHtml(e.company)}</div>
         </td>
-        <td>
+        <td data-label="Products">
           <div class="enq-products">${escapeHtml(products)}</div>
         </td>
-        <td style="white-space:nowrap;color:var(--muted);font-size:0.82rem">${date}</td>
-        <td onclick="event.stopPropagation()">
+        <td data-label="Date" style="white-space:nowrap;color:var(--muted);font-size:0.82rem">${date}</td>
+        <td data-label="Actions" onclick="event.stopPropagation()">
           <div class="table-actions">
-            <button class="icon-btn" title="Reply by email" onclick="replyTo('${e.id}')">
+            <button class="icon-btn" title="Reply by email" aria-label="Reply to ${escapeHtml(e.name)} by email" onclick="replyTo('${e.id}')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>
               </svg>
             </button>
             <button class="icon-btn" title="${replied ? "Mark as new" : "Mark as replied"}"
+              aria-label="${replied ? "Mark " + escapeHtml(e.name) + " as new" : "Mark " + escapeHtml(e.name) + " as replied"}"
               onclick="toggleReplied('${e.id}')">
               ${replied
                 ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`
@@ -259,6 +260,20 @@ function toggleReplied(id) {
   showToast(isReplied(id) ? "Marked as replied" : "Marked as new", "success");
 }
 
+function openMarkAllRepliedModal() {
+  const count = enquiries.filter(e => !isReplied(e.id)).length;
+  if (count === 0) {
+    showToast("No new enquiries to mark", "success");
+    return;
+  }
+  document.getElementById("markAllRepliedCount").textContent = count;
+  document.getElementById("markAllRepliedModal").classList.add("open");
+}
+
+function closeMarkAllRepliedModal() {
+  document.getElementById("markAllRepliedModal").classList.remove("open");
+}
+
 function markAllReplied() {
   enquiries.forEach(e => {
     if (!isReplied(e.id)) {
@@ -268,6 +283,7 @@ function markAllReplied() {
   });
   renderTable();
   renderStats();
+  closeMarkAllRepliedModal();
   showToast("All enquiries marked as replied", "success");
 }
 
@@ -325,7 +341,13 @@ function openPanel(id) {
   document.getElementById("detailPanel").classList.add("open");
   document.getElementById("panelOverlay").classList.add("open");
   lucide.createIcons();
+
+  if (typeof ylFocusTrap === "function") {
+    detailPanelRelease = ylFocusTrap(document.getElementById("detailPanel"), { onEscape: closePanel });
+  }
 }
+
+let detailPanelRelease = null;
 
 function updateToggleBtn(id) {
   const btn = document.getElementById("toggleReadBtn");
@@ -340,6 +362,7 @@ function closePanel() {
   document.getElementById("detailPanel").classList.remove("open");
   document.getElementById("panelOverlay").classList.remove("open");
   currentEnqId = null;
+  if (detailPanelRelease) { detailPanelRelease(); detailPanelRelease = null; }
 }
 
 // ─── Export CSV ───────────────────────────────────────────────────

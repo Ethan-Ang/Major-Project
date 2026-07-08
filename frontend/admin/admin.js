@@ -182,7 +182,7 @@ function renderTable() {
     return `
       <tr class="row-animate ${selectedIds.has(p._id) ? "row-selected" : ""}" style="animation-delay:${delay}">
         <td class="td-check">
-          <input type="checkbox" class="row-check" value="${p._id}"
+          <input type="checkbox" class="row-check" value="${p._id}" aria-label="Select ${escapeAttr(p.name)}"
             ${checked} onchange="toggleRowSelect('${p._id}', this.checked)">
         </td>
         <td>
@@ -194,15 +194,16 @@ function renderTable() {
             </div>
           </div>
         </td>
-        <td><span class="cat-pill">${escapeHtml(p.category)}</span></td>
-        <td>
+        <td data-label="Category"><span class="cat-pill">${escapeHtml(p.category)}</span></td>
+        <td data-label="Status">
           <span class="status-badge status-${p.status === "Available" ? "available" : "unavailable"}">
             ${escapeHtml(p.status)}
           </span>
         </td>
-        <td>
+        <td data-label="Actions">
           <div class="table-actions">
             <button class="icon-btn" title="${p.status === "Available" ? "Mark Unavailable" : "Mark Available"}"
+              aria-label="${p.status === "Available" ? "Mark " + escapeAttr(p.name) + " unavailable" : "Mark " + escapeAttr(p.name) + " available"}"
               onclick="toggleStatus('${p._id}', '${p.status}')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -210,14 +211,14 @@ function renderTable() {
                 <line x1="12" y1="2" x2="12" y2="12"/>
               </svg>
             </button>
-            <button class="icon-btn" title="Edit product" onclick="openEditModal('${p._id}')">
+            <button class="icon-btn" title="Edit product" aria-label="Edit ${escapeAttr(p.name)}" onclick="openEditModal('${p._id}')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="icon-btn danger" title="Delete product"
+            <button class="icon-btn danger" title="Delete product" aria-label="Delete ${escapeAttr(p.name)}"
               onclick="openDeleteModal('${p._id}', '${escapeAttr(p.name)}')">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
