@@ -349,17 +349,21 @@ h1, h2, h3,
      sidebar (otherwise its lower filters sit off-screen and are unreachable
      once it sticks). */
   max-height: calc(100vh - 104px);
+  /* auto (not scroll): the internal scrollbar appears ONLY when the filter list
+     genuinely exceeds this height; when it fits there is no bar and no gutter. */
   overflow-y: auto;
-  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #d9cfbb transparent;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.25rem;
 }
-/* Quiet warm scrollbar inside the pinned sidebar. */
+/* Subtle warm scrollbar, transparent track (no grey gutter), shown only while scrollable. */
 .filter-sidebar::-webkit-scrollbar { width: 8px; }
-.filter-sidebar::-webkit-scrollbar-thumb { background: #ded5c2; border-radius: 8px; border: 2px solid var(--panel); }
-.filter-sidebar { scrollbar-width: thin; scrollbar-color: #ded5c2 transparent; }
+.filter-sidebar::-webkit-scrollbar-track { background: transparent; }
+.filter-sidebar::-webkit-scrollbar-thumb { background: #d9cfbb; border-radius: 8px; }
+.filter-sidebar::-webkit-scrollbar-thumb:hover { background: #cdc2ac; }
 
 .filter-heading {
   font-size: 1.2rem;
