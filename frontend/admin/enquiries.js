@@ -35,10 +35,33 @@ function hideAdminBanner(id) {
   if (el) el.remove();
 }
 
+function isNetworkError(err) {
+  return err instanceof TypeError;
+}
+
 // ─── Auth guard ───────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+// Validates the token against the server (matching admin.js/products.html)
+// instead of only checking that one is present. An expired or revoked token
+// used to slip through here — the page just showed the "could not reach the
+// server" banner with an empty table instead of sending you back to login.
+document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/me.php`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error();
+  } catch (err) {
+    if (!isNetworkError(err)) {
+      localStorage.removeItem("adminToken");
+      window.location.href = "login.html";
+      return;
+    }
+    // Backend unreachable (not an auth problem): let the page render.
+    // loadEnquiries() already shows its own banner on a failed fetch.
+  }
 
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("filterStatus"));

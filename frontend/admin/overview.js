@@ -2,10 +2,35 @@
 // the enquiries chart, catalogue breakdown, and recent leads.
 // API_BASE_URL + loadProductsFromBackend()/PRODUCTS come from data.js.
 
+function isNetworkError(err) {
+  return err instanceof TypeError;
+}
+
 // ─── Auth guard ───────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+// Validates the token against the server (matching admin.js/products.html)
+// instead of only checking that one is present. Without this, an expired or
+// revoked token still "worked" here — the dashboard rendered normally because
+// none of its own fetches redirect on failure — while Products/Enquiries
+// correctly bounced you to login, which looked like a random, page-specific bug.
+document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/me.php`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error();
+  } catch (err) {
+    if (!isNetworkError(err)) {
+      localStorage.removeItem("adminToken");
+      window.location.href = "login.html";
+      return;
+    }
+    // Backend unreachable (not an auth problem): let the page render.
+    // loadOverview() already falls back to empty KPIs/chart per section.
+  }
+
   renderGreeting();
   loadOverview();
 });
@@ -85,7 +110,8 @@ function renderCategories(products) {
   products.forEach(p => { counts[p.category] = (counts[p.category] || 0) + 1; });
   const order = Object.entries(counts).sort((a, b) => b[1] - a[1]);
   const max = order[0][1];
-  const fills = ["red", "ink", "slate"];
+  // Neutral quantity bars — the red stays reserved for actions/alerts.
+  const fills = ["ink", "slate", "slate"];
 
   el.innerHTML = order.map(([cat, n], i) => `
     <div class="cat-item">

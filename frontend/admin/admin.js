@@ -29,6 +29,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("pageSizeSelect"));
+    // Modal selects too, so they use the on-brand custom dropdown instead of
+    // the native OS listbox (whose blue option highlight clashes with the brand).
+    ["fieldCategory", "fieldBrand", "fieldStatus"].forEach(id =>
+      enhanceCustomSelect(document.getElementById(id)));
   }
 
   try {
@@ -513,8 +517,17 @@ function openEditModal(id) {
   document.getElementById("fieldFeatures").value      = joinList(p.features);
   document.getElementById("fieldStatus").value        = p.status || "Available";
   document.getElementById("modalError").style.display = "none";
+  syncModalSelects();
   updateImagePreview();
   document.getElementById("productModal").classList.add("open");
+}
+
+// Re-sync the custom-dropdown UI after the native <select> values are set
+// programmatically (edit prefill / add reset).
+function syncModalSelects() {
+  if (typeof refreshCustomSelect !== "function") return;
+  ["fieldCategory", "fieldBrand", "fieldStatus"].forEach(id =>
+    refreshCustomSelect(document.getElementById(id)));
 }
 
 function closeModal() {
@@ -529,6 +542,7 @@ function clearForm() {
   document.getElementById("fieldBrand").value         = "Deer™ Brand";
   document.getElementById("fieldStatus").value        = "Available";
   document.getElementById("modalError").style.display = "none";
+  syncModalSelects();
   updateImagePreview();
 }
 
