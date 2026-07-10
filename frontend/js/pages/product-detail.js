@@ -363,21 +363,44 @@ function renderStickyCta(product) {
   document.body.classList.add("detail-has-cta");
 }
 
+// Some catalogue rows carry placeholder copy ("x", "-", "n/a") for fields that
+// were never written up (e.g. the newer spray guns). Treat those as missing so
+// the page never renders a stray "x".
+function isMeaningfulText(text) {
+  const t = (text == null ? "" : String(text)).trim();
+  if (t.length < 3) return false; // "", "x", "-", "."
+  return !/^(x+|-+|\.+|n\/?a|tbd|none|null)$/i.test(t);
+}
+
 // ─── Full Description + Usage ─────────────────────────────────────
 function renderFullDesc(product) {
   const el = document.getElementById("detailDesc");
   if (!el) return;
-  el.innerHTML = `
-    <h2 class="section-heading">Product Description</h2>
-    <p class="detail-product-desc">${ylEscapeHtml(product.fullDescription)}</p>
-    <h2 class="section-heading" style="margin-top:1.5rem">How to Use</h2>
-    <div class="usage-box">${ylEscapeHtml(product.usage)}</div>
+
+  // Prefer the full description; fall back to the short one when the full field
+  // is a placeholder, and omit "How to Use" entirely when there's no real usage
+  // text — an honest omission reads better than a stray "x".
+  const descText = isMeaningfulText(product.fullDescription)
+    ? product.fullDescription
+    : (isMeaningfulText(product.shortDescription) ? product.shortDescription : "");
+
+  const parts = [];
+  if (descText) {
+    parts.push(`<h2 class="section-heading">Product Description</h2>`);
+    parts.push(`<p class="detail-product-desc">${ylEscapeHtml(descText)}</p>`);
+  }
+  if (isMeaningfulText(product.usage)) {
+    parts.push(`<h2 class="section-heading"${descText ? ' style="margin-top:1.5rem"' : ""}>How to Use</h2>`);
+    parts.push(`<div class="usage-box">${ylEscapeHtml(product.usage)}</div>`);
+  }
+  parts.push(`
     <div class="enquiry-guidance">
       <h2 class="enquiry-guidance-title">Not sure if this product fits your application?</h2>
       <p>Send your surface, application, and quantity requirements to Yee Lim.
       Our team will advise on suitability and quotation.</p>
       <a href="/enquiry" class="enquiry-guidance-link" onclick="enquireAboutProduct('${product.id}')">Send Product Enquiry &rarr;</a>
-    </div>`;
+    </div>`);
+  el.innerHTML = parts.join("\n");
 }
 
 // ─── Related Products ─────────────────────────────────────────────

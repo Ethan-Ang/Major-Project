@@ -72,28 +72,38 @@
 
     /* Header */
     .yl-adv-header {
+      position: relative;
       background: #1a1712;
-      padding: 1.05rem 1.1rem;
+      padding: 1.1rem 1.15rem 1.05rem;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.8rem;
       flex-shrink: 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px 16px 0 0; /* fill the panel's rounded top — no white corner peek */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    /* Brand-red hairline that fades out — ties the advisor to the Yee Lim identity. */
+    .yl-adv-header::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: -1px;
+      height: 2px;
+      background: linear-gradient(90deg, #CC2929 0%, rgba(204,41,41,0.32) 42%, transparent 74%);
     }
 
     .yl-adv-mark {
-      width: 38px;
-      height: 38px;
-      background: #fff;
+      width: 40px;
+      height: 40px;
+      background: #fbfaf6;
       border-radius: 10px;
-      box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 9px -3px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       overflow: hidden;
     }
-    .yl-adv-mark img { width: 28px; height: 28px; object-fit: contain; display: block; }
+    .yl-adv-mark img { width: 27px; height: 27px; object-fit: contain; display: block; }
 
     .yl-adv-header-text {
       flex: 1;
