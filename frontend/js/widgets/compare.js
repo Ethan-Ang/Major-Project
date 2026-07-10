@@ -63,10 +63,21 @@ function renderCompareTray() {
 
   if (list.length === 0) {
     tray.classList.remove("visible");
+    document.body.classList.remove("compare-open");
+    if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
 
   tray.classList.add("visible");
+  // Reserve space so the fixed tray never sits over the last products or the
+  // bottom filter rows: expose its real height as a CSS var and flag the body.
+  document.body.classList.add("compare-open");
+  requestAnimationFrame(() => {
+    const h = tray.offsetHeight || 84;
+    document.documentElement.style.setProperty("--compare-tray-height", h + "px");
+    // Sidebar is now shorter (space reserved for the tray) — refresh its fades.
+    if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
+  });
 
   const slots = [];
   for (let i = 0; i < COMPARE_MAX; i++) {
@@ -223,6 +234,13 @@ function renderCompareMobile() {
     go.textContent = notEnough ? "Select 2 to compare" : "Compare products";
   }
 }
+
+// Keep the reserved tray height in sync when the tray wraps at narrow widths.
+window.addEventListener("resize", () => {
+  if (!document.body.classList.contains("compare-open")) return;
+  const tray = document.getElementById("compareTray");
+  if (tray) document.documentElement.style.setProperty("--compare-tray-height", (tray.offsetHeight || 84) + "px");
+});
 
 // ─── Init ───────────────────────────────────────────────────────
 window.addEventListener("compareUpdated", renderCompareTray);

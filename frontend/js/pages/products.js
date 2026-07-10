@@ -44,7 +44,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   requestAnimationFrame(() => {
     applyFilters({ skipUrlWrite: true });
     initialLoadDone = true;
+    updateFilterScrollFade();
   });
+
+  // Keep the filter-list edge fades correct as the viewport (and therefore the
+  // capped sidebar height) changes.
+  window.addEventListener("resize", updateFilterScrollFade);
 
   // Live filtering while typing (does NOT scroll the page).
   document.getElementById("searchInput").addEventListener("input", () => applyFilters());
@@ -151,7 +156,7 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
     valueExtractor(p).forEach(v => { counts[v] = (counts[v] || 0) + 1; });
   });
 
-  container.innerHTML = items.map(item => {
+  const rows = items.map(item => {
     const count = counts[item] || 0;
     const disabled = count === 0 ? "disabled" : "";
     return `
@@ -162,6 +167,8 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
       </label>
     `;
   }).join("");
+  // Single wrapper so the group can collapse smoothly via grid-template-rows.
+  container.innerHTML = `<div class="fg-rows">${rows}</div>`;
 }
 
 // Trust-strip stats derived from the real catalogue (never hardcoded), so the
@@ -262,14 +269,10 @@ function updateFilterGroupBadges() {
     const checked = group.querySelectorAll("input[type=checkbox]:checked").length;
     totalActive  += checked;
     if (badge) {
-      // Only show the count when the group is collapsed (checkboxes hidden).
-      // When expanded — always on desktop — the checked boxes already convey
-      // state, and the active-filter chips above are the single source of truth,
-      // so the badge would just double the same information.
-      const panel = group.querySelector(".filter-group-panel");
-      const collapsed = panel && getComputedStyle(panel).display === "none";
+      // Show the applied-count pill whenever the section has ≥1 active filter,
+      // so users can see what's applied even while the section is collapsed.
       badge.textContent   = checked || "";
-      badge.style.display = (checked > 0 && collapsed) ? "inline-flex" : "none";
+      badge.style.display = checked > 0 ? "inline-flex" : "none";
     }
   });
 
@@ -605,6 +608,18 @@ function toggleFilterGroup(btn) {
   btn.setAttribute("aria-expanded", group.classList.contains("open"));
   // A collapsed group shows its count badge; an expanded one hides it.
   updateFilterGroupBadges();
+  // The list height changes as a section opens/closes — refresh the edge fades
+  // now and again after the 180ms collapse animation settles.
+  updateFilterScrollFade();
+  setTimeout(updateFilterScrollFade, 200);
+}
+
+// Show the top/bottom edge fades on the filter list only when it genuinely
+// scrolls (rows would otherwise hard-cut); no fade when the list fits.
+function updateFilterScrollFade() {
+  document.querySelectorAll(".filter-sidebar .drawer-body").forEach(el => {
+    el.classList.toggle("has-overflow", el.scrollHeight > el.clientHeight + 1);
+  });
 }
 
 // Default filter-group state: expanded on desktop, collapsed inside the ≤900

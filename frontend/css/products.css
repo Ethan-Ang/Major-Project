@@ -63,6 +63,14 @@
   --shadow-md: 0 6px 20px -6px rgba(32,30,24,0.12);
   --ease:      cubic-bezier(0.23, 1, 0.32, 1);
   --mono:      'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --compare-tray-height: 84px; /* live height of the fixed compare tray when open */
+}
+
+/* When the compare tray is open, reserve its height so it never occludes the
+   last products or the bottom filter rows. Set live from JS (compare.js). */
+body.compare-open { padding-bottom: var(--compare-tray-height); }
+body.compare-open .filter-sidebar {
+  max-height: calc(100vh - 104px - var(--compare-tray-height));
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -345,25 +353,38 @@ h1, h2, h3,
   flex-shrink: 0;
   position: sticky;
   top: 84px;
-  /* Cap to the viewport so a tall filter list scrolls INSIDE the pinned
-     sidebar (otherwise its lower filters sit off-screen and are unreachable
-     once it sticks). */
+  /* Cap to the viewport; the heading stays fixed and the inner .drawer-body
+     scrolls, so a tall filter list never runs off-screen once pinned. */
   max-height: calc(100vh - 104px);
-  /* auto (not scroll): the internal scrollbar appears ONLY when the filter list
-     genuinely exceeds this height; when it fits there is no bar and no gutter. */
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d9cfbb transparent;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.25rem;
 }
-/* Subtle warm scrollbar, transparent track (no grey gutter), shown only while scrollable. */
-.filter-sidebar::-webkit-scrollbar { width: 8px; }
-.filter-sidebar::-webkit-scrollbar-track { background: transparent; }
-.filter-sidebar::-webkit-scrollbar-thumb { background: #d9cfbb; border-radius: 8px; }
-.filter-sidebar::-webkit-scrollbar-thumb:hover { background: #cdc2ac; }
+.filter-heading, .filter-sub { flex-shrink: 0; }
+
+/* The scrolling region (filter groups + clear). Edge fades appear only when it
+   actually overflows (.has-overflow, toggled in JS) so rows never hard-cut.
+   Thin warm scrollbar, transparent track, visible only while scrollable. */
+.filter-sidebar .drawer-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #d9cfbb transparent;
+}
+.filter-sidebar .drawer-body.has-overflow {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+.filter-sidebar .drawer-body::-webkit-scrollbar { width: 8px; }
+.filter-sidebar .drawer-body::-webkit-scrollbar-track { background: transparent; }
+.filter-sidebar .drawer-body::-webkit-scrollbar-thumb { background: #d9cfbb; border-radius: 4px; }
+.filter-sidebar .drawer-body::-webkit-scrollbar-thumb:hover { background: #c9bda3; }
 
 .filter-heading {
   font-size: 1.2rem;
@@ -397,18 +418,19 @@ h1, h2, h3,
 }
 
 .filter-group-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   background: var(--red);
   color: #fff;
-  padding: 0 0.4rem;
+  padding: 0 0.35rem;
   height: 16px;
   min-width: 16px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  letter-spacing: 0.2px;
   animation: popIn 0.18s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
@@ -2718,12 +2740,31 @@ body:has(.compare-tray.visible) .toast {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-size: 0.875rem;
   color: var(--text);
-  padding: 0.3rem 0;
+  /* Consistent row height + inset so the whole-row hover reads as a rounded pill */
+  padding: 0.42rem 0.5rem;
+  border-radius: 6px;
   cursor: pointer;
   line-height: 1.3;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+/* Whole-row hover (the row is a <label>, so clicking anywhere toggles it). */
+.filter-group label:hover:not(.is-empty) { background: var(--well); }
+
+/* Applied row: persistent warm fill + heavier label. */
+.filter-group label:has(input:checked) { background: var(--well); }
+.filter-group label:has(input:checked) .filter-label-text {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Keyboard focus lands on the checkbox — keep it clearly visible. */
+.filter-group input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
 }
 
 .filter-group label.is-empty {
@@ -3673,8 +3714,10 @@ body:has(.compare-tray.visible) .toast {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);
-  margin-bottom: 0.6rem;
-  padding: 0 0 0.4rem;
+  margin-bottom: 0.45rem;
+  /* Match the rows' 0.5rem inset so labels + checkboxes align on a clean edge;
+     a touch more space above than below groups the label with its items. */
+  padding: 0.15rem 0.5rem 0.5rem;
   border-bottom: 1px solid var(--border);
   border-top: none;
   border-left: none;
@@ -3698,8 +3741,22 @@ body:has(.compare-tray.visible) .toast {
   flex-shrink: 0;
 }
 .filter-group.open .fg-chev { transform: rotate(180deg); }
-.filter-group-panel { display: none; }
-.filter-group.open .filter-group-panel { display: block; }
+/* Smooth collapse via grid-template-rows (1fr↔0fr) — animates any content
+   height cleanly instead of snapping. The single .fg-rows child clips. */
+.filter-group-panel {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 0.18s ease, opacity 0.18s ease;
+}
+.filter-group:not(.open) .filter-group-panel {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.fg-rows { overflow: hidden; min-height: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .filter-group-panel, .fg-chev { transition: none; }
+}
 .drawer-head           { display: none; } /* mobile only */
 .drawer-foot           { display: none; } /* mobile only */
 .mobile-filter-bar     { display: none; } /* mobile only */
@@ -3924,11 +3981,8 @@ body:has(.compare-tray.visible) .toast {
   }
   .filter-group.open .fg-chev  { transform: rotate(180deg); }
 
-  .filter-group-panel          { display: none; }
-  .filter-group.open .filter-group-panel {
-    display: block;
-    padding-bottom: 0.85rem;
-  }
+  /* Collapse handled by the shared grid-rows animation; just add drawer spacing. */
+  .filter-group.open .fg-rows { padding-bottom: 0.85rem; }
 
   .filter-group label {
     padding: 0.5rem 0.55rem;
