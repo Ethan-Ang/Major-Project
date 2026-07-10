@@ -5,67 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Enquiry | Yee Lim Adhesives Industries</title>
   <meta name="description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=42">
+  <link rel="stylesheet" href="/css/products.css?v=43">
   <script src="/js/widgets/navbar.js?v=8"></script>
   <script src="/js/widgets/footer.js?v=9"></script>
 </head>
 <body>
 
 <main>
+<!-- Dark header band -->
+<section class="enquiry-hero">
+  <div class="enquiry-hero-inner">
+    <nav aria-label="Breadcrumb" class="enquiry-breadcrumb">
+      <a href="/">Home</a><span aria-hidden="true">&rsaquo;</span>
+      <a href="/products">Products</a><span aria-hidden="true">&rsaquo;</span>
+      <span aria-current="page">Product Enquiry</span>
+    </nav>
+    <h1>Product Enquiry</h1>
+    <p class="enquiry-hero-lead">Review your selected products and send one enquiry to our team for advice or quotation.</p>
+  </div>
+</section>
+
 <!-- Main content -->
 <div class="page-content" id="mainContent">
-  <h1>Product Enquiry</h1>
-  <p class="sub">Review your selected products and send one enquiry to our team for advice or quotation.</p>
+  <div class="enquiry-grid">
 
-  <!-- Basket list -->
-  <div class="basket-list" id="basketList"></div>
-  <a href="/products" style="display:inline-block;margin-bottom:1.5rem;font-size:0.875rem;color:var(--red);text-decoration:none">
-    &#8592; Continue browsing products
-  </a>
-
-  <!-- Enquiry form (shown only if products are selected) -->
-  <div class="enquiry-form" id="enquiryFormSection" style="display:none">
-    <h2>Your Details</h2>
-
-    <div id="selectedProductsDisplay" class="enquiring-about"></div>
-
-    <!-- Honeypot: hidden from people, tempting to bots. A real submission
-         leaves this empty; the server silently drops anything that fills it. -->
-    <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
-      <label for="eWebsite">Website (leave this field blank)</label>
-      <input type="text" id="eWebsite" name="website" tabindex="-1" autocomplete="off">
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="eName">Full Name *</label>
-        <input type="text" id="eName" required aria-required="true" autocomplete="name" placeholder="John Tan">
+    <!-- LEFT: selected products -->
+    <section class="enquiry-col-left">
+      <div class="enquiry-col-head" id="enquiryColHead" style="display:none">
+        <h2>Selected products <span class="enquiry-count" id="enquiryCount"></span></h2>
+        <button type="button" class="enquiry-clear-all" id="clearAllBtn" onclick="clearAllBasket()">Clear all</button>
       </div>
-      <div class="form-group">
-        <label for="eCompany">Company Name *</label>
-        <input type="text" id="eCompany" required aria-required="true" autocomplete="organization" placeholder="ABC Pte Ltd">
+
+      <!-- Basket list -->
+      <div class="basket-list" id="basketList"></div>
+      <a href="/products" class="enquiry-continue-link">
+        &#8592; Continue browsing products
+      </a>
+    </section>
+
+    <!-- RIGHT: details form (shown only if products are selected) -->
+    <aside class="enquiry-col-right">
+      <div class="enquiry-form" id="enquiryFormSection" style="display:none">
+        <div id="selectedProductsDisplay" class="enquiring-about"></div>
+
+        <div class="enquiry-form-body">
+          <h2>Your Details</h2>
+
+          <!-- Honeypot: hidden from people, tempting to bots. A real submission
+               leaves this empty; the server silently drops anything that fills it. -->
+          <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+            <label for="eWebsite">Website (leave this field blank)</label>
+            <input type="text" id="eWebsite" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="eName">Full Name *</label>
+              <input type="text" id="eName" required aria-required="true" autocomplete="name" placeholder="John Tan">
+            </div>
+            <div class="form-group">
+              <label for="eCompany">Company Name *</label>
+              <input type="text" id="eCompany" required aria-required="true" autocomplete="organization" placeholder="ABC Pte Ltd">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="eEmail">Email Address *</label>
+              <input type="email" id="eEmail" required aria-required="true" autocomplete="email" placeholder="you@company.com">
+            </div>
+            <div class="form-group">
+              <label for="ePhone">Phone Number</label>
+              <input type="tel" id="ePhone" autocomplete="tel" placeholder="+65 9123 4567">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="eMessage">Surface, Application &amp; Quantity Requirements</label>
+            <textarea id="eMessage" placeholder="Tell us the surfaces you are bonding, your application, and the quantity you need…"></textarea>
+          </div>
+          <div class="form-submit">
+            <p id="enquiryError" tabindex="-1" style="display:none;color:#c0392b;font-size:0.875rem;margin-bottom:0.75rem"></p>
+            <button class="btn btn-primary enquiry-submit-btn" id="submitEnquiryBtn" onclick="submitEnquiry()">
+              Submit Enquiry
+            </button>
+            <p class="enquiry-reassurance">We'll reply within 1&ndash;2 business days with advice or a quotation.</p>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="eEmail">Email Address *</label>
-        <input type="email" id="eEmail" required aria-required="true" autocomplete="email" placeholder="you@company.com">
-      </div>
-      <div class="form-group">
-        <label for="ePhone">Phone Number</label>
-        <input type="tel" id="ePhone" autocomplete="tel" placeholder="+65 9123 4567">
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="eMessage">Surface, Application &amp; Quantity Requirements</label>
-      <textarea id="eMessage" placeholder="Tell us the surfaces you are bonding, your application, and the quantity you need…"></textarea>
-    </div>
-    <div class="form-submit">
-      <p id="enquiryError" tabindex="-1" style="display:none;color:#c0392b;font-size:0.875rem;margin-bottom:0.75rem"></p>
-      <button class="btn btn-primary" id="submitEnquiryBtn" style="padding:0.75rem 2rem;font-size:1rem" onclick="submitEnquiry()">
-        Submit Enquiry
-      </button>
-    </div>
+    </aside>
+
   </div>
 </div>
 
@@ -139,6 +166,8 @@ function renderBasket() {
   const list = document.getElementById("basketList");
   const formSection = document.getElementById("enquiryFormSection");
   const selectedDisplay = document.getElementById("selectedProductsDisplay");
+  const colHead = document.getElementById("enquiryColHead");
+  const countEl = document.getElementById("enquiryCount");
 
   if (products.length === 0) {
     list.innerHTML = `
@@ -147,8 +176,12 @@ function renderBasket() {
         <a href="/products" class="btn btn-primary" style="padding:0.6rem 1.25rem">Browse Products</a>
       </div>`;
     formSection.style.display = "none";
+    colHead.style.display = "none";
     return;
   }
+
+  colHead.style.display = "flex";
+  countEl.textContent = `(${products.length})`;
 
   list.innerHTML = products.map(p => {
     const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
@@ -182,6 +215,11 @@ function renderBasket() {
 function removeFromBasket(id) {
   const basket = getBasket().map(String).filter(i => i !== String(id));
   saveBasket(basket);
+  renderBasket();
+}
+
+function clearAllBasket() {
+  saveBasket([]);
   renderBasket();
 }
 
