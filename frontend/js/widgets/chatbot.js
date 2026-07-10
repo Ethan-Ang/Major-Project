@@ -72,7 +72,7 @@
 
     /* Header */
     .yl-adv-header {
-      background: #0e1116;
+      background: #1a1712;
       padding: 1.05rem 1.1rem;
       display: flex;
       align-items: center;
@@ -111,7 +111,7 @@
 
     .yl-adv-subtitle {
       font-size: 0.72rem;
-      color: #8a93a0;
+      color: #8a847a;
       display: flex;
       align-items: center;
       gap: 0.35rem;
@@ -129,7 +129,7 @@
     .yl-adv-close {
       background: none;
       border: none;
-      color: #9ca3af;
+      color: #9a938a;
       cursor: pointer;
       padding: 0.3rem;
       border-radius: 6px;
@@ -151,11 +151,11 @@
       flex-direction: column;
       gap: 0.75rem;
       scroll-behavior: smooth;
-      background: #f8f9fb;
+      background: #f6f2ea;
     }
 
     .yl-adv-messages::-webkit-scrollbar { width: 4px; }
-    .yl-adv-messages::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+    .yl-adv-messages::-webkit-scrollbar-thumb { background: #e6dfd0; border-radius: 2px; }
 
     .yl-msg {
       display: flex;
@@ -179,7 +179,7 @@
       flex-shrink: 0;
       border-radius: 7px;
       background: #fff;
-      border: 1px solid #e9ebf0;
+      border: 1px solid #e6dfd0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -197,15 +197,15 @@
     }
 
     .yl-msg-user .yl-msg-bubble {
-      background: #1b212b;
+      background: #201e18;
       color: #fff;
       border-bottom-right-radius: 4px;
     }
 
     .yl-msg-assistant .yl-msg-bubble {
       background: #fff;
-      border: 1px solid #e9ebf0;
-      color: #1b212b;
+      border: 1px solid #e6dfd0;
+      color: #201e18;
       border-bottom-left-radius: 4px;
       box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     }
@@ -223,7 +223,7 @@
       gap: 4px;
       padding: 0.7rem 0.95rem;
       background: #fff;
-      border: 1px solid #e9ebf0;
+      border: 1px solid #e6dfd0;
       border-radius: 12px;
       border-bottom-left-radius: 4px;
     }
@@ -231,7 +231,7 @@
     .yl-typing span {
       width: 6px;
       height: 6px;
-      background: #9ca3af;
+      background: #9a938a;
       border-radius: 50%;
       display: inline-block;
       animation: ylDot 1.2s infinite;
@@ -254,24 +254,24 @@
 
     .yl-suggestion {
       background: #fff;
-      border: 1px solid #e4e7ec;
+      border: 1px solid #e6dfd0;
       border-radius: 8px;
       padding: 0.4rem 0.8rem;
       font-size: 0.79rem;
       font-weight: 500;
-      color: #3a4250;
+      color: #47433b;
       cursor: pointer;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       transition: border-color 0.18s cubic-bezier(0.23,1,0.32,1), color 0.18s, background 0.18s, transform 0.12s;
     }
 
-    .yl-suggestion:hover { border-color: #c2c7d0; color: #1b212b; background: #f2f4f7; transform: translateY(-1px); }
+    .yl-suggestion:hover { border-color: #c9bfaa; color: #201e18; background: #f6f2ea; transform: translateY(-1px); }
     .yl-suggestion:active { transform: scale(0.97); }
 
     /* Input */
     .yl-adv-footer {
       padding: 0.75rem;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid #e6dfd0;
       background: #fff;
       flex-shrink: 0;
     }
@@ -279,16 +279,16 @@
     .yl-adv-input-row {
       display: flex;
       align-items: stretch;
-      background: #f7f8fa;
-      border: 1px solid #e4e7ec;
+      background: #fbfaf6;
+      border: 1px solid #e6dfd0;
       border-radius: 8px;
       overflow: hidden;
       transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
     }
 
     .yl-adv-input-row:focus-within {
-      border-color: #6b7480;
-      box-shadow: 0 0 0 3px rgba(27, 33, 43, 0.10);
+      border-color: #6a655a;
+      box-shadow: 0 0 0 3px rgba(32, 30, 24, 0.10);
       background: #fff;
     }
 
@@ -299,12 +299,12 @@
       background: transparent;
       font-size: 0.875rem;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #1b212b;
+      color: #201e18;
       outline: none;
       min-width: 0;
     }
 
-    .yl-adv-input::placeholder { color: #8a93a0; }
+    .yl-adv-input::placeholder { color: #8a847a; }
 
     .yl-adv-send {
       background: #CC2929;
@@ -320,13 +320,13 @@
     }
 
     .yl-adv-send:hover { background: #a82020; }
-    .yl-adv-send:disabled { background: #e5e7eb; cursor: not-allowed; }
+    .yl-adv-send:disabled { background: #e6dfd0; cursor: not-allowed; }
     .yl-adv-send:disabled svg { opacity: 0.4; }
 
     .yl-adv-note {
       text-align: center;
       font-size: 0.67rem;
-      color: #8a93a0;
+      color: #8a847a;
       margin-top: 0.45rem;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }

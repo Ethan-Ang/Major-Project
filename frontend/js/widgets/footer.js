@@ -3,8 +3,8 @@
   const style = document.createElement("style");
   style.textContent = `
     .site-footer {
-      background: #0e1116;
-      color: #aeb6c2;
+      background: #17130e;
+      color: #b9b3a6;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.875rem;
       line-height: 1.6;
@@ -63,7 +63,7 @@
       line-height: 1.15;
     }
     .site-footer-tagline {
-      color: #e0a3a3;
+      color: #e79a9a;
       font-size: 0.8rem;
       font-style: italic;
       font-weight: 500;
@@ -72,7 +72,7 @@
     .site-footer-blurb {
       margin: 0 0 1.1rem;
       max-width: 38ch;
-      color: #9aa4b2;
+      color: #b9b3a6;
     }
     .site-footer-certs {
       display: flex;
@@ -83,7 +83,7 @@
       font-size: 0.7rem;
       font-weight: 600;
       letter-spacing: 0.3px;
-      color: #cbd2db;
+      color: #cdc7b9;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 4px;
@@ -98,7 +98,7 @@
     }
     .site-footer-links a,
     .site-footer-contact a {
-      color: #9aa4b2;
+      color: #b9b3a6;
       text-decoration: none;
       transition: color 0.18s;
     }
@@ -126,7 +126,7 @@
     }
     .site-footer-contact dd {
       margin: 0;
-      color: #c3cad4;
+      color: #cdc7b9;
     }
     .site-footer-cta {
       display: inline-flex;
@@ -159,7 +159,7 @@
       font-size: 0.78rem;
       color: #8a93a0;
     }
-    .site-footer-bottom strong { color: #9aa4b2; font-weight: 600; }
+    .site-footer-bottom strong { color: #cdc7b9; font-weight: 600; }
     .site-footer-admin {
       color: #8a93a0;
       text-decoration: underline;

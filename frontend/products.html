@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Commercial &amp; Industrial Adhesives Singapore | Yee Lim Products</title>
   <meta name="description" content="Browse Yee Lim's commercial and industrial adhesive products by brand, industry, surface, or application. Submit a product enquiry for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=34">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=4">
-  <script src="/js/widgets/navbar.js?v=7"></script>
-  <script src="/js/widgets/footer.js?v=8"></script>
+  <link rel="stylesheet" href="/css/products.css?v=40">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=5">
+  <script src="/js/widgets/navbar.js?v=8"></script>
+  <script src="/js/widgets/footer.js?v=9"></script>
 </head>
 <body>
 
@@ -23,6 +23,21 @@
   <div class="hero-strip" aria-hidden="true">
     <span>Yee Lim</span>
     <span>Est. 1976</span>
+  </div>
+  <!-- Brand label wall: the real Deer / Horsemen / Premier / Rhino marks applied
+       like product labels on a supplier's shelf. Faint, decorative, and made
+       legible by the scrim so the copy on the left stays crisp. -->
+  <div class="hero-label-wall" aria-hidden="true">
+    <img src="/images/logos/Deer-white.png" alt="" style="top:9%;left:31%;width:104px;opacity:.06;transform:rotate(-4deg)">
+    <img src="/images/logos/Rhino-white.png" alt="" style="top:30%;left:21%;width:146px;opacity:.055;transform:rotate(3deg)">
+    <img src="/images/logos/Premier-white.png" alt="" style="top:6%;left:52%;width:94px;opacity:.07;transform:rotate(5deg)">
+    <img src="/images/logos/Horsemen-white.png" alt="" style="top:41%;left:47%;width:128px;opacity:.06;transform:rotate(-3deg)">
+    <img src="/images/logos/Deer-white.png" alt="" style="top:67%;left:34%;width:100px;opacity:.05;transform:rotate(4deg)">
+    <img src="/images/logos/Rhino-white.png" alt="" style="top:70%;left:60%;width:146px;opacity:.06;transform:rotate(-4deg)">
+    <img src="/images/logos/Premier-white.png" alt="" style="top:12%;left:74%;width:102px;opacity:.06;transform:rotate(-5deg)">
+    <img src="/images/logos/Horsemen-white.png" alt="" style="top:45%;left:78%;width:126px;opacity:.055;transform:rotate(4deg)">
+    <img src="/images/logos/Deer-white.png" alt="" style="top:74%;left:87%;width:96px;opacity:.05;transform:rotate(-3deg)">
+    <span class="hero-label-scrim"></span>
   </div>
   <div class="hero-inner">
     <div class="hero-main">
@@ -78,35 +93,24 @@
 <section class="trust-strip" aria-label="Yee Lim at a glance">
   <ul class="trust-strip-inner">
     <li class="trust-item"><span class="trust-num">50<span class="trust-plus">+</span></span><span class="trust-label">Years Manufacturing</span></li>
-    <li class="trust-item"><span class="trust-num">31</span><span class="trust-label">Products in Catalogue</span></li>
-    <li class="trust-item"><span class="trust-num">12</span><span class="trust-label">Industries Served</span></li>
+    <li class="trust-item"><span class="trust-num" id="trustProductCount">31</span><span class="trust-label">Products in Catalogue</span></li>
+    <li class="trust-item"><span class="trust-num" id="trustIndustryCount">12</span><span class="trust-label">Industries Served</span></li>
     <li class="trust-item"><span class="trust-num">ISO</span><span class="trust-label">Certified &amp; Green Label</span></li>
   </ul>
 </section>
 
-<!-- Browse by Application -->
-<section class="applications" id="applications" aria-labelledby="applicationsHeading">
-  <div class="applications-inner">
-    <div class="section-head">
-      <span class="section-eyebrow">Quick start</span>
-      <h2 id="applicationsHeading">Common Applications</h2>
-      <p>Start with a common use case, then refine with filters below.</p>
+<!-- Product Advisor: promoted to a prominent banner near the top of the page,
+     the "describe your own job" path for buyers who don't know which range fits. -->
+<section class="advisor-banner-wrap" aria-label="Product Advisor">
+  <div class="advisor-banner">
+    <span class="advisor-banner-icon" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/><path d="M9.6 9.2a2.5 2.5 0 0 1 4.86.83c0 1.67-2.5 2.5-2.5 2.5"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+    </span>
+    <div class="advisor-banner-text">
+      <strong>Not sure which adhesive you need?</strong>
+      <span>Describe your surface and job, and the Product Advisor will recommend the right Yee Lim products.</span>
     </div>
-    <div class="application-grid" id="applicationGrid"></div>
-
-    <!-- The advisor is the "describe your own job" companion to the preset
-         application tiles above: same find-by-job idea, for jobs the tiles do
-         not cover. One placement, identical on desktop and mobile. -->
-    <div class="advisor-prompt">
-      <span class="advisor-prompt-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-      </span>
-      <div class="advisor-prompt-text">
-        <strong>Don't see your application?</strong>
-        <span>Describe your surface and job, and our advisor will recommend the right products.</span>
-      </div>
-      <button type="button" class="advisor-prompt-btn" onclick="openProductAdvisor()">Ask the advisor</button>
-    </div>
+    <button type="button" class="advisor-banner-btn" onclick="openProductAdvisor()">Ask the Product Advisor &rarr;</button>
   </div>
 </section>
 
@@ -147,8 +151,8 @@
       <h2 class="filter-heading">Refine Products</h2>
       <p class="filter-sub">Refine by brand, industry, surface, or application.</p>
 
-      <div class="filter-group">
-        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="false">
+      <div class="filter-group open">
+        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
           Product Type
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
@@ -158,8 +162,8 @@
         <div class="filter-group-panel" id="productTypeFilters"></div>
       </div>
 
-      <div class="filter-group">
-        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="false">
+      <div class="filter-group open">
+        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
           Brand
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
@@ -169,8 +173,8 @@
         <div class="filter-group-panel" id="brandFilters"></div>
       </div>
 
-      <div class="filter-group">
-        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="false">
+      <div class="filter-group open">
+        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
           Industry
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
@@ -180,8 +184,8 @@
         <div class="filter-group-panel" id="industryFilters"></div>
       </div>
 
-      <div class="filter-group">
-        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="false">
+      <div class="filter-group open">
+        <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
           Surface / Material
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
@@ -222,13 +226,16 @@
 
     <div class="grid-meta">
       <span id="resultCount" aria-live="polite" aria-atomic="true">Loading products…</span>
-      <label for="sortSelect" class="sr-only">Sort products</label>
-      <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
-        <option value="default">Default order</option>
-        <option value="az">Name A–Z</option>
-        <option value="za">Name Z–A</option>
-        <option value="brand">Sort by Brand</option>
-      </select>
+      <div class="grid-sort">
+        <span class="grid-sort-label" aria-hidden="true">Sort</span>
+        <label for="sortSelect" class="sr-only">Sort products</label>
+        <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
+          <option value="default">Default order</option>
+          <option value="az">Name A–Z</option>
+          <option value="za">Name Z–A</option>
+          <option value="brand">Sort by Brand</option>
+        </select>
+      </div>
     </div>
     <div class="product-grid" id="productGrid"></div>
   </section>
@@ -257,7 +264,7 @@
 <script src="/js/data.js?v=5"></script>
 <script src="/js/widgets/compare.js?v=6"></script>
 <script src="/js/widgets/custom-select.js?v=2"></script>
-<script src="/js/pages/products.js?v=17"></script>
-<script src="/js/widgets/chatbot.js?v=11"></script>
+<script src="/js/pages/products.js?v=22"></script>
+<script src="/js/widgets/chatbot.js?v=12"></script>
 </body>
 </html>

@@ -32,7 +32,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     enhanceCustomSelect(document.getElementById("mobileSortSelect"));
   }
   buildFilterCheckboxes();
-  renderApplications();
+  renderTrustStats();
+  applyFilterGroupDefaults();
   applyStateToCheckboxes();
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
@@ -163,61 +164,21 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
   }).join("");
 }
 
-// ─── Browse by Application (solution tiles) ──────────────────────
-// Friendly B2B labels mapped 1:1 to real industries in data.js so every
-// tile filters real products — no dead ends.
-const APPLICATIONS = [
-  { label: "Woodworking & Carpentry", industry: "Carpentry",  blurb: "Joinery, panels &amp; timber bonding",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>` },
-  { label: "Flooring", industry: "Flooring", blurb: "Carpet, vinyl, laminate &amp; turf",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>` },
-  { label: "Packaging", industry: "Packaging", blurb: "Cartons, labels &amp; sealing",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>` },
-  { label: "Furniture & Upholstery", industry: "Upholstery", blurb: "Foam, fabric &amp; leather lamination",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>` },
-  { label: "Marine", industry: "Marine", blurb: "Water-resistant industrial bonding",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>` },
-  { label: "Automotive", industry: "Automotive", blurb: "Trim, insulation &amp; assembly",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>` },
-];
-
-function renderApplications() {
-  const grid = document.getElementById("applicationGrid");
-  if (!grid) return;
-
-  const counts = {};
-  PRODUCTS.forEach(p => p.industries.forEach(i => { counts[i] = (counts[i] || 0) + 1; }));
-
-  grid.innerHTML = APPLICATIONS.map(app => {
-    const n = counts[app.industry] || 0;
-    const plural = n === 1 ? "" : "s";
-    return `
-      <button class="application-card" type="button" data-industry="${app.industry}"
-        onclick="filterByIndustry('${app.industry}')"
-        aria-label="Browse ${app.label.replace(/&amp;/g, 'and')} adhesives, ${n} product${plural}">
-        <span class="application-icon" aria-hidden="true">${app.icon}</span>
-        <span class="application-text">
-          <span class="application-label">${app.label}</span>
-          <span class="application-blurb">${app.blurb}</span>
-        </span>
-        <span class="application-count">${n}<span>product${plural}</span></span>
-      </button>`;
-  }).join("");
+// Trust-strip stats derived from the real catalogue (never hardcoded), so the
+// product + industry counts always match what's actually loaded.
+function renderTrustStats() {
+  const productEl  = document.getElementById("trustProductCount");
+  const industryEl = document.getElementById("trustIndustryCount");
+  if (productEl) productEl.textContent = PRODUCTS.length;
+  if (industryEl) {
+    const industries = new Set();
+    PRODUCTS.forEach(p => (p.industries || []).forEach(i => industries.add(i)));
+    industryEl.textContent = industries.size;
+  }
 }
 
-// Apply a single industry filter and jump to the catalogue
-function filterByIndustry(industry) {
-  document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => {
-    cb.checked = (cb.dataset.type === "industry" && cb.value === industry);
-  });
-  const search = document.getElementById("searchInput");
-  if (search) search.value = "";
-  applyFilters();
-  scrollToCatalogue();
-}
-
-// Apply a single brand filter (from the hero "Shop by brand" rows) and jump to
-// the catalogue. Mirrors filterByIndustry so the hero stays a same-page filter.
+// Apply a single brand filter (from the hero "Our ranges" rows) and jump to the
+// catalogue, so the hero brand chips act as same-page filters.
 function filterByBrand(brand) {
   document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => {
     cb.checked = (cb.dataset.type === "brand" && cb.value === brand);
@@ -226,13 +187,6 @@ function filterByBrand(brand) {
   if (search) search.value = "";
   applyFilters();
   scrollToCatalogue();
-}
-
-// Highlight the application tile matching the active industry filter
-function syncApplicationCards() {
-  document.querySelectorAll(".application-card").forEach(card => {
-    card.classList.toggle("active", activeFilters.industries.includes(card.dataset.industry));
-  });
 }
 
 // Highlight the hero "Our ranges" chip matching the active brand filter so it
@@ -297,7 +251,6 @@ function applyFilters(opts = {}) {
   if (!opts.skipUrlWrite) writeStateToURL();
   updateClearVisibility();
   updateFilterGroupBadges();
-  syncApplicationCards();
   syncBrandRows();
 }
 
@@ -354,7 +307,6 @@ function clearFilters() {
   writeStateToURL();
   updateClearVisibility();
   updateFilterGroupBadges();
-  syncApplicationCards();
   syncBrandRows();
 }
 
@@ -465,6 +417,20 @@ function bestForText(p) {
   return "General Adhesive Use";
 }
 
+// Derive a short model code from the product name for the card meta line
+// ("Deer™ Brand 101" → "101", "Horsemen™ 707S" → "707S"). Returns "" when there
+// is no clean short code (e.g. accessories / long descriptive names), so the
+// card just shows the availability status instead of a "No." with junk.
+function productCodeFromName(p) {
+  const code = String(p.name || "")
+    .replace(/™/g, "")
+    .replace(/\bbrand\b/gi, "")
+    .replace(/^\s*(deer|horsemen|premier|rhino)\s+/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (code && code.length <= 10 && code.toLowerCase() !== String(p.name || "").toLowerCase()) ? code : "";
+}
+
 function productCardHTML(p) {
   const basket   = getBasket();
   const inBasket = basket.includes(p.id);
@@ -474,7 +440,7 @@ function productCardHTML(p) {
 
   const isUnavailable = p.status === "Unavailable";
   const primaryApps = escapeHTML(bestForText(p));
-  const surfaceTags = p.surfaces.slice(0, 3).map(s => `<span class="product-tag">${escapeHTML(s)}</span>`).join("");
+  const surfaceTags = p.surfaces.slice(0, 2).map(s => `<span class="product-tag">${escapeHTML(s)}</span>`).join("");
 
   const hasRealImage = p.images && p.images.length > 0;
   const brandLabel = escapeHTML(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
@@ -484,6 +450,12 @@ function productCardHTML(p) {
   const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
   const detailHref = `/product-detail?id=${encodeURIComponent(p.id)}`;
 
+  // Card meta: short model code (from the name) + real availability status.
+  const isAccessory = /accessor/i.test(p.brand) || /accessor/i.test(p.category || "");
+  const brandTag = isAccessory ? "ACCESSORY" : brandLabel;
+  const code = productCodeFromName(p);
+  const codeLabel = code ? `<span class="pcard-code">No. ${escapeHTML(code)}</span>` : "";
+
   const compareTitle = compareDisabled
     ? "Comparison full: remove one to add another"
     : inCompare ? "Remove from comparison" : "Add to compare";
@@ -492,7 +464,7 @@ function productCardHTML(p) {
     <article class="product-card${isUnavailable ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
       <div class="${imageClass}">
         <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
-        ${isUnavailable ? `<span class="card-status-badge" aria-label="Availability: Currently Unavailable"><span class="card-status-dot" aria-hidden="true"></span><span class="csb-full">Currently Unavailable</span><span class="csb-short">Unavailable</span></span>` : ""}
+        <span class="pcard-brand-tag${isAccessory ? " is-accessory" : ""}" aria-hidden="true">${brandTag}</span>
         <button
           class="card-compare-btn${inCompare ? " in-compare" : ""}"
           data-product-id="${p.id}" onclick="event.stopPropagation();toggleCompare('${p.id}')"
@@ -500,9 +472,9 @@ function productCardHTML(p) {
           title="${compareTitle}"
           aria-label="${compareTitle}">
           ${inCompare
-            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`}
-          <span>${inCompare ? "In compare" : "Compare"}</span>
+            ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>`
+            : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>`}
+          <span>Compare</span>
         </button>
         <button
           class="pcard-add${inBasket ? ' added' : ''}"
@@ -515,21 +487,25 @@ function productCardHTML(p) {
         </button>
       </div>
       <div class="product-card-body">
-        <span class="brand-badge">${escapeHTML(brandDisplay(p.brand))}</span>
+        <span class="pcard-meta">
+          ${codeLabel}
+          <span class="pcard-avail${isUnavailable ? " is-unavail" : ""}"><span class="pcard-dot" aria-hidden="true"></span>${isUnavailable ? "Enquire to order" : "Available"}</span>
+        </span>
         <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
-        ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span>${primaryApps}</span></div>` : ""}
+        ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span class="card-application-val">${primaryApps}</span></div>` : ""}
         <p>${escapeHTML(p.shortDescription)}</p>
-        ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces"><span class="product-tags-label">Surfaces</span>${surfaceTags}</div>` : ""}
+        ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces">${surfaceTags}</div>` : ""}
         <div class="product-card-actions">
-          <a href="${detailHref}" class="btn btn-primary">View Details</a>
           <button
-            class="btn btn-outline ${inBasket ? "btn-added" : ""}"
+            class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
             aria-pressed="${inBasket ? "true" : "false"}"
-            onclick="toggleBasket('${p.id}')">
+            onclick="toggleBasket('${p.id}')"
+            aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
             ${inBasket
-              ? `<span class="enq-label-full">In Product Enquiry</span><span class="enq-label-short">In Enquiry</span>`
-              : (isUnavailable ? "Enquire About Availability" : "Add to Product Enquiry")}
+              ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="enq-label-full">In Enquiry</span><span class="enq-label-short">Added</span>`
+              : `+ Enquiry`}
           </button>
+          <a href="${detailHref}" class="btn btn-outline pcard-view">View</a>
         </div>
         <div class="pcard-cmp-row">
           <button
@@ -572,9 +548,9 @@ function syncCompareButtons() {
       : inCompare ? "Remove from comparison" : "Add to compare";
     btn.setAttribute("aria-label", btn.title);
     btn.innerHTML = (inCompare
-      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`)
-      + `<span>${inCompare ? "In compare" : "Compare"}</span>`;
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>`
+      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>`)
+      + `<span>Compare</span>`;
   });
 
   // Sync mobile compare checkboxes (.pcard-cmp)
@@ -624,11 +600,22 @@ function closeFilterDrawerA11y(el) {
 }
 
 function toggleFilterGroup(btn) {
-  if (window.innerWidth > 640) return; // desktop: always expanded
   const group = btn.closest(".filter-group");
   group.classList.toggle("open");
   btn.setAttribute("aria-expanded", group.classList.contains("open"));
   // A collapsed group shows its count badge; an expanded one hides it.
+  updateFilterGroupBadges();
+}
+
+// Default filter-group state: expanded on desktop, collapsed inside the ≤900
+// drawer (so the drawer opens short and each section is tapped open as needed).
+function applyFilterGroupDefaults() {
+  const drawer = window.innerWidth <= 900;
+  document.querySelectorAll(".filter-sidebar .filter-group").forEach(group => {
+    group.classList.toggle("open", !drawer);
+    const bar = group.querySelector(".filter-group-bar");
+    if (bar) bar.setAttribute("aria-expanded", (!drawer).toString());
+  });
   updateFilterGroupBadges();
 }
 

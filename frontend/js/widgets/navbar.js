@@ -3,7 +3,7 @@
   const style = document.createElement("style");
   style.textContent = `
     .nav {
-      background: #111827;
+      background: #1a1712;
       color: #fff;
       position: sticky;
       top: 0;
@@ -40,7 +40,7 @@
     }
     .nav-links a {
       position: relative;
-      color: #d4d8e0;
+      color: #cdc7b9;
       text-decoration: none;
       font-size: 0.95rem;
       font-weight: 500;
@@ -177,19 +177,19 @@
     }
     .nav-hamburger:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     .nav-mobile-drawer {
-      background: #0b1220;
+      background: #17130e;
       display: none;
       flex-direction: column;
       padding: 0.5rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
     }
     .nav-mobile-drawer.open { display: flex; }
     .nav-mobile-drawer a {
-      color: #d4d8e0;
+      color: #cdc7b9;
       text-decoration: none;
       font-size: 0.98rem;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       padding: 0.85rem 0.25rem;
-      border-bottom: 1px solid #1c2433;
+      border-bottom: 1px solid #2a2418;
       transition: color 0.2s;
     }
     .nav-mobile-drawer a:last-child { border-bottom: none; }
