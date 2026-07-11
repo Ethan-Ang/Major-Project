@@ -209,7 +209,7 @@ function renderUnreadBadges(enquiries) {
   const nav = document.getElementById("navUnread");
   if (nav && newLeads > 0) {
     nav.textContent = newLeads;
-    nav.style.display = "inline-block";
+    nav.style.display = "inline-flex"; // matches the CSS flex-centered badge
   }
 }
 

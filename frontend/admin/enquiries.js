@@ -142,7 +142,9 @@ function renderStats(animate = true) {
 
   const badge = document.getElementById("unreadBadge");
   if (badge) {
-    if (newCount > 0) { badge.textContent = newCount; badge.style.display = "inline-block"; }
+    // inline-flex so the CSS centers the count (an inline "inline-block" here
+    // would override the stylesheet and leave the digits sitting high).
+    if (newCount > 0) { badge.textContent = newCount; badge.style.display = "inline-flex"; }
     else { badge.style.display = "none"; }
   }
 
