@@ -597,8 +597,8 @@ input[type="checkbox"] { accent-color: var(--red); }
 .product-desc { font-size: 0.77rem; color: var(--muted); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
 .cat-pill { display: inline-block; font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text); background: var(--panel); border: 1px solid var(--line-2); padding: 0.25rem 0.6rem; }
 
-.status-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.64rem; font-weight: 600; padding: 0.3rem 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid; }
-.status-badge::before { content: ""; width: 6px; height: 6px; background: currentColor; flex-shrink: 0; }
+.status-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.64rem; font-weight: 600; padding: 0.3rem 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid; transition: background-color 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease); }
+.status-badge::before { content: ""; width: 6px; height: 6px; background: currentColor; flex-shrink: 0; transition: background-color 0.3s var(--ease); }
 .status-available { background: var(--green-tint); color: var(--green); border-color: var(--green-bdr); }
 .status-unavailable { background: var(--panel-2); color: var(--muted); border-color: var(--line-2); }
 

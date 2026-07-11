@@ -453,8 +453,35 @@ async function confirmBulkDelete() {
 }
 
 // ─── Status toggle ────────────────────────────────────────────────
+// In-place + optimistic: the status badge morphs colour smoothly (CSS
+// transition on .status-badge) instead of the whole table reloading with
+// a skeleton flash. The row's data + the Available/Unavailable stat counts
+// are synced without a full re-render; a failed request reverts the badge.
 async function toggleStatus(id, currentStatus) {
   const newStatus = currentStatus === "Available" ? "Unavailable" : "Available";
+
+  const row       = document.querySelector(`.row-check[value="${id}"]`)?.closest("tr");
+  const badge     = row?.querySelector(".status-badge");
+  const toggleBtn = row?.querySelector('button[onclick^="toggleStatus"]');
+  const product   = allProducts.find(p => p._id === id);
+  const name      = product ? product.name : "product";
+
+  function paint(status) {
+    if (badge) {
+      badge.classList.toggle("status-available", status === "Available");
+      badge.classList.toggle("status-unavailable", status !== "Available");
+      badge.textContent = status;
+    }
+    if (toggleBtn) {
+      toggleBtn.setAttribute("title", status === "Available" ? "Mark Unavailable" : "Mark Available");
+      toggleBtn.setAttribute("aria-label",
+        status === "Available" ? `Mark ${name} unavailable` : `Mark ${name} available`);
+      toggleBtn.setAttribute("onclick", `toggleStatus('${id}', '${status}')`);
+    }
+  }
+
+  paint(newStatus); // optimistic — the badge animates immediately
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/products.php?id=${id}`, {
       method: "PUT",
@@ -462,9 +489,19 @@ async function toggleStatus(id, currentStatus) {
       body: JSON.stringify({ status: newStatus })
     });
     if (!res.ok) throw new Error();
+    if (product) product.status = newStatus;
+    const fp = filteredProducts.find(p => p._id === id);
+    if (fp) fp.status = newStatus;
+    // Update the Available / Unavailable counts directly (a ±1 change, so no
+    // count-up-from-zero animation), leaving the rest of the table untouched.
+    const available = allProducts.filter(p => p.status === "Available").length;
+    const availEl = document.getElementById("statAvailable");
+    const unavailEl = document.getElementById("statUnavailable");
+    if (availEl)   availEl.textContent   = available;
+    if (unavailEl) unavailEl.textContent = allProducts.length - available;
     showToast(`Marked as ${newStatus}`, "success");
-    loadProducts();
   } catch {
+    paint(currentStatus); // revert on failure
     showToast("Failed to update status", "error");
   }
 }

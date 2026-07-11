@@ -131,11 +131,14 @@ async function patchReplied(id, repliedFlag) {
 }
 
 // ─── Stats ────────────────────────────────────────────────────────
-function renderStats() {
+// animate: count up from zero (initial load) vs set directly (a ±1 change
+// from a single toggle, where a from-zero count-up would read as a flash).
+function renderStats(animate = true) {
   const newCount = enquiries.filter(e => !isReplied(e.id)).length;
-  countUp("statTotal",   enquiries.length);
-  countUp("statNew",     newCount);
-  countUp("statReplied", enquiries.length - newCount);
+  const setNum = animate ? countUp : (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setNum("statTotal",   enquiries.length);
+  setNum("statNew",     newCount);
+  setNum("statReplied", enquiries.length - newCount);
 
   const badge = document.getElementById("unreadBadge");
   if (badge) {
@@ -160,7 +163,10 @@ function countUp(id, target) {
 }
 
 // ─── Render table ─────────────────────────────────────────────────
-function renderTable() {
+// animate: replay the staggered row entrance (initial load / filter change)
+// vs a quiet in-place refresh (a single toggle), so marking one lead replied
+// doesn't re-animate the whole table.
+function renderTable(animate = true) {
   const tbody = document.getElementById("enquiryTableBody");
 
   document.getElementById("tableCount").textContent =
@@ -187,7 +193,7 @@ function renderTable() {
 
     // "unread" class = a New lead (red bar + bold) that still needs a response
     return `
-      <tr class="enquiry-row row-animate ${replied ? "" : "unread"}"
+      <tr class="enquiry-row ${animate ? "row-animate" : ""} ${replied ? "" : "unread"}"
           style="animation-delay:${i * 0.04}s"
           onclick="openPanel('${e.id}')">
         <td style="padding-right:0">
@@ -252,8 +258,8 @@ function markReplied(id) {
   if (isReplied(id)) return;
   repliedIds.add(id);
   patchReplied(id, true);
-  renderTable();
-  renderStats();
+  renderTable(false);
+  renderStats(false);
   if (currentEnqId === id) updateToggleBtn(id);
 }
 
@@ -277,8 +283,8 @@ function mailtoFor(email) {
 function toggleReplied(id) {
   isReplied(id) ? repliedIds.delete(id) : repliedIds.add(id);
   patchReplied(id, isReplied(id));
-  renderTable();
-  renderStats();
+  renderTable(false);
+  renderStats(false);
   if (currentEnqId === id) updateToggleBtn(id);
   showToast(isReplied(id) ? "Marked as replied" : "Marked as new", "success");
 }
@@ -304,8 +310,8 @@ function markAllReplied() {
       patchReplied(e.id, true);
     }
   });
-  renderTable();
-  renderStats();
+  renderTable(false);
+  renderStats(false);
   closeMarkAllRepliedModal();
   showToast("All enquiries marked as replied", "success");
 }
