@@ -12,16 +12,26 @@
 <body>
 
 <main>
-<!-- Dark header band -->
-<section class="enquiry-hero">
-  <div class="enquiry-hero-inner">
-    <nav aria-label="Breadcrumb" class="enquiry-breadcrumb">
-      <a href="/">Home</a><span aria-hidden="true">&rsaquo;</span>
-      <a href="/products">Products</a><span aria-hidden="true">&rsaquo;</span>
-      <span aria-current="page">Product Enquiry</span>
-    </nav>
-    <h1>Product Enquiry</h1>
-    <p class="enquiry-hero-lead">Review your selected products and send one enquiry to our team for advice or quotation.</p>
+<!-- Hero / positioning: Bold Red Rail (same pattern as products.html / contact.html) -->
+<section class="page-hero page-hero--rail">
+  <div class="hero-rail" aria-hidden="true">
+    <span class="hero-rail-text">Yee Lim &middot; Est. 1976</span>
+  </div>
+  <div class="hero-strip" aria-hidden="true">
+    <span>Yee Lim</span>
+    <span>Est. 1976</span>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-main">
+      <nav aria-label="Breadcrumb" class="enquiry-breadcrumb">
+        <a href="/">Home</a><span aria-hidden="true">&rsaquo;</span>
+        <a href="/products">Products</a><span aria-hidden="true">&rsaquo;</span>
+        <span aria-current="page">Product Enquiry</span>
+      </nav>
+      <span class="hero-eyebrow">Your selection</span>
+      <h1>Product Enquiry</h1>
+      <p class="hero-lead">Review your selected products and send one enquiry to our team for advice or quotation.</p>
+    </div>
   </div>
 </section>
 
@@ -112,6 +122,7 @@
 <!-- Footer injected by js/widgets/footer.js -->
 
 <script src="/js/data.js?v=5"></script>
+<script src="/js/widgets/chatbot.js?v=16"></script>
 <script>
 // Safety net: ylEscapeHtml is defined in data.js. If a stale cached data.js is
 // served (its ?v= was not bumped after a change), fall back to a local escaper
@@ -122,7 +133,6 @@ if (typeof window.ylEscapeHtml !== "function") {
       console.warn("[Yee Lim] ylEscapeHtml missing from data.js (stale cache?). Using fallback. Bump the ?v= on data.js and redeploy.");
       window.__ylHelperWarned = true;
     }
-<script src="/js/widgets/chatbot.js?v=16"></script>
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });

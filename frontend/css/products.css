@@ -1306,28 +1306,9 @@ h1, h2, h3,
 /* ─── Product Enquiry Page ────────────────────────────────────── */
 
 /* Dark header band: breadcrumb + H1 + lead, faint red glow top-right. */
-.enquiry-hero {
-  background: var(--dark-2);
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-}
-
-.enquiry-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 130% at 85% 10%, rgba(204, 41, 41, 0.12), transparent 55%);
-  pointer-events: none;
-}
-
-.enquiry-hero-inner {
-  position: relative;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 40px 2rem 34px;
-}
-
+/* Enquiry hero now uses the shared .page-hero--rail pattern (see enquiry.html),
+   matching products.html and contact.html. Only the breadcrumb, which sits on
+   that hero's dark background, keeps its own styling below. */
 .enquiry-breadcrumb {
   font-family: var(--mono);
   font-size: 12px;
@@ -1340,22 +1321,6 @@ h1, h2, h3,
 .enquiry-breadcrumb a:hover { color: #fff; }
 .enquiry-breadcrumb span { margin: 0 8px; color: #6a655a; }
 .enquiry-breadcrumb [aria-current] { color: #fff; }
-
-.enquiry-hero h1 {
-  font-weight: 700;
-  font-size: clamp(30px, 3.6vw, 42px);
-  letter-spacing: -0.02em;
-  margin: 0;
-  color: #fff;
-}
-
-.enquiry-hero-lead {
-  max-width: 60ch;
-  font-size: 15.5px;
-  line-height: 1.6;
-  color: var(--muted-on-dark);
-  margin: 12px 0 0;
-}
 
 .page-content {
   max-width: 1180px;
@@ -3071,7 +3036,6 @@ body:has(.compare-tray.visible) .toast {
 }
 
 @media (max-width: 640px) {
-  .enquiry-hero-inner { padding: 28px 1.25rem 26px; }
   .page-content { padding: 28px 1.25rem 48px; }
 }
 
