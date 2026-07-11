@@ -37,8 +37,12 @@
       transform: translate(-50%, calc(-50% + 20px)) scale(0.97);
       opacity: 0;
       pointer-events: none;
-      background: #ffffff;
+      background: #1a1712;
       border-radius: 16px;
+      /* clip-path rounds the panel reliably even though it is transform-positioned
+         (overflow:hidden + border-radius can fail to clip a transformed element in
+         some browsers, which let the white panel bg peek at the header corners). */
+      clip-path: inset(0 round 16px);
       box-shadow: 0 28px 70px -16px rgba(8,11,16,0.40), 0 0 0 1px rgba(8,11,16,0.04);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
@@ -63,6 +67,7 @@
         bottom: 0;
         right: 0;
         border-radius: 16px 16px 0 0;
+        clip-path: inset(0 round 16px 16px 0 0);
         transform: translateY(24px) scale(0.99);
       }
       #yl-advisor-panel.open {
@@ -79,7 +84,6 @@
       align-items: center;
       gap: 0.8rem;
       flex-shrink: 0;
-      border-radius: 16px 16px 0 0; /* fill the panel's rounded top — no white corner peek */
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
     /* Brand-red hairline that fades out — ties the advisor to the Yee Lim identity. */
