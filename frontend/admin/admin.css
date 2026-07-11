@@ -362,11 +362,6 @@ a { color: inherit; }
   display: flex; flex-direction: column;
   animation: slideInLeft 0.35s var(--ease) both;
 }
-/* 5px red rail on the sidebar's outer edge — the plate's signature accent.
-   Flat dark fill, no texture, to match the flat red login plate. */
-.admin-sidebar::after {
-  content: ""; position: absolute; top: 0; left: 0; bottom: 0; width: 5px; background: var(--red); z-index: 2;
-}
 .admin-sidebar > * { position: relative; z-index: 1; }
 .admin-sidebar-brand { display: flex; align-items: center; gap: 0.8rem; padding: 1.5rem 1.4rem 1.4rem 1.7rem; border-bottom: 1px solid var(--sidebar-line); }
 .brand-mark {
@@ -396,9 +391,9 @@ a { color: inherit; }
 .admin-nav li a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .admin-nav li a.active { color: #fff; background: var(--red); }
 .admin-nav li a.active svg { color: #fff; }
-/* On the active red block the badge sits INTO the block as a darker-red chip,
-   not a stark white sticker punched on top of it. */
-.admin-nav li a.active .nav-badge { background: var(--red-dark); color: #fff; }
+/* On the active red block the badge flips to a white chip with a red count, so
+   it reads clearly against the red bar (matches the public nav basket badge). */
+.admin-nav li a.active .nav-badge { background: #fff; color: var(--red); }
 .admin-nav li a:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
 
 .sidebar-user {
