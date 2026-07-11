@@ -833,15 +833,32 @@ h1, h2, h3,
 .pcard-avail.is-unavail { color: #8a5a12; }
 .pcard-avail.is-unavail .pcard-dot { background: #d69220; }
 
-/* Compact "View" secondary (thin outline) beside the wide "+ Enquiry" primary. */
+/* Compact "View" secondary beside the wide "+ Enquiry" primary. A quiet outline
+   at rest that fills ink on hover, with an arrow that slides right — reads as
+   "go to the detail page" and gives the card a premium, intentional interaction. */
 .product-card-actions .pcard-view {
   border-width: 1px;
   border-color: var(--border-controls, #e0d9c9);
+  color: var(--text);
   font-weight: 600;
+  gap: 0.4rem;
   padding-left: 1rem;
-  padding-right: 1rem;
+  padding-right: 0.85rem;
 }
-.product-card-actions .pcard-view:hover { border-color: var(--ink); background: transparent; }
+.product-card-actions .pcard-view::after {
+  content: "\2192"; /* → */
+  font-size: 1em;
+  line-height: 1;
+  opacity: 0.5;
+  transform: translateX(-2px);
+  transition: transform 0.2s var(--ease), opacity 0.2s var(--ease);
+}
+.product-card-actions .pcard-view:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+.product-card-actions .pcard-view:hover::after { opacity: 1; transform: translateX(2px); }
 
 .product-card-actions {
   display: flex;
