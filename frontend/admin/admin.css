@@ -296,8 +296,12 @@ a { color: inherit; }
 .login-panel-sub { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 40px; max-width: 340px; }
 
 .field { margin-bottom: 28px; }
-.field-label-row { margin-bottom: 8px; }
+/* Labels sit directly in .field now (the empty .field-label-row wrapper was
+   removed). Selector covers both for safety. */
+.field > label,
 .field-label-row label {
+  display: block;
+  margin-bottom: 8px;
   font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.16em; color: var(--muted);
 }
