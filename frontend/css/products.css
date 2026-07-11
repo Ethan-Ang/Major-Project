@@ -3452,8 +3452,7 @@ body:has(.compare-tray.visible) .toast {
   height: 27px;
   object-fit: contain;
 }
-.range-chip:hover .range-chip-mark,
-.range-chip.active .range-chip-mark {
+.range-chip:hover .range-chip-mark {
   background: var(--red);
   border-color: var(--red);
 }
@@ -3470,11 +3469,10 @@ body:has(.compare-tray.visible) .toast {
   margin-top: 2px;
 }
 
-/* Active range chip: lit while its brand is the current catalogue filter. */
-.range-chip.active {
-  border-color: var(--red);
-  background: rgba(204, 41, 41, 0.12);
-}
+/* The hero range chips are one-tap shortcuts, not toggle state: they show red
+   only on hover, and do NOT stay lit after clicking. The active brand filter is
+   reflected by the sidebar checkbox and the removable filter chips instead, so
+   the chip never looks permanently "pressed". */
 
 /* Eyebrow: mono, dim, no leading dash for this variant */
 .page-hero--rail .hero-eyebrow {
@@ -3691,35 +3689,50 @@ body:has(.compare-tray.visible) .toast {
   padding: 24px 2rem 0;
 }
 .advisor-banner {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   flex-wrap: wrap;
-  background: var(--ink);
+  background: linear-gradient(135deg, #211c15 0%, var(--ink) 58%);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-left: 4px solid var(--red);
-  padding: 20px 24px;
-  box-shadow: var(--shadow);
+  padding: 22px 26px;
+  box-shadow: var(--shadow-md);
 }
+/* Soft brand-red glow in the top-right — quiet depth, not a spotlight. */
+.advisor-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(58% 130% at 93% 6%, rgba(204, 41, 41, 0.20), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.advisor-banner > * { position: relative; z-index: 1; }
 .advisor-banner-icon {
   flex-shrink: 0;
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   background: var(--red);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 6px 16px -4px rgba(204, 41, 41, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 .advisor-banner-text { flex: 1; min-width: 240px; }
 .advisor-banner-text strong {
   display: block;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
-  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  margin-bottom: 3px;
 }
 .advisor-banner-text span {
   font-size: 14px;
@@ -3735,102 +3748,19 @@ body:has(.compare-tray.visible) .toast {
   font-weight: 700;
   font-size: 14px;
   padding: 12px 22px;
-  border-radius: 7px;
+  border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s;
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.5);
+  transition: color 0.15s, transform 0.15s var(--ease), box-shadow 0.15s;
 }
-.advisor-banner-btn:hover { background: #ece7dc; }
+.advisor-banner-btn:hover { color: var(--red); transform: translateY(-2px); box-shadow: 0 9px 22px -6px rgba(0, 0, 0, 0.55); }
+.advisor-banner-btn:active { transform: translateY(0); }
 .advisor-banner-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 640px) {
   .advisor-banner-wrap { padding: 20px 1rem 0; }
   .advisor-banner { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; }
   .advisor-banner-btn { width: 100%; text-align: center; }
-}
-
-/* ─── Our Ranges band ────────────────────────────────────────── */
-.ranges-band {
-  max-width: 1440px;
-  margin: 3.5rem auto 0;
-  padding: 0 2rem;
-}
-.ranges-band-head { margin-bottom: 1.4rem; }
-.ranges-band-head h2 {
-  font-size: 1.85rem;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-  margin-bottom: 0.55rem;
-}
-.ranges-band-head p { color: var(--muted); font-size: 1rem; max-width: 62ch; }
-.ranges-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-.range-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 1.1rem 1.15rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  text-decoration: none;
-  color: var(--text);
-  overflow: hidden;
-  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
-}
-/* Red label spine — the adhesive-packaging cue, echoing the advisor banner. */
-.range-card::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--red);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1);
-}
-.range-card:hover { border-color: var(--line-2); box-shadow: var(--shadow-md); transform: translateY(-2px); }
-.range-card:hover::before { transform: scaleY(1); }
-.range-card:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.range-card-mark {
-  width: 54px; height: 54px; flex-shrink: 0;
-  background: var(--well);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  padding: 6px;
-  box-sizing: border-box;
-}
-.range-card-mark img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-.range-card-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-.range-card-name {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 1.05rem; font-weight: 700; color: var(--ink); line-height: 1.2;
-}
-.range-card-tag {
-  font-family: var(--mono);
-  font-size: 0.66rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted-2); margin-top: 0.28rem;
-}
-.range-card-go {
-  font-size: 0.78rem; font-weight: 600; color: var(--red);
-  white-space: nowrap; opacity: 0; transform: translateX(-4px);
-  transition: opacity 0.18s, transform 0.18s;
-}
-.range-card:hover .range-card-go { opacity: 1; transform: none; }
-@media (max-width: 1024px) {
-  .ranges-grid { grid-template-columns: repeat(2, 1fr); }
-  .range-card-go { display: none; }
-}
-@media (max-width: 768px) {
-  .ranges-band { padding: 0 1.25rem; margin-top: 2.75rem; }
-}
-@media (max-width: 400px) {
-  .ranges-grid { grid-template-columns: 1fr; }
 }
 
 /* ─── Catalogue head ─────────────────────────────────────────── */

@@ -344,52 +344,6 @@
       margin-top: 0.45rem;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-
-    /* Persistent launcher — the site-wide entry point to the advisor. Fixed
-       bottom-right; sits above page content but shifts up when the compare tray
-       is open so it never overlaps it. Hidden while the panel itself is open. */
-    .yl-adv-launcher {
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      z-index: 9989;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      height: 52px;
-      padding: 0 1.15rem 0 0.7rem;
-      background: var(--red, #CC2929);
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      cursor: pointer;
-      font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      box-shadow: 0 10px 28px -8px rgba(204, 41, 41, 0.55), 0 2px 8px rgba(8, 11, 16, 0.18);
-      transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), background 0.18s, box-shadow 0.18s;
-      animation: ylLauncherIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
-    }
-    @keyframes ylLauncherIn { from { opacity: 0; transform: translateY(12px) scale(0.94); } to { opacity: 1; transform: none; } }
-    .yl-adv-launcher:hover { background: var(--red-hover, #b62525); transform: translateY(-2px); box-shadow: 0 14px 32px -8px rgba(204, 41, 41, 0.6); }
-    .yl-adv-launcher:active { transform: translateY(0); }
-    .yl-adv-launcher:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-    .yl-adv-launcher[hidden] { display: none; }
-    .yl-adv-launcher-mark {
-      width: 32px; height: 32px; flex-shrink: 0;
-      background: #fbfaf6; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-    }
-    .yl-adv-launcher-mark img { width: 21px; height: 21px; object-fit: contain; display: block; }
-    /* Lift above the compare tray on pages where it can appear. */
-    body.compare-open .yl-adv-launcher { bottom: calc(var(--compare-tray-height, 84px) + 18px); }
-    @media (max-width: 520px) {
-      .yl-adv-launcher { width: 52px; height: 52px; padding: 0; justify-content: center; right: 14px; bottom: 14px; }
-      .yl-adv-launcher-label { display: none; }
-    }
-    @media (prefers-reduced-motion: reduce) { .yl-adv-launcher { animation: none; } }
   `;
 
   const styleEl = document.createElement("style");
@@ -435,19 +389,8 @@
     </div>
   `;
 
-  // Persistent launcher — appended alongside the panel so the advisor is
-  // reachable on every page that loads this widget, not only via an in-page
-  // banner. It is a thin wrapper around the existing openProductAdvisor().
-  const launcherHtml = `
-    <button type="button" class="yl-adv-launcher" id="ylAdvLauncher"
-      aria-label="Open the Yee Lim Product Advisor" aria-haspopup="dialog">
-      <span class="yl-adv-launcher-mark" aria-hidden="true"><img src="/images/logos/ylai-seal.png" alt=""></span>
-      <span class="yl-adv-launcher-label">Product Advisor</span>
-    </button>
-  `;
-
   const container = document.createElement("div");
-  container.innerHTML = html + launcherHtml;
+  container.innerHTML = html;
   document.body.appendChild(container);
 
   // ─── Elements ──────────────────────────────────────────────────
@@ -456,9 +399,6 @@
   const messages = document.getElementById("ylAdvMessages");
   const input    = document.getElementById("ylAdvInput");
   const sendBtn  = document.getElementById("ylAdvSend");
-  const launcher = document.getElementById("ylAdvLauncher");
-
-  if (launcher) launcher.addEventListener("click", function () { window.openProductAdvisor(); });
 
   let history   = [];
   let isLoading = false;
@@ -469,7 +409,6 @@
   window.openProductAdvisor = function () {
     backdrop.classList.add("open");
     panel.classList.add("open");
-    if (launcher) launcher.setAttribute("hidden", "");
     document.body.style.overflow = "hidden";
     if (!greeted) showGreeting();
     // Trap focus in the dialog, close on Escape, and return focus to the opener
@@ -486,7 +425,6 @@
   window.closeProductAdvisor = function () {
     backdrop.classList.remove("open");
     panel.classList.remove("open");
-    if (launcher) launcher.removeAttribute("hidden");
     document.body.style.overflow = "";
     if (advisorRelease) { advisorRelease(); advisorRelease = null; }
   };
