@@ -7,13 +7,10 @@
    this shared stylesheet. The new page rises in gently; the old fades out. */
 @view-transition { navigation: auto; }
 
-/* Let the transition own the entrance so the body/nav entrances don't run twice
-   (on a normal first load, with no inbound transition, they still play). The nav
-   is a named group (see navbar.js), so it stays anchored while the page content
-   and footer cross-fade and rise beneath it. */
-:root:active-view-transition body { animation: none; }
-:root:active-view-transition .nav { animation: none; }
-
+/* The transition is the sole page entrance now, so there are no on-load body/nav
+   fade or slide animations to run a second time after it finishes. The nav is a
+   named group (see navbar.js), so it stays anchored while the page content and
+   footer cross-fade and rise beneath it. */
 @media (prefers-reduced-motion: no-preference) {
   /* Outgoing page: a quick, clean fade. Incoming page: a slower, expo-eased
      fade that rises gently into place — calm and expensive, not bouncy. */
@@ -25,19 +22,9 @@
 }
 
 /* ─── Animations ─────────────────────────────────────────────── */
-@keyframes fadeInPage {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes popIn {
@@ -120,7 +107,6 @@ body {
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  animation: fadeInPage 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 /* Display typeface for headings — engineered, B2B character */
@@ -133,9 +119,7 @@ h1, h2, h3,
 }
 
 /* ─── Nav ────────────────────────────────────────────────────── */
-/* All nav styling is owned by js/widgets/navbar.js (injected at runtime); only
-   the entrance animation lives here, layered on top of the injected styles. */
-.nav { animation: slideUp 0.35s cubic-bezier(0.23, 1, 0.32, 1) both; }
+/* All nav styling is owned by js/widgets/navbar.js (injected at runtime). */
 
 /* ─── Page Hero / Search ─────────────────────────────────────── */
 
@@ -309,7 +293,6 @@ h1, h2, h3,
 
 /* ─── Filter Sidebar ──────────────────────────────────────────── */
 .filter-sidebar {
-  animation: slideInLeft 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both;
   width: 304px;
   flex-shrink: 0;
   position: sticky;

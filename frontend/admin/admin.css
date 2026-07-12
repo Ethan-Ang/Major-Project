@@ -18,9 +18,10 @@
   border: 0;
 }
 
-/* ─── Page transitions (cross-document View Transitions) ───────── */
+/* ─── Page transitions (cross-document View Transitions) ─────────
+   The transition is the sole page entrance, so no on-load body/sidebar
+   animations run a second time after it finishes. */
 @view-transition { navigation: auto; }
-:root:active-view-transition body { animation: none; }
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(root) { animation: vt-page-out 0.20s cubic-bezier(0.4, 0, 0.2, 1) both; }
   ::view-transition-new(root) { animation: vt-page-in 0.40s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -29,9 +30,7 @@
 }
 
 /* ─── Animations ─────────────────────────────────────────────── */
-@keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideInLeft { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(-8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -69,7 +68,6 @@ body {
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  animation: fadeInPage 0.35s var(--ease) both;
 }
 
 h1, h2, h3, .brand-name, .kpi-value, .greeting h1, .chart-big,
@@ -370,7 +368,6 @@ a { color: inherit; }
   width: 252px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow: hidden;
   background: var(--ink-2); border-right: 1px solid var(--sidebar-line);
   display: flex; flex-direction: column;
-  animation: slideInLeft 0.35s var(--ease) both;
 }
 .admin-sidebar > * { position: relative; z-index: 1; }
 .admin-sidebar-brand { display: flex; align-items: center; gap: 0.8rem; padding: 1.5rem 1.4rem 1.4rem 1.7rem; border-bottom: 1px solid var(--sidebar-line); }
