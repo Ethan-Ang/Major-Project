@@ -18,6 +18,16 @@
   border: 0;
 }
 
+/* ─── Page transitions (cross-document View Transitions) ───────── */
+@view-transition { navigation: auto; }
+:root:active-view-transition body { animation: none; }
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation: vt-page-out 0.20s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  ::view-transition-new(root) { animation: vt-page-in 0.40s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @keyframes vt-page-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes vt-page-in  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+}
+
 /* ─── Animations ─────────────────────────────────────────────── */
 @keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -443,6 +453,11 @@ a { color: inherit; }
 .head-actions .btn { border: none; }
 .head-actions .btn:not(:last-child) { border-right: 1px solid var(--control-border); }
 .head-actions .btn-primary:not(:last-child) { border-right-color: var(--red-hover); }
+/* In-system polish: a hair more breathing room and a lighter, better-balanced
+   icon next to the mono label so the segmented control reads crisp, not cramped.
+   Keeps the flat, zero-radius label-plate identity intact. */
+.head-actions .btn, .bulk-actions .btn { padding: 0.66rem 1.2rem; gap: 0.5rem; }
+.head-actions .btn svg, .bulk-actions .btn svg { width: 15px; height: 15px; opacity: 0.92; }
 
 /* ═══════════════════════════════════════════════════════════════
    OVERVIEW: KPI strip, chart, catalogue, recent enquiries

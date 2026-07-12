@@ -45,6 +45,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyFilters({ skipUrlWrite: true });
     initialLoadDone = true;
     updateFilterScrollFade();
+    // Arriving from a footer/brand deep-link (e.g. ?brand=Deer™ Brand) should
+    // land the visitor on the filtered results, not the top hero/search. A plain
+    // /products visit (no filter params) still opens at the hero as before.
+    const usp = new URLSearchParams(location.search);
+    if (usp.has("brand") || usp.has("industry") || usp.has("surface") || usp.has("type")) {
+      scrollToCatalogue();
+    }
   });
 
   // Keep the filter-list edge fades correct as the viewport (and therefore the

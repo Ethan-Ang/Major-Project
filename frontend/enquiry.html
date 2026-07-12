@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Enquiry | Yee Lim Adhesives Industries</title>
   <meta name="description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
-  <link rel="stylesheet" href="/css/products.css?v=46">
-  <script src="/js/widgets/navbar.js?v=8"></script>
-  <script src="/js/widgets/footer.js?v=9"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/products.css?v=48">
+  <script src="/js/widgets/navbar.js?v=9"></script>
+  <script src="/js/widgets/footer.js?v=11"></script>
 </head>
 <body>
 
@@ -23,12 +26,6 @@
   </div>
   <div class="hero-inner">
     <div class="hero-main">
-      <nav aria-label="Breadcrumb" class="enquiry-breadcrumb">
-        <a href="/">Home</a><span aria-hidden="true">&rsaquo;</span>
-        <a href="/products">Products</a><span aria-hidden="true">&rsaquo;</span>
-        <span aria-current="page">Product Enquiry</span>
-      </nav>
-      <span class="hero-eyebrow">Your selection</span>
       <h1>Product Enquiry</h1>
       <p class="hero-lead">Review your selected products and send one enquiry to our team for advice or quotation.</p>
     </div>
@@ -48,9 +45,7 @@
 
       <!-- Basket list -->
       <div class="basket-list" id="basketList"></div>
-      <a href="/products" class="enquiry-continue-link">
-        &#8592; Continue browsing products
-      </a>
+      <a href="/products" class="enquiry-continue-link">Continue browsing products</a>
     </section>
 
     <!-- RIGHT: details form (shown only if products are selected) -->
@@ -121,7 +116,7 @@
 
 <!-- Footer injected by js/widgets/footer.js -->
 
-<script src="/js/data.js?v=5"></script>
+<script src="/js/data.js?v=6"></script>
 <script>
 // Safety net: ylEscapeHtml is defined in data.js. If a stale cached data.js is
 // served (its ?v= was not bumped after a change), fall back to a local escaper
@@ -178,18 +173,28 @@ function renderBasket() {
   const selectedDisplay = document.getElementById("selectedProductsDisplay");
   const colHead = document.getElementById("enquiryColHead");
   const countEl = document.getElementById("enquiryCount");
+  const grid = document.querySelector(".enquiry-grid");
 
   if (products.length === 0) {
+    // Empty: the form column is hidden, so collapse the two-column grid to a
+    // single centered column (see .enquiry-grid.is-empty) — otherwise the empty
+    // card would sit pinned to the half-width left track, off-centre.
+    if (grid) grid.classList.add("is-empty");
     list.innerHTML = `
       <div class="basket-empty">
-        <p style="margin-bottom:1rem">No products selected yet.</p>
-        <a href="/products" class="btn btn-primary" style="padding:0.6rem 1.25rem">Browse Products</a>
+        <div class="basket-empty-icon" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17"/><circle cx="9" cy="20" r="1.4"/><circle cx="16" cy="20" r="1.4"/></svg>
+        </div>
+        <h2>No products selected yet</h2>
+        <p>Browse the catalogue and add adhesives to build a single enquiry for our team.</p>
+        <a href="/products" class="btn btn-primary">Browse Products</a>
       </div>`;
     formSection.style.display = "none";
     colHead.style.display = "none";
     return;
   }
 
+  if (grid) grid.classList.remove("is-empty");
   colHead.style.display = "flex";
   countEl.textContent = `(${products.length})`;
 

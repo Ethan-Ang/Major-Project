@@ -20,6 +20,15 @@
       --ease:     cubic-bezier(0.22, 1, 0.36, 1);
     }
 
+    /* Cross-document page transitions (matches the rest of the site). */
+    @view-transition { navigation: auto; }
+    @media (prefers-reduced-motion: no-preference) {
+      ::view-transition-old(root) { animation: vt-page-out 0.24s cubic-bezier(0.4, 0, 0.2, 1) both; }
+      ::view-transition-new(root) { animation: vt-page-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      @keyframes vt-page-out { from { opacity: 1; } to { opacity: 0; } }
+      @keyframes vt-page-in  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    }
+
     * { box-sizing: border-box; }
     html, body { height: 100%; }
 

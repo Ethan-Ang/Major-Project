@@ -57,4 +57,36 @@
   sidebar.querySelectorAll(".admin-nav a").forEach(a => a.addEventListener("click", close));
   // If the viewport grows back to desktop while open, reset so nothing is stuck.
   window.addEventListener("resize", () => { if (window.innerWidth > 768) close(); });
+
+  // ─── Sidebar Enquiries unread badge ────────────────────────────
+  // Show the "new leads" count on the Enquiries nav item on EVERY admin page.
+  // Previously only the dashboard (overview.js) and enquiries (enquiries.js)
+  // pages set it, so Products showed no badge. Pages that already manage their
+  // own badge are skipped so this doesn't double-fetch.
+  (function unreadBadge() {
+    const link = sidebar.querySelector('.admin-nav a[href="enquiries.html"]')
+      || [...sidebar.querySelectorAll(".admin-nav a")].find(a => /enquir/i.test(a.textContent));
+    if (!link) return;
+    if (link.querySelector("#navUnread, #unreadBadge")) return; // page handles it itself
+
+    let badge = link.querySelector(".nav-badge");
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = "nav-badge";
+      badge.style.display = "none";
+      link.appendChild(badge);
+    }
+
+    const base  = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : "";
+    const token = localStorage.getItem("adminToken");
+    fetch(`${base}/api/enquiries.php`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then(r => (r.ok ? r.json() : null))
+      .then(list => {
+        if (!Array.isArray(list)) return;
+        const unread = list.filter(e => !e.replied).length;
+        badge.textContent   = unread;
+        badge.style.display = unread > 0 ? "inline-flex" : "none";
+      })
+      .catch(() => { /* not signed in / offline — leave the badge hidden */ });
+  })();
 })();

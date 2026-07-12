@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Detail | Yee Lim Adhesives Industries</title>
   <meta id="metaDescription" name="description" content="Detailed specifications, application surfaces, and usage guide for Yee Lim Adhesives industrial products. Submit an enquiry directly to our sales team.">
-  <link rel="stylesheet" href="/css/products.css?v=46">
-  <script src="/js/widgets/navbar.js?v=8"></script>
-  <script src="/js/widgets/footer.js?v=9"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/products.css?v=48">
+  <script src="/js/widgets/navbar.js?v=9"></script>
+  <script src="/js/widgets/footer.js?v=11"></script>
 </head>
 <body>
 
@@ -41,14 +44,22 @@
 
 <!-- Compare tray -->
 <div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
-  <span class="compare-tray-label">Comparing:</span>
-  <div class="compare-tray-slots" id="compareTraySlots"></div>
-  <div class="compare-tray-actions">
-    <button class="compare-tray-btn" id="compareBtn"
-      onclick="location.href='/compare'" disabled
-      aria-label="Open comparison view">Compare &#8594;</button>
-    <button class="compare-tray-clear" onclick="clearCompare()"
-      aria-label="Clear all products from comparison">Clear all</button>
+  <button class="compare-tray-toggle" id="compareTrayToggle" type="button"
+    onclick="toggleCompareTray()" aria-expanded="false" aria-controls="compareTrayBody">
+    <svg class="cmp-toggle-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+    <span class="compare-tray-toggle-label">Compare <span id="compareTrayCount">(0)</span></span>
+    <svg class="cmp-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <div class="compare-tray-body" id="compareTrayBody">
+    <span class="compare-tray-label">Comparing:</span>
+    <div class="compare-tray-slots" id="compareTraySlots"></div>
+    <div class="compare-tray-actions">
+      <button class="compare-tray-btn" id="compareBtn"
+        onclick="location.href='/compare'" disabled
+        aria-label="Open comparison view">Compare &#8594;</button>
+      <button class="compare-tray-clear" onclick="clearCompare()"
+        aria-label="Clear all products from comparison">Clear all</button>
+    </div>
   </div>
 </div>
 
@@ -57,8 +68,8 @@
 
 <!-- Footer injected by js/widgets/footer.js -->
 
-<script src="/js/data.js?v=5"></script>
-<script src="/js/widgets/compare.js?v=7"></script>
-<script src="/js/pages/product-detail.js?v=7"></script>
+<script src="/js/data.js?v=6"></script>
+<script src="/js/widgets/compare.js?v=8"></script>
+<script src="/js/pages/product-detail.js?v=9"></script>
 </body>
 </html>

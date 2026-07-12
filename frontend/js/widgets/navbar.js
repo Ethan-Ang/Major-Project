@@ -8,6 +8,10 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      /* Anchor the nav across page transitions: it keeps its own view-transition
+         group, so during a cross-document navigation the content cross-fades and
+         rises while the bar stays perfectly still. */
+      view-transition-name: yl-nav;
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;

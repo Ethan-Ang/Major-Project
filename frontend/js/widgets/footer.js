@@ -88,6 +88,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 4px;
       padding: 0.2rem 0.5rem;
+      white-space: nowrap;
     }
     .site-footer-links {
       list-style: none;
@@ -261,7 +262,7 @@
 
     <div class="site-footer-bottom">
       <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
-      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore · <a class="site-footer-admin" href="admin/login.html">Admin Login</a></span>
+      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore · <a class="site-footer-admin" href="/admin/login.html">Admin Login</a></span>
     </div>
   `;
 

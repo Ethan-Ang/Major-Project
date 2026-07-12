@@ -1,5 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+/* ─── Page transitions (cross-document View Transitions) ─────────
+   Same-origin navigations between site pages cross-fade smoothly in supporting
+   browsers (Chromium). Unsupported browsers navigate instantly, exactly as
+   before — this is purely additive. Both pages must opt in, which they do via
+   this shared stylesheet. The new page rises in gently; the old fades out. */
+@view-transition { navigation: auto; }
+
+/* Let the transition own the entrance so the body/nav entrances don't run twice
+   (on a normal first load, with no inbound transition, they still play). The nav
+   is a named group (see navbar.js), so it stays anchored while the page content
+   and footer cross-fade and rise beneath it. */
+:root:active-view-transition body { animation: none; }
+:root:active-view-transition .nav { animation: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Outgoing page: a quick, clean fade. Incoming page: a slower, expo-eased
+     fade that rises gently into place — calm and expensive, not bouncy. */
+  ::view-transition-old(root) { animation: vt-page-out 0.24s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  ::view-transition-new(root) { animation: vt-page-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  ::view-transition-group(yl-nav) { animation-duration: 0.24s; }
+  @keyframes vt-page-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes vt-page-in  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+}
+
 /* ─── Animations ─────────────────────────────────────────────── */
 @keyframes fadeInPage {
   from { opacity: 0; }
@@ -13,11 +37,6 @@
 
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(16px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
@@ -57,6 +76,7 @@
   --well:      #f6f2ea;   /* product image well */
   --border:    #d9cfbb;   /* card borders (border strong) */
   --text:      #201e18;   /* body ink */
+  --body:      #47433b;   /* long-form body copy (softer than ink) */
   --muted:     #6a655a;   /* secondary text */
   --radius:    6px;
   --shadow:    0 1px 3px rgba(32,30,24,0.05);
@@ -67,8 +87,11 @@
 }
 
 /* When the compare tray is open, reserve its height so it never occludes the
-   last products or the bottom filter rows. Set live from JS (compare.js). */
-body.compare-open { padding-bottom: var(--compare-tray-height); }
+   last products or the bottom filter rows. Set live from JS (compare.js). The
+   space is added inside the (dark) footer rather than as body padding, so the
+   reserved strip matches the footer instead of exposing a cream band of page
+   background beneath it. The +30px covers the tray's bottom float gap. */
+body.compare-open .site-footer { padding-bottom: calc(var(--compare-tray-height) + 30px); }
 body.compare-open .filter-sidebar {
   max-height: calc(100vh - 104px - var(--compare-tray-height));
 }
@@ -104,79 +127,17 @@ body {
 h1, h2, h3,
 .detail-product-name,
 .sidebar-product-name,
-.section-heading,
-.nav-logo {
+.section-heading {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   letter-spacing: -0.01em;
 }
 
 /* ─── Nav ────────────────────────────────────────────────────── */
-.nav {
-  background: var(--dark);
-  color: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  height: 60px;
-}
-
-.nav-logo {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--red);
-  text-decoration: none;
-  letter-spacing: 0.5px;
-}
-
-.nav-links {
-  display: flex;
-  gap: 1.5rem;
-  list-style: none;
-}
-
-.nav-links a {
-  color: #ccc;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s;
-}
-
-.nav-links a:hover { color: #fff; }
-
-.nav-basket {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #fff;
-  text-decoration: none;
-  font-size: 0.9rem;
-  background: var(--red);
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--radius);
-  transition: background 0.2s;
-}
-
-.nav-basket:hover { background: var(--red-dark); }
-
-.basket-count {
-  background: #fff;
-  color: var(--red);
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* All nav styling is owned by js/widgets/navbar.js (injected at runtime); only
+   the entrance animation lives here, layered on top of the injected styles. */
+.nav { animation: slideUp 0.35s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
 /* ─── Page Hero / Search ─────────────────────────────────────── */
-.nav { animation: slideUp 0.35s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
 .page-hero {
   background: var(--ink);
@@ -618,53 +579,6 @@ h1, h2, h3,
 .product-card-image-link img { transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1); }
 .product-card:hover .product-card-image-link img { transform: scale(1.04); }
 
-/* "Currently Unavailable" overlay badge on listing cards.
-   Dark pill keeps strong contrast over any product image or placeholder.
-   Available cards intentionally show no badge to keep the single-red-accent look. */
-.card-status-badge {
-  position: absolute;
-  top: 0.6rem;
-  left: 0.6rem;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 0.3rem 0.62rem;
-  border-radius: 20px;
-  background: rgba(17, 24, 39, 0.88);
-  color: #fff;
-}
-
-.card-status-badge .card-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #f59e0b;
-  flex-shrink: 0;
-}
-
-/* Desktop shows the full label; the short label is swapped in on mobile where the
-   2-column card is too narrow for "Currently Unavailable". */
-.card-status-badge .csb-short { display: none; }
-
-/* On the narrow 2-column mobile card, shrink the badge and swap in the short
-   "Unavailable" label so it no longer spans the image or crowds the quick-add. */
-@media (max-width: 640px) {
-  .card-status-badge {
-    top: 0.4rem;
-    left: 0.4rem;
-    font-size: 0.6rem;
-    padding: 0.22rem 0.5rem;
-    gap: 0.28rem;
-    border-radius: 16px;
-  }
-  .card-status-badge .csb-full { display: none; }
-  .card-status-badge .csb-short { display: inline; }
-}
-
 /* Soften the imagery of unavailable products so the state reads at a glance */
 .product-card.is-unavailable .product-card-image img {
   opacity: 0.78;
@@ -766,21 +680,6 @@ h1, h2, h3,
   margin-bottom: 0.9rem;
   overflow: hidden;
   min-height: 1.35rem;
-}
-
-/* Labels the chips as a distinct taxonomy from the "Best for" line above.
-   The label sits on its own line (full width) as a quiet eyebrow, with a
-   small gap before the chip row so it does not read as cramped/flush. */
-.product-tags-label {
-  flex-basis: 100%;
-  margin-bottom: 0.5rem;
-  font-family: var(--mono);
-  color: var(--muted-2);
-  font-weight: 500;
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  flex-shrink: 0;
 }
 
 .product-tag {
@@ -935,7 +834,6 @@ h1, h2, h3,
 /* "+ Enquiry" is the wide primary; "View" is a compact secondary beside it. */
 .product-card-actions .pcard-enq  { flex: 1 1 auto; min-width: 0; }
 .product-card-actions .pcard-view { flex: 0 0 auto; }
-.detail-cta .btn { flex: 1; }
 
 /* Selected ("In Product Enquiry") state: calm, confirmed red-tint. Not an
    alert, not a checkbox, not a cart button. Same height/width as the default
@@ -1033,57 +931,7 @@ h1, h2, h3,
   color: var(--muted);
 }
 
-.detail-image { animation: slideInLeft 0.45s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both; }
-.detail-info  { animation: slideInRight 0.45s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both; }
-.detail-full-desc { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.25s both; }
-.related-section  { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
-
-
-.detail-image {
-  width: 100%;
-  aspect-ratio: 4/3;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-  overflow: hidden;
-}
-
-.detail-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--radius);
-}
-
-.detail-info h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0.5rem 0 0.75rem;
-  line-height: 1.2;
-}
-
-.detail-info .short-desc {
-  font-size: 1rem;
-  color: var(--muted);
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-}
-
-.detail-section {
-  margin-bottom: 1.25rem;
-}
-
-.detail-section h4 {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--muted);
-  margin-bottom: 0.5rem;
-}
+.related-section { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
 
 .tag-list {
   display: flex;
@@ -1100,71 +948,103 @@ h1, h2, h3,
   border-radius: var(--radius);
 }
 
-.features-list {
-  list-style: none;
-  padding: 0;
-}
-
-.features-list li {
-  font-size: 0.9rem;
-  padding: 0.3rem 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  color: var(--text);
-}
-
-.features-list li::before {
-  content: "✓";
-  color: var(--red);
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.detail-cta {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
-}
-
 .btn-lg {
   padding: 0.75rem 1.5rem;
   font-size: 0.95rem;
 }
 
-.detail-full-desc {
-  max-width: 1280px;
-  margin: 0 auto 2rem;
-  padding: 0 1.5rem;
-}
-
-.detail-full-desc h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--red);
-  display: inline-block;
-}
-
-.detail-full-desc p {
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--text);
-  margin-bottom: 1rem;
-}
-
 .usage-box {
   background: rgba(204, 41, 41, 0.05);
   border: 1px solid rgba(204, 41, 41, 0.18);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  padding: 1.15rem 1.25rem;
   font-size: 0.9rem;
   line-height: 1.6;
   color: var(--text);
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
+
+.usage-method {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.usage-method-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(204, 41, 41, 0.1);
+  color: var(--red);
+}
+
+.usage-method-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 0.05rem;
+}
+
+.usage-method-label,
+.usage-suitable-label {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-2);
+}
+
+.usage-method-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.usage-suitable {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(204, 41, 41, 0.14);
+}
+
+.usage-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.usage-chip {
+  background: #fff;
+  border: 1px solid var(--red-tint-bdr);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Free-form multi-step usage (e.g. PVC pipe cement) has no "suitable for" list;
+   it renders as a plain readable paragraph inside the same box. */
+.usage-steps {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0;
+}
+
+/* When the box holds only the steps paragraph, drop the flex gap padding feel. */
+.usage-box > .usage-steps:only-child { }
 
 /* Product Documents (SDS / TDS downloads) on the product detail page.
    Only rendered when a document URL exists, so there is no empty state to style. */
@@ -1240,57 +1120,71 @@ h1, h2, h3,
   transform: translateX(2px);
 }
 
-/* Enquiry guidance box on the product detail page */
+/* Enquiry guidance band on the product detail page — dark, full-conviction
+   prompt that sits once below the description/usage content. */
 .enquiry-guidance {
-  background: var(--card);
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius);
-  padding: 1.4rem 1.5rem;
-  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  background: #1a1712;
+  border: 1px solid #2c261d;
+  border-radius: 14px;
+  padding: 1.6rem 1.75rem;
+  margin-top: 2.25rem;
 }
 
+.enquiry-guidance-copy { min-width: 0; }
+
 .enquiry-guidance-title {
-  font-size: 1.02rem;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text);
-  margin: 0 0 0.45rem;
+  color: #fff;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.01em;
 }
 
 .enquiry-guidance p {
   font-size: 0.9rem;
   line-height: 1.6;
-  color: var(--muted);
-  margin: 0 0 0.9rem;
+  color: var(--muted-on-dark);
+  margin: 0;
   max-width: 62ch;
 }
 
 .enquiry-guidance-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  color: var(--red);
+  gap: 0.4rem;
+  flex-shrink: 0;
+  background: var(--red);
+  color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  padding: 0.7rem 1.25rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: background 0.18s, transform 0.1s;
 }
 
-.enquiry-guidance-link:hover { color: var(--red-dark); }
+.enquiry-guidance-link:hover { background: var(--red-hover); }
+.enquiry-guidance-link:active { transform: scale(0.98); }
 
 .enquiry-guidance-link:focus-visible {
-  outline: 2px solid var(--red);
+  outline: 2px solid #fff;
   outline-offset: 2px;
-  border-radius: 3px;
 }
 
 .related-section {
-  max-width: 1280px;
+  max-width: 1180px;
   margin: 0 auto 3rem;
-  padding: 0 1.5rem;
+  padding: 0 40px;
 }
 
 .related-section h2 {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 1.25rem;
   padding-bottom: 0.5rem;
@@ -1303,29 +1197,134 @@ h1, h2, h3,
   gap: 1rem;
 }
 
-/* ─── Product Enquiry Page ────────────────────────────────────── */
-
-/* Dark header band: breadcrumb + H1 + lead, faint red glow top-right. */
-/* Enquiry hero now uses the shared .page-hero--rail pattern (see enquiry.html),
-   matching products.html and contact.html. Only the breadcrumb, which sits on
-   that hero's dark background, keeps its own styling below. */
-.enquiry-breadcrumb {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--muted-on-dark);
-  margin-bottom: 16px;
+/* ─── Related product cards (compact, whole-card link) ───────────── */
+.related-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease), border-color 0.25s var(--ease);
 }
 
-.enquiry-breadcrumb a { color: var(--muted-on-dark); text-decoration: none; }
-.enquiry-breadcrumb a:hover { color: #fff; }
-.enquiry-breadcrumb span { margin: 0 8px; color: #6a655a; }
-.enquiry-breadcrumb [aria-current] { color: #fff; }
+/* Red top-accent reveal on hover — same language as the catalogue cards, so a
+   related card reads as the same object the visitor just came from. */
+.related-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.3s var(--ease);
+  z-index: 2;
+}
+
+.related-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  border-color: var(--line-2);
+}
+
+.related-card:hover::before { transform: scaleX(1); }
+
+.related-card:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+/* The Yee Lim product shots carry their own white backgrounds. A flat cream
+   plate left them sitting as a hard white rectangle; a soft radial wash (white
+   at the optical centre, easing to warm cream at the edges) lets that white melt
+   into the plate. Same wash as the main gallery stage, so the set reads as one. */
+.related-card-img {
+  height: 158px;
+  /* Near-white plate: the product shots carry baked-in white backgrounds, so a
+     white plate makes that white seamless instead of a hard rectangle on cream.
+     A whisper of warmth at the very edge keeps it from reading as a cold box. */
+  background: radial-gradient(circle at 50% 46%, #ffffff 0%, #ffffff 60%, #fcfaf5 100%);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.related-card-img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 1rem 1.1rem;
+  box-sizing: border-box;
+  transition: transform 0.4s var(--ease);
+}
+
+.related-card:hover .related-card-img img { transform: scale(1.05); }
+
+.related-card-img.no-image .no-image-mark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #cdc4b2;
+  user-select: none;
+}
+
+.related-card-body {
+  padding: 1rem 1.05rem 1.05rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.related-card-name {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 0.15rem 0 0.4rem;
+  transition: color 0.2s var(--ease);
+}
+
+.related-card-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 0.85rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.related-card:hover .related-card-name { color: var(--red); }
+
+/* Base type sits at the card foot as a quiet mono meta line — useful signal,
+   not a redundant "view product" CTA (the whole card already links out). */
+.related-card-base {
+  margin-top: auto;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
+}
+
+/* ─── Product Enquiry Page ────────────────────────────────────── */
 
 .page-content {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 36px 2rem 64px;
+  padding: 36px 40px 64px;
 }
 
 /* Two-column body: selected products / details form. Collapses to one
@@ -1336,6 +1335,15 @@ h1, h2, h3,
   gap: 32px;
   align-items: start;
 }
+
+/* Empty basket: the form (right column) is hidden, so collapse to one full-width
+   column. The empty state reads as one deliberate panel spanning the content
+   width, with its own centred Browse CTA — so the separate "continue browsing"
+   link below it is redundant and hidden here. */
+.enquiry-grid.is-empty { grid-template-columns: 1fr; }
+.enquiry-grid.is-empty .enquiry-col-right { display: none; }
+.enquiry-grid.is-empty .enquiry-col-left { width: 100%; text-align: center; }
+.enquiry-grid.is-empty .enquiry-continue-link { display: none; }
 
 .enquiry-col-head {
   display: flex;
@@ -1374,18 +1382,40 @@ h1, h2, h3,
 .enquiry-clear-all:hover { color: var(--red); }
 .enquiry-clear-all:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
 
+/* Ghost pill (catalogue "View" button language): quiet warm outline at rest,
+   fills ink on hover with the arrow sliding left — reads as a deliberate "back
+   to the catalogue" control, not a bare red link. */
 .enquiry-continue-link {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  margin-top: 18px;
-  font-size: 14px;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 0.6rem 1.15rem;
+  border: 1px solid #e0d9c9;
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--red);
+  color: var(--body);
   text-decoration: none;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease), color 0.18s var(--ease);
 }
 
-.enquiry-continue-link:hover { color: var(--red-dark); text-decoration: underline; text-underline-offset: 2px; }
+.enquiry-continue-link::before {
+  content: "\2190"; /* ← */
+  font-size: 1em;
+  line-height: 1;
+  transition: transform 0.2s var(--ease);
+}
+
+.enquiry-continue-link:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.enquiry-continue-link:hover::before { transform: translateX(-3px); }
+.enquiry-continue-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
 /* Selected products: each a standalone white card (not one bordered list). */
 .basket-list {
@@ -1500,14 +1530,56 @@ h1, h2, h3,
   .basket-remove { width: 44px; height: 44px; }
 }
 
+/* Full-width, deliberate empty panel — generous vertical rhythm and a soft warm
+   wash so it reads as an intentional state, not a lonely box in a sea of cream. */
 .basket-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: 3rem;
+  padding: 5rem 2rem;
   color: var(--muted);
-  background: var(--card);
+  background:
+    radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #fdfbf6 55%, #f9f5ec 100%);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-md);
 }
+
+.basket-empty-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--line-2);
+  box-shadow: 0 1px 3px rgba(32, 30, 24, 0.06);
+  color: var(--red);
+  margin-bottom: 1.35rem;
+}
+
+.basket-empty-icon svg { width: 30px; height: 30px; }
+
+.basket-empty h2 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+
+.basket-empty p {
+  font-size: 0.98rem;
+  color: var(--body);
+  line-height: 1.6;
+  max-width: 44ch;
+  margin: 0 0 1.75rem;
+}
+
+.basket-empty .btn { padding: 0.85rem 1.8rem; font-size: 0.95rem; }
 
 /* Right-column sticky card: "Enquiring about" strip + padded form body. */
 .enquiry-form {
@@ -1558,16 +1630,16 @@ h1, h2, h3,
 }
 
 .form-group label {
-  font-size: 0.85rem;
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--body);
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   padding: 0.7rem 0.9rem;
-  border: 1px solid var(--border);
+  border: 1px solid #e0d9c9;
   border-radius: 8px;
   font-size: 0.9rem;
   font-family: inherit;
@@ -1592,7 +1664,7 @@ h1, h2, h3,
 .form-group textarea:focus,
 .form-group select:focus {
   border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.15);
+  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.12);
 }
 
 .form-group textarea { resize: vertical; min-height: 100px; }
@@ -1711,19 +1783,22 @@ h1, h2, h3,
   gap: 0.4rem;
 }
 
+/* Active-filter pill: warm neutral at rest (an applied filter is normal state,
+   not a warning), with a quiet red × cue. Hover shifts to red to signal the
+   click removes it. */
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  background: #fff0f0;
-  border: 1px solid #f5cccc;
-  color: var(--red);
+  gap: 0.34rem;
+  background: #f2ece0;
+  border: 1px solid var(--border);
+  color: var(--body);
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.25rem 0.65rem;
+  padding: 0.28rem 0.7rem;
   border-radius: 20px;
   cursor: pointer;
-  transition: all 0.18s;
+  transition: background 0.18s var(--ease), color 0.18s var(--ease), border-color 0.18s var(--ease);
   font-family: inherit;
 }
 
@@ -1771,20 +1846,6 @@ h1, h2, h3,
   user-select: none;
   position: relative;
   z-index: 1;
-}
-
-/* Legacy no-image-icon/-label kept for product-detail.js gallery placeholder */
-.no-image-icon {
-  font-size: 2rem;
-  opacity: 0.25;
-}
-
-.no-image-label {
-  font-size: 0.7rem;
-  color: var(--muted);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 /* ─── Admin Image Preview ─────────────────────────────────────── */
@@ -1839,8 +1900,6 @@ h1, h2, h3,
   .active-filter-chips { padding: 0 1rem; }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
-  .detail-cta { flex-direction: column; }
-  .detail-cta .btn { width: 100%; text-align: center; }
   .form-row { grid-template-columns: 1fr; }
   .hero-inner { padding: 3rem 1.25rem 2.4rem; }
   .page-hero h1 { font-size: clamp(1.75rem, 7vw, 2.2rem); }
@@ -1851,28 +1910,30 @@ h1, h2, h3,
 .detail-gallery-row {
   display: grid;
   grid-template-columns: 1fr 360px;
-  gap: 2rem;
-  max-width: 1280px;
-  margin: 0.75rem auto 0;
-  padding: 0 1.5rem;
+  gap: 40px;
+  max-width: 1180px;
+  margin: 1.25rem auto 0;
+  padding: 0 40px;
   align-items: start;
 }
 
-/* Full-width content section below gallery row */
+/* Full-width content section below gallery row. Shares the fold row's max-width
+   and 40px inline padding so the spec table, description, and enquiry band all
+   line up on the same left edge as the gallery. */
 .detail-content {
-  max-width: 1280px;
-  margin: 2rem auto 2.5rem;
-  padding: 0 1.5rem;
+  max-width: 1180px;
+  margin: 2.25rem auto 2.5rem;
+  padding: 0 40px;
 }
 
 /* ─── Gallery ────────────────────────────────────────────────── */
 .gallery-main {
   position: relative;
   width: 100%;
-  aspect-ratio: 4/3;
-  background: #fff;
+  height: 420px;
+  background: radial-gradient(circle at 50% 38%, #fff, #f4efe5);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 14px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1887,8 +1948,26 @@ h1, h2, h3,
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem;
+  padding: 1.75rem;
   box-sizing: border-box;
+}
+
+/* Brand chip pinned to the stage corner (mono eyebrow on a soft plate). */
+.gallery-brand-chip {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 2;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--red);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 0.22rem 0.6rem;
+  user-select: none;
 }
 
 /* Product shots sit cleanly inside the frame (no awkward crop). */
@@ -1899,10 +1978,10 @@ h1, h2, h3,
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 1px solid var(--border);
+  border: 1px solid #e0d9c9;
   background: rgba(255, 255, 255, 0.92);
   color: var(--ink, #1a1712);
   display: flex;
@@ -1955,14 +2034,6 @@ h1, h2, h3,
   user-select: none;
 }
 
-.gallery-thumb-dot {
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--border);
-}
-
 .gallery-thumbs {
   display: flex;
   gap: 0.5rem;
@@ -2004,13 +2075,17 @@ h1, h2, h3,
 }
 
 /* ─── Product Header (availability + name + desc) ────────────── */
-.detail-product-header { margin-bottom: 1rem; }
+.detail-product-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
 
 .detail-product-meta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
   flex-wrap: wrap;
 }
 
@@ -2030,10 +2105,13 @@ h1, h2, h3,
   border: 1px solid var(--green-tint-bdr);
 }
 
+/* "Enquire to order" is not an error and not a dead product — amber (matches the
+   catalogue card status) reads as "ask us", where grey read as disabled and red
+   would read as unavailable. */
 .avail-badge.unavailable {
-  background: #f1ece1;
-  color: var(--muted);
-  border: 1px solid var(--border);
+  background: #fdf3e2;
+  color: #8a5a12;
+  border: 1px solid #f0dcb8;
 }
 
 .avail-badge .avail-dot {
@@ -2045,104 +2123,131 @@ h1, h2, h3,
 }
 
 .detail-product-name {
-  font-size: 1.6rem;
+  font-size: clamp(1.7rem, 3.5vw, 2.1rem);
   font-weight: 700;
   color: var(--text);
-  line-height: 1.2;
-  margin-bottom: 0.6rem;
+  line-height: 1.15;
+  margin-bottom: 0.65rem;
 }
 
 .detail-product-desc {
-  font-size: 0.95rem;
-  color: var(--muted);
-  line-height: 1.6;
+  font-size: 1rem;
+  color: var(--body);
+  line-height: 1.65;
+  max-width: 68ch;
 }
 
 /* ─── Spec Table ─────────────────────────────────────────────── */
 .spec-table-wrap {
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 14px;
   overflow: hidden;
   margin: 1.25rem 0;
 }
 
 .spec-table-heading {
-  background: var(--bg);
-  padding: 0.5rem 1rem;
-  font-size: 0.7rem;
-  font-weight: 700;
+  background: var(--panel);
+  padding: 0.7rem 1.25rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+  border-bottom: 1px solid var(--line);
 }
 
 .spec-row {
   display: grid;
-  grid-template-columns: 160px 1fr;
-  border-bottom: 1px solid var(--border);
+  grid-template-columns: 200px minmax(0, 1fr);
+  border-bottom: 1px solid var(--line);
 }
 
 .spec-row:last-child { border-bottom: none; }
 
 .spec-key {
-  background: var(--bg);
-  padding: 0.85rem 1rem;
-  font-size: 0.82rem;
-  font-weight: 600;
+  background: var(--card);
+  padding: 1.1rem 1.25rem;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
   color: var(--text);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--line);
+  display: flex;
+  align-items: center;
 }
 
 .spec-val {
-  padding: 0.85rem 1rem;
-  font-size: 0.85rem;
-  color: var(--text);
+  padding: 1.1rem 1.25rem;
+  font-size: 0.9rem;
+  color: var(--body);
   line-height: 1.5;
+  align-self: center;
 }
 
-.spec-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.spec-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
 .spec-tag {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.72rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 3px;
+  background: var(--panel);
+  border: 1px solid var(--line-2);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.22rem 0.6rem;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 .spec-features {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 1.5rem;
+  gap: 0.55rem;
   margin: 0;
 }
 
+/* Each feature is a bordered tile with a red-tint check badge — reads as a
+   deliberate spec card rather than a floating checklist. */
 .spec-feature {
-  font-size: 0.82rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  background: #fbfaf6;
+  border: 1px solid #ece7dc;
+  border-radius: 9px;
+  padding: 11px 14px;
+  font-size: 0.83rem;
+  line-height: 1.4;
   color: var(--text);
+}
+
+.spec-feature-check {
+  flex-shrink: 0;
+  width: 21px;
+  height: 21px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-}
-
-.spec-feature::before {
-  content: "✓";
+  justify-content: center;
+  background: rgba(204, 41, 41, 0.1);
   color: var(--red);
-  font-weight: 700;
-  flex-shrink: 0;
+  margin-top: 0.05rem;
 }
 
-/* ─── Sidebar ─────────────────────────────────────────────────── */
+.spec-feature-text { min-width: 0; }
+
+/* ─── Sidebar (action rail / buy box) ───────────────────────────── */
 .detail-sidebar {
+  position: sticky;
+  top: 84px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 14px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(32,30,24,0.05), 0 10px 24px -14px rgba(32,30,24,0.18);
 }
 
 .sidebar-avail-bar {
@@ -2163,9 +2268,9 @@ h1, h2, h3,
 }
 
 .sidebar-avail-bar.unavailable {
-  background: #f1ece1;
-  color: var(--muted);
-  border-bottom-color: var(--border);
+  background: #fdf3e2;
+  color: #8a5a12;
+  border-bottom-color: #f0dcb8;
 }
 
 .sidebar-avail-bar .avail-dot {
@@ -2177,31 +2282,68 @@ h1, h2, h3,
 }
 
 .sidebar-identity {
-  padding: 1.1rem 1.25rem 0;
+  padding: 1.05rem 1.25rem 0;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-}
-
-.sidebar-product-name {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.35;
+  gap: 0.28rem;
 }
 
 .sidebar-brand {
-  font-size: 0.75rem;
-  color: var(--muted);
-  font-weight: 500;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--red);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sidebar-product-name {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .sidebar-actions {
-  padding: 1rem 1.25rem;
+  padding: 1.05rem 1.25rem;
   display: flex;
   flex-direction: column;
+  gap: 0.6rem;
+}
+
+.sidebar-action-row {
+  display: flex;
   gap: 0.5rem;
 }
+
+/* WhatsApp quick-chat button — sits beside Compare in the action row. Green
+   brand accent kept subtle so it never competes with the primary red CTA. */
+.btn-whatsapp-sidebar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.btn-whatsapp-sidebar:hover { border-color: #16a34a; color: #128c3d; background: #f2faf4; }
+.btn-whatsapp-sidebar:active { transform: scale(0.97); }
+.btn-whatsapp-sidebar:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.btn-whatsapp-sidebar svg { flex-shrink: 0; color: #25D366; }
 
 .sidebar-actions .btn {
   width: 100%;
@@ -2242,7 +2384,8 @@ h1, h2, h3,
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 0.55rem;
   background: none;
   border: 1px solid var(--border);
@@ -2269,6 +2412,28 @@ h1, h2, h3,
      sidebar (name, availability, Add to Enquiry / Compare). Previously the
      sidebar was forced above the gallery (order:-1), which made the page feel
      CTA-first before the visitor had even seen the product. */
+  /* Stacked full-width, the buy box no longer needs to stick alongside the
+     gallery — un-stick it so it scrolls with the content. */
+  .detail-sidebar { position: static; top: auto; }
+  .gallery-main { height: 380px; }
+}
+
+/* Trim the shared 40px inline padding on smaller viewports so no section can
+   push the page into horizontal overflow. */
+@media (max-width: 768px) {
+  .detail-gallery-row,
+  .detail-content,
+  .related-section { padding-left: 24px; padding-right: 24px; }
+  .enquiry-guidance { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .detail-gallery-row,
+  .detail-content,
+  .related-section { padding-left: 16px; padding-right: 16px; }
+  .gallery-main { height: 300px; }
+  .spec-row { grid-template-columns: 120px minmax(0, 1fr); }
+  .related-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* On phones the action card sits directly above the full header (brand,
@@ -2283,26 +2448,82 @@ h1, h2, h3,
   .detail-sidebar .sidebar-actions { padding-top: 1.1rem; }
 }
 
-/* ─── Compare Tray (fixed bottom) ───────────────────────────── */
+/* ─── Compare Tray (floating, collapsible — Canyon pattern) ──────
+   The toggle is a standalone rounded pill that floats as a tab; expanding
+   reveals a separate card just below it with a small gap between the two.
+   Collapsed, only the pill shows, so it stays unobtrusive while browsing.
+   The container itself is transparent and click-through except on its two
+   children. body.compare-open reserves its live height plus the float gap. */
 .compare-tray {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 18px;
+  left: 50%;
+  width: min(1180px, calc(100% - 32px));
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+  transform: translate(-50%, calc(100% + 44px));
+  transition: transform 0.34s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.compare-tray > * { pointer-events: auto; }
+.compare-tray.visible { transform: translate(-50%, 0); }
+.compare-tray.expanded { gap: 10px; }
+
+/* Floating pill (the tab). Rounded, soft-shadowed, lifts on hover. */
+.compare-tray-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.62rem 1.2rem;
   background: #fff;
-  border-top: 1px solid var(--border);
-  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: 0 10px 26px -12px rgba(32,30,24,0.30), 0 2px 6px rgba(32,30,24,0.10);
+  transition: transform 0.16s var(--ease), box-shadow 0.2s var(--ease), color 0.15s var(--ease);
+}
+.compare-tray-toggle:hover { transform: translateY(-1px); box-shadow: 0 16px 32px -12px rgba(32,30,24,0.36), 0 2px 8px rgba(32,30,24,0.12); }
+.compare-tray-toggle:active { transform: translateY(0) scale(0.98); }
+.compare-tray-toggle:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.compare-tray-toggle .cmp-toggle-icon { color: var(--red); flex-shrink: 0; }
+.compare-tray-toggle-label { letter-spacing: -0.005em; }
+.compare-tray-toggle-label #compareTrayCount { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 2px; }
+.cmp-toggle-chevron { color: var(--muted); flex-shrink: 0; transition: transform 0.28s var(--ease); }
+.compare-tray.expanded .cmp-toggle-chevron { transform: rotate(180deg); }
+
+/* The card that reveals below the pill. Animates up + fades on expand. */
+.compare-tray-body {
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  z-index: 200;
-  transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.09);
   flex-wrap: wrap;
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0.85rem 1.35rem;
+  box-shadow: 0 18px 44px -16px rgba(32,30,24,0.32), 0 2px 8px rgba(32,30,24,0.10);
+  transform-origin: bottom center;
+  transition: opacity 0.24s var(--ease), transform 0.28s var(--ease);
 }
-
-.compare-tray.visible { transform: translateY(0); }
+.compare-tray:not(.expanded) .compare-tray-body {
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  overflow: hidden;
+  transform: translateY(10px) scale(0.985);
+  pointer-events: none;
+}
 
 .compare-tray-label {
   font-size: 0.7rem;
@@ -2428,7 +2649,7 @@ h1, h2, h3,
    label and the Compare / Clear all actions stay pinned and the tray height
    is constant. Phones (<=640px) use the stacked layout below. */
 @media (min-width: 641px) and (max-width: 860px) {
-  .compare-tray { flex-wrap: nowrap; gap: 1rem; }
+  .compare-tray-body { flex-wrap: nowrap; gap: 1rem; }
   .compare-tray-slots {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -2483,8 +2704,6 @@ h1, h2, h3,
 }
 
 /* ─── Comparison overlay removed; comparison now uses dedicated compare.html page ─── */
-
-.compare-table-wrap { overflow-x: auto; }
 
 .compare-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
@@ -2600,17 +2819,6 @@ h1, h2, h3,
 
 .compare-feature { font-size: 0.82rem; padding: 0.15rem 0; color: var(--text); }
 .compare-feature::before { content: "• "; color: var(--muted); font-weight: 700; }
-
-.compare-product-spec-link {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text);
-  text-decoration: none;
-  line-height: 1.4;
-  display: block;
-  transition: color 0.15s;
-}
-.compare-product-spec-link:hover { color: var(--red); }
 
 .btn-add-enquiry {
   width: 100%;
@@ -2906,12 +3114,14 @@ body:has(.compare-tray.visible) .toast {
 }
 
 .filter-group label:hover:not(.is-empty) .filter-count {
-  color: var(--red);
+  color: var(--body);
 }
 
+/* Checked rows emphasise the count with ink weight, not red — red here read as
+   an alert/"unavailable" badge rather than a neutral availability tally. */
 .filter-group label input:checked ~ .filter-count {
-  color: var(--red);
-  font-weight: 600;
+  color: var(--text);
+  font-weight: 700;
 }
 
 /* ─── Skeleton loading state for product grid ────────────────── */
@@ -3152,21 +3362,26 @@ body:has(.compare-tray.visible) .toast {
 
 .contact-detail {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.9rem;
   border-bottom: 1px solid var(--line);
   padding: 1.1rem 1.25rem;
+  transition: background 0.16s var(--ease);
 }
 
 .contact-detail:last-child { border-bottom: none; }
 
+/* Rows that carry a link (email, WhatsApp) get a quiet hover so they read as
+   actionable; the address row stays static. */
+.contact-detail:has(a):hover { background: #faf6ee; }
+
 .contact-detail-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
-  border-radius: 10px;
-  background: var(--bg);
-  border: 1px solid var(--line-2);
+  border-radius: 11px;
+  background: #fbf1ee;
+  border: 1px solid #f1dbd4;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3199,7 +3414,9 @@ body:has(.compare-tray.visible) .toast {
 
 .contact-detail a:hover { text-decoration: underline; text-underline-offset: 2px; }
 
-/* Full-width red CTA — single-accent branding, matches the rest of the site. */
+/* WhatsApp-specific CTA uses WhatsApp green for instant recognition. The red
+   single-accent stays reserved for Yee Lim's primary enquiry actions (Submit
+   Enquiry, Add to Product Enquiry); this green is scoped to WhatsApp only. */
 .contact-whatsapp {
   display: flex;
   align-items: center;
@@ -3207,7 +3424,7 @@ body:has(.compare-tray.visible) .toast {
   gap: 0.55rem;
   width: 100%;
   padding: 0.95rem;
-  background: var(--red);
+  background: #1fab54;
   color: #fff;
   text-decoration: none;
   font-size: 0.95rem;
@@ -3217,11 +3434,11 @@ body:has(.compare-tray.visible) .toast {
 }
 
 .contact-whatsapp:hover {
-  background: var(--red-dark);
-  box-shadow: 0 2px 10px rgba(204, 41, 41, 0.28);
+  background: #178c44;
+  box-shadow: 0 2px 12px rgba(31, 171, 84, 0.30);
 }
 
-.contact-whatsapp:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.contact-whatsapp:focus-visible { outline: 2px solid #0f7a34; outline-offset: 2px; }
 .contact-whatsapp svg { flex-shrink: 0; }
 
 
@@ -4219,7 +4436,7 @@ body:has(.compare-tray.visible) .toast {
 
 @media (max-width: 640px) {
   /* ─── Step 3: product detail spec fixes ─────────────────────── */
-  .spec-features { grid-template-columns: 1fr; gap: 0.4rem 0; }
+  .spec-features { grid-template-columns: 1fr; gap: 0.5rem; }
 
   /* ─── Step 3: sticky bottom action bar ──────────────────────── */
   body.detail-has-cta { padding-bottom: 4.9rem; }

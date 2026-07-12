@@ -63,21 +63,23 @@ function renderCompareTray() {
 
   if (list.length === 0) {
     tray.classList.remove("visible");
+    // Reset to the collapsed pill so it reappears unobtrusive next time.
+    tray.classList.remove("expanded");
+    const t = document.getElementById("compareTrayToggle");
+    if (t) t.setAttribute("aria-expanded", "false");
     document.body.classList.remove("compare-open");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
 
   tray.classList.add("visible");
+  // Keep the collapsed-pill count in step with the list.
+  const countEl = document.getElementById("compareTrayCount");
+  if (countEl) countEl.textContent = `(${list.length})`;
   // Reserve space so the fixed tray never sits over the last products or the
   // bottom filter rows: expose its real height as a CSS var and flag the body.
   document.body.classList.add("compare-open");
-  requestAnimationFrame(() => {
-    const h = tray.offsetHeight || 84;
-    document.documentElement.style.setProperty("--compare-tray-height", h + "px");
-    // Sidebar is now shorter (space reserved for the tray) — refresh its fades.
-    if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
-  });
+  requestAnimationFrame(updateCompareTrayHeight);
 
   const slots = [];
   for (let i = 0; i < COMPARE_MAX; i++) {
@@ -115,6 +117,28 @@ function renderCompareTray() {
     btn.title = hint;
     btn.setAttribute("aria-label", hint);
   }
+}
+
+// Measure the (collapsed or expanded) tray and reserve exactly its height so it
+// never occludes the last products, the footer, or the bottom filter rows.
+function updateCompareTrayHeight() {
+  const tray = document.getElementById("compareTray");
+  if (!tray || !tray.classList.contains("visible")) return;
+  const h = tray.offsetHeight || 56;
+  document.documentElement.style.setProperty("--compare-tray-height", h + "px");
+  if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
+}
+
+// Canyon-style collapse: the tray sits as a small "Compare (N)" pill until the
+// user expands it into the full comparison bar. Re-measures so the reserved
+// bottom space follows the tray's new height.
+function toggleCompareTray() {
+  const tray = document.getElementById("compareTray");
+  if (!tray) return;
+  const expanded = tray.classList.toggle("expanded");
+  const toggle = document.getElementById("compareTrayToggle");
+  if (toggle) toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  requestAnimationFrame(updateCompareTrayHeight);
 }
 
 // ─── Mobile compare: edge tab + review sheet (≤640px) ───────────
@@ -238,8 +262,7 @@ function renderCompareMobile() {
 // Keep the reserved tray height in sync when the tray wraps at narrow widths.
 window.addEventListener("resize", () => {
   if (!document.body.classList.contains("compare-open")) return;
-  const tray = document.getElementById("compareTray");
-  if (tray) document.documentElement.style.setProperty("--compare-tray-height", (tray.offsetHeight || 84) + "px");
+  updateCompareTrayHeight();
 });
 
 // ─── Init ───────────────────────────────────────────────────────
