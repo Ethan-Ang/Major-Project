@@ -4,24 +4,34 @@ let currentResults = [];
 let initialLoadDone = false;
 
 // ─── Init ────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", async () => {
-  renderSkeleton();
+// Re-runnable across Swup page swaps: registered via ylReady (runs on initial
+// load and on every swap) and self-selecting — it bails immediately when the
+// products page's grid is not present. The catalogue fetch is reused for the
+// session, so returning to this page via a swap renders instantly.
+async function initProductsPage() {
+  const grid = document.getElementById("productGrid");
+  if (!grid) return;
+  initialLoadDone = false;
 
-  try {
-    await loadProductsFromBackend();
-  } catch (err) {
-    // Defensive only: loadProductsFromBackend() falls back to the bundled
-    // demo catalogue instead of throwing, so this branch should not be
-    // reachable in normal operation. The real offline UX is the fallback.
-    console.error(err);
-    document.getElementById("productGrid").innerHTML = `
-      <div class="empty-state">
-        <h3>Products are temporarily unavailable</h3>
-        <p>Please refresh the page in a moment, or contact Yee Lim directly and our team will assist you.</p>
-        <a class="btn btn-outline" href="/contact">Contact Yee Lim</a>
-      </div>`;
-    document.getElementById("resultCount").textContent = "0 products";
-    return;
+  if (!PRODUCTS || !PRODUCTS.length) {
+    renderSkeleton();
+    try {
+      await loadProductsFromBackend();
+    } catch (err) {
+      // Defensive only: loadProductsFromBackend() falls back to the bundled
+      // demo catalogue instead of throwing, so this branch should not be
+      // reachable in normal operation. The real offline UX is the fallback.
+      console.error(err);
+      grid.innerHTML = `
+        <div class="empty-state">
+          <h3>Products are temporarily unavailable</h3>
+          <p>Please refresh the page in a moment, or contact Yee Lim directly and our team will assist you.</p>
+          <a class="btn btn-outline" href="/contact">Contact Yee Lim</a>
+        </div>`;
+      const rc = document.getElementById("resultCount");
+      if (rc) rc.textContent = "0 products";
+      return;
+    }
   }
 
   readStateFromURL();
@@ -40,6 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Also refresh the mobile compare tab/sheet now that PRODUCTS has loaded, so
   // items persisted from a previous visit render instead of showing empty.
   if (typeof renderCompareMobile === "function") renderCompareMobile();
+  initSearchTypeahead();
 
   requestAnimationFrame(() => {
     applyFilters({ skipUrlWrite: true });
@@ -54,21 +65,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Keep the filter-list edge fades correct as the viewport (and therefore the
-  // capped sidebar height) changes.
-  window.addEventListener("resize", updateFilterScrollFade);
+  // Live filtering while typing (does NOT scroll the page). Bound to the fresh
+  // search input, which is replaced on each swap, so these do not stack.
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => applyFilters());
+    // Intentional submit (Enter key) applies the search and scrolls to results.
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        submitHeroSearch();
+      }
+    });
+  }
 
-  // Live filtering while typing (does NOT scroll the page).
-  document.getElementById("searchInput").addEventListener("input", () => applyFilters());
-
-  // Intentional submit (Enter key) applies the search and scrolls to results.
-  document.getElementById("searchInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      submitHeroSearch();
-    }
+  // Window-level listeners: registered a single time for the app's lifetime so
+  // they never stack when the products page is re-entered via a swap. Each one
+  // no-ops safely when the products DOM is absent.
+  ylOnce("products:windowListeners", () => {
+    window.addEventListener("resize", updateFilterScrollFade);
+    window.addEventListener("compareUpdated", syncCompareButtons);
+    window.addEventListener("basketUpdated", () => {
+      if (document.getElementById("productGrid")) applyFilters({ skipUrlWrite: true });
+    });
   });
-});
+}
+ylReady(initProductsPage);
 
 // ─── Hero search submit ───────────────────────────────────────────
 // Called by the hero Search button and the Enter key. Applies the current
@@ -90,8 +112,6 @@ function scrollToCatalogue() {
   const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
   window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
 }
-
-window.addEventListener("compareUpdated", syncCompareButtons);
 
 // ─── URL state ──────────────────────────────────────────────────
 function readStateFromURL() {
@@ -504,7 +524,7 @@ function productCardHTML(p) {
         <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
         ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span class="card-application-val">${primaryApps}</span></div>` : ""}
         <p>${escapeHTML(p.shortDescription)}</p>
-        ${surfaceTags ? `<div class="product-tags" aria-label="Suitable surfaces">${surfaceTags}</div>` : ""}
+        <div class="product-tags"${surfaceTags ? ' aria-label="Suitable surfaces"' : ' aria-hidden="true"'}>${surfaceTags}</div>
         <div class="product-card-actions">
           <button
             class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
@@ -650,56 +670,21 @@ function onMobileSortChange(sel) {
   applyFilters();
 }
 
-// ─── Product enquiry selection (localStorage) ────────────────────
-function getBasket() {
-  return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
-}
-
-function saveBasket(basket) {
-  localStorage.setItem("enquiryBasket", JSON.stringify(basket));
-  updateBasketCount();
-  // Notify the shared navbar so the enquiry count (badge + mobile indicator +
-  // drawer count) updates immediately, the same way product-detail.js and
-  // enquiry.html do. Without this the card add updated text but not visibility.
-  window.dispatchEvent(new Event("basketUpdated"));
-}
-
-function toggleBasket(productId) {
-  const basket = getBasket();
-  const idx = basket.indexOf(productId);
-
-  if (idx === -1) {
-    basket.push(productId);
-    showToast("Added to your product enquiry");
-  } else {
-    basket.splice(idx, 1);
-    showToast("Removed from your product enquiry");
-  }
-
-  saveBasket(basket);
-  // Re-render so the changed card reflects its state but keep filters & URL stable
-  applyFilters({ skipUrlWrite: true });
-}
-
-function updateBasketCount() {
-  const el = document.getElementById("basketCount");
-  if (el) el.textContent = getBasket().length;
-}
-
-// ─── Toast ────────────────────────────────────────────────────────
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2500);
-}
+// ─── Product enquiry selection ───────────────────────────────────
+// getBasket / saveBasket / toggleBasket / updateBasketCount / showToast now
+// live in js/core/app.js (shared, event-driven), so a single unified bundle can
+// run on every page. The products grid re-renders on the "basketUpdated" event
+// (wired once in initProductsPage) instead of inside toggleBasket.
 
 // ─── Hero search typeahead ────────────────────────────────────────
 // Additive suggestion dropdown under the hero search. It does NOT change the
 // existing live-filter or submit behaviour: typing still filters the catalogue
 // below (separate input listener), and the Search button / a plain Enter still
 // run submitHeroSearch(). This only adds quick-jump suggestions on top.
-(function initSearchTypeahead() {
+// Called from initProductsPage on each page view against the fresh search
+// input. Its window/document listeners are registered once and delegate to the
+// current input/panel via window.__ylTypeahead, so they never stack on swaps.
+function initSearchTypeahead() {
   const input = document.getElementById("searchInput");
   const panel = document.getElementById("searchTypeahead");
   if (!input || !panel) return;
@@ -780,7 +765,7 @@ function showToast(message) {
   function render() {
     if (!matches.length) {
       panel.innerHTML =
-        `<li class="search-typeahead-empty" role="option" aria-disabled="true">No products found — press Search to browse all</li>`;
+        `<li class="search-typeahead-empty" role="option" aria-disabled="true">No products found. Press Search to browse all.</li>`;
       return;
     }
     panel.innerHTML = matches.map((p, i) => `
@@ -845,11 +830,26 @@ function showToast(message) {
   });
 
   input.addEventListener("blur", () => setTimeout(close, 120));
-  document.addEventListener("mousedown", (e) => {
-    if (e.target !== input && !panel.contains(e.target)) close();
-  });
 
-  // Keep the fixed panel glued to the search bar while it is open.
-  window.addEventListener("scroll", () => { if (isOpen()) reposition(); }, true);
-  window.addEventListener("resize", () => { if (isOpen()) reposition(); });
-})();
+  // Publish this page view's controller so the shared global listeners below
+  // always act on the current (post-swap) input/panel, not a stale one.
+  window.__ylTypeahead = { reposition, close, isOpen, input, panel };
+
+  // Registered once for the app's lifetime; they delegate to __ylTypeahead.
+  ylOnce("typeahead:global", () => {
+    document.addEventListener("mousedown", (e) => {
+      const t = window.__ylTypeahead;
+      if (!t) return;
+      if (e.target !== t.input && !t.panel.contains(e.target)) t.close();
+    });
+    // Keep the fixed panel glued to the search bar while it is open.
+    window.addEventListener("scroll", () => {
+      const t = window.__ylTypeahead;
+      if (t && t.isOpen()) t.reposition();
+    }, true);
+    window.addEventListener("resize", () => {
+      const t = window.__ylTypeahead;
+      if (t && t.isOpen()) t.reposition();
+    });
+  });
+}

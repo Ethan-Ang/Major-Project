@@ -222,10 +222,15 @@ h1, h2, h3,
 
 .search-bar button:hover { background: var(--red-dark); }
 
-/* Red focus ring: the field lifts and lights on focus, keyboard or click. */
+/* Focus cue: the whole pill (input + Search button) lights up as one unit with a
+   soft, diffuse red halo rather than a hard outline. A sharp red border reads as
+   an error/validation state; the glow reads as "active" and stays on-brand. The
+   resting border only nudges to a muted red so the ring, not the edge, carries it. */
 .search-bar:focus-within {
-  border-color: rgba(204, 41, 41, 0.6);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28), 0 0 0 3px rgba(204, 41, 41, 0.18);
+  border-color: rgba(204, 41, 41, 0.35);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28),
+              0 0 0 3px rgba(204, 41, 41, 0.18),
+              0 0 20px rgba(204, 41, 41, 0.25);
 }
 .search-bar:focus-within .search-bar-icon { color: #a49d90; }
 
@@ -624,6 +629,10 @@ h1, h2, h3,
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* Reserve two lines so a short (one-line) description does not shorten the
+     card and shift the bottom-aligned actions up. Keeps every card equal-height
+     alongside the reserved title and always-present tags row. */
+  min-height: 2.38rem;
 }
 
 /* Primary application line — the single red accent in the card body */
@@ -2159,7 +2168,10 @@ h1, h2, h3,
   color: var(--text);
   border-right: 1px solid var(--line);
   display: flex;
-  align-items: center;
+  /* Top-align the label with the first line of its value so multi-row values
+     (Key Features, Industries, Surfaces) read as "label heading its rows"
+     instead of the label floating in the vertical middle of a tall row. */
+  align-items: flex-start;
 }
 
 .spec-val {
@@ -2167,7 +2179,7 @@ h1, h2, h3,
   font-size: 0.9rem;
   color: var(--body);
   line-height: 1.5;
-  align-self: center;
+  align-self: start;
 }
 
 .spec-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
@@ -2194,7 +2206,11 @@ h1, h2, h3,
    deliberate spec card rather than a floating checklist. */
 .spec-feature {
   display: flex;
-  align-items: flex-start;
+  /* Centre the check badge with the text: most features are a single line, and
+     the 21px badge is taller than the line, so top-aligning left it looking
+     slightly off. Centring reads cleanly inline (and stays fine for the rare
+     two-line feature, where the badge sits beside the text block). */
+  align-items: center;
   gap: 0.55rem;
   background: #fbfaf6;
   border: 1px solid #ece7dc;
@@ -2215,7 +2231,6 @@ h1, h2, h3,
   justify-content: center;
   background: rgba(204, 41, 41, 0.1);
   color: var(--red);
-  margin-top: 0.05rem;
 }
 
 .spec-feature-text { min-width: 0; }
@@ -2697,9 +2712,20 @@ h1, h2, h3,
   text-align: left;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
+  height: 100%; /* fill the row so .compare-col-inner can stretch to equal height */
+}
+
+/* Equal-height columns: each product is a full-height flex stack so the CTA can
+   be pinned to the bottom regardless of how tall the name/availability above is,
+   keeping every "Add to Product Enquiry" button on the same baseline. */
+.compare-col-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .compare-product-img {
+  position: relative; /* anchor for the corner remove (×) button */
   width: 100%;
   aspect-ratio: 4/3;
   background: #efe9dc;
@@ -2749,22 +2775,37 @@ h1, h2, h3,
 .compare-col-avail.unavailable { background: #f1ece1; color: var(--muted); border: 1px solid var(--border); }
 .compare-col-avail .avail-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 
+/* Small × in the top-right over the image corner. Muted grey by default, brand
+   red on hover. Secondary to the red "Add to Product Enquiry" CTA. */
 .compare-col-remove {
-  background: none;
-  border: none;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
-  font-size: 0.78rem;
+  margin: 0;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid var(--border);
+  border-radius: 50%;
   color: var(--muted);
-  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
   font-family: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s;
-  display: inline;
-  margin-top: 0.75rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 
-.compare-col-remove:hover { color: var(--red); }
+.compare-col-remove:hover {
+  color: var(--red);
+  border-color: var(--red-tint-bdr);
+  background: #fff;
+}
 
 .compare-row-label {
   padding: 0.875rem 1.25rem;
@@ -2817,6 +2858,10 @@ h1, h2, h3,
   transition: background 0.15s, transform 0.1s;
   margin-bottom: 0.5rem;
 }
+
+/* Pin the CTA to the bottom of the flex column so every column's button lands
+   on the same baseline no matter the title/availability height above it. */
+.compare-col-inner .btn-add-enquiry { margin-top: auto; margin-bottom: 0; }
 
 .btn-add-enquiry:hover { background: var(--red-dark); }
 .btn-add-enquiry:active { transform: scale(0.97); }
@@ -2936,8 +2981,14 @@ h1, h2, h3,
   color: var(--text);
   margin-bottom: 0.2rem;
   line-height: 1.3;
-  display: block;
   text-decoration: none;
+  /* Clamp to two lines and reserve that height, so a 1-line and a 2-line name
+     take the same vertical space and the rows below them stay aligned. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em; /* 2 lines at line-height 1.3 */
 }
 
 .compare-product-name:hover { color: var(--red); }
@@ -4722,6 +4773,7 @@ body:has(.compare-tray.visible) .toast {
     gap: 0.35rem;
   }
   .cx-head-img {
+    position: relative; /* anchor for the corner remove (×) button */
     width: 100%;
     aspect-ratio: 4/3;
     background: var(--bg);
@@ -4742,6 +4794,12 @@ body:has(.compare-tray.visible) .toast {
     line-height: 1.25;
     color: var(--text);
     text-decoration: none;
+    /* Reserve two lines so 1-line and 2-line names align the rows below. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.5em;
   }
   .cx-head-avail {
     font-size: 0.66rem;
@@ -4753,7 +4811,7 @@ body:has(.compare-tray.visible) .toast {
   .cx-head-avail.available   { color: var(--green); }
   .cx-head-avail.unavailable { color: var(--muted); }
   .cx-head-select {
-    margin-top: 0.15rem;
+    margin-top: auto; /* pin CTA to the bottom so all columns' buttons align */
     background: var(--red);
     color: #fff;
     border: none;
@@ -4769,16 +4827,29 @@ body:has(.compare-tray.visible) .toast {
     color: var(--red);
     border: 1px solid var(--red-tint-bdr);
   }
+  /* Small × over the image corner (matches the desktop remove control). */
   .cx-head-rm {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 0.66rem;
-    font-weight: 600;
-    text-decoration: underline;
-    cursor: pointer;
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    z-index: 2;
+    width: 1.4rem;
+    height: 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
   }
+  .cx-head-rm:hover { color: var(--red); border-color: var(--red-tint-bdr); }
   .cx-rowlabel {
     position: sticky;
     left: 0;

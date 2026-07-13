@@ -27,18 +27,30 @@ function renderCompareSkeleton() {
     col + col + '</div>';
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  renderCompareSkeleton();
-  try {
-    await loadProductsFromBackend();
-  } catch (err) {
-    console.error(err);
+// Re-runnable across Swup swaps: registered via ylReady, self-selecting on the
+// compare content anchor. The catalogue fetch is reused for the session.
+function initComparePage() {
+  const content = document.getElementById("comparePageContent");
+  if (!content) return;
+
+  if (PRODUCTS && PRODUCTS.length) {
+    renderComparePage();
+  } else {
+    renderCompareSkeleton();
+    loadProductsFromBackend()
+      .catch(err => console.error(err))
+      .finally(renderComparePage);
   }
-  renderComparePage();
-});
-window.addEventListener("compareUpdated", renderComparePage);
-window.addEventListener("basketUpdated", renderComparePage);
-window.addEventListener("resize", updateCompareScrollHint);
+
+  // Registered once for the app's lifetime; renderComparePage no-ops when the
+  // compare content anchor is absent, so these are safe on other pages.
+  ylOnce("compare:listeners", () => {
+    window.addEventListener("compareUpdated", renderComparePage);
+    window.addEventListener("basketUpdated", renderComparePage);
+    window.addEventListener("resize", updateCompareScrollHint);
+  });
+}
+ylReady(initComparePage);
 
 // Local basket helpers (compare-page.js does not load js/pages/products.js,
 // so it cannot rely on that file's getBasket()/toggleBasket()).
@@ -84,16 +96,18 @@ function renderComparePage() {
     const inBasket = basket.includes(String(p.id));
     return `
       <td class="compare-col-header">
-        <div class="compare-product-img">
-          ${imgContent}
+        <div class="compare-col-inner">
+          <div class="compare-product-img">
+            <button class="compare-col-remove" aria-label="Remove from comparison" onclick="removeFromCompare('${p.id}')">&times;</button>
+            ${imgContent}
+          </div>
+          <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
+          <div class="compare-product-brand">${ylEscapeHtml(brandDisplay(p.brand))}</div>
+          <div class="compare-col-avail ${availClass}">
+            <span class="avail-dot"></span>${ylEscapeHtml(p.status)}
+          </div>
+          <button class="btn-add-enquiry${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}')">${inBasket ? "In Product Enquiry" : "Add to Product Enquiry"}</button>
         </div>
-        <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
-        <div class="compare-product-brand">${ylEscapeHtml(brandDisplay(p.brand))}</div>
-        <div class="compare-col-avail ${availClass}">
-          <span class="avail-dot"></span>${ylEscapeHtml(p.status)}
-        </div>
-        <button class="btn-add-enquiry${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}')">${inBasket ? "In Product Enquiry" : "Add to Product Enquiry"}</button>
-        <button class="compare-col-remove" onclick="removeFromCompare('${p.id}')">Remove</button>
       </td>`;
   }).join("");
 
@@ -164,11 +178,13 @@ function buildCompareMobile(products) {
     const inBasket = basket.includes(String(p.id));
     return `
       <div class="cx-head">
-        <div class="cx-head-img">${img}</div>
+        <div class="cx-head-img">
+          <button class="cx-head-rm" aria-label="Remove from comparison" onclick="removeFromCompare('${p.id}')">&times;</button>
+          ${img}
+        </div>
         <a class="cx-head-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
         <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${ylEscapeHtml(p.status)}</span>
         <button class="cx-head-select${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
-        <button class="cx-head-rm" onclick="removeFromCompare('${p.id}')">Remove</button>
       </div>`;
   }).join("");
 
@@ -253,11 +269,4 @@ function addToBasket(productId) {
 function clearAll() {
   clearCompare();
 }
-
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  if (!toast) return;
-  toast.textContent = message;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2500);
-}
+// showToast now lives in js/core/app.js (shared).

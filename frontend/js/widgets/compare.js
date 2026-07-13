@@ -212,6 +212,15 @@ function closeCompareSheet() {
 
 function renderCompareMobile() {
   if (onComparePage()) return;
+  // The mobile compare tab shadows the desktop bottom tray, so only surface it
+  // on pages that actually have the tray (products / product-detail). On other
+  // pages (enquiry, contact) hide any tab left over from a previous page view.
+  if (!document.getElementById("compareTray")) {
+    const leftover = document.getElementById("cmpTab");
+    if (leftover) leftover.classList.remove("show");
+    closeCompareSheet();
+    return;
+  }
   ensureMobileCompareUI();
 
   const list  = getCompareList();
@@ -266,7 +275,9 @@ window.addEventListener("resize", () => {
 });
 
 // ─── Init ───────────────────────────────────────────────────────
+// The compareUpdated listeners persist for the app's lifetime; the initial and
+// per-swap render is driven by ylReady (runs on load and on every Swup swap).
 window.addEventListener("compareUpdated", renderCompareTray);
-window.addEventListener("DOMContentLoaded", renderCompareTray);
 window.addEventListener("compareUpdated", renderCompareMobile);
-window.addEventListener("DOMContentLoaded", renderCompareMobile);
+ylReady(renderCompareTray);
+ylReady(renderCompareMobile);

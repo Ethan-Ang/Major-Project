@@ -30,17 +30,36 @@ function renderDetailSkeleton() {
 }
 
 // ─── Init ────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", async () => {
-  renderDetailSkeleton();
-  try {
-    await loadProductsFromBackend();
-  } catch (err) {
-    console.error(err);
+// Module-scoped current product, so the once-registered event listeners below
+// always act on the product currently shown (they must not close over a stale
+// product across Swup swaps between detail pages).
+let detailProduct = null;
+
+// Re-runnable across swaps: registered via ylReady, self-selecting on the
+// gallery anchor. The catalogue fetch is reused for the session.
+async function initDetailPage() {
+  const gallery = document.getElementById("detailGallery");
+  if (!gallery) return;
+
+  if (!PRODUCTS || !PRODUCTS.length) {
+    renderDetailSkeleton();
+    try {
+      await loadProductsFromBackend();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   const params  = new URLSearchParams(window.location.search);
   const id      = params.get("id");
   const product = PRODUCTS.find(p => String(p.id) === String(id));
+  detailProduct = product || null;
+
+  // A stale fixed CTA bar from a previously viewed product must never linger
+  // (it lives on <body>, outside the swapped container).
+  const oldCta = document.getElementById("stickyCta");
+  if (oldCta) oldCta.remove();
+  document.body.classList.remove("detail-has-cta");
 
   if (!product) {
     const grid = document.getElementById("detailPageGrid");
@@ -64,10 +83,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderFullDesc(product);
   renderRelated(product);
   updateBasketCount();
-
   if (typeof renderCompareTray === "function") renderCompareTray();
-  window.addEventListener("compareUpdated", () => updateSidebarCompareBtn(product.id));
-});
+
+  // Registered once for the app's lifetime; they read the current detailProduct.
+  ylOnce("detail:listeners", () => {
+    window.addEventListener("compareUpdated", () => {
+      if (detailProduct) updateSidebarCompareBtn(detailProduct.id);
+    });
+    window.addEventListener("basketUpdated", () => {
+      if (detailProduct) syncDetailBasketButtons(detailProduct);
+    });
+  });
+}
+ylReady(initDetailPage);
 
 // ─── Back to catalogue ────────────────────────────────────────────
 // If the visitor arrived from the products listing, Back returns them
@@ -509,53 +537,29 @@ function renderRelated(product) {
 }
 
 // ─── Basket helpers ───────────────────────────────────────────────
-function getBasket() {
-  return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
-}
+// getBasket / saveBasket / toggleBasket / updateBasketCount / showToast now
+// live in js/core/app.js (shared, event-driven). The sidebar + sticky-bar
+// buttons update from the current basket state on the "basketUpdated" event
+// (wired once in initDetailPage), instead of imperatively inside toggleBasket.
+function syncDetailBasketButtons(product) {
+  const inBasket = getBasket().map(String).includes(String(product.id));
 
-function saveBasket(basket) {
-  localStorage.setItem("enquiryBasket", JSON.stringify(basket));
-  updateBasketCount();
-  window.dispatchEvent(new Event("basketUpdated"));
-}
-
-function toggleBasket(productId) {
-  const basket = getBasket();
-  const idx    = basket.indexOf(productId);
-  const btn    = document.getElementById("sidebarBasketBtn");
-  const sticky = document.getElementById("stickyBasketBtn");
-  const enquiryLink = document.getElementById("sidebarEnquiryLink");
-
-  if (idx === -1) {
-    basket.push(productId);
-    if (btn) {
-      btn.textContent = "In Product Enquiry";
-      btn.classList.add("btn-added");
-      btn.setAttribute("aria-pressed", "true");
-    }
-    if (sticky) {
-      sticky.textContent = "In Enquiry";
-      sticky.classList.add("added");
-      sticky.setAttribute("aria-pressed", "true");
-    }
-    if (enquiryLink) enquiryLink.hidden = false;
-    showToast("Added to your product enquiry");
-  } else {
-    basket.splice(idx, 1);
-    if (btn) {
-      btn.textContent = btn.dataset.enquiryLabel || "Add to Product Enquiry";
-      btn.classList.remove("btn-added");
-      btn.setAttribute("aria-pressed", "false");
-    }
-    if (sticky) {
-      sticky.textContent = sticky.dataset.addLabel || "Add to Enquiry";
-      sticky.classList.remove("added");
-      sticky.setAttribute("aria-pressed", "false");
-    }
-    if (enquiryLink) enquiryLink.hidden = true;
-    showToast("Removed from your product enquiry");
+  const btn = document.getElementById("sidebarBasketBtn");
+  if (btn) {
+    btn.textContent = inBasket ? "In Product Enquiry" : (btn.dataset.enquiryLabel || "Add to Product Enquiry");
+    btn.classList.toggle("btn-added", inBasket);
+    btn.setAttribute("aria-pressed", inBasket ? "true" : "false");
   }
-  saveBasket(basket);
+
+  const sticky = document.getElementById("stickyBasketBtn");
+  if (sticky) {
+    sticky.textContent = inBasket ? "In Enquiry" : (sticky.dataset.addLabel || "Add to Enquiry");
+    sticky.classList.toggle("added", inBasket);
+    sticky.setAttribute("aria-pressed", inBasket ? "true" : "false");
+  }
+
+  const enquiryLink = document.getElementById("sidebarEnquiryLink");
+  if (enquiryLink) enquiryLink.hidden = !inBasket;
 }
 
 // Bottom "Send Product Enquiry" CTA: the visitor is already looking at a
@@ -571,17 +575,4 @@ function enquireAboutProduct(productId) {
     basket.push(id);
     saveBasket(basket);
   }
-}
-
-function updateBasketCount() {
-  const el = document.getElementById("basketCount");
-  if (el) el.textContent = getBasket().length;
-}
-
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  if (!toast) return;
-  toast.textContent = message;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2500);
 }

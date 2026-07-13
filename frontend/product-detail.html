@@ -8,12 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=49">
+  <link rel="stylesheet" href="/css/products.css?v=53">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=5">
   <script src="/js/widgets/navbar.js?v=9"></script>
   <script src="/js/widgets/footer.js?v=11"></script>
 </head>
 <body>
 
+<div id="swup" class="transition-fade">
 <nav class="breadcrumb page-breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
   <a href="/">Home</a>
   <span aria-hidden="true">&rsaquo;</span>
@@ -65,11 +67,21 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 </main>
+</div>
 
 <!-- Footer injected by js/widgets/footer.js -->
 
-<script src="/js/data.js?v=6"></script>
-<script src="/js/widgets/compare.js?v=8"></script>
-<script src="/js/pages/product-detail.js?v=9"></script>
+<script src="/js/vendor/swup.umd.js?v=1"></script>
+<script src="/js/data.js?v=7"></script>
+<script src="/js/core/app.js?v=1"></script>
+<script src="/js/widgets/compare.js?v=9"></script>
+<script src="/js/widgets/custom-select.js?v=2"></script>
+<script src="/js/pages/products.js?v=27"></script>
+<script src="/js/pages/product-detail.js?v=10"></script>
+<script src="/js/pages/compare-page.js?v=9"></script>
+<script src="/js/pages/enquiry.js?v=1"></script>
+<script src="/js/pages/contact.js?v=1"></script>
+<script src="/js/widgets/chatbot.js?v=17"></script>
+<script src="/js/widgets/page-transitions.js?v=2"></script>
 </body>
 </html>

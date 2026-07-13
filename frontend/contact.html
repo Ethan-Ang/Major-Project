@@ -5,12 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact Us | Yee Lim Adhesives Industries</title>
   <meta name="description" content="Contact Yee Lim Adhesives Industries for product enquiries, quotations, and technical adhesive support.">
-  <link rel="stylesheet" href="/css/products.css?v=49">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/products.css?v=53">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=5">
   <script src="/js/widgets/navbar.js?v=9"></script>
   <script src="/js/widgets/footer.js?v=11"></script>
 </head>
 <body>
 
+<div id="swup" class="transition-fade">
 <main>
 <!-- Hero / positioning: Bold Red Rail (same pattern as products.html) -->
 <section class="page-hero page-hero--rail contact-hero">
@@ -127,81 +132,21 @@
   </section>
 </div>
 </main>
+</div>
 
 <!-- Footer injected by js/widgets/footer.js -->
 
-<script>
-// Open the user's mail client with the message pre-filled. Used as the fallback
-// when the API submit fails, so a message is never lost.
-function contactMailtoFallback(name, company, email, phone, subject, message) {
-  const mailSubject = encodeURIComponent(`[Website Enquiry] ${subject}`);
-  const mailBody = encodeURIComponent(
-`Name: ${name}
-Company: ${company || "-"}
-Email: ${email}
-Phone: ${phone || "-"}
-
-Message:
-${message}`
-  );
-  window.location.href = `mailto:contact@yeelimadhesives.com.sg?subject=${mailSubject}&body=${mailBody}`;
-}
-
-async function submitContactForm(event) {
-  event.preventDefault();
-
-  const name = document.getElementById("contactName").value.trim();
-  const company = document.getElementById("contactCompany").value.trim();
-  const email = document.getElementById("contactEmail").value.trim();
-  const phone = document.getElementById("contactPhone").value.trim();
-  const subject = document.getElementById("contactSubject").value.trim();
-  const message = document.getElementById("contactMessage").value.trim();
-  const status = document.getElementById("contactFormStatus");
-  const btn = document.querySelector(".contact-submit-btn");
-
-  if (!name || !email || !subject || !message) {
-    status.textContent = "Please fill in all required fields.";
-    status.className = "contact-form-status error";
-    return;
-  }
-
-  // The enquiries endpoint has no dedicated "subject" column, so fold it into
-  // the message. products is empty for a general contact enquiry — the API
-  // accepts that (only name + email are required).
-  const fullMessage = "Subject: " + subject + "\n\n" + message;
-
-  if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
-  status.textContent = "Sending your message…";
-  status.className = "contact-form-status";
-
-  try {
-    const res = await fetch("/api/enquiries.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, company, email, phone, message: fullMessage, products: [], website: "" })
-    });
-    const result = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(result.message || "Server error");
-
-    // Success: clear the form and confirm, with the reference number if returned.
-    document.querySelector(".contact-form").reset();
-    const ref = result.reference ? " Your reference is " + result.reference + "." : "";
-    status.innerHTML = "Thank you. We've received your enquiry." + ref
-      + " Our team will reply within 1&ndash;2 business days.";
-    status.className = "contact-form-status success";
-  } catch (err) {
-    // API unavailable — fall back to the mail client so nothing is lost, and
-    // keep the user's input in the form.
-    contactMailtoFallback(name, company, email, phone, subject, message);
-    status.innerHTML = 'We could not submit your message automatically. Your email app should have opened so you can send it directly. '
-      + 'If it did not, email us at '
-      + '<a href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a>.';
-    status.className = "contact-form-status error";
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "Submit Enquiry"; }
-  }
-}
-</script>
-
+<script src="/js/vendor/swup.umd.js?v=1"></script>
+<script src="/js/data.js?v=7"></script>
+<script src="/js/core/app.js?v=1"></script>
+<script src="/js/widgets/compare.js?v=9"></script>
+<script src="/js/widgets/custom-select.js?v=2"></script>
+<script src="/js/pages/products.js?v=27"></script>
+<script src="/js/pages/product-detail.js?v=10"></script>
+<script src="/js/pages/compare-page.js?v=9"></script>
+<script src="/js/pages/enquiry.js?v=1"></script>
+<script src="/js/pages/contact.js?v=1"></script>
+<script src="/js/widgets/chatbot.js?v=17"></script>
+<script src="/js/widgets/page-transitions.js?v=2"></script>
 </body>
 </html>

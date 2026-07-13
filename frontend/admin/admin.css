@@ -250,10 +250,6 @@ a { color: inherit; }
   background: #fff; display: flex; align-items: center; justify-content: center;
 }
 .login-plate-seal img { width: 36px; height: 36px; object-fit: contain; display: block; }
-.login-plate-est {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: rgba(255,255,255,0.72);
-}
 
 .login-plate-eyebrow {
   display: block; font-family: var(--mono); font-size: 11px; font-weight: 600;
@@ -279,31 +275,123 @@ a { color: inherit; }
 
 /* ─── Right: bare cream form ─────────────────────────────────── */
 .login-panel {
-  position: relative; display: flex; align-items: center; justify-content: center;
-  padding: 56px clamp(32px, 7vw, 96px); background: var(--bg);
-}
-.login-panel-meta {
-  position: absolute; top: 40px; left: clamp(32px, 7vw, 96px); right: clamp(32px, 7vw, 96px);
-  display: flex; justify-content: space-between;
-  font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
-  color: var(--muted-2);
+  position: relative; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px clamp(32px, 7vw, 96px); background: var(--bg);
 }
 .login-panel-inner { width: 100%; max-width: 400px; }
 
 .login-panel-inner > * { animation: fade-up 0.5s var(--ease) both; }
 .login-panel-header { animation-delay: 0.05s; }
-#loginError          { animation-delay: 0.1s; }
 .login-form          { animation-delay: 0.15s; }
 .login-panel-footer  { animation-delay: 0.25s; }
+
+/* Login banners: exactly one is un-hidden at a time (login.js owns visibility
+   via the [hidden] attribute). Two visual languages carry the whole meaning:
+   warm-red = the user can fix it, neutral = our fault; amber = lockout (its own
+   because the behaviour differs). Each slides + fades in on appearance. */
+.login-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border: 1px solid;
+  border-left-width: 3px;
+  animation: login-banner-in 0.28s var(--ease) both;
+}
+.login-banner[hidden] { display: none; }
+.login-banner-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+.login-banner-text { font-size: 13.5px; line-height: 1.5; margin: 0; }
+.login-banner-strong { font-weight: 600; }
+.login-banner-eyebrow {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px;
+}
+.login-banner-count { font-family: var(--mono); font-weight: 600; }
+
+/* warm-red: validation (400) + wrong credentials (401) */
+.login-banner--validation,
+.login-banner--auth {
+  background: #fbeceb; border-color: #f0cccb; border-left-color: var(--red);
+}
+.login-banner--validation .login-banner-icon,
+.login-banner--auth .login-banner-icon { color: var(--red); }
+.login-banner--validation .login-banner-text,
+.login-banner--auth .login-banner-text { color: #7a3a38; }
+.login-banner--validation .login-banner-strong,
+.login-banner--auth .login-banner-eyebrow { color: var(--red); }
+
+/* amber: lockout (429) */
+.login-banner--lockout {
+  background: #fbf3e2; border-color: #ecd9ac; border-left-color: #c8891f;
+}
+.login-banner--lockout .login-banner-icon,
+.login-banner--lockout .login-banner-eyebrow,
+.login-banner--lockout .login-banner-count { color: #a8730f; }
+.login-banner--lockout .login-banner-text { color: #7a5a1e; }
+
+/* neutral/system: DB down (503) + generic 500 + offline */
+.login-banner--dbdown,
+.login-banner--srv500,
+.login-banner--offline {
+  background: #f4f1ea; border-color: #ddd3c0;
+}
+.login-banner--dbdown,
+.login-banner--srv500 { border-left-color: var(--text); }
+.login-banner--offline { border-left-color: var(--muted); }
+.login-banner--dbdown .login-banner-icon,
+.login-banner--srv500 .login-banner-icon { color: var(--text); }
+.login-banner--offline .login-banner-icon { color: var(--muted); }
+.login-banner--dbdown .login-banner-text,
+.login-banner--srv500 .login-banner-text,
+.login-banner--offline .login-banner-text { color: var(--muted); }
+.login-banner--dbdown .login-banner-strong,
+.login-banner--srv500 .login-banner-strong,
+.login-banner--offline .login-banner-strong { color: var(--text); }
+
+@keyframes login-banner-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Red field flagging. Set when login.js marks a .field .is-invalid (validation +
+   wrong-credentials paths only). The wording lives solely in the top banner, so
+   fields turn red but carry no inline text of their own. */
+.field.is-invalid > label { color: var(--red); }
+.field.is-invalid .login-input { border-bottom-color: var(--red); }
+
+/* Shake: reserved for the two user-fault states (validation + wrong creds). */
+.login-panel-inner.is-shake { animation: login-shake 0.5s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+@keyframes login-shake {
+  10%,90%{transform:translateX(-1px)} 20%,80%{transform:translateX(2px)}
+  30%,50%,70%{transform:translateX(-4px)} 40%,60%{transform:translateX(4px)}
+}
+
+/* Sign In button: idle label vs in-flight busy label (login.js toggles .is-busy). */
+.btn-login .login-btn-idle,
+.btn-login .login-btn-busy { display: inline-flex; align-items: center; gap: 0.5rem; }
+.btn-login .login-btn-busy { display: none; }
+.btn-login.is-busy { background: #4a453d; cursor: progress; }
+.btn-login.is-busy .login-btn-idle { display: none; }
+.btn-login.is-busy .login-btn-busy { display: inline-flex; }
+.login-btn-spinner { animation: login-spin 0.7s linear infinite; }
+@keyframes login-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .login-banner { animation: none; }
+  .login-panel-inner.is-shake { animation: none; }
+  .login-btn-spinner { animation-duration: 1.4s; }
+}
 
 .login-panel-title {
   font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(40px, 6vw, 60px);
   line-height: 0.95; letter-spacing: -0.03em; color: var(--text); margin-bottom: 14px;
 }
 .login-panel-title .login-dot { color: var(--red); }
-.login-panel-sub { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 40px; max-width: 340px; }
+.login-panel-sub { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 28px; max-width: 340px; }
 
-.field { margin-bottom: 28px; }
+.field { margin-bottom: 20px; }
 /* Labels sit directly in .field now (the empty .field-label-row wrapper was
    removed). Selector covers both for safety. */
 .field > label,

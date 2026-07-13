@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Login | Yee Lim Adhesives</title>
-  <link rel="stylesheet" href="admin.css?v=16">
+  <link rel="stylesheet" href="admin.css?v=18">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body class="login-body">
@@ -18,7 +18,6 @@
 
       <div class="login-plate-top">
         <span class="login-plate-seal"><img src="/images/logos/ylai-seal.png" alt=""></span>
-        <span class="login-plate-est">Est. 1976</span>
       </div>
 
       <div class="login-plate-mid">
@@ -31,33 +30,72 @@
         <div class="login-plate-ranges">
           <span>Deer&trade;</span><span>Horsemen&trade;</span><span>Premier&trade;</span><span>Rhino&trade;</span>
         </div>
-        <span>Lot / 2026</span>
+        <span>YLAI &middot; 2026</span>
       </div>
     </section>
 
     <!-- Right: form -->
     <section class="login-panel">
-      <div class="login-panel-meta">
-        <span>Admin Console</span>
-        <span>Singapore</span>
-      </div>
-
-      <div class="login-panel-inner">
+      <div class="login-panel-inner" id="loginPanelInner">
         <div class="login-panel-header">
           <h2 class="login-panel-title">Sign in<span class="login-dot">.</span></h2>
           <p class="login-panel-sub">Manage the catalogue, products, and customer enquiries.</p>
         </div>
 
-        <div class="alert alert-error" id="loginError" style="display:none"></div>
+        <!-- Banner slot: exactly one is un-hidden at a time (login.js owns this). -->
+        <!-- validation (empty fields / 400): warm-red, user-actionable -->
+        <div class="login-banner login-banner--validation" id="bnValidation" role="alert" hidden>
+          <i data-lucide="alert-circle" class="login-banner-icon" aria-hidden="true"></i>
+          <p class="login-banner-text"><span class="login-banner-strong">Username and password are required.</span> Please fill in both fields.</p>
+        </div>
 
-        <form id="loginForm" onsubmit="handleLogin(event)" class="login-form">
-          <div class="field">
+        <!-- wrong credentials (401): warm-red, user-actionable, shakes -->
+        <div class="login-banner login-banner--auth" id="bnAuth" role="alert" hidden>
+          <i data-lucide="alert-triangle" class="login-banner-icon" aria-hidden="true"></i>
+          <div>
+            <div class="login-banner-eyebrow">Authentication failed</div>
+            <p class="login-banner-text">Invalid username or password. Check your details and try again.</p>
+          </div>
+        </div>
+
+        <!-- lockout (429): amber, disables button + live countdown -->
+        <div class="login-banner login-banner--lockout" id="bnLockout" role="alert" hidden>
+          <i data-lucide="lock" class="login-banner-icon" aria-hidden="true"></i>
+          <div>
+            <div class="login-banner-eyebrow">Too many attempts</div>
+            <p class="login-banner-text" aria-live="polite">Account temporarily locked. Try again in <span id="lockoutCount" class="login-banner-count">2:00</span>.</p>
+          </div>
+        </div>
+
+        <!-- DB unreachable (503): neutral/system, reassuring -->
+        <div class="login-banner login-banner--dbdown" id="bnDbdown" role="alert" hidden>
+          <i data-lucide="database" class="login-banner-icon" aria-hidden="true"></i>
+          <p class="login-banner-text"><span class="login-banner-strong">Something went wrong on our end.</span> Your details are fine, please try again shortly.</p>
+        </div>
+
+        <!-- generic server error (500): neutral/system -->
+        <div class="login-banner login-banner--srv500" id="bnSrv500" role="alert" hidden>
+          <i data-lucide="server" class="login-banner-icon" aria-hidden="true"></i>
+          <p class="login-banner-text"><span class="login-banner-strong">Something went wrong.</span> Please try again later.</p>
+        </div>
+
+        <!-- no network: neutral/system, muted grey -->
+        <div class="login-banner login-banner--offline" id="bnOffline" role="alert" hidden>
+          <i data-lucide="wifi-off" class="login-banner-icon" aria-hidden="true"></i>
+          <p class="login-banner-text"><span class="login-banner-strong">Cannot reach the server right now.</span> Check your connection and try again.</p>
+        </div>
+
+        <!-- novalidate: we validate empty fields in JS so OUR banner + red field
+             flagging show instead of the browser's native "Please fill out this
+             field" bubble. required stays for a11y/aria semantics only. -->
+        <form id="loginForm" onsubmit="handleLogin(event)" class="login-form" novalidate>
+          <div class="field" id="fieldUsername">
             <label for="username">Username</label>
             <input type="text" id="username" name="username" required
               autocomplete="username" placeholder="Enter your username" class="login-input">
           </div>
 
-          <div class="field">
+          <div class="field" id="fieldPassword">
             <label for="password">Password</label>
             <div class="field-input-wrap">
               <input type="password" id="password" name="password" required
@@ -69,8 +107,8 @@
           </div>
 
           <button type="submit" class="btn-login" id="loginBtn">
-            <span>Sign In</span>
-            <i data-lucide="arrow-right" aria-hidden="true"></i>
+            <span class="login-btn-idle">Sign In<i data-lucide="arrow-right" aria-hidden="true"></i></span>
+            <span class="login-btn-busy"><i data-lucide="loader-2" class="login-btn-spinner" aria-hidden="true"></i>Authenticating…</span>
           </button>
         </form>
 
@@ -86,8 +124,8 @@
 
   </main>
 
-  <script src="../js/data.js?v=5"></script>
-  <script src="login.js?v=2"></script>
+  <script src="../js/data.js?v=7"></script>
+  <script src="login.js?v=4"></script>
   <script>lucide.createIcons();</script>
   <script>
     function togglePassword() {

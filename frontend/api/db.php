@@ -95,9 +95,12 @@ try {
 
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    http_response_code(500);
+    // Database unreachable: distinct from a generic 500 so the client can show the
+    // reassuring "your details are fine" message and never flag the user's fields.
+    error_log("db.php: connection failed: " . $e->getMessage());
+    http_response_code(503);
     echo json_encode([
-        "message" => "Something went wrong on our end. Please try again shortly."
+        "message" => "Something went wrong on our end. Your details are fine, please try again shortly."
     ]);
     exit;
 }
