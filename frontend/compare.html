@@ -27,7 +27,16 @@
     </nav>
     <h1>Compare Selected Products</h1>
   </div>
-  <button class="compare-page-clear" onclick="clearAll()">Clear all</button>
+  <div class="compare-page-controls">
+    <div class="cx-difftoggle cx-difftoggle--header" id="cxDiffToggle" hidden>
+      <span class="cx-difflabel">Highlight differences</span>
+      <button class="cx-switch" role="switch" aria-checked="false"
+        aria-label="Highlight differences between products" onclick="toggleDiff()">
+        <span class="cx-knob"></span>
+      </button>
+    </div>
+    <button class="compare-page-clear" onclick="clearAll()">Clear all</button>
+  </div>
 </div>
 
 <div class="compare-page-body" id="comparePageContent">

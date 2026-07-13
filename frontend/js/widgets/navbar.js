@@ -180,13 +180,36 @@
       border-radius: 8px;
     }
     .nav-hamburger:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    /* Fixed overlay anchored under the 60px sticky nav, so opening it floats over
+       the page instead of pushing content down. */
     .nav-mobile-drawer {
       background: #17130e;
       display: none;
       flex-direction: column;
       padding: 0.5rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      max-height: calc(100dvh - 60px);
+      overflow-y: auto;
+      z-index: 99;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
     }
     .nav-mobile-drawer.open { display: flex; }
+    /* Dimmed backdrop below the drawer; click anywhere on it to close. */
+    .nav-mobile-backdrop {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(16, 13, 9, 0.55);
+      z-index: 98;
+    }
+    .nav-mobile-backdrop.open { display: block; }
     .nav-mobile-drawer a {
       color: #cdc7b9;
       text-decoration: none;
@@ -278,16 +301,41 @@
     <a href="/enquiry">Product Enquiry<span class="nav-drawer-count" id="navDrawerCount">${getBasketCount()}</span></a>
   `;
 
+  const backdropEl = document.createElement("div");
+  backdropEl.className = "nav-mobile-backdrop";
+  backdropEl.id = "_navBackdrop";
+
   // ─── Insert at top of body ────────────────────────────────────
   function insert() {
+    document.body.insertBefore(backdropEl, document.body.firstChild);
     document.body.insertBefore(drawerEl, document.body.firstChild);
     document.body.insertBefore(navEl, document.body.firstChild);
 
-    document.getElementById("_navHamburger").addEventListener("click", function () {
-      const drawer = document.getElementById("_navDrawer");
-      const isOpen = drawer.classList.toggle("open");
-      this.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      this.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
+    const hamburger = document.getElementById("_navHamburger");
+
+    function openDrawer() {
+      drawerEl.classList.add("open");
+      backdropEl.classList.add("open");
+      document.body.style.overflow = "hidden"; // lock page scroll behind the overlay
+      hamburger.setAttribute("aria-expanded", "true");
+      hamburger.setAttribute("aria-label", "Close navigation menu");
+    }
+    function closeDrawer() {
+      drawerEl.classList.remove("open");
+      backdropEl.classList.remove("open");
+      document.body.style.overflow = "";
+      hamburger.setAttribute("aria-expanded", "false");
+      hamburger.setAttribute("aria-label", "Open navigation menu");
+    }
+
+    hamburger.addEventListener("click", () => {
+      drawerEl.classList.contains("open") ? closeDrawer() : openDrawer();
+    });
+    backdropEl.addEventListener("click", closeDrawer);
+    // Close when a drawer link is tapped (before the navigation happens).
+    drawerEl.addEventListener("click", (e) => { if (e.target.closest("a")) closeDrawer(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && drawerEl.classList.contains("open")) closeDrawer();
     });
 
     // Keep basket + compare counts live

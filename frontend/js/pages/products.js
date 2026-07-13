@@ -340,35 +340,50 @@ function clearFilters() {
   syncBrandRows();
 }
 
-// ─── Active filter chips ──────────────────────────────────────────
+// ─── Active filter bar ────────────────────────────────────────────
+// A labelled strip above the grid: "Filtering by:" + one pill per active
+// filter (each × removes just that one) + a "Clear all" link on the right.
+// The whole bar is hidden when nothing is active.
 function renderFilterChips() {
   const container = document.getElementById("activeChips");
-  const chips = [];
+  const pills = [];
+
+  const pill = (label, aria, onclick) =>
+    `<button class="filter-chip" aria-label="${aria}" onclick="${onclick}">${label} &times;</button>`;
 
   const query = document.getElementById("searchInput").value.trim();
   if (query) {
-    chips.push(`<button class="filter-chip" onclick="clearSearch()">Search: "${escapeHTML(query)}" &times;</button>`);
+    pills.push(pill(`Search: "${escapeHTML(query)}"`, "Remove search filter", "clearSearch()"));
   }
 
-  activeFilters.productTypes.forEach(t => {
-    chips.push(`<button class="filter-chip" onclick="removeFilter('producttype','${t.replace(/'/g,"\\'")}')">${t} &times;</button>`);
-  });
-  activeFilters.brands.forEach(b => {
-    chips.push(`<button class="filter-chip" onclick="removeFilter('brand','${b.replace(/'/g,"\\'")}')">${b} &times;</button>`);
-  });
-  activeFilters.industries.forEach(i => {
-    chips.push(`<button class="filter-chip" onclick="removeFilter('industry','${i.replace(/'/g,"\\'")}')">${i} &times;</button>`);
-  });
-  activeFilters.surfaces.forEach(s => {
-    chips.push(`<button class="filter-chip" onclick="removeFilter('surface','${s.replace(/'/g,"\\'")}')">${s} &times;</button>`);
-  });
+  const addPill = (type, value) => {
+    const safe  = escapeHTML(value);            // safe as both text and quoted attr
+    const jsVal = value.replace(/'/g, "\\'");   // safe inside the single-quoted onclick
+    pills.push(pill(safe, `Remove ${safe} filter`, `removeFilter('${type}','${jsVal}')`));
+  };
+  activeFilters.productTypes.forEach(t => addPill("producttype", t));
+  activeFilters.brands.forEach(b     => addPill("brand", b));
+  activeFilters.industries.forEach(i => addPill("industry", i));
+  activeFilters.surfaces.forEach(s   => addPill("surface", s));
 
-  if (chips.length > 1) {
-    chips.push(`<button class="filter-chip filter-chip-clear" onclick="clearFilters()">Clear all &times;</button>`);
+  // Empty state: hide the whole bar rather than leave a labelled shell.
+  if (!pills.length) {
+    container.hidden = true;
+    container.innerHTML = "";
+    return;
   }
 
-  container.innerHTML = chips.join("");
-  container.style.marginBottom = chips.length ? "1rem" : "0";
+  const clearAll = pills.length > 1
+    ? `<button class="active-filter-clear" onclick="clearFilters()">Clear all</button>`
+    : "";
+
+  container.hidden = false;
+  container.innerHTML =
+    `<div class="active-filter-bar-inner">` +
+      `<span class="active-filter-label">Filtering by:</span>` +
+      `<div class="active-filter-pills">${pills.join("")}</div>` +
+      clearAll +
+    `</div>`;
 }
 
 function escapeHTML(s) {
@@ -618,6 +633,10 @@ function openFilterDrawerA11y(el) {
   if (window.innerWidth > 640) return;
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-modal", "true");
+  // Show the backdrop and lock the page scroll behind the bottom sheet.
+  const bd = document.getElementById("filterBackdrop");
+  if (bd) bd.classList.add("show");
+  document.body.style.overflow = "hidden";
   if (typeof ylFocusTrap === "function") {
     filterDrawerRelease = ylFocusTrap(el, { onEscape: closeFilterDrawer });
   }
@@ -626,6 +645,9 @@ function openFilterDrawerA11y(el) {
 function closeFilterDrawerA11y(el) {
   el.removeAttribute("aria-modal");
   el.removeAttribute("role");
+  const bd = document.getElementById("filterBackdrop");
+  if (bd) bd.classList.remove("show");
+  document.body.style.overflow = "";
   if (filterDrawerRelease) { filterDrawerRelease(); filterDrawerRelease = null; }
 }
 

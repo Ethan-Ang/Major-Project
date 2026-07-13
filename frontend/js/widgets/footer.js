@@ -166,6 +166,9 @@
       text-decoration: underline;
       text-underline-offset: 2px;
     }
+    /* Separator lives in CSS so mobile can drop Admin Login to its own line
+       without leaving a dangling "·". */
+    .site-footer-admin::before { content: " · "; color: #8a93a0; text-decoration: none; }
     .site-footer-admin:hover { color: #fff; }
     .site-footer-admin:focus-visible {
       outline: 2px solid #CC2929;
@@ -183,22 +186,26 @@
     @media (max-width: 560px) {
       .site-footer-inner {
         grid-template-columns: 1fr 1fr;
-        gap: 1.6rem 1.25rem;
-        padding: 2.25rem 1.25rem 1.75rem;
+        gap: 1.35rem 1.25rem;
+        padding: 2rem 1.25rem 1.25rem;
       }
-      .site-footer-col-brand { grid-column: 1 / -1; margin-bottom: 0.25rem; }
+      .site-footer-col-brand { grid-column: 1 / -1; margin-bottom: 0.1rem; }
       .site-footer-blurb { display: none; }
-      .site-footer-logo { height: 44px; }
+      .site-footer-logo { height: 42px; }
       .site-footer-col:last-child { grid-column: 1 / -1; }
-      .site-footer-col-title { margin-bottom: 0.75rem; }
-      .site-footer-links { gap: 0.55rem; }
-      .site-footer-contact { margin-bottom: 1rem; }
+      .site-footer-col-title { margin-bottom: 0.55rem; }
+      .site-footer-links { gap: 0.5rem; }
+      .site-footer-contact { gap: 0.5rem; margin-bottom: 0.8rem; }
       .site-footer-bottom {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.35rem;
-        padding: 1rem 1.25rem;
+        gap: 0.3rem;
+        padding: 0.9rem 1.25rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
       }
+      /* Admin Login is a staff action, not a customer CTA: small, muted, on its
+         own line (no leading separator). */
+      .site-footer-admin { display: block; margin-top: 0.4rem; font-size: 0.72rem; color: #6f6a60; }
+      .site-footer-admin::before { content: none; }
     }
   `;
   document.head.appendChild(style);
@@ -262,7 +269,7 @@
 
     <div class="site-footer-bottom">
       <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
-      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore · <a class="site-footer-admin" href="/admin/login.html">Admin Login</a></span>
+      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore<a class="site-footer-admin" href="/admin/login.html">Admin Login</a></span>
     </div>
   `;
 

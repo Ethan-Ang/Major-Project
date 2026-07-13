@@ -127,8 +127,8 @@
   </div>
 </section>
 
-<!-- Active filter chips -->
-<div class="active-filter-chips" id="activeChips"></div>
+<!-- Active filter bar (labelled strip, hidden when no filter is active) -->
+<div class="active-filter-bar" id="activeChips" hidden></div>
 
 <!-- Catalogue Layout -->
 <div class="catalogue-layout">
@@ -139,6 +139,9 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
     Refine Products
   </button>
+
+  <!-- Dimmed backdrop behind the mobile filters bottom sheet -->
+  <div class="filter-backdrop" id="filterBackdrop" onclick="closeFilterDrawer()" aria-hidden="true"></div>
 
   <!-- Filter Sidebar -->
   <aside class="filter-sidebar" id="filterSidebar" aria-label="Refine products">

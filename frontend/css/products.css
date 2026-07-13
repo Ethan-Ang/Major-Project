@@ -710,20 +710,22 @@ h1, h2, h3,
 .pcard-meta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;         /* long status ("Enquire to order") drops to its own line */
+  gap: 0.2rem 0.5rem;      /* row-gap column-gap */
   font-family: var(--mono);
   font-size: 0.68rem;
   color: var(--muted-2);
-  margin-bottom: 0.15rem;
-  line-height: 1;
+  margin-bottom: 0.25rem;
+  line-height: 1.3;        /* was 1: gave overlapping text once a line wrapped */
 }
-.pcard-code { letter-spacing: 0.02em; }
+.pcard-code { letter-spacing: 0.02em; white-space: nowrap; }
 .pcard-avail {
   display: inline-flex;
   align-items: center;
   gap: 0.34rem;
   color: var(--green);
   font-weight: 500;
+  white-space: nowrap;     /* keep the status intact; wrap the row, not the words */
 }
 .pcard-dot {
   width: 6px;
@@ -1766,14 +1768,56 @@ h1, h2, h3,
 }
 
 /* ─── Active Filter Chips ─────────────────────────────────────── */
-.active-filter-chips {
+/* Labelled active-filter strip above the grid. Content is width-matched to the
+   header/grid; a thin top divider separates it from the page header. Hidden
+   entirely (via [hidden] on #activeChips) when no filter is active. */
+.active-filter-bar {
   max-width: 1280px;
-  margin: 0.75rem auto 0;
+  margin: 0 auto;
   padding: 0 1.5rem;
+}
+.active-filter-bar[hidden] { display: none; }
+
+.active-filter-bar-inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.7rem;
+  border-top: 1px solid #ddd3c0;
+  padding: 0.85rem 0 0.15rem;
+  margin-top: 0.6rem;
+}
+
+.active-filter-label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #a49d90;
+  white-space: nowrap;
+}
+
+.active-filter-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
+
+.active-filter-clear {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s var(--ease);
+}
+.active-filter-clear:hover { color: var(--red); }
 
 /* Active-filter pill: warm neutral at rest (an applied filter is normal state,
    not a warning), with a quiet red × cue. Hover shifts to red to signal the
@@ -1798,18 +1842,6 @@ h1, h2, h3,
   background: var(--red);
   color: #fff;
   border-color: var(--red);
-}
-
-.filter-chip-clear {
-  background: #efe9dc;
-  border-color: var(--border);
-  color: var(--muted);
-}
-
-.filter-chip-clear:hover {
-  background: var(--dark);
-  border-color: var(--dark);
-  color: #fff;
 }
 
 /* ─── No-Image Placeholder ────────────────────────────────────── */
@@ -1889,7 +1921,7 @@ h1, h2, h3,
   .nav-links { display: none; }
   .nav-hamburger { display: block; }
   .catalogue-layout { padding: 0 1rem; }
-  .active-filter-chips { padding: 0 1rem; }
+  .active-filter-bar { padding: 0 1rem; }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
   .form-row { grid-template-columns: 1fr; }
@@ -2963,6 +2995,114 @@ h1, h2, h3,
   border-radius: var(--radius);
   background: var(--card);
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ─── Compare "Highlight differences" toggle (shared desktop + mobile) ───── */
+.cx-difftoggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.85rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+/* Header instance: a light, borderless control that sits in the compare header
+   row beside "Clear all" (not the boxed pill the mobile grid once used). */
+.cx-difftoggle--header {
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.cx-difftoggle[hidden] { display: none; } /* base sets display:flex, which beats [hidden] */
+.compare-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-shrink: 0;
+}
+.cx-switch {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 12px;
+  border: none;
+  background: var(--line-2);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.18s;
+}
+.cx-switch.on { background: var(--red); }
+.cx-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.18s;
+}
+.cx-switch.on .cx-knob { transform: translateX(18px); }
+
+/* Desktop diff shading: only rows where products actually disagree. Default off. */
+.compare-table.diffon tr.cx-diff { background: #fff7e6; }
+.compare-table.diffon tr.cx-diff .compare-row-label { background: #fdf3da; }
+
+/* ─── Rotate-to-landscape nudge (portrait phones only, JS-gated) ─────────── */
+.cx-rotate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(32, 30, 24, 0.55);
+  animation: cxRotateFade 0.22s var(--ease) both;
+}
+.cx-rotate-card {
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 1.5rem;
+  padding: 1.6rem 1.4rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 16px 44px rgba(32, 30, 24, 0.32);
+  animation: cxRotateUp 0.28s var(--ease) both;
+}
+.cx-rotate-icon { display: inline-flex; color: var(--red); margin-bottom: 0.55rem; }
+.cx-rotate-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin: 0 0 0.4rem; }
+.cx-rotate-text { font-size: 0.88rem; line-height: 1.5; color: var(--muted); margin: 0 0 1.15rem; }
+.cx-rotate-dismiss {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.6rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cx-rotate-dismiss:hover { background: var(--red-dark); }
+@keyframes cxRotateFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cxRotateUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .cx-rotate-overlay, .cx-rotate-card { animation: none; }
 }
 
 .compare-page-table-wrap .compare-table { border-radius: var(--radius); }
@@ -4201,58 +4341,128 @@ body:has(.compare-tray.visible) .toast {
      It remains on tablet/desktop below the search. */
   .page-hero--rail .hero-ranges { display: none; }
 
-  .product-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  /* ── Single-column horizontal list card (116px thumb left, content right) ── */
+  .product-grid { grid-template-columns: 1fr; gap: 0.7rem; }
 
-  /* Reveal mobile-only card controls */
-  .pcard-add     { display: flex; }
-  .pcard-cmp-row { display: flex; }
+  .product-card { flex-direction: row; align-items: stretch; }
+  .product-card::before { display: none; }               /* no top rail on the row card */
+  .product-card:active {                                  /* press, not hover, on mobile */
+    box-shadow: 0 12px 28px -12px rgba(16,13,9,0.28);
+    transform: translateY(-2px);
+    border-color: #c9bfaa;
+  }
 
-  /* Hide desktop card extras that don't fit the 2-col layout */
-  .product-card .card-application,
-  .product-card .product-card-body > p,
-  .product-card .product-tags,
-  .product-card .product-card-actions,
-  .product-card .card-compare-btn { display: none !important; }
+  /* Fixed 116px thumbnail */
+  .product-card-image {
+    flex: 0 0 116px;
+    width: 116px;
+    min-height: 116px;
+    aspect-ratio: auto;
+    align-self: stretch;
+  }
+  .product-card-image img { object-fit: contain; padding: 8px; box-sizing: border-box; }
 
-  /* Tight card body */
+  /* Content column */
   .product-card .product-card-body {
-    padding: 0.65rem 0.7rem 0.7rem;
-    gap: 0.2rem;
+    flex: 1;
+    min-width: 0;
+    padding: 0.7rem 0.75rem;
     display: flex;
     flex-direction: column;
+    gap: 0;
   }
-  .product-card .brand-badge {
-    font-size: 0.6rem;
-    letter-spacing: 0.5px;
-    margin-bottom: 0;
+  .product-card .product-card-body h3 { font-size: 0.94rem; line-height: 1.25; margin: 0 0 0.25rem; }
+  .product-card .pcard-meta { margin-bottom: 0.2rem; }
+  .product-card .card-application { display: flex; margin: 0 0 0.55rem; }
+
+  /* Show the button row + best-for; hide description + surface tags on mobile */
+  .product-card .product-card-actions { display: flex; margin-top: auto; }
+  .product-card .product-card-body > p,
+  .product-card .product-tags { display: none !important; }
+
+  /* In-Enquiry confirmed state (pink) per prototype */
+  .product-card-actions .pcard-enq.btn-added {
+    background: #fbe9e4 !important;
+    color: var(--red) !important;
+    border-color: #f0cfc9 !important;
   }
-  .product-card .product-card-body h3 {
-    font-size: 0.86rem;
-    margin-bottom: 0;
-    line-height: 1.25;
+
+  /* ── ONE compare control: the square toggle on the thumbnail ── */
+  .pcard-cmp-row { display: none !important; }   /* remove duplicate compare row */
+  .pcard-add     { display: none !important; }   /* enquiry lives in the button row now */
+  .product-card .card-compare-btn {
+    display: inline-flex;
+    top: auto;
+    bottom: 0.4rem;
+    right: 0.4rem;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: 7px;
+    background: #fff;
+    border-color: #d9cfbb;
+    color: #6a655a;
   }
+  .product-card .card-compare-btn span { display: none; }  /* icon-only square */
+  /* Extend the tap target to ~44px without growing the visual square. */
+  .product-card .card-compare-btn::before { content: ""; position: absolute; inset: -8px; }
+  .product-card .card-compare-btn.in-compare {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+  .product-card .card-compare-btn:active:not(:disabled) { transform: scale(0.9); }
 
   /* Catalogue layout padding */
   .catalogue-layout { padding: 0 0.75rem; margin-top: 0.75rem; }
-  .grid-meta        { padding: 0.4rem 0 0.2rem; font-size: 0.74rem; }
-
-  /* Filter chips: horizontal scroll, no wrap */
-  .active-filter-chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 0.5rem 0.75rem;
-    margin: 0;
+  /* With the sort control hidden on mobile, the boxed .grid-meta read like an
+     empty search input. Strip the box: plain muted count text, no border/fill. */
+  .grid-meta {
+    padding: 0;
+    margin: 0.75rem 0 0.5rem;
+    background: none;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    justify-content: flex-start;
   }
-  .active-filter-chips::-webkit-scrollbar { display: none; }
-  .filter-chip, .filter-chip-clear        { flex-shrink: 0; white-space: nowrap; }
+  #resultCount { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
 
-  /* Hide desktop sort select (mirrored in mobile filter bar). custom-select.js
-     wraps #sortSelect in a styled .custom-select-wrap trigger that isn't
-     covered by hiding .sort-select alone, so hide the wrapper too. */
-  .grid-meta .sort-select,
-  .grid-meta .custom-select-wrap { display: none; }
+  /* Active-filter bar: tighter padding; label, pills and Clear all wrap. */
+  .active-filter-bar { padding: 0 0.75rem; }
+  .active-filter-bar-inner { gap: 0.45rem 0.6rem; padding-top: 0.7rem; }
+  .filter-chip { flex-shrink: 0; white-space: nowrap; }
+
+  /* Trust strip: collapse the 2×2 grid to a single compact row of all four
+     stats (kept, just smaller) so it takes ~a third of its previous height. */
+  .trust-strip-inner {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 0 0.6rem;
+  }
+  .trust-item {
+    padding: 0.5rem 0.4rem;
+    gap: 0.1rem;
+    align-items: center;
+    text-align: center;
+    border-right: none;
+  }
+  /* Even 4-up with dividers between the cells (border-left on 2–4, per prototype). */
+  .trust-item:first-child  { padding-left: 0.4rem; }
+  .trust-item:nth-child(2),
+  .trust-item:nth-child(3),
+  .trust-item:last-child   { border-left: 1px solid rgba(255,255,255,0.10); }
+  .trust-item:last-child   { padding-right: 0.4rem; }
+  .trust-num   { font-size: 1.05rem; }
+  .trust-plus  { font-size: 0.68rem; }
+  .trust-label { font-size: 0.52rem; letter-spacing: 0.03em; line-height: 1.25; overflow-wrap: normal; }
+
+  /* Hide the whole desktop sort control on mobile (mirrored in the mobile filter
+     bar). Hiding the .grid-sort group covers the "Sort" label, the native
+     .sort-select, AND the .custom-select-wrap trigger custom-select.js injects,
+     so only #resultCount is left in .grid-meta. */
+  .grid-meta .grid-sort { display: none; }
 
   /* Hide existing 768px filter toggle (replaced by mobile filter bar) */
   .filter-toggle { display: none; }
@@ -4345,23 +4555,43 @@ body:has(.compare-tray.visible) .toast {
     background-position: right 0.5rem center;
   }
 
-  /* ─── Step 2: full-screen drawer ─────────────────────────── */
+  /* ─── Step 2: filters bottom sheet ───────────────────────── */
+  /* Slide-up sheet anchored to the bottom (not a full-page takeover). z-index
+     above the 60px nav so its header + close × are always visible/tappable. */
   .filter-sidebar.open {
     position: fixed !important;
-    inset: 0;
-    z-index: 1000;
+    inset: auto 0 0 0;
+    max-height: 88%;
+    z-index: 120;
     width: 100% !important;
     display: flex !important;
     flex-direction: column;
-    background: #fff;
+    background: #f3efe6;
+    border-radius: 20px 20px 0 0;
     overflow: hidden;
+    box-shadow: 0 -12px 40px -8px rgba(0,0,0,0.4);
+    animation: ylFilterSheetUp 0.26s var(--ease) both;
   }
+  @keyframes ylFilterSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .filter-sidebar.open { animation: none; } }
+
+  /* Dimmed backdrop behind the sheet (toggled with .show by products.js). */
+  .filter-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(16,13,9,0.5);
+    z-index: 119;
+    animation: ylFilterFade 0.2s ease both;
+  }
+  .filter-backdrop.show { display: block; }
+  @keyframes ylFilterFade { from { opacity: 0; } to { opacity: 1; } }
 
   .drawer-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
@@ -4371,19 +4601,21 @@ body:has(.compare-tray.visible) .toast {
     font-weight: 700;
     margin: 0;
   }
+  /* ≥44px tap target with clear contrast against the white drawer. */
   .drawer-x {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--line-2);
+    background: var(--panel);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted);
+    color: var(--text);
     cursor: pointer;
     flex-shrink: 0;
   }
+  .drawer-x:active { background: var(--panel-2); }
 
   .drawer-body {
     flex: 1;
@@ -4428,7 +4660,7 @@ body:has(.compare-tray.visible) .toast {
   .drawer-foot {
     display: flex;
     gap: 0.6rem;
-    padding: 0.8rem 1rem;
+    padding: 0.8rem 1rem calc(0.8rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border);
     background: #fff;
     flex-shrink: 0;
@@ -4546,6 +4778,11 @@ body:has(.compare-tray.visible) .toast {
     cursor: pointer;
   }
   .cmp-tab.show { display: flex; }
+  /* The tab is a fixed left-edge affordance; reserve a matching left gutter on
+     the product grid while it's showing so scrolling cards never sit under it
+     (it used to cover the start of card titles like "…Brand 212"). */
+  .product-grid { transition: padding-left 0.25s var(--ease); }
+  body:has(.cmp-tab.show) .product-grid { padding-left: 42px; }
   .cmp-tab-count {
     background: #fff;
     color: var(--red);
@@ -4696,43 +4933,18 @@ body:has(.compare-tray.visible) .toast {
   .compare-page-table-wrap { display: none; }
   .cx-wrap { display: block; padding: 0 0.75rem 1.5rem; }
 
-  .cx-difftoggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.75rem 0.9rem;
-    margin-bottom: 0.85rem;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .cx-switch {
-    position: relative;
-    width: 42px;
-    height: 24px;
-    border-radius: 12px;
-    border: none;
-    background: var(--line-2);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.18s;
-  }
-  .cx-switch.on { background: var(--red); }
-  .cx-knob {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #fff;
-    transition: transform 0.18s;
-  }
-  .cx-switch.on .cx-knob { transform: translateX(18px); }
+  /* Compare header wraps: title on line 1, then the Highlight-differences toggle
+     and Clear all together on line 2 (space-between). */
+  .compare-page-top { flex-wrap: wrap; row-gap: 0.7rem; }
+  .compare-page-title-wrap { flex: 1 1 100%; }
+  .compare-page-controls { width: 100%; justify-content: space-between; }
+  /* ≥44px tap targets for the switch (extend hit area) and Clear all. */
+  .cx-switch::after { content: ""; position: absolute; inset: -11px -6px; }
+  .compare-page-clear { padding: 0.6rem 0.9rem; }
+
+  /* .cx-difftoggle / .cx-switch / .cx-knob are defined globally (shared by the
+     desktop toggle above the table and this mobile one). See "compare diff
+     toggle" block near the compare table styles. */
 
   .cx-scrollhint {
     display: flex;

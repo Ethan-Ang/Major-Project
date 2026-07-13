@@ -65,6 +65,21 @@ function updateClearAllButton(hasItems) {
   btn.style.visibility = hasItems ? "visible" : "hidden";
 }
 
+// The "Highlight differences" toggle lives in the header (beside Clear all). It
+// only applies when a comparison is on screen, so hide it below 2 products; and
+// since each render rebuilds the table/grid un-highlighted, reset it to off.
+function updateDiffToggle(show) {
+  const toggle = document.getElementById("cxDiffToggle");
+  if (!toggle) return;
+  toggle.hidden = !show;
+  if (show) {
+    toggle.querySelectorAll(".cx-switch").forEach(sw => {
+      sw.classList.remove("on");
+      sw.setAttribute("aria-checked", "false");
+    });
+  }
+}
+
 function renderComparePage() {
   const list     = getCompareList();
   const products = list.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
@@ -72,6 +87,7 @@ function renderComparePage() {
   if (!content) return;
 
   updateClearAllButton(list.length > 0);
+  updateDiffToggle(products.length >= 2);
 
   if (products.length < 2) {
     content.innerHTML = `
@@ -111,16 +127,22 @@ function renderComparePage() {
       </td>`;
   }).join("");
 
+  // `cmp` is the same normalised value the mobile grid diffs on, so one row is
+  // flagged cx-diff (and shaded when the toggle is on) only when products differ.
   const specRows = [
-    { label: "Category",     render: p => ylEscapeHtml(p.category) },
-    { label: "Industries",   render: p => p.industries.map(i => `<span class="compare-tag">${ylEscapeHtml(i)}</span>`).join("") },
-    { label: "Surfaces",     render: p => p.surfaces.map(s => `<span class="compare-tag">${ylEscapeHtml(s)}</span>`).join("") },
-    { label: "Key Features", render: p => p.features.map(f => `<div class="compare-feature">${ylEscapeHtml(f)}</div>`).join("") }
-  ].map(row => `
-    <tr>
+    { label: "Category",     render: p => ylEscapeHtml(p.category),                                                    cmp: p => p.category || "" },
+    { label: "Industries",   render: p => p.industries.map(i => `<span class="compare-tag">${ylEscapeHtml(i)}</span>`).join(""), cmp: p => [...p.industries].sort().join("|") },
+    { label: "Surfaces",     render: p => p.surfaces.map(s => `<span class="compare-tag">${ylEscapeHtml(s)}</span>`).join(""),   cmp: p => [...p.surfaces].sort().join("|") },
+    { label: "Key Features", render: p => p.features.map(f => `<div class="compare-feature">${ylEscapeHtml(f)}</div>`).join(""), cmp: p => [...p.features].sort().join("|") }
+  ].map(row => {
+    const values  = products.map(row.cmp);
+    const allSame = values.every(v => v === values[0]);
+    return `
+    <tr class="${allSame ? "" : "cx-diff"}">
       <td class="compare-row-label">${row.label}</td>
       ${products.map(p => `<td class="compare-row-value">${row.render(p)}</td>`).join("")}
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
   content.innerHTML = `
     <div class="compare-page-table-wrap">
@@ -144,6 +166,50 @@ function renderComparePage() {
 
   // Measure after layout so the swipe hint only appears when columns overflow.
   requestAnimationFrame(updateCompareScrollHint);
+
+  // Portrait phones get a one-time nudge to rotate for the side-by-side view.
+  maybeShowRotateNudge(products.length);
+}
+
+// One-time, dismissible "rotate your phone" overlay. Only on a portrait,
+// coarse-pointer phone (≤640px) with 2+ products. Dismissal persists in
+// localStorage; it also auto-hides the moment the device turns to landscape.
+// The horizontal-scroll grid remains the fallback for anyone who ignores it.
+let rotateNudgeShown = false;
+function maybeShowRotateNudge(count) {
+  if (rotateNudgeShown || count < 2) return;
+  if (localStorage.getItem("ylCompareRotateDismissed")) return;
+
+  const coarse   = window.matchMedia("(pointer: coarse)").matches;
+  const portrait = window.matchMedia("(orientation: portrait)").matches;
+  if (!coarse || !portrait || window.innerWidth > 640) return;
+  if (document.getElementById("cxRotateOverlay")) return;
+  rotateNudgeShown = true;
+
+  const overlay = document.createElement("div");
+  overlay.className = "cx-rotate-overlay";
+  overlay.id = "cxRotateOverlay";
+  overlay.innerHTML = `
+    <div class="cx-rotate-card" role="dialog" aria-label="Rotate for the full comparison">
+      <span class="cx-rotate-icon" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="10" height="20" rx="2"/><path d="M14 8l3-3 3 3"/><path d="M17 5v6a9 9 0 0 1-9 9"/></svg>
+      </span>
+      <h3 class="cx-rotate-title">Rotate for the full comparison</h3>
+      <p class="cx-rotate-text">Turn your phone sideways to see all products side by side.</p>
+      <button type="button" class="cx-rotate-dismiss">Got it</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const landscapeMq = window.matchMedia("(orientation: landscape)");
+  const onRotate = (e) => { if (e.matches) close(false); };
+  const close = (persist) => {
+    if (persist) localStorage.setItem("ylCompareRotateDismissed", "1");
+    landscapeMq.removeEventListener("change", onRotate);
+    overlay.remove();
+  };
+  overlay.querySelector(".cx-rotate-dismiss").addEventListener("click", () => close(true));
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(true); });
+  landscapeMq.addEventListener("change", onRotate);
 }
 
 // ─── Mobile column comparison (≤640px) ────────────────────────────
@@ -210,13 +276,6 @@ function buildCompareMobile(products) {
 
   return `
     <div class="cx-wrap">
-      <div class="cx-difftoggle">
-        <span class="cx-difflabel">Highlight differences</span>
-        <button class="cx-switch" id="cxSwitch" role="switch" aria-checked="false"
-          aria-label="Highlight differences between products" onclick="toggleDiff()">
-          <span class="cx-knob"></span>
-        </button>
-      </div>
       <div class="cx-scrollhint" id="cxScrollHint" hidden>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
         Swipe to compare all ${n} products
@@ -244,13 +303,20 @@ function updateCompareScrollHint() {
   };
 }
 
+// One switch state drives both views: toggles `diffon` on the desktop table AND
+// the mobile grid, and syncs every .cx-switch (only one is visible at a time).
 function toggleDiff() {
-  const grid = document.getElementById("cxGrid");
-  const sw   = document.getElementById("cxSwitch");
-  if (!grid || !sw) return;
-  const on = grid.classList.toggle("diffon");
-  sw.classList.toggle("on", on);
-  sw.setAttribute("aria-checked", on ? "true" : "false");
+  const table  = document.querySelector(".compare-table");
+  const grid   = document.getElementById("cxGrid");
+  const anchor = table || grid;
+  if (!anchor) return;
+  const on = !anchor.classList.contains("diffon");
+  if (table) table.classList.toggle("diffon", on);
+  if (grid)  grid.classList.toggle("diffon", on);
+  document.querySelectorAll(".cx-switch").forEach(sw => {
+    sw.classList.toggle("on", on);
+    sw.setAttribute("aria-checked", on ? "true" : "false");
+  });
 }
 
 function addToBasket(productId) {
