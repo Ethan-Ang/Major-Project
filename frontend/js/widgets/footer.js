@@ -267,8 +267,14 @@
         transition: background 0.15s;
       }
       .sfm-cta-btn:active { background: #b62525; }
+      .sfm-address {
+        margin: 1.25rem 0 0;
+        font-size: 0.72rem;
+        line-height: 1.5;
+        color: #8a847a;
+      }
       .sfm-copyright {
-        margin-top: 1.35rem;
+        margin-top: 1rem;
         padding-top: 0.9rem;
         border-top: 1px solid rgba(255,255,255,0.08);
         font-size: 0.7rem;
@@ -349,7 +355,7 @@
     <div class="site-footer-mobile">
       <div class="sfm-brand-row">
         <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries" class="sfm-logo">
-        <p class="sfm-blurb">Commercial &amp; industrial adhesives, formulated in Singapore for over 50 years.</p>
+        <p class="sfm-blurb">Commercial &amp; industrial adhesives, manufactured in Singapore for over 50 years.</p>
       </div>
       <div class="site-footer-certs sfm-certs" aria-label="Certifications">
         <span class="site-footer-cert">ISO Certified</span>
@@ -383,6 +389,7 @@
         </div>
         <a class="sfm-cta-btn" href="/contact">Contact us &rarr;</a>
       </div>
+      <p class="sfm-address">1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
       <div class="sfm-copyright">&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong> &middot; Singapore</div>
     </div>
   `;
