@@ -60,6 +60,7 @@ async function initDetailPage() {
   const oldCta = document.getElementById("stickyCta");
   if (oldCta) oldCta.remove();
   document.body.classList.remove("detail-has-cta");
+  document.body.style.paddingBottom = ""; // drop any measured reservation
 
   if (!product) {
     const grid = document.getElementById("detailPageGrid");
@@ -92,7 +93,12 @@ async function initDetailPage() {
     });
     window.addEventListener("basketUpdated", () => {
       if (detailProduct) syncDetailBasketButtons(detailProduct);
+      syncStickyCtaReserve(); // Add→Added can reflow the bar; re-measure
     });
+    // Re-measure the bar reservation when the viewport changes (rotation,
+    // browser-chrome show/hide, breakpoint crossing).
+    window.addEventListener("resize", syncStickyCtaReserve);
+    window.addEventListener("orientationchange", syncStickyCtaReserve);
   });
 }
 ylReady(initDetailPage);
@@ -388,10 +394,21 @@ function renderStickyCta(product) {
   const inCompare = isInCompare(product.id);
   const addLabel  = product.status === "Available" ? "Add to Enquiry" : "Enquire";
 
+  // WhatsApp quick-chat, pre-filled with the product name (same number as the
+  // sidebar, contact page + footer).
+  const waHref = `https://wa.me/6588755786?text=${encodeURIComponent(
+    `Hello Yee Lim, I would like to enquire about ${product.name}.`)}`;
+
   const bar = document.createElement("div");
   bar.id = "stickyCta";
   bar.className = "sticky-cta";
   bar.innerHTML = `
+    <button class="sticky-cta-add${inBasket ? " added" : ""}" id="stickyBasketBtn"
+      data-add-label="${addLabel}"
+      aria-pressed="${inBasket ? "true" : "false"}"
+      onclick="toggleBasket('${product.id}')">
+      ${inBasket ? "In Enquiry" : addLabel}
+    </button>
     <button class="sticky-cta-cmp${inCompare ? " on" : ""}" id="stickyCompareBtn"
       onclick="toggleCompare('${product.id}')"
       aria-pressed="${inCompare ? "true" : "false"}"
@@ -399,14 +416,27 @@ function renderStickyCta(product) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
       <span id="stickyCompareLabel">${inCompare ? "Added" : "Compare"}</span>
     </button>
-    <button class="sticky-cta-add${inBasket ? " added" : ""}" id="stickyBasketBtn"
-      data-add-label="${addLabel}"
-      aria-pressed="${inBasket ? "true" : "false"}"
-      onclick="toggleBasket('${product.id}')">
-      ${inBasket ? "In Enquiry" : addLabel}
-    </button>`;
+    <a class="sticky-cta-wa" href="${waHref}" target="_blank" rel="noopener noreferrer"
+      aria-label="Chat about this product on WhatsApp">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.29-.15-1.7-.84-1.96-.93-.26-.1-.45-.15-.64.14-.19.29-.74.93-.9 1.12-.17.19-.33.21-.62.07-.29-.15-1.22-.45-2.32-1.43-.86-.77-1.44-1.72-1.6-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.44-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.64-1.55-.88-2.12-.23-.55-.47-.48-.64-.49h-.55c-.19 0-.51.07-.77.36-.26.29-1.01.99-1.01 2.41 0 1.42 1.04 2.8 1.18 2.99.15.19 2.04 3.12 4.95 4.38.69.3 1.23.48 1.65.61.69.22 1.33.19 1.83.12.56-.08 1.7-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.34zM12.04 21.5a9.45 9.45 0 0 1-4.83-1.32l-.35-.21-3.58.94.96-3.49-.23-.36a9.42 9.42 0 0 1-1.45-5.03c0-5.21 4.24-9.45 9.46-9.45 2.53 0 4.9.99 6.68 2.78a9.4 9.4 0 0 1 2.77 6.68c-.01 5.21-4.25 9.45-9.46 9.45z"/></svg>
+    </a>`;
   document.body.appendChild(bar);
   document.body.classList.add("detail-has-cta");
+  requestAnimationFrame(syncStickyCtaReserve);
+}
+
+// Reserve exactly the sticky bar's rendered height as body padding, so the page
+// scrolls clear of it. Measured (not the CSS 4.9rem fallback) so the reservation
+// always matches the real bar height incl. the safe-area inset — never taller,
+// which is what let the cream body background leak through as a strip above the
+// bar. No-op (and cleared) on desktop or when the bar is absent.
+function syncStickyCtaReserve() {
+  const cta = document.getElementById("stickyCta");
+  if (!cta || window.innerWidth > 640) {
+    document.body.style.paddingBottom = "";
+    return;
+  }
+  document.body.style.paddingBottom = cta.offsetHeight + "px";
 }
 
 // Some catalogue rows carry placeholder copy ("x", "-", "n/a") for fields that
@@ -433,8 +463,31 @@ function parseUsage(raw) {
   const m = text.match(/^(.*?)\.\s*suitable for:\s*(.+?)\.?\s*$/i);
   if (!m) return { method: "", steps: text, items: [] };
   const method = m[1].trim();
-  const items = m[2].split(/\s*[;•]\s*/).map(s => s.trim()).filter(Boolean);
+  const items = splitSuitableFor(m[2]);
   return { method, steps: "", items };
+}
+
+// Split a "suitable for" list into individual values. The catalogue data is
+// inconsistently delimited — some records use "; ", some use commas, some just
+// run values together with spaces. Split on ";", "•" and top-level commas, but
+// NOT commas inside parentheses (e.g. "laminates (E.g. Carpentry, Door)"), so a
+// real list becomes chips while a parenthetical example stays intact. Values
+// that carry no delimiter at all come back as a single item and render as one
+// clean panel rather than being mangled by a guessed word-boundary split.
+function splitSuitableFor(str) {
+  const parts = [];
+  let buf = "", depth = 0;
+  for (const ch of str) {
+    if (ch === "(") depth++;
+    else if (ch === ")") depth = Math.max(0, depth - 1);
+    if (ch === ";" || ch === "•" || (ch === "," && depth === 0)) {
+      parts.push(buf); buf = "";
+    } else {
+      buf += ch;
+    }
+  }
+  parts.push(buf);
+  return parts.map(s => s.trim()).filter(Boolean);
 }
 
 function renderFullDesc(product) {

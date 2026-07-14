@@ -312,12 +312,14 @@ function updateFilterGroupBadges() {
 }
 
 function updateClearVisibility() {
-  const btn = document.querySelector(".filter-clear");
-  if (!btn) return;
   const any = activeFilters.productTypes.length || activeFilters.brands.length ||
               activeFilters.industries.length || activeFilters.surfaces.length ||
               document.getElementById("searchInput").value.trim();
-  btn.style.display = any ? "block" : "none";
+  const btn = document.querySelector(".filter-clear");
+  if (btn) btn.style.display = any ? "block" : "none";
+  // Mobile count-row "Clear all" mirrors the same active state.
+  const gca = document.getElementById("gridClearAll");
+  if (gca) gca.hidden = !any;
 }
 
 function clearFilters() {
@@ -426,7 +428,15 @@ function renderGrid(products) {
   const grid    = document.getElementById("productGrid");
   const countEl = document.getElementById("resultCount");
 
-  countEl.textContent = `${products.length} product${products.length !== 1 ? "s" : ""}`;
+  const totalCount = (typeof PRODUCTS !== "undefined" && PRODUCTS) ? PRODUCTS.length : products.length;
+  const countNoun  = `product${products.length !== 1 ? "s" : ""}`;
+  // Show the narrowing ("8 of 31 products") whenever filters/search reduce the
+  // set, so buyers feel the effect. The "of N" span is revealed on mobile only.
+  if (products.length < totalCount) {
+    countEl.innerHTML = `${products.length} <span class="rc-of">of ${totalCount} </span>${countNoun}`;
+  } else {
+    countEl.textContent = `${products.length} ${countNoun}`;
+  }
 
   const applyBtn = document.getElementById("drawerApplyBtn");
   if (applyBtn) applyBtn.textContent = `Show ${products.length} result${products.length !== 1 ? "s" : ""}`;
@@ -532,6 +542,22 @@ function productCardHTML(p) {
         </button>
       </div>
       <div class="product-card-body">
+        <div class="pcard-top">
+          <span class="pcard-brand-m${isAccessory ? " is-accessory" : ""}" aria-hidden="true">${brandTag}</span>
+          <div class="pcard-cmp-row">
+            <button
+              class="pcard-cmp${inCompare ? ' on' : ''}"
+              data-product-id="${p.id}"
+              onclick="event.stopPropagation();toggleCompare('${p.id}')"
+              ${compareDisabled ? 'disabled' : ''}
+              aria-label="${compareTitle}">
+              <span class="pcard-cb">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Compare
+            </button>
+          </div>
+        </div>
         <span class="pcard-meta">
           ${codeLabel}
           <span class="pcard-avail${isUnavailable ? " is-unavail" : ""}"><span class="pcard-dot" aria-hidden="true"></span>${isUnavailable ? "Enquire to order" : "Available"}</span>
@@ -551,19 +577,6 @@ function productCardHTML(p) {
               : `+ Enquiry`}
           </button>
           <a href="${detailHref}" class="btn btn-outline pcard-view">View</a>
-        </div>
-        <div class="pcard-cmp-row">
-          <button
-            class="pcard-cmp${inCompare ? ' on' : ''}"
-            data-product-id="${p.id}"
-            onclick="event.stopPropagation();toggleCompare('${p.id}')"
-            ${compareDisabled ? 'disabled' : ''}
-            aria-label="${compareTitle}">
-            <span class="pcard-cb">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </span>
-            Compare
-          </button>
         </div>
       </div>
     </article>`;
@@ -613,6 +626,36 @@ function syncCompareButtons() {
 
 // ─── Filter sidebar toggle ────────────────────────────────────────
 let filterDrawerRelease = null;
+let filterDrawerScrollY = 0;
+let filterDrawerLocked = false;
+
+// Lock the page behind the full-screen filter drawer (≤640px). We use
+// position:fixed + a preserved scrollY rather than overflow:hidden alone,
+// because iOS Safari still rubber-bands the body under overflow:hidden. The
+// exact scroll position is restored on unlock so the catalogue never jumps.
+function lockBodyScroll() {
+  if (filterDrawerLocked) return;
+  filterDrawerScrollY = window.scrollY || window.pageYOffset || 0;
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${filterDrawerScrollY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+  document.body.style.overflow = "hidden";
+  filterDrawerLocked = true;
+}
+
+function unlockBodyScroll() {
+  if (!filterDrawerLocked) return;
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+  document.body.style.overflow = "";
+  window.scrollTo(0, filterDrawerScrollY);
+  filterDrawerLocked = false;
+}
 
 function toggleFilterSidebar() {
   const el = document.getElementById("filterSidebar");
@@ -636,7 +679,7 @@ function openFilterDrawerA11y(el) {
   // Show the backdrop and lock the page scroll behind the bottom sheet.
   const bd = document.getElementById("filterBackdrop");
   if (bd) bd.classList.add("show");
-  document.body.style.overflow = "hidden";
+  lockBodyScroll();
   if (typeof ylFocusTrap === "function") {
     filterDrawerRelease = ylFocusTrap(el, { onEscape: closeFilterDrawer });
   }
@@ -647,7 +690,7 @@ function closeFilterDrawerA11y(el) {
   el.removeAttribute("role");
   const bd = document.getElementById("filterBackdrop");
   if (bd) bd.classList.remove("show");
-  document.body.style.overflow = "";
+  unlockBodyScroll();
   if (filterDrawerRelease) { filterDrawerRelease(); filterDrawerRelease = null; }
 }
 

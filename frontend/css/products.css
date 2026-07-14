@@ -100,6 +100,17 @@ body.compare-open .filter-sidebar {
   border: 0;
 }
 
+/* Belt-and-braces against the thin cream edge-slivers some mobile browsers
+   render beside full-bleed sections (footer, trust strip, toolbar) when the
+   layout viewport ends up a fraction wider than the visual viewport. Clipping
+   horizontal overflow at the root keeps full-bleed sections filling the exact
+   viewport width. `clip` (NOT `hidden`) does not establish a scroll container,
+   so the sticky mobile toolbar keeps sticking. */
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
@@ -222,15 +233,12 @@ h1, h2, h3,
 
 .search-bar button:hover { background: var(--red-dark); }
 
-/* Focus cue: the whole pill (input + Search button) lights up as one unit with a
-   soft, diffuse red halo rather than a hard outline. A sharp red border reads as
-   an error/validation state; the glow reads as "active" and stays on-brand. The
-   resting border only nudges to a muted red so the ring, not the edge, carries it. */
+/* Focus cue: a clean red edge plus a thin, tight ring — no diffuse glow (a halo
+   on the dark hero reads like an alert). Functional and on-brand, and it keeps a
+   clearly visible focus indicator for keyboard users. */
 .search-bar:focus-within {
-  border-color: rgba(204, 41, 41, 0.35);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28),
-              0 0 0 3px rgba(204, 41, 41, 0.18),
-              0 0 20px rgba(204, 41, 41, 0.25);
+  border-color: rgba(204, 41, 41, 0.55);
+  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.15);
 }
 .search-bar:focus-within .search-bar-icon { color: #a49d90; }
 
@@ -2461,7 +2469,7 @@ h1, h2, h3,
   .detail-gallery-row,
   .detail-content,
   .related-section { padding-left: 16px; padding-right: 16px; }
-  .gallery-main { height: 300px; }
+  .gallery-main { height: 250px; }   /* capped so the photo doesn't dominate (per prototype) */
   .spec-row { grid-template-columns: 120px minmax(0, 1fr); }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -2473,9 +2481,28 @@ h1, h2, h3,
    identity. Desktop keeps the buy-box identity since the card sits beside the
    gallery, not stacked above the header. */
 @media (max-width: 640px) {
-  .detail-sidebar .sidebar-avail-bar,
-  .detail-sidebar .sidebar-identity { display: none; }
-  .detail-sidebar .sidebar-actions { padding-top: 1.1rem; }
+  /* Actions live in the fixed sticky CTA bar on phones, so the in-flow buy-box
+     would just duplicate them. Hide the whole sidebar card; the h1 block is the
+     single source of identity and the sticky bar carries Enquiry/Compare/WA. */
+  .detail-sidebar { display: none; }
+  /* Nothing overlays the product photo on mobile — brand shows as the eyebrow
+     above the h1, not as a chip on the image. */
+  .gallery-brand-chip { display: none; }
+  /* "Suitable for" chips: clean rounded RECTANGLES (not 999px lozenges), a warm
+     hairline border, even padding, wrapping. Multiple delimited values read as a
+     row of tags; a single un-delimited value fills the row as one clean panel
+     instead of an oddly-shaped floating lozenge. Desktop keeps its own pills. */
+  .usage-chips { gap: 0.45rem; }
+  .usage-chip {
+    white-space: normal;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    border-radius: 9px;
+    border-color: #e0d9c9;
+    padding: 0.42rem 0.7rem;
+    line-height: 1.4;
+  }
+  .usage-chip:only-child { width: 100%; box-sizing: border-box; }
 }
 
 /* ─── Compare Tray (floating, collapsible — Canyon pattern) ──────
@@ -3065,40 +3092,55 @@ h1, h2, h3,
   inset: 0;
   z-index: 1200;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 1.25rem;
+  padding: 1.6rem;
   background: rgba(32, 30, 24, 0.55);
   animation: cxRotateFade 0.22s var(--ease) both;
 }
 .cx-rotate-card {
   width: 100%;
-  max-width: 360px;
-  margin-bottom: 1.5rem;
-  padding: 1.6rem 1.4rem;
+  max-width: 340px;
+  padding: 1.75rem 1.4rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   text-align: center;
   box-shadow: 0 16px 44px rgba(32, 30, 24, 0.32);
   animation: cxRotateUp 0.28s var(--ease) both;
 }
 .cx-rotate-icon { display: inline-flex; color: var(--red); margin-bottom: 0.55rem; }
-.cx-rotate-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin: 0 0 0.4rem; }
-.cx-rotate-text { font-size: 0.88rem; line-height: 1.5; color: var(--muted); margin: 0 0 1.15rem; }
+.cx-rotate-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0 0 0.4rem; }
+.cx-rotate-text { font-size: 0.88rem; line-height: 1.55; color: var(--muted); margin: 0 0 1.25rem; }
 .cx-rotate-dismiss {
+  display: block;
+  width: 100%;
   background: var(--red);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 0.6rem 1.6rem;
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
   font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.12s;
 }
-.cx-rotate-dismiss:hover { background: var(--red-dark); }
+.cx-rotate-dismiss:active { background: var(--red-dark); transform: scale(0.99); }
+.cx-rotate-stay {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+.cx-rotate-stay:active { color: var(--text); }
 @keyframes cxRotateFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes cxRotateUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
@@ -3348,6 +3390,12 @@ body:has(.compare-tray.visible) .toast {
   font-size: 0.9rem;
   color: var(--text);
 }
+
+/* The "of N" narrowing and the count-row "Clear all" are mobile-only affordances
+   (styled in the ≤640px block); hidden on desktop so the desktop count/sort row
+   stays exactly as it was. */
+.rc-of { display: none; }
+.grid-clear-all { display: none; }
 
 /* Slight breadcrumb hierarchy tightening */
 .page-breadcrumb {
@@ -4020,6 +4068,8 @@ body:has(.compare-tray.visible) .toast {
   line-height: 1.35;
   overflow-wrap: break-word;
 }
+/* Desktop uses the full descriptive labels; phones swap to short ones (≤640). */
+.trust-label .tl-short { display: none; }
 
 /* ─── Section heading (shared by applications + catalogue head) ── */
 .section-eyebrow {
@@ -4148,11 +4198,67 @@ body:has(.compare-tray.visible) .toast {
 .advisor-banner-btn:hover { color: var(--red); transform: translateY(-2px); box-shadow: 0 9px 22px -6px rgba(0, 0, 0, 0.55); }
 .advisor-banner-btn:active { transform: translateY(0); }
 .advisor-banner-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* Desktop keeps the text label ("Ask the Product Advisor →"); the SVG arrow is a
+   mobile-only affordance (see the ≤640px block). */
+.advisor-banner-btn-arrow { display: none; }
 @media (max-width: 640px) {
-  .advisor-banner-wrap { padding: 20px 1rem 0; }
-  .advisor-banner { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; }
-  .advisor-banner-btn { width: 100%; text-align: center; }
+  /* Calm, LIGHT inline advisor banner (previously a heavy dark ink block): a
+     white card with a red left accent and a tinted-red icon chip, so it sits
+     with the product cards instead of overshadowing the "Full Catalogue"
+     heading below it. Desktop keeps its own dark banner. */
+  .advisor-banner-wrap { padding: 18px 16px 0; }   /* breathing room from trust strip + edge inset */
+  .advisor-banner {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 11px;
+    padding: 12px 13px;
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);   /* red accent, not a full dark/red fill */
+    border-radius: 10px;
+    box-shadow: none;
+  }
+  .advisor-banner::before { display: none; }
+  /* Small tinted-red icon chip with a red glyph — quiet, not a solid red slab. */
+  .advisor-banner-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgba(204, 41, 41, 0.09);
+    color: var(--red);
+    box-shadow: none;
+  }
+  .advisor-banner-icon svg { width: 18px; height: 18px; }
+  .advisor-banner-text { flex: 1; min-width: 0; }
+  .advisor-banner-text strong { font-size: 12.5px; font-weight: 700; color: #201e18; margin-bottom: 2px; letter-spacing: -0.01em; }
+  .advisor-banner-text span { font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .advisor-banner-text .advisor-sub-full  { display: none; }   /* desktop copy hidden on phones */
+  .advisor-banner-text .advisor-sub-short { display: block; }
+  /* Red circular arrow affordance (≥44px tap target). SVG (not the → glyph) so
+     it stays optically centred across devices/fonts. */
+  .advisor-banner-btn {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    box-shadow: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    transition: transform 0.12s var(--ease), background 0.15s;
+  }
+  .advisor-banner-btn-label { display: none; }   /* icon-only on phones */
+  .advisor-banner-btn-arrow { display: block; }
+  .advisor-banner-btn:active { transform: scale(0.9); background: var(--red-dark); }
 }
+/* The short mobile sub-copy is never shown on desktop. */
+.advisor-sub-short { display: none; }
 
 /* ─── Catalogue head ─────────────────────────────────────────── */
 .catalogue-head {
@@ -4193,6 +4299,10 @@ body:has(.compare-tray.visible) .toast {
    MOBILE REDESIGN — phones ≤640px
    Desktop layout is untouched below this line.
    ════════════════════════════════════════════════════════════════ */
+
+/* Card body top row (brand eyebrow + compare toggle) is mobile-only; hidden
+   on tablet/desktop, revealed as a flex row inside the ≤640px block. */
+.pcard-top { display: none; }
 
 /* ─── Mobile card: floating enquiry button on image ─────────── */
 .pcard-add {
@@ -4335,11 +4445,54 @@ body:has(.compare-tray.visible) .toast {
 
 /* ─── Step 1: 2-col grid + stripped cards ────────────────────── */
 @media (max-width: 640px) {
-  /* The ranges strip is hidden on phones: it duplicates the Brand filter (in the
-     Refine Products drawer and the footer), and on a narrow layout it just pushes
-     the catalogue down. Job-first entry (Common Applications) and search stay.
-     It remains on tablet/desktop below the search. */
-  .page-hero--rail .hero-ranges { display: none; }
+  /* Ranges shown on phones (per the prototype) as a horizontal SWIPE row. The
+     scrollbar is hidden for a clean swipe; the partially-visible last tile hints
+     there's more to the right. */
+  .page-hero--rail .hero-ranges { display: block; margin-top: 16px; }
+  .page-hero--rail .hero-ranges-label { margin-bottom: 9px; }
+  .page-hero--rail .hero-ranges-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 2px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;                 /* Firefox: no scrollbar */
+  }
+  .page-hero--rail .hero-ranges-row::-webkit-scrollbar { width: 0; height: 0; }  /* WebKit: no scrollbar */
+  .page-hero--rail .range-chip { flex: 0 0 auto; scroll-snap-align: start; transition: background 0.15s, border-color 0.15s; }
+  .page-hero--rail .range-chip:active { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.18); }
+
+  /* Match the prototype hero on phones: no red "Est. 1976" strip, and the search
+     bar is icon + input only (search runs live on input, so the separate Search
+     button is redundant). Both stay on tablet/desktop. */
+  .page-hero--rail .hero-strip { display: none; }
+  .hero-search .search-bar button { display: none; }
+  .hero-search .search-bar { padding-right: 0.5rem; }
+
+  /* Trim the hero's vertical height so the catalogue appears sooner. The ranges
+     row adds height, so tighten the padding + gaps to keep the hero compact. */
+  .page-hero--rail .hero-main { padding: 20px 18px 18px; }
+  .page-hero--rail .hero-eyebrow { margin-bottom: 10px; }
+  .page-hero--rail .hero-actions { margin-top: 16px; }
+
+  /* "perform" is red TEXT on the dark hero (not a red highlight box), and the
+     lead paragraph is dropped so the title flows straight into the search — both
+     per the prototype. Desktop keeps the boxed mark + lead. */
+  .page-hero--rail .hero-inner h1 mark {
+    background: none;
+    color: #ff5a4d;
+    padding: 0;
+    border-radius: 0;
+  }
+  .page-hero--rail .hero-lead { display: none; }
+  /* Cap the headline so it wraps to two tidy lines ("Adhesives that perform" /
+     "under pressure.") like the prototype, instead of three — a shorter hero
+     gets the catalogue on screen faster. */
+  .page-hero--rail .hero-inner h1 {
+    font-size: 1.72rem;
+    line-height: 1.1;
+  }
 
   /* ── Single-column horizontal list card (116px thumb left, content right) ── */
   .product-grid { grid-template-columns: 1fr; gap: 0.7rem; }
@@ -4352,15 +4505,36 @@ body:has(.compare-tray.visible) .toast {
     border-color: #c9bfaa;
   }
 
-  /* Fixed 116px thumbnail */
+  /* Fixed 116px thumbnail: a warm cream frame with the product shot sitting on a
+     clean WHITE rounded plate (hairline border + soft shadow), so photos with a
+     white background read as an intentionally styled catalogue rather than a
+     white box floating on cream. Plate stretches the full card height. */
   .product-card-image {
     flex: 0 0 116px;
     width: 116px;
     min-height: 116px;
     aspect-ratio: auto;
     align-self: stretch;
+    background: #f6f2ea;
+    padding: 9px;
+    box-sizing: border-box;
   }
-  .product-card-image img { object-fit: contain; padding: 8px; box-sizing: border-box; }
+  .product-card-image-link {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #ece4d4;
+    border-radius: 9px;
+    box-shadow: 0 1px 2px rgba(32, 30, 24, 0.05);
+    overflow: hidden;
+  }
+  .product-card-image img { width: 100%; height: 100%; object-fit: contain; padding: 7px; box-sizing: border-box; }
+  /* No-image cards keep the cream frame; the brand mark sits on the white plate
+     (the .product-card-image-link above) like a real product shot. */
+  .product-card-image.no-image { background: #f6f2ea; }
 
   /* Content column */
   .product-card .product-card-body {
@@ -4381,82 +4555,198 @@ body:has(.compare-tray.visible) .toast {
   .product-card .product-tags { display: none !important; }
 
   /* In-Enquiry confirmed state (pink) per prototype */
+  .product-card-actions .pcard-enq { transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s; }
+  .product-card-actions .pcard-enq:active { transform: scale(0.97); }
   .product-card-actions .pcard-enq.btn-added {
     background: #fbe9e4 !important;
     color: var(--red) !important;
     border-color: #f0cfc9 !important;
   }
+  /* A quick, subtle check-in so adding to the enquiry feels deliberate. */
+  .product-card-actions .pcard-enq.btn-added svg { animation: ylEnqCheck 0.18s ease-out both; }
+  @keyframes ylEnqCheck {
+    from { transform: scale(0.5); opacity: 0.3; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .product-card-actions .pcard-enq.btn-added svg { animation: none; }
+  }
 
-  /* ── ONE compare control: the square toggle on the thumbnail ── */
-  .pcard-cmp-row { display: none !important; }   /* remove duplicate compare row */
-  .pcard-add     { display: none !important; }   /* enquiry lives in the button row now */
-  .product-card .card-compare-btn {
-    display: inline-flex;
-    top: auto;
-    bottom: 0.4rem;
-    right: 0.4rem;
-    width: 28px;
-    height: 28px;
+  /* ── Nothing overlays the photo: the brand label and the compare toggle both
+     live in the card body top row, never on the image (handoff refinements). ── */
+  .product-card .pcard-brand-tag,      /* on-image brand chip  */
+  .product-card .card-compare-btn,     /* on-image compare pill */
+  .product-card .pcard-add { display: none !important; }
+
+  /* Body top row: brand eyebrow (left) + square compare toggle (right) */
+  .product-card .pcard-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .pcard-brand-m {
+    font-family: var(--mono);
+    font-size: 0.5625rem;              /* 9px */
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--red);                 /* real brand tags: red */
+    line-height: 1.5;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pcard-brand-m.is-accessory { color: rgba(26,23,18,0.72); }  /* muted category, not a fake brand */
+
+  /* Reuse the already-synced body compare button as an icon-only square toggle */
+  .product-card .pcard-cmp-row {
+    display: block !important;
+    flex: 0 0 auto;
+    margin: 0;
     padding: 0;
+  }
+  .product-card .pcard-cmp {
     gap: 0;
-    justify-content: center;
+    font-size: 0;                      /* collapse the "Compare" text node */
+  }
+  .product-card .pcard-cmp .pcard-cb {
+    width: 26px;
+    height: 26px;
     border-radius: 7px;
+    border: 1px solid #d9cfbb;
     background: #fff;
-    border-color: #d9cfbb;
-    color: #6a655a;
-  }
-  .product-card .card-compare-btn span { display: none; }  /* icon-only square */
-  /* Extend the tap target to ~44px without growing the visual square. */
-  .product-card .card-compare-btn::before { content: ""; position: absolute; inset: -8px; }
-  .product-card .card-compare-btn.in-compare {
-    background: var(--red);
-    border-color: var(--red);
     color: #fff;
+    transition: background 0.15s, border-color 0.15s, transform 0.12s;
   }
-  .product-card .card-compare-btn:active:not(:disabled) { transform: scale(0.9); }
+  .product-card .pcard-cmp .pcard-cb svg { width: 13px; height: 13px; }
+  .product-card .pcard-cmp.on .pcard-cb { background: var(--red); border-color: var(--red); }
+  .product-card .pcard-cmp:active:not(:disabled) .pcard-cb { transform: scale(0.9); }
+
+  /* Status row = dot + availability only (no "No. NNN" code, per prototype) */
+  .product-card .pcard-meta .pcard-code { display: none; }
 
   /* Catalogue layout padding */
   .catalogue-layout { padding: 0 0.75rem; margin-top: 0.75rem; }
-  /* With the sort control hidden on mobile, the boxed .grid-meta read like an
-     empty search input. Strip the box: plain muted count text, no border/fill. */
+  /* Count row (below the bar, still inside the sticky band so it stays in reach):
+     mono uppercase label on the left, "Clear all" on the right while filtering. */
   .grid-meta {
-    padding: 0;
-    margin: 0.75rem 0 0.5rem;
+    padding: 11px 2px 0;
+    margin: 0;
     background: none;
     border: none;
     box-shadow: none;
     border-radius: 0;
-    justify-content: flex-start;
+    justify-content: space-between;
+    align-items: baseline;
   }
-  #resultCount { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+  /* Quiet mono label ("31 PRODUCTS" / "8 OF 31 PRODUCTS"), matching the site's
+     mono eyebrows. No box, border, or fill. */
+  #resultCount {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8a847a;
+    margin: 0;
+  }
+  .rc-of { display: inline; }   /* reveal the "of N" narrowing on phones */
+  .grid-meta .grid-clear-all:not([hidden]) {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--red);
+    cursor: pointer;
+  }
 
-  /* Active-filter bar: tighter padding; label, pills and Clear all wrap. */
-  .active-filter-bar { padding: 0 0.75rem; }
-  .active-filter-bar-inner { gap: 0.45rem 0.6rem; padding-top: 0.7rem; }
-  .filter-chip { flex-shrink: 0; white-space: nowrap; }
+  /* Active-filter chips: subtle cream capsules with a small red accent dot (an
+     applied filter is a normal state, not an alert). No "Filtering by:" label and
+     no inline Clear here — clearing lives in the count row below the bar. */
+  .active-filter-bar { padding: 11px 0.75rem 0; }
+  .active-filter-bar-inner {
+    border-top: none;
+    margin: 0;
+    padding: 0;
+    gap: 7px;
+  }
+  .active-filter-label { display: none; }
+  .active-filter-clear { display: none; }
+  .filter-chip {
+    flex-shrink: 0;
+    white-space: nowrap;
+    gap: 6px;
+    padding: 6px 8px 6px 11px;
+    background: #f6f2ea;
+    border: 1px solid #e0d9c9;
+    border-radius: 999px;
+    color: #3c382f;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .filter-chip::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+  }
+  /* No hover-to-red on touch: a :hover that lingers after a tap must not flash
+     the chip solid red. Keep it calm; give a gentle pressed state instead. */
+  .filter-chip:hover { background: #f6f2ea; color: #3c382f; border-color: #e0d9c9; }
+  .filter-chip:active { background: #ede4d3; }
 
-  /* Trust strip: collapse the 2×2 grid to a single compact row of all four
-     stats (kept, just smaller) so it takes ~a third of its previous height. */
+  /* Trust strip: a compact LIGHT band (#f6f2ea) like the prototype — dark
+     numbers, grey short labels, light dividers — bridging the dark hero and the
+     catalogue. Desktop keeps the dark strip. */
+  .trust-strip { background: #f6f2ea; border-bottom: 1px solid #e6dfd0; }
   .trust-strip-inner {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: 0 0.6rem;
   }
   .trust-item {
-    padding: 0.5rem 0.4rem;
+    padding: 0.6rem 0.4rem;
     gap: 0.1rem;
     align-items: center;
     text-align: center;
     border-right: none;
   }
-  /* Even 4-up with dividers between the cells (border-left on 2–4, per prototype). */
+  /* Even 4-up with light dividers between the cells (border-left on 2–4). */
   .trust-item:first-child  { padding-left: 0.4rem; }
   .trust-item:nth-child(2),
   .trust-item:nth-child(3),
-  .trust-item:last-child   { border-left: 1px solid rgba(255,255,255,0.10); }
+  .trust-item:last-child   { border-left: 1px solid #e0d9c9; }
   .trust-item:last-child   { padding-right: 0.4rem; }
-  .trust-num   { font-size: 1.05rem; }
-  .trust-plus  { font-size: 0.68rem; }
-  .trust-label { font-size: 0.52rem; letter-spacing: 0.03em; line-height: 1.25; overflow-wrap: normal; }
+  /* Force clean Inter lining figures for the stat numbers: Space Grotesk's "1"
+     has a raised flag that makes "31" read like "3¹". Inter keeps both digits
+     full-height on the baseline. */
+  .trust-num   {
+    font-size: 1.15rem;
+    color: #201e18;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-variant-numeric: lining-nums tabular-nums;
+    letter-spacing: 0;
+  }
+  .trust-plus  { font-size: 0.7rem; }
+  .trust-label {
+    font-size: 0.56rem;
+    color: #767066;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+    overflow-wrap: normal;
+  }
+  /* Short one-word labels on mobile (Years / Products / Industries / Certified) */
+  .trust-label .tl-full  { display: none; }
+  .trust-label .tl-short { display: inline; }
 
   /* Hide the whole desktop sort control on mobile (mirrored in the mobile filter
      bar). Hiding the .grid-sort group covers the "Sort" label, the native
@@ -4467,72 +4757,113 @@ body:has(.compare-tray.visible) .toast {
   /* Hide existing 768px filter toggle (replaced by mobile filter bar) */
   .filter-toggle { display: none; }
 
-  /* ─── Step 2: mobile filter bar ───────────────────────────── */
-  .mobile-filter-bar {
-    display: flex;
-    gap: 0.5rem;
+  /* ─── Unified warm toolbar (Filters + Sort as ONE bar) ────────────────
+     A frosted cream band sticks under the nav; inside it Filters and Sort read
+     as a single white rounded bar split by a hairline (no black button clashing
+     with a white dropdown). The count row sits below, still in the band. */
+  .mobile-toolbar {
     position: sticky;
     top: 60px;
     z-index: 30;
-    background: rgba(255,255,255,0.94);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
     margin: 0 -0.75rem;
-    padding: 0.7rem 0.75rem;
+    padding: 14px 16px 12px;
+    background: rgba(243, 239, 230, 0.94);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid #e6dfd0;
   }
-
+  /* The one bar: white, warm border, rounded. NOTE: no `overflow:hidden` here —
+     it would clip the sort dropdown's popup. Corners are instead rounded on each
+     edge segment (below) so pressed/hover fills stay inside the radius. */
+  .mobile-filter-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+  }
+  /* Filters segment (left): transparent, content-width, ink text + sliders. */
   .mfb-btn {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
-    background: var(--ink);
-    color: #fff;
+    gap: 0.45rem;
+    height: 48px;
+    padding: 0 15px;
+    background: transparent;
+    color: var(--ink);
     border: none;
-    border-radius: 8px;
-    padding: 0.55rem;
-    min-height: 44px;
-    font-size: 0.8rem;
+    border-radius: 12px 0 0 12px;   /* left corners so the pressed fill stays inside the bar radius */
+    font-size: 13.5px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
   }
-  .mfb-btn:active { opacity: 0.85; }
-
+  .mfb-btn svg { stroke: var(--ink); }
+  .mfb-btn:active { background: #f6f2ea; }
+  /* Red applied-count badge, inline after the "Filters" label. */
   .mfb-count {
     background: var(--red);
     color: #fff;
-    font-size: 0.66rem;
-    font-weight: 700;
-    min-width: 16px;
-    height: 16px;
-    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    min-width: 17px;
+    height: 17px;
+    border-radius: 9px;
     display: none;
     align-items: center;
     justify-content: center;
     padding: 0 4px;
   }
 
+  /* Sort segment (right): fills the rest, with an inset hairline divider. */
   .mfb-sort-wrap {
+    position: relative;
     flex: 1;
     min-width: 0;
-    /* The custom-select trigger (below) now supplies the border + background,
-       so the wrapper stays transparent and unclipped: overflow:hidden here
-       would cut off the dropdown listbox. */
+    height: 48px;
   }
-  /* Mobile sort uses the same polished custom dropdown as desktop (enhanced by
-     custom-select.js) instead of the raw OS <select>. Size its trigger to fill
-     the slot at the 44px height of the neighbouring Filters button. */
-  .mfb-sort-wrap .custom-select-wrap { display: block; width: 100%; }
+  .mfb-sort-wrap::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 9px;
+    bottom: 9px;
+    width: 1px;
+    background: #e6dfd0;
+  }
+  /* Reuse the accessible custom dropdown (custom-select.js) but strip its box so
+     it reads as a borderless segment inside the shared bar: transparent, full
+     height, ink text, muted chevron. Never the raw OS <select> styling. */
+  .mfb-sort-wrap .custom-select-wrap { display: block; width: 100%; height: 100%; }
   .mfb-sort-wrap .custom-select-trigger {
     width: 100%;
+    height: 100%;
     min-width: 0;
-    min-height: 44px;
-    border-radius: 8px;
-    font-size: 0.8rem;
+    min-height: 48px;
+    background: transparent;
+    border: none;
+    border-radius: 0 12px 12px 0;   /* right corners so the open/hover fill stays inside the bar radius */
+    padding: 0 14px;
+    color: var(--ink);
+    font-size: 13.5px;
+    font-weight: 600;
   }
+  .mfb-sort-wrap .custom-select-trigger:hover,
+  .mfb-sort-wrap .custom-select-trigger[aria-expanded="true"] {
+    background: #f6f2ea;
+    box-shadow: none;
+  }
+  .mfb-sort-wrap .custom-select-trigger:focus-visible {
+    background: #f6f2ea;
+    outline: 2px solid var(--muted);
+    outline-offset: -2px;
+    box-shadow: none;
+  }
+  .mfb-sort-wrap .custom-select-chevron { color: #8a847a; }
   /* Comfortable touch height for each option in the mobile dropdown. */
   .mfb-sort-wrap .custom-select-listbox { min-width: 180px; }
   .mfb-sort-wrap .custom-select-option { min-height: 44px; }
@@ -4592,7 +4923,7 @@ body:has(.compare-tray.visible) .toast {
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #e6dfd0;
     flex-shrink: 0;
   }
   .drawer-head h2 {
@@ -4606,8 +4937,8 @@ body:has(.compare-tray.visible) .toast {
     width: 44px;
     height: 44px;
     border-radius: 10px;
-    border: 1px solid var(--line-2);
-    background: var(--panel);
+    border: 1px solid #e6dfd0;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4634,7 +4965,14 @@ body:has(.compare-tray.visible) .toast {
     padding: 1rem 0 !important;
     border-bottom: 1px solid var(--border) !important;
     margin-bottom: 0 !important;
-    font-size: 0.95rem;
+    /* Sentence case in the body font reads softer / more premium than shouting
+       mono caps in the bottom sheet (matches the prototype). Desktop sidebar
+       keeps its mono-caps label. */
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
   }
 
   .fg-chev {
@@ -4654,41 +4992,53 @@ body:has(.compare-tray.visible) .toast {
     border-radius: 6px;
     font-size: 0.88rem;
   }
-  .filter-group label:hover { background: var(--panel); }
+  .filter-group label:active { background: var(--panel); }  /* press, not hover, on mobile */
 
   /* ─── Step 2: drawer footer ─────────────────────────────── */
+  /* A sticky action bar that reads as PART of the cream sheet, not a white slab
+     dropped on top: same cream ground, a soft warm hairline and a faint upward
+     lift to separate it from the scrolling filter list above. */
   .drawer-foot {
     display: flex;
     gap: 0.6rem;
-    padding: 0.8rem 1rem calc(0.8rem + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--border);
-    background: #fff;
+    padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-top: 1px solid #e6dfd0;
+    box-shadow: 0 -10px 22px -18px rgba(26, 23, 18, 0.45);
     flex-shrink: 0;
   }
+  /* Clear = quiet ghost secondary: a warm outline on the cream, no white fill.
+     The red "Show results" carries the emphasis. */
   .drawer-clear {
     flex: 1;
-    background: #fff;
+    min-height: 46px;
+    background: transparent;
     border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 8px;
+    color: var(--body);
+    border-radius: 10px;
     padding: 0.7rem;
     font-size: 0.82rem;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
+    transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
   }
+  .drawer-clear:active { background: #ece4d4; border-color: #cdbfa4; }
   .drawer-apply {
     flex: 2;
+    min-height: 46px;
     background: var(--red);
     border: none;
     color: #fff;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 0.7rem;
-    font-size: 0.82rem;
-    font-weight: 600;
+    font-size: 0.88rem;
+    font-weight: 700;
     font-family: inherit;
     cursor: pointer;
+    transition: background 0.15s var(--ease), transform 0.12s var(--ease);
   }
+  .drawer-apply:active { background: var(--red-hover); transform: scale(0.99); }
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -4713,7 +5063,9 @@ body:has(.compare-tray.visible) .toast {
     left: 0; right: 0; bottom: 0;
     z-index: 900;
     padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
-    background: rgba(255,255,255,0.95);
+    /* Solid (not 0.95 alpha) so the cream body background never shows through as
+       a strip between the dark footer and this bar. Blur kept for depth. */
+    background: #fff;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid var(--border);
@@ -4725,6 +5077,7 @@ body:has(.compare-tray.visible) .toast {
     justify-content: center;
     gap: 2px;
     width: 62px;
+    min-height: 46px;
     flex-shrink: 0;
     background: #fff;
     border: 1px solid var(--line-2);
@@ -4742,6 +5095,10 @@ body:has(.compare-tray.visible) .toast {
   }
   .sticky-cta-add {
     flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
     background: var(--red);
     color: #fff;
     border: none;
@@ -4753,6 +5110,21 @@ body:has(.compare-tray.visible) .toast {
   }
   .sticky-cta-add:active { transform: scale(0.99); }
   .sticky-cta-add.added { background: var(--green); }
+  /* Green WhatsApp square (on-brand, bordered — matches the contact page) */
+  .sticky-cta-wa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    min-height: 46px;
+    flex-shrink: 0;
+    background: #eaf5ec;
+    border: 1px solid #cfe8d5;
+    border-radius: 10px;
+    color: #16803a;
+    transition: background 0.15s, transform 0.12s;
+  }
+  .sticky-cta-wa:active { transform: scale(0.97); background: #dcefe1; }
 
   /* The desktop compare tray is replaced on phones by the edge tab + sheet */
   .compare-tray { display: none !important; }
@@ -4761,10 +5133,15 @@ body:has(.compare-tray.visible) .toast {
   /* Bottom-anchored (not vertical-center) so it never sits on top of the
      hero search bar on load or scrolling product cards further down — the
      same reasoning as the bottom-anchored .sticky-cta on product-detail. */
+  /* Right-edge pull tab, vertically centred, rounded on the left (matches the
+     prototype). It is a fixed OVERLAY affordance and must NOT reflow the
+     catalogue — no grid gutter, so adding/removing a compare item never shifts
+     the cards. It simply floats over the right edge. */
   .cmp-tab {
     position: fixed;
-    left: 0;
-    bottom: 6.5rem;
+    right: 0;
+    top: 63%;
+    transform: translateY(-50%);
     z-index: 850;
     flex-direction: column;
     align-items: center;
@@ -4772,17 +5149,14 @@ body:has(.compare-tray.visible) .toast {
     background: var(--red);
     color: #fff;
     border: none;
-    border-radius: 0 12px 12px 0;
-    padding: 0.6rem 0.5rem;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    border-radius: 12px 0 0 12px;
+    padding: 0.7rem 0.55rem;
+    box-shadow: 0 8px 22px -6px rgba(0,0,0,0.45);
     cursor: pointer;
+    transition: background 0.15s;
   }
   .cmp-tab.show { display: flex; }
-  /* The tab is a fixed left-edge affordance; reserve a matching left gutter on
-     the product grid while it's showing so scrolling cards never sit under it
-     (it used to cover the start of card titles like "…Brand 212"). */
-  .product-grid { transition: padding-left 0.25s var(--ease); }
-  body:has(.cmp-tab.show) .product-grid { padding-left: 42px; }
+  .cmp-tab:active { background: var(--red-dark); }
   .cmp-tab-count {
     background: #fff;
     color: var(--red);
@@ -5061,7 +5435,7 @@ body:has(.compare-tray.visible) .toast {
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
   }
-  .cx-head-rm:hover { color: var(--red); border-color: var(--red-tint-bdr); }
+  .cx-head-rm:active { color: var(--red); border-color: var(--red-tint-bdr); }  /* press, not hover */
   .cx-rowlabel {
     position: sticky;
     left: 0;

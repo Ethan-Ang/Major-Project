@@ -98,6 +98,7 @@
       var cta = document.getElementById("stickyCta");
       if (cta) cta.remove();
       document.body.classList.remove("detail-has-cta");
+      document.body.style.paddingBottom = ""; // drop the measured CTA reservation
     }
 
     updateNavActive();

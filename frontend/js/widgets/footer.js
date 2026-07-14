@@ -202,10 +202,79 @@
         gap: 0.3rem;
         padding: 0.9rem 1.25rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
       }
-      /* Admin Login is a staff action, not a customer CTA: small, muted, on its
-         own line (no leading separator). */
-      .site-footer-admin { display: block; margin-top: 0.4rem; font-size: 0.72rem; color: #6f6a60; }
-      .site-footer-admin::before { content: none; }
+    }
+
+    /* ── Compact mobile footer (≤640px), matching the prototype ──────────
+       The desktop grid footer + bottom bar (incl. Admin Login) are hidden on
+       phones and replaced by .site-footer-mobile; desktop/tablet untouched. */
+    .site-footer-mobile { display: none; }
+    @media (max-width: 640px) {
+      .site-footer-inner,
+      .site-footer-bottom { display: none; }
+      .site-footer-mobile {
+        display: block;
+        padding: 1.9rem 1.25rem calc(1.15rem + env(safe-area-inset-bottom, 0px));
+      }
+      .sfm-brand-row { display: flex; align-items: flex-start; gap: 0.85rem; margin-bottom: 1rem; }
+      .sfm-logo { height: 38px; width: auto; flex: 0 0 auto; }
+      .sfm-blurb { flex: 1; min-width: 0; margin: 0.15rem 0 0; font-size: 0.72rem; line-height: 1.6; color: #8a847a; }
+      .sfm-certs {
+        padding-bottom: 1.35rem;
+        margin-bottom: 1.35rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+      .sfm-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        padding-bottom: 1.35rem;
+        margin-bottom: 1.35rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+      .sfm-col-title {
+        color: #fff;
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 0 0 0.75rem;
+      }
+      .sfm-col .site-footer-links { gap: 0.65rem; font-size: 0.8rem; }
+      .sfm-cta-band { display: flex; align-items: center; justify-content: space-between; gap: 0.9rem; }
+      .sfm-cta-title {
+        margin: 0 0 0.2rem;
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #f3efe6;
+      }
+      .sfm-cta-sub { margin: 0; font-size: 0.72rem; line-height: 1.4; color: #8a847a; }
+      .sfm-cta-btn {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #CC2929;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.75rem 1rem;
+        min-height: 44px;
+        box-sizing: border-box;
+        border-radius: 8px;
+        transition: background 0.15s;
+      }
+      .sfm-cta-btn:active { background: #b62525; }
+      .sfm-copyright {
+        margin-top: 1.35rem;
+        padding-top: 0.9rem;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        font-size: 0.7rem;
+        color: #8a93a0;
+      }
+      .sfm-copyright strong { color: #cdc7b9; font-weight: 600; }
     }
   `;
   document.head.appendChild(style);
@@ -270,6 +339,51 @@
     <div class="site-footer-bottom">
       <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
       <span>Commercial &amp; Industrial Adhesive Solutions · Singapore<a class="site-footer-admin" href="/admin/login.html">Admin Login</a></span>
+    </div>
+
+    <!-- Compact mobile footer (≤640px) — matches the mobile prototype: a small
+         logo + blurb, bordered trust chips, Brands + Company text columns, a
+         "Have a project in mind?" band (no phone), and a slim copyright line.
+         No Admin Login. Hidden on desktop/tablet; the grid footer above is hidden
+         on phones so desktop is untouched. -->
+    <div class="site-footer-mobile">
+      <div class="sfm-brand-row">
+        <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries" class="sfm-logo">
+        <p class="sfm-blurb">Commercial &amp; industrial adhesives, formulated in Singapore for over 50 years.</p>
+      </div>
+      <div class="site-footer-certs sfm-certs" aria-label="Certifications">
+        <span class="site-footer-cert">ISO Certified</span>
+        <span class="site-footer-cert">Singapore Green Label</span>
+        <span class="site-footer-cert">Low-VOC / Low-Formaldehyde</span>
+      </div>
+      <div class="sfm-cols">
+        <nav class="sfm-col" aria-label="Brands">
+          <p class="sfm-col-title">Brands</p>
+          <ul class="site-footer-links">
+            <li><a href="${brandLink("Deer™ Brand")}">Deer&trade;</a></li>
+            <li><a href="${brandLink("Horsemen™ Brand")}">Horsemen&trade;</a></li>
+            <li><a href="${brandLink("Premier™ Brand")}">Premier&trade;</a></li>
+            <li><a href="${brandLink("Rhino™ Brand")}">Rhino&trade;</a></li>
+          </ul>
+        </nav>
+        <nav class="sfm-col" aria-label="Company">
+          <p class="sfm-col-title">Company</p>
+          <ul class="site-footer-links">
+            <li><a href="/products">All Products</a></li>
+            <li><a href="/about">About Yee Lim</a></li>
+            <li><a href="/about">Our Heritage</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="sfm-cta-band">
+        <div class="sfm-cta-text">
+          <p class="sfm-cta-title">Have a project in mind?</p>
+          <p class="sfm-cta-sub">Enquiries &amp; quotations within 1&ndash;2 business days.</p>
+        </div>
+        <a class="sfm-cta-btn" href="/contact">Contact us &rarr;</a>
+      </div>
+      <div class="sfm-copyright">&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong> &middot; Singapore</div>
     </div>
   `;
 

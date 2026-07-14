@@ -19,8 +19,13 @@
       height: 60px;
       box-sizing: border-box;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+      /* Flat at the top (blends into the dark hero); lifts with a soft shadow
+         once the page scrolls, so the bar reads as elevated over the content. */
+      box-shadow: none;
+      transition: box-shadow 0.25s ease;
     }
+    .nav.is-scrolled { box-shadow: 0 6px 20px -6px rgba(16, 13, 9, 0.35); }
+    @media (prefers-reduced-motion: reduce) { .nav { transition: none; } }
     .nav-logo {
       justify-self: start;
       display: inline-flex;
@@ -337,6 +342,17 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && drawerEl.classList.contains("open")) closeDrawer();
     });
+
+    // Elevate the bar with a soft shadow once the page scrolls off the top.
+    let ticking = false;
+    function syncElevation() {
+      navEl.classList.toggle("is-scrolled", window.scrollY > 8);
+      ticking = false;
+    }
+    window.addEventListener("scroll", () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(syncElevation); }
+    }, { passive: true });
+    syncElevation();
 
     // Keep basket + compare counts live
     window.addEventListener("storage", updateCounts);

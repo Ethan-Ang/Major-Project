@@ -190,13 +190,14 @@ function maybeShowRotateNudge(count) {
   overlay.className = "cx-rotate-overlay";
   overlay.id = "cxRotateOverlay";
   overlay.innerHTML = `
-    <div class="cx-rotate-card" role="dialog" aria-label="Rotate for the full comparison">
+    <div class="cx-rotate-card" role="dialog" aria-modal="true" aria-labelledby="cxRotateTitle">
       <span class="cx-rotate-icon" aria-hidden="true">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="10" height="20" rx="2"/><path d="M14 8l3-3 3 3"/><path d="M17 5v6a9 9 0 0 1-9 9"/></svg>
       </span>
-      <h3 class="cx-rotate-title">Rotate for the full comparison</h3>
-      <p class="cx-rotate-text">Turn your phone sideways to see all products side by side.</p>
-      <button type="button" class="cx-rotate-dismiss">Got it</button>
+      <h3 class="cx-rotate-title" id="cxRotateTitle">Rotate for the best view</h3>
+      <p class="cx-rotate-text">Turn your phone sideways to compare all products side by side in one glance.</p>
+      <button type="button" class="cx-rotate-dismiss">I&rsquo;ve rotated, continue</button>
+      <button type="button" class="cx-rotate-stay">Stay in portrait &amp; scroll instead</button>
     </div>`;
   document.body.appendChild(overlay);
 
@@ -207,7 +208,10 @@ function maybeShowRotateNudge(count) {
     landscapeMq.removeEventListener("change", onRotate);
     overlay.remove();
   };
+  // Both buttons dismiss and remember the choice; portrait scroll is the
+  // fallback, never blocked. Auto-dismiss (no persist) when turned to landscape.
   overlay.querySelector(".cx-rotate-dismiss").addEventListener("click", () => close(true));
+  overlay.querySelector(".cx-rotate-stay").addEventListener("click", () => close(true));
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(true); });
   landscapeMq.addEventListener("change", onRotate);
 }

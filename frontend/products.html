@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=54">
+  <link rel="stylesheet" href="/css/products.css?v=61">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=5">
-  <script src="/js/widgets/navbar.js?v=9"></script>
-  <script src="/js/widgets/footer.js?v=11"></script>
+  <script src="/js/widgets/navbar.js?v=10"></script>
+  <script src="/js/widgets/footer.js?v=12"></script>
 </head>
 <body>
 
@@ -56,7 +56,7 @@
           <div class="search-bar" role="search">
             <label for="searchInput" class="sr-only">Search products</label>
             <span class="search-bar-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-            <input type="text" id="searchInput" placeholder="Search by product, industry, or surface..." autocomplete="off"
+            <input type="text" id="searchInput" placeholder="Search product, industry, surface" autocomplete="off"
               aria-label="Search products by name, industry, or surface"
               role="combobox" aria-expanded="false" aria-controls="searchTypeahead" aria-autocomplete="list" aria-haspopup="listbox">
             <button onclick="submitHeroSearch()" aria-label="Search">Search</button>
@@ -96,10 +96,10 @@
 <!-- Trust strip -->
 <section class="trust-strip" aria-label="Yee Lim at a glance">
   <ul class="trust-strip-inner">
-    <li class="trust-item"><span class="trust-num">50<span class="trust-plus">+</span></span><span class="trust-label">Years Manufacturing</span></li>
-    <li class="trust-item"><span class="trust-num" id="trustProductCount">31</span><span class="trust-label">Products in Catalogue</span></li>
-    <li class="trust-item"><span class="trust-num" id="trustIndustryCount">12</span><span class="trust-label">Industries Served</span></li>
-    <li class="trust-item"><span class="trust-num">ISO</span><span class="trust-label">Certified &amp; Green Label</span></li>
+    <li class="trust-item"><span class="trust-num">50<span class="trust-plus">+</span></span><span class="trust-label"><span class="tl-full">Years Manufacturing</span><span class="tl-short">Years</span></span></li>
+    <li class="trust-item"><span class="trust-num" id="trustProductCount">31</span><span class="trust-label"><span class="tl-full">Products in Catalogue</span><span class="tl-short">Products</span></span></li>
+    <li class="trust-item"><span class="trust-num" id="trustIndustryCount">12</span><span class="trust-label"><span class="tl-full">Industries Served</span><span class="tl-short">Industries</span></span></li>
+    <li class="trust-item"><span class="trust-num">ISO</span><span class="trust-label"><span class="tl-full">Certified &amp; Green Label</span><span class="tl-short">Certified</span></span></li>
   </ul>
 </section>
 
@@ -112,9 +112,13 @@
     </span>
     <div class="advisor-banner-text">
       <strong>Not sure which adhesive you need?</strong>
-      <span>Describe your surface and job, and the Product Advisor will recommend the right Yee Lim products.</span>
+      <span class="advisor-sub-full">Describe your surface and job, and the Product Advisor will recommend the right Yee Lim products.</span>
+      <span class="advisor-sub-short">Describe your job and we'll point you to the right Yee Lim products.</span>
     </div>
-    <button type="button" class="advisor-banner-btn" onclick="openProductAdvisor()">Ask the Product Advisor &rarr;</button>
+    <button type="button" class="advisor-banner-btn" onclick="openProductAdvisor()" aria-label="Ask the Product Advisor">
+      <span class="advisor-banner-btn-label">Ask the Product Advisor &rarr;</span>
+      <svg class="advisor-banner-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
   </div>
 </section>
 
@@ -215,34 +219,40 @@
 
   <!-- Product Grid -->
   <section class="product-grid-section">
-    <!-- Mobile filter + sort bar (≤640px) -->
-    <div class="mobile-filter-bar" id="mobileFilterBar">
-      <button class="mfb-btn" onclick="toggleFilterSidebar()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-        Filters
-        <span class="mfb-count" id="mobileFilterCount"></span>
-      </button>
-      <div class="mfb-sort-wrap">
-        <select id="mobileSortSelect" class="mfb-sort-sel" onchange="onMobileSortChange(this)" aria-label="Sort products">
-          <option value="default">Default order</option>
-          <option value="az">Name A–Z</option>
-          <option value="za">Name Z–A</option>
-          <option value="brand">Sort by Brand</option>
-        </select>
+    <!-- Mobile sticky toolbar (≤640px): filter/sort buttons + live product count
+         ride together on one white band. A plain wrapper on desktop (the mobile
+         bar is hidden there and the grid-meta flows as before). -->
+    <div class="mobile-toolbar">
+      <!-- Mobile filter + sort bar (≤640px) -->
+      <div class="mobile-filter-bar" id="mobileFilterBar">
+        <button class="mfb-btn" onclick="toggleFilterSidebar()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+          Filters
+          <span class="mfb-count" id="mobileFilterCount"></span>
+        </button>
+        <div class="mfb-sort-wrap">
+          <select id="mobileSortSelect" class="mfb-sort-sel" onchange="onMobileSortChange(this)" aria-label="Sort products">
+            <option value="default">Default order</option>
+            <option value="az">Name A–Z</option>
+            <option value="za">Name Z–A</option>
+            <option value="brand">Sort by Brand</option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <div class="grid-meta">
-      <span id="resultCount" aria-live="polite" aria-atomic="true">Loading products…</span>
-      <div class="grid-sort">
-        <span class="grid-sort-label" aria-hidden="true">Sort</span>
-        <label for="sortSelect" class="sr-only">Sort products</label>
-        <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
-          <option value="default">Default order</option>
-          <option value="az">Name A–Z</option>
-          <option value="za">Name Z–A</option>
-          <option value="brand">Sort by Brand</option>
-        </select>
+      <div class="grid-meta">
+        <span id="resultCount" aria-live="polite" aria-atomic="true">Loading products…</span>
+        <button class="grid-clear-all" id="gridClearAll" hidden onclick="clearFilters()">Clear all</button>
+        <div class="grid-sort">
+          <span class="grid-sort-label" aria-hidden="true">Sort</span>
+          <label for="sortSelect" class="sr-only">Sort products</label>
+          <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
+            <option value="default">Default order</option>
+            <option value="az">Name A–Z</option>
+            <option value="za">Name Z–A</option>
+            <option value="brand">Sort by Brand</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="product-grid" id="productGrid"></div>
@@ -283,12 +293,12 @@
 <script src="/js/core/app.js?v=1"></script>
 <script src="/js/widgets/compare.js?v=9"></script>
 <script src="/js/widgets/custom-select.js?v=2"></script>
-<script src="/js/pages/products.js?v=27"></script>
-<script src="/js/pages/product-detail.js?v=10"></script>
-<script src="/js/pages/compare-page.js?v=10"></script>
+<script src="/js/pages/products.js?v=30"></script>
+<script src="/js/pages/product-detail.js?v=12"></script>
+<script src="/js/pages/compare-page.js?v=11"></script>
 <script src="/js/pages/enquiry.js?v=1"></script>
 <script src="/js/pages/contact.js?v=1"></script>
 <script src="/js/widgets/chatbot.js?v=17"></script>
-<script src="/js/widgets/page-transitions.js?v=2"></script>
+<script src="/js/widgets/page-transitions.js?v=3"></script>
 </body>
 </html>
