@@ -322,7 +322,7 @@
       <nav class="site-footer-col" aria-label="Products and brands">
         <p class="site-footer-col-title">Products &amp; Brands</p>
         <ul class="site-footer-links">
-          <li><a href="/products">All Adhesive Solutions</a></li>
+          <li><a href="/products">All Products</a></li>
           <li><a href="${brandLink("Deer™ Brand")}">Deer™ Brand</a></li>
           <li><a href="${brandLink("Horsemen™ Brand")}">Horsemen™ Brand</a></li>
           <li><a href="${brandLink("Premier™ Brand")}">Premier™ Brand</a></li>
@@ -355,7 +355,7 @@
     <div class="site-footer-mobile">
       <div class="sfm-brand-row">
         <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries" class="sfm-logo">
-        <p class="sfm-blurb">Commercial &amp; industrial adhesives, manufactured in Singapore for over 50 years.</p>
+        <p class="sfm-blurb">Commercial &amp; industrial adhesives, manufactured in Singapore since 1976.</p>
       </div>
       <div class="site-footer-certs sfm-certs" aria-label="Certifications">
         <span class="site-footer-cert">ISO Certified</span>
