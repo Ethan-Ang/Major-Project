@@ -430,10 +430,8 @@ function updateFilterGroupBadges() {
     const checked = group.querySelectorAll("input[type=checkbox]:checked").length;
     totalActive  += checked;
     if (badge) {
-      // Show the applied-count pill whenever the section has ≥1 active filter,
-      // so users can see what's applied even while the section is collapsed.
-      badge.textContent   = checked || "";
-      badge.style.display = checked > 0 ? "inline-flex" : "none";
+      badge.textContent = "";
+      badge.style.display = "none";
     }
   });
 
@@ -444,10 +442,12 @@ function updateFilterGroupBadges() {
     mobileCount.style.display = totalActive > 0 ? "inline-flex" : "none";
   }
 
-  // Desktop sidebar heading chip: active-filter total at a glance (FILTER-001)
+  // Desktop sidebar heading chip: a calmer summary of the total applied filters.
   const headTotal = document.getElementById("filterActiveTotal");
   if (headTotal) {
-    headTotal.textContent = totalActive ? `${totalActive} active` : "";
+    if (totalActive === 1) headTotal.textContent = "1 filter active";
+    else if (totalActive > 1) headTotal.textContent = `${totalActive} filters active`;
+    else headTotal.textContent = "";
     headTotal.hidden = totalActive === 0;
   }
 }

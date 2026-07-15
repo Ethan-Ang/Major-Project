@@ -78,10 +78,11 @@ async function initDetailPage() {
   renderGallery(product);
   renderHeader(product);
   renderSpecTable(product);
+  renderFullDesc(product);
   renderDownloads(product);
+  renderAdvice(product);
   renderSidebar(product);
   renderStickyCta(product);
-  renderFullDesc(product);
   renderRelated(product);
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
@@ -589,12 +590,14 @@ function renderFullDesc(product) {
     parts.push(`<div class="usage-box">${usageParts.join("")}</div>`);
   }
 
-  /* PD-CTA-001: expert-help framing, not a second conversion CTA. The primary
-     Add-to-Enquiry action already lives in the sticky bar (mobile) and the
-     action panel (desktop). Approved copy (client run 2026-07-16): the CTA
-     opens the Product Advisor (never adds to the basket); if the advisor
-     script is unavailable it degrades to the contact page. */
-  parts.push(`
+  el.innerHTML = parts.join("\n");
+}
+
+function renderAdvice(product) {
+  const el = document.getElementById("detailAdvice");
+  if (!el) return;
+
+  el.innerHTML = `
     <div class="enquiry-guidance">
       <div class="enquiry-guidance-copy">
         <h2 class="enquiry-guidance-title">Need help confirming compatibility?</h2>
@@ -603,8 +606,7 @@ function renderFullDesc(product) {
       <button type="button" class="enquiry-guidance-link"
         onclick="if(window.openProductAdvisor){openProductAdvisor()}else{window.location.href='/contact'}">
         Get Product Advice &rarr;</button>
-    </div>`);
-  el.innerHTML = parts.join("\n");
+    </div>`;
 }
 
 // ─── Related Products ─────────────────────────────────────────────
