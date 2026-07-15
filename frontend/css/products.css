@@ -927,6 +927,7 @@ h1, h2, h3,
 .empty-state h2, .empty-state h3 { font-size: 1.05rem; margin-bottom: 0.25rem; color: var(--text); font-weight: 700; }
 .empty-state p { margin-bottom: 1rem; font-size: 0.9rem; }
 .empty-state .btn { padding: 0.6rem 1.25rem; }
+.empty-state-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
 
 /* ─── Toast Notification ──────────────────────────────────────── */
 .toast {

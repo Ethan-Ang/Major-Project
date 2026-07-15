@@ -462,8 +462,11 @@ function renderGrid(products) {
       <div class="empty-state">
         <div class="empty-state-icon" aria-hidden="true">&#9783;</div>
         <h3>No products match those filters</h3>
-        <p>Try removing a filter or clearing your search.</p>
-        <button class="btn btn-outline" onclick="clearFilters()">Clear all filters</button>
+        <p>Try removing a filter or clearing your search, or describe your job to the Product Advisor.</p>
+        <div class="empty-state-actions">
+          <button class="btn btn-outline" onclick="clearFilters()">Clear all filters</button>
+          <button class="btn btn-outline" onclick="if(window.openProductAdvisor)openProductAdvisor()">Ask the Product Advisor</button>
+        </div>
       </div>`;
     return;
   }

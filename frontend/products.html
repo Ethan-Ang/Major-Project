@@ -151,7 +151,7 @@
   <aside class="filter-sidebar" id="filterSidebar" aria-label="Refine products">
     <!-- Drawer header — mobile full-screen drawer only -->
     <div class="drawer-head">
-      <h2>Filter Products</h2>
+      <h2>Refine Products</h2>
       <button class="drawer-x" onclick="closeFilterDrawer()" aria-label="Close filters">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -245,7 +245,6 @@
         <button class="grid-clear-all" id="gridClearAll" hidden onclick="clearFilters()">Clear all</button>
         <div class="grid-sort">
           <span class="grid-sort-label" aria-hidden="true">Sort</span>
-          <label for="sortSelect" class="sr-only">Sort products</label>
           <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
             <option value="default">Default order</option>
             <option value="az">Name A–Z</option>
