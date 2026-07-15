@@ -45,6 +45,7 @@ async function initProductsPage() {
   renderTrustStats();
   applyFilterGroupDefaults();
   applyStateToCheckboxes();
+  syncShowMore(); // URL-restored checks must not hide behind "Show more"
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
   // Also refresh the mobile compare tab/sheet now that PRODUCTS has loaded, so
@@ -89,6 +90,21 @@ async function initProductsPage() {
     window.addEventListener("basketUpdated", () => {
       if (document.getElementById("productGrid")) applyFilters({ skipUrlWrite: true });
     });
+    // Back/forward across pushed filter states (A10). Swup skips popstate for
+    // non-swup entries, so these are ours to restore. If a filter entry is
+    // reached while another page's DOM is showing (Back from a swup-visited
+    // detail page), reload so the products page renders with that state.
+    window.addEventListener("popstate", () => {
+      if (!/\/products(\.html)?$/.test(location.pathname)) return;
+      const grid = document.getElementById("productGrid");
+      if (!grid) { location.reload(); return; }
+      readStateFromURL();
+      applyStateToCheckboxes();
+      if (typeof syncShowMore === "function") syncShowMore();
+      const si = document.getElementById("searchInput");
+      if (si && !new URLSearchParams(location.search).get("q")) si.value = "";
+      applyFilters({ skipUrlWrite: true });
+    });
   });
 }
 ylReady(initProductsPage);
@@ -99,7 +115,7 @@ ylReady(initProductsPage);
 // user sees the matching results (or the "no results" state) without having to
 // scroll manually. Typing alone never triggers this — only an explicit submit.
 function submitHeroSearch() {
-  applyFilters();
+  applyFilters({ pushHistory: true }); // an explicit submit is a committed state (A10)
   scrollToCatalogue();
 }
 
@@ -127,7 +143,22 @@ const BRAND_SLUGS = {
 };
 function canonicalBrand(token) {
   const key = String(token).toLowerCase().replace(/™|®/g, "").replace(/\s*brand\s*$/i, "").trim();
-  return BRAND_SLUGS[key] || token;
+  return BRAND_SLUGS[key] || canonicalValue(BRANDS, token);
+}
+
+// Canonical slug for URL state (SEARCH-001 A10): lowercase, ™/® dropped,
+// non-alphanumerics collapse to "-". "Lift & Escalator" → "lift-escalator".
+function ylSlug(s) {
+  return String(s || "").toLowerCase().replace(/[™®]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+// Resolve a URL token (slug OR legacy display value, any case) back to the
+// canonical display value from a known list. Unknown tokens pass through
+// unchanged and harmlessly match nothing.
+function canonicalValue(list, token) {
+  const t = ylSlug(token);
+  return (list || []).find(v => ylSlug(v) === t) || token;
 }
 
 function readStateFromURL() {
@@ -143,27 +174,49 @@ function readStateFromURL() {
     if (mobileSortSelect) mobileSortSelect.value = params.get("sort");
   }
 
-  activeFilters.productTypes = params.get("type")     ? params.get("type").split("|")     : [];
+  activeFilters.productTypes = params.get("type")     ? params.get("type").split("|").map(t => canonicalValue(PRODUCT_TYPES, t)) : [];
   activeFilters.brands       = params.get("brand")    ? params.get("brand").split("|").map(canonicalBrand) : [];
-  activeFilters.industries   = params.get("industry") ? params.get("industry").split("|") : [];
-  activeFilters.surfaces     = params.get("surface")  ? params.get("surface").split("|")  : [];
+  activeFilters.industries   = params.get("industry") ? params.get("industry").split("|").map(t => canonicalValue(INDUSTRIES, t)) : [];
+  activeFilters.surfaces     = params.get("surface")  ? params.get("surface").split("|").map(t => canonicalValue(SURFACES, t)) : [];
 }
 
-function writeStateToURL() {
+function writeStateToURL(opts = {}) {
   const params = new URLSearchParams();
   const search = document.getElementById("searchInput").value.trim();
   const sort   = document.getElementById("sortSelect").value;
 
+  // URLs carry canonical slugs (brand=deer, industry=flooring) — stable across
+  // trademark symbols, case and punctuation. readStateFromURL resolves them
+  // (and legacy display-value URLs) back to display labels.
+  const brandSlug = b => {
+    const short = Object.keys(BRAND_SLUGS).find(k => BRAND_SLUGS[k] === b);
+    return short || ylSlug(b);
+  };
   if (search) params.set("q", search);
   if (sort && sort !== "default") params.set("sort", sort);
-  if (activeFilters.productTypes.length) params.set("type",  activeFilters.productTypes.join("|"));
-  if (activeFilters.brands.length)     params.set("brand",    activeFilters.brands.join("|"));
-  if (activeFilters.industries.length) params.set("industry", activeFilters.industries.join("|"));
-  if (activeFilters.surfaces.length)   params.set("surface",  activeFilters.surfaces.join("|"));
+  if (activeFilters.productTypes.length) params.set("type",  activeFilters.productTypes.map(ylSlug).join("|"));
+  if (activeFilters.brands.length)     params.set("brand",    activeFilters.brands.map(brandSlug).join("|"));
+  if (activeFilters.industries.length) params.set("industry", activeFilters.industries.map(ylSlug).join("|"));
+  if (activeFilters.surfaces.length)   params.set("surface",  activeFilters.surfaces.map(ylSlug).join("|"));
 
   const queryStr = params.toString();
   const newUrl   = queryStr ? `${location.pathname}?${queryStr}` : location.pathname;
-  history.replaceState(null, "", newUrl);
+  // Typing/checkbox tweaks replace the current entry (no history spam); a
+  // committed selection (suggestion chosen, explicit search submit) pushes one,
+  // so Back steps through meaningful states (A10). A committed entry is never
+  // clobbered by later typing: the first scratch write after a commit branches
+  // to a new entry instead of replacing it. Existing state props are preserved
+  // on replace so a Swup-owned entry keeps its `source` marker.
+  const cur = history.state || {};
+  const changed = location.search !== (queryStr ? `?${queryStr}` : "");
+  if (opts.push) {
+    if (changed) history.pushState({ ylFilters: true, ylCommitted: true }, "", newUrl);
+    else history.replaceState(Object.assign({}, cur, { ylFilters: true, ylCommitted: true }), "", newUrl);
+  } else if (cur.ylCommitted && changed) {
+    history.pushState({ ylFilters: true }, "", newUrl);
+  } else {
+    history.replaceState(Object.assign({}, cur, { ylFilters: true }), "", newUrl);
+  }
 }
 
 function applyStateToCheckboxes() {
@@ -199,7 +252,7 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
     valueExtractor(p).forEach(v => { counts[v] = (counts[v] || 0) + 1; });
   });
 
-  const rows = items.map(item => {
+  const row = item => {
     const count = counts[item] || 0;
     const disabled = count === 0 ? "disabled" : "";
     return `
@@ -209,9 +262,62 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
         <span class="filter-count">${count}</span>
       </label>
     `;
-  }).join("");
+  };
+
+  // FILTER-001: long groups (Industry 12, Surface 15) buried the sidebar tail
+  // below the inner scroll fold. Show the first 8, tuck the rest behind a
+  // "Show more" toggle. Options are never lost: the toggle reveals all, a
+  // checked hidden option force-expands (see syncShowMore), and the expansion
+  // is remembered for the session.
+  const VISIBLE = 8;
+  let html;
+  if (items.length > VISIBLE + 1) {
+    const head = items.slice(0, VISIBLE).map(row).join("");
+    const rest = items.slice(VISIBLE);
+    const expanded = sessionStorage.getItem("ylFgMore:" + containerId) === "1";
+    html = `${head}
+      <div class="fg-more" ${expanded ? "" : "hidden"}>${rest.map(row).join("")}</div>
+      <button type="button" class="fg-more-btn" data-container="${containerId}"
+        aria-expanded="${expanded}" onclick="toggleFgMore(this)">
+        ${expanded ? "Show less" : `Show more (${rest.length})`}</button>`;
+  } else {
+    html = items.map(row).join("");
+  }
   // Single wrapper so the group can collapse smoothly via grid-template-rows.
-  container.innerHTML = `<div class="fg-rows">${rows}</div>`;
+  container.innerHTML = `<div class="fg-rows">${html}</div>`;
+}
+
+// Toggle a group's "Show more" region; remembered per session.
+function toggleFgMore(btn) {
+  const more = btn.parentElement.querySelector(".fg-more");
+  if (!more) return;
+  const expand = more.hidden;
+  more.hidden = !expand;
+  btn.setAttribute("aria-expanded", String(expand));
+  btn.textContent = expand ? "Show less" : `Show more (${more.querySelectorAll("label").length})`;
+  sessionStorage.setItem("ylFgMore:" + btn.dataset.container, expand ? "1" : "0");
+  updateFilterScrollFade();
+}
+
+// A checked option must never sit inside a collapsed "Show more" region
+// (FILTER-001 req 22). Called after any programmatic check (URL restore,
+// typeahead selection, popstate).
+function syncShowMore() {
+  document.querySelectorAll(".filter-sidebar .fg-more").forEach(more => {
+    if (more.hidden && more.querySelector("input:checked")) {
+      const btn = more.parentElement.querySelector(".fg-more-btn");
+      if (btn) toggleFgMore(btn);
+    }
+  });
+}
+
+// Reveal one checkbox if it is hidden behind "Show more" (typeahead selection).
+function revealCheckbox(cb) {
+  const more = cb.closest(".fg-more");
+  if (more && more.hidden) {
+    const btn = more.parentElement.querySelector(".fg-more-btn");
+    if (btn) toggleFgMore(btn);
+  }
 }
 
 // Trust-strip stats derived from the real catalogue (never hardcoded), so the
@@ -298,7 +404,7 @@ function applyFilters(opts = {}) {
   renderFilterChips();
   renderGrid(results);
 
-  if (!opts.skipUrlWrite) writeStateToURL();
+  if (!opts.skipUrlWrite) writeStateToURL({ push: !!opts.pushHistory });
   updateClearVisibility();
   updateFilterGroupBadges();
   syncBrandRows();
@@ -324,6 +430,13 @@ function updateFilterGroupBadges() {
   if (mobileCount) {
     mobileCount.textContent   = totalActive || "";
     mobileCount.style.display = totalActive > 0 ? "inline-flex" : "none";
+  }
+
+  // Desktop sidebar heading chip: active-filter total at a glance (FILTER-001)
+  const headTotal = document.getElementById("filterActiveTotal");
+  if (headTotal) {
+    headTotal.textContent = totalActive ? `${totalActive} active` : "";
+    headTotal.hidden = totalActive === 0;
   }
 }
 
@@ -804,8 +917,9 @@ function initSearchTypeahead() {
   const panel = document.getElementById("searchTypeahead");
   if (!input || !panel) return;
 
-  const MAX = 7;
-  let matches = [];
+  const MAX_PRODUCTS = 5;       // per group caps keep the popup compact (SEARCH-001 A6)
+  const MAX_PER_FILTER = 3;
+  let items = [];               // flat, keyboard-navigable list of options
   let highlight = -1;
   let lastQuery = "";
 
@@ -814,6 +928,20 @@ function initSearchTypeahead() {
 
   // Escape the query for use inside a RegExp so special characters are literal.
   const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Matching is done on normalised text: lowercase, ™/® optional, runs of
+  // whitespace collapsed. Punctuation stays literal (never a crash, never a
+  // wildcard). The same helper backs the canonical URL slugs.
+  const norm = s => String(s || "").toLowerCase().replace(/[™®]/g, "").replace(/\s+/g, " ").trim();
+
+  // Reviewed synonym map (SEARCH-001 A2, documented in the QA tracker). Purely
+  // navigational: each entry maps a common word to an EXISTING filter label so
+  // the matching filter can be suggested. No technical equivalence implied.
+  const SYNONYMS = {
+    car: "Automotive", vehicle: "Automotive",
+    boat: "Marine", ship: "Marine",
+    timber: "Wood", cabinet: "Carpentry", sofa: "Upholstery",
+  };
 
   // Render `text` with the matched substring wrapped in a red <mark>. Escapes
   // first, so the highlight is applied to already-safe HTML.
@@ -825,31 +953,87 @@ function initSearchTypeahead() {
   }
 
   // Lower score = more relevant. Name-prefix beats name-substring beats brand
-  // beats industry/surface, so a broad query (e.g. "a") still surfaces a
-  // product whose name starts with it (ASG001) instead of burying it behind
-  // catalogue-order substring matches. Infinity means "no match".
-  function scoreMatch(p, query) {
-    const name = p.name.toLowerCase();
-    const brand = brandName(p).toLowerCase();
-    const raw = (p.brand || "").toLowerCase();
-    if (name.startsWith(query)) return 0;
-    if (name.includes(query)) return 1;
-    if (brand.startsWith(query) || raw.startsWith(query)) return 2;
-    if (brand.includes(query) || raw.includes(query)) return 3;
-    if ((p.industries || []).some(i => i.toLowerCase().includes(query))) return 4;
-    if ((p.surfaces || []).some(s => s.toLowerCase().includes(query))) return 5;
+  // beats type/industry/surface beats best-for description (A2 field list).
+  function scoreProduct(p, q) {
+    const name = norm(p.name);
+    const brand = norm(brandName(p)), raw = norm(p.brand || "");
+    if (name === q) return -1;
+    if (name.startsWith(q)) return 0;
+    if (name.includes(q)) return 1;
+    if (brand.startsWith(q) || raw.startsWith(q)) return 2;
+    if (brand.includes(q) || raw.includes(q)) return 3;
+    if (norm(productType(p)).includes(q)) return 4;
+    if ((p.industries || []).some(i => norm(i).includes(q))) return 5;
+    if ((p.surfaces || []).some(s => norm(s).includes(q))) return 6;
+    if (norm(p.shortDescription).includes(q)) return 7;
     return Infinity;
   }
 
-  function computeMatches(q) {
-    const query = q.toLowerCase();
-    // Array.sort is stable, so equal-score items keep catalogue order.
-    return (PRODUCTS || [])
-      .map(p => ({ p, s: scoreMatch(p, query) }))
+  // 0 exact label, 1 prefix, 2 contains, 3 reviewed synonym, Infinity no match.
+  function scoreFilter(label, q, syn) {
+    const l = norm(label);
+    if (l === q) return 0;
+    if (l.startsWith(q)) return 1;
+    if (l.includes(q)) return 2;
+    if (syn && l === syn) return 3;
+    return Infinity;
+  }
+
+  // Filter suggestions come from the SAME lists + live counts the sidebar is
+  // built from (data.js constants + PRODUCTS), so a suggestion always has a
+  // real checkbox behind it. No "Applications" group: no application filter
+  // exists in the sidebar, and a suggestion must never fake a selection.
+  function filterSources() {
+    const count = ex => {
+      const c = {};
+      (PRODUCTS || []).forEach(p => ex(p).forEach(v => { c[v] = (c[v] || 0) + 1; }));
+      return c;
+    };
+    const brandList = (typeof PUBLIC_BRANDS !== "undefined") ? PUBLIC_BRANDS
+      : BRANDS.filter(b => b !== "Others & Accessories");
+    return [
+      { group: "Brands",        type: "brand",       labels: brandList,     counts: count(p => [p.brand]) },
+      { group: "Product Types", type: "producttype", labels: PRODUCT_TYPES, counts: count(p => [productType(p)]) },
+      { group: "Industries",    type: "industry",    labels: INDUSTRIES,    counts: count(p => p.industries || []) },
+      { group: "Surfaces",      type: "surface",     labels: SURFACES,      counts: count(p => p.surfaces || []) },
+    ];
+  }
+
+  function computeItems(qRaw) {
+    const q = norm(qRaw);
+    const syn = SYNONYMS[q] ? norm(SYNONYMS[q]) : null;
+
+    const prods = (PRODUCTS || [])
+      .map(p => ({ p, s: scoreProduct(p, q) }))
       .filter(x => x.s !== Infinity)
-      .sort((a, b) => a.s - b.s)
-      .slice(0, MAX)
-      .map(x => x.p);
+      .sort((a, b) => a.s - b.s); // stable: equal scores keep catalogue order
+
+    let bestFilterScore = Infinity;
+    const filterItems = [];
+    filterSources().forEach(g => {
+      g.labels
+        .map(label => ({ label, s: scoreFilter(label, q, syn) }))
+        .filter(x => x.s !== Infinity && (g.counts[x.label] || 0) > 0)
+        .sort((a, b) => a.s - b.s)
+        .slice(0, MAX_PER_FILTER)
+        .forEach(m => {
+          bestFilterScore = Math.min(bestFilterScore, m.s);
+          filterItems.push({ kind: "filter", group: g.group, type: g.type, label: m.label, count: g.counts[m.label] || 0 });
+        });
+    });
+
+    const productItems = prods.slice(0, MAX_PRODUCTS).map(x => ({ kind: "product", p: x.p }));
+    const bestProductScore = prods.length ? prods[0].s : Infinity;
+
+    // A6 ranking: exact/prefix product names (score <= 0) always lead; an
+    // exact/prefix FILTER label (score <= 1) outranks mere name-contains
+    // product matches (score >= 1); otherwise products lead.
+    const flat = (bestFilterScore <= 1 && bestProductScore >= 1)
+      ? [...filterItems, ...productItems]
+      : [...productItems, ...filterItems];
+
+    if (prods.length > MAX_PRODUCTS) flat.push({ kind: "viewall", total: prods.length });
+    return flat;
   }
 
   function isOpen() { return !panel.hidden; }
@@ -861,11 +1045,19 @@ function initSearchTypeahead() {
     panel.style.left = `${Math.round(r.left)}px`;
     panel.style.top = `${Math.round(r.bottom + 6)}px`;
     panel.style.width = `${Math.round(r.width)}px`;
+    // A9: never taller than the space below the bar (keyboard/safe-area aware).
+    panel.style.maxHeight = `${Math.max(180, Math.round(window.innerHeight - r.bottom - 18))}px`;
   }
 
   function open() {
     panel.hidden = false;
     input.setAttribute("aria-expanded", "true");
+    // The panel lives inside .hero-main > .hero-inner, BOTH z-index:1 stacking
+    // contexts. Painting is decided at the outermost of those, where z:1 ties
+    // with the advisor banner's z:1 and loses on DOM order. Lift every hero
+    // context ancestor while suggestions are open.
+    input.closest(".hero-main")?.classList.add("st-elevate");
+    input.closest(".hero-inner")?.classList.add("st-elevate");
     reposition();
   }
 
@@ -875,58 +1067,135 @@ function initSearchTypeahead() {
     input.setAttribute("aria-expanded", "false");
     input.removeAttribute("aria-activedescendant");
     highlight = -1;
+    input.closest(".hero-main")?.classList.remove("st-elevate");
+    input.closest(".hero-inner")?.classList.remove("st-elevate");
+  }
+
+  function sectionOf(item) {
+    if (item.kind === "product") return "Products";
+    if (item.kind === "filter") return item.group;
+    return null; // viewall / advisor rows carry no section header
   }
 
   function render() {
-    if (!matches.length) {
-      panel.innerHTML =
-        `<li class="search-typeahead-empty" role="option" aria-disabled="true">No products found. Press Search to browse all.</li>`;
+    if (!items.length) {
+      // A7: honest empty state + one helpful action (still a real option row).
+      items = [{ kind: "advisor" }];
+      panel.innerHTML = `
+        <li class="search-typeahead-empty" role="presentation">No direct matches. Press Enter to search the full catalogue.</li>
+        <li class="search-typeahead-row st-row-action" role="option" id="st-opt-0" aria-selected="false">Ask the Product Advisor</li>`;
       return;
     }
-    panel.innerHTML = matches.map((p, i) => `
-      <li class="search-typeahead-row" role="option" id="st-opt-${i}" data-id="${escapeHTML(String(p.id))}" aria-selected="${i === highlight}">
-        <span class="st-name">${highlightMatch(p.name, lastQuery)}</span>
-        <span class="st-brand">${highlightMatch(brandName(p), lastQuery)}</span>
-      </li>`).join("");
+    let html = "", lastSection = null;
+    items.forEach((item, i) => {
+      const sec = sectionOf(item);
+      if (sec && sec !== lastSection) {
+        html += `<li class="st-group" role="presentation" aria-hidden="true">${escapeHTML(sec)}</li>`;
+        lastSection = sec;
+      }
+      const sel = `aria-selected="${i === highlight}"`;
+      if (item.kind === "product") {
+        const p = item.p;
+        const img = (p.images && p.images[0])
+          ? `<img class="st-thumb" src="${escapeHTML(p.images[0])}" alt="" loading="lazy">`
+          : `<span class="st-thumb st-thumb-ph" aria-hidden="true"></span>`;
+        html += `
+          <li class="search-typeahead-row" role="option" id="st-opt-${i}" ${sel}
+              aria-label="${escapeHTML(p.name)}, product">
+            ${img}
+            <span class="st-main">
+              <span class="st-name">${highlightMatch(p.name, lastQuery)}</span>
+              <span class="st-brand">${highlightMatch(brandName(p), lastQuery)} &middot; ${escapeHTML(productType(p))}</span>
+            </span>
+          </li>`;
+      } else if (item.kind === "filter") {
+        const singular = { "Brands": "Brand", "Product Types": "Product Type", "Industries": "Industry", "Surfaces": "Surface" }[item.group] || item.group;
+        html += `
+          <li class="search-typeahead-row st-row-filter" role="option" id="st-opt-${i}" ${sel}
+              aria-label="${escapeHTML(item.label)}, ${escapeHTML(singular)} filter, ${item.count} product${item.count !== 1 ? "s" : ""}">
+            <span class="st-name">${highlightMatch(item.label, lastQuery)}</span>
+            <span class="st-count">${item.count} product${item.count !== 1 ? "s" : ""}</span>
+          </li>`;
+      } else if (item.kind === "viewall") {
+        html += `
+          <li class="search-typeahead-row st-row-action" role="option" id="st-opt-${i}" ${sel}>
+            View all ${item.total} matching products
+          </li>`;
+      }
+    });
+    panel.innerHTML = html;
   }
 
   function setHighlight(i) {
-    if (!matches.length) return;
-    highlight = (i + matches.length) % matches.length;
+    if (!items.length) return;
+    highlight = (i + items.length) % items.length;
     render();
     input.setAttribute("aria-activedescendant", `st-opt-${highlight}`);
     const row = panel.querySelector(`#st-opt-${highlight}`);
     if (row) row.scrollIntoView({ block: "nearest" });
   }
 
-  function go(p) {
-    window.location.href = `/product-detail?id=${encodeURIComponent(p.id)}`;
+  // A3: a filter suggestion drives the REAL checkbox (the single source of
+  // truth applyFilters() reads), so desktop sidebar, mobile drawer, pills,
+  // count, grid and URL all update through the one existing pipeline.
+  function selectFilterSuggestion(item) {
+    const cb = [...document.querySelectorAll(`.filter-sidebar input[data-type="${item.type}"]`)]
+      .find(c => c.value === item.label);
+    if (cb) {
+      cb.checked = true;
+      if (typeof revealCheckbox === "function") revealCheckbox(cb); // never leave it hidden in "Show more"
+    }
+    input.value = "";   // the active-filter pill now carries the intent; a stale query would fight it
+    lastQuery = "";
+    close();
+    applyFilters({ pushHistory: true });
+    if (typeof window.announce === "function") {
+      const rc = document.getElementById("resultCount");
+      window.announce(`${item.label} filter applied. ${rc ? rc.textContent : ""}`.trim());
+    }
+    scrollToCatalogue();
+    input.focus(); // logical place to keep refining
   }
 
-  // Suggestions appear from the first character. Runs alongside the existing
-  // live-filter input listener, so the catalogue still filters as you type.
+  function choose(item) {
+    if (!item) return;
+    if (item.kind === "product") {
+      window.location.href = `/product-detail?id=${encodeURIComponent(item.p.id)}`;
+    } else if (item.kind === "filter") {
+      selectFilterSuggestion(item);
+    } else if (item.kind === "viewall") {
+      close();
+      submitHeroSearch();
+    } else if (item.kind === "advisor") {
+      close();
+      if (window.openProductAdvisor) window.openProductAdvisor();
+    }
+  }
+
+  // Suggestions appear from the first character; empty input shows nothing
+  // (A1: no huge empty dropdown). Runs alongside the live-filter listener.
   input.addEventListener("input", () => {
     const q = input.value.trim();
-    if (q.length < 1) { matches = []; lastQuery = ""; close(); return; }
+    if (q.length < 1) { items = []; lastQuery = ""; close(); return; }
     lastQuery = q;
-    matches = computeMatches(q);
+    items = computeItems(q);
     highlight = -1;
     render();
     open();
   });
 
   // Capture phase so we can intercept before the page's own Enter handler:
-  // a highlighted suggestion opens that product; a plain Enter falls through
-  // to submitHeroSearch() (the existing behaviour).
+  // a highlighted suggestion is chosen; a plain Enter falls through to the
+  // existing free-text search (A5 — never auto-pick a suggestion).
   input.addEventListener("keydown", (e) => {
     if (!isOpen()) return;
     if (e.key === "ArrowDown") {
-      if (matches.length) { e.preventDefault(); e.stopImmediatePropagation(); setHighlight(highlight + 1); }
+      if (items.length) { e.preventDefault(); e.stopImmediatePropagation(); setHighlight(highlight + 1); }
     } else if (e.key === "ArrowUp") {
-      if (matches.length) { e.preventDefault(); e.stopImmediatePropagation(); setHighlight(highlight - 1); }
+      if (items.length) { e.preventDefault(); e.stopImmediatePropagation(); setHighlight(highlight - 1); }
     } else if (e.key === "Enter") {
-      if (highlight >= 0 && matches[highlight]) {
-        e.preventDefault(); e.stopImmediatePropagation(); go(matches[highlight]);
+      if (highlight >= 0 && items[highlight]) {
+        e.preventDefault(); e.stopImmediatePropagation(); choose(items[highlight]);
       } else {
         close(); // let the existing handler run submitHeroSearch()
       }
@@ -940,8 +1209,8 @@ function initSearchTypeahead() {
     const row = e.target.closest(".search-typeahead-row");
     if (!row) return;
     e.preventDefault();
-    const p = matches.find(m => String(m.id) === row.dataset.id);
-    if (p) go(p);
+    const idx = parseInt((row.id || "").replace("st-opt-", ""), 10);
+    if (!Number.isNaN(idx)) choose(items[idx]);
   });
 
   input.addEventListener("blur", () => setTimeout(close, 120));
