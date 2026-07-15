@@ -30,16 +30,36 @@ function isInCompare(productId) {
   return getCompareList().map(String).includes(String(productId));
 }
 
+// Screen-reader announcement for compare changes (visible feedback is the
+// button/tray state). Falls back silently if app.js hasn't loaded.
+function cmpAnnounce(productId, msg) {
+  if (typeof window.announce !== "function") return;
+  // PRODUCTS is a top-level `let` in data.js (not a window property), so the
+  // bare identifier is the correct way to reach it from this classic script.
+  const list = typeof PRODUCTS !== "undefined" ? PRODUCTS : [];
+  const p = (list || []).find(x => String(x.id) === String(productId));
+  window.announce(`${p ? p.name : "Product"} ${msg}`);
+}
+
 function addToCompare(productId) {
   const list = getCompareList().map(String);
   const id = String(productId);
-  if (list.includes(id) || list.length >= COMPARE_MAX) return;
+  if (list.includes(id)) return;
+  if (list.length >= COMPARE_MAX) {
+    // Card buttons disable at the limit, but this path can still be reached
+    // (e.g. stale UI after a swap) — never fail silently for AT users.
+    if (typeof window.announce === "function")
+      window.announce(`Compare is full (${COMPARE_MAX} products). Remove one to add another.`);
+    return;
+  }
   list.push(id);
   saveCompareList(list);
+  cmpAnnounce(id, "added to compare.");
 }
 
 function removeFromCompare(productId) {
   saveCompareList(getCompareList().map(String).filter(id => id !== String(productId)));
+  cmpAnnounce(productId, "removed from compare.");
 }
 
 function clearCompare() {
