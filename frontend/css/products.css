@@ -929,6 +929,14 @@ h1, h2, h3,
 .empty-state .btn { padding: 0.6rem 1.25rem; }
 .empty-state-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
 
+/* Inline field validation message (enquiry form). Matches the summary error
+   red (#c0392b) so genuine errors stay visually distinct from brand red. */
+.field-error {
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin: 0.35rem 0 0;
+}
+
 /* ─── Toast Notification ──────────────────────────────────────── */
 .toast {
   position: fixed;

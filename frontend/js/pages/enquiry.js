@@ -113,27 +113,35 @@ async function submitEnquiry() {
   const errorEl = document.getElementById("enquiryError");
   const btn     = document.getElementById("submitEnquiryBtn");
 
-  // Reset previous error state
+  // Reset previous error state (summary + inline messages)
   ["eName", "eCompany", "eEmail"].forEach(fid => {
     const field = document.getElementById(fid);
     field.removeAttribute("aria-invalid");
     field.removeAttribute("aria-describedby");
+    const inline = document.getElementById(fid + "Err");
+    if (inline) inline.hidden = true;
   });
 
-  const missing = [];
-  if (!name)    missing.push({ id: "eName",    label: "full name" });
-  if (!company) missing.push({ id: "eCompany", label: "company name" });
-  if (!email)   missing.push({ id: "eEmail",   label: "email address" });
+  // Inline validation: each invalid field gets its own message + aria link;
+  // the summary stays as the announced overview (not the only signal).
+  const invalid = [];
+  if (!name)    invalid.push({ id: "eName",    label: "full name" });
+  if (!company) invalid.push({ id: "eCompany", label: "company name" });
+  if (!email)   invalid.push({ id: "eEmail",   label: "email address" });
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
+    invalid.push({ id: "eEmail", label: "valid email address" });
 
-  if (missing.length > 0) {
-    missing.forEach(f => {
+  if (invalid.length > 0) {
+    invalid.forEach(f => {
       const field = document.getElementById(f.id);
       field.setAttribute("aria-invalid", "true");
-      field.setAttribute("aria-describedby", "enquiryError");
+      field.setAttribute("aria-describedby", f.id + "Err");
+      const inline = document.getElementById(f.id + "Err");
+      if (inline) inline.hidden = false;
     });
-    errorEl.textContent   = "Please enter your " + missing.map(f => f.label).join(", ") + " before sending your enquiry.";
+    errorEl.textContent   = "Please enter your " + invalid.map(f => f.label).join(", ") + " before sending your enquiry.";
     errorEl.style.display = "block";
-    document.getElementById(missing[0].id).focus();
+    document.getElementById(invalid[0].id).focus();
     window.scrollTo({ top: errorEl.offsetTop - 100, behavior: "smooth" });
     return;
   }

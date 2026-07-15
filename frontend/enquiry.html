@@ -69,16 +69,19 @@
             <div class="form-group">
               <label for="eName">Full Name *</label>
               <input type="text" id="eName" required aria-required="true" autocomplete="name" placeholder="John Tan">
+              <p class="field-error" id="eNameErr" hidden>Please enter your full name.</p>
             </div>
             <div class="form-group">
               <label for="eCompany">Company Name *</label>
               <input type="text" id="eCompany" required aria-required="true" autocomplete="organization" placeholder="ABC Pte Ltd">
+              <p class="field-error" id="eCompanyErr" hidden>Please enter your company name.</p>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="eEmail">Email Address *</label>
               <input type="email" id="eEmail" required aria-required="true" autocomplete="email" placeholder="you@company.com">
+              <p class="field-error" id="eEmailErr" hidden>Please enter a valid email address.</p>
             </div>
             <div class="form-group">
               <label for="ePhone">Phone Number</label>
