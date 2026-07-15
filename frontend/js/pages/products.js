@@ -146,6 +146,16 @@ function canonicalBrand(token) {
   return BRAND_SLUGS[key] || canonicalValue(BRANDS, token);
 }
 
+// Shared search-text normalisation, used by BOTH the free-text grid matching
+// (applyFilters) and the typeahead suggestions so the two can never disagree:
+// lowercase, ™/® optional, hyphens/dashes folded to spaces ("spray-guns" ==
+// "spray guns"), whitespace runs collapsed. Other punctuation stays literal.
+// URL slugs deliberately do NOT use this — they go through ylSlug below.
+function ylSearchNorm(s) {
+  return String(s || "").toLowerCase().replace(/[™®]/g, "")
+    .replace(/[-‐-―]/g, " ").replace(/\s+/g, " ").trim();
+}
+
 // Canonical slug for URL state (SEARCH-001 A10): lowercase, ™/® dropped,
 // non-alphanumerics collapse to "-". "Lift & Escalator" → "lift-escalator".
 function ylSlug(s) {
@@ -357,7 +367,9 @@ function syncBrandRows() {
 
 // ─── Apply search + filters + sort ───────────────────────────────
 function applyFilters(opts = {}) {
-  const query   = document.getElementById("searchInput").value.toLowerCase().trim();
+  // Same normalisation as the typeahead (ylSearchNorm), so the live grid and
+  // the suggestion panel always agree — e.g. "spray-guns" matches "Spray Guns".
+  const query   = ylSearchNorm(document.getElementById("searchInput").value);
   const sortVal = document.getElementById("sortSelect").value;
 
   activeFilters = { productTypes: [], brands: [], industries: [], surfaces: [] };
@@ -374,13 +386,13 @@ function applyFilters(opts = {}) {
     // (e.g. "lab-tested", "Low VOC") — matching them let short, generic words
     // like "test" surface unrelated products via substrings such as "tested".
     const matchesQuery = !query ||
-      p.name.toLowerCase().includes(query) ||
-      p.brand.toLowerCase().includes(query) ||
-      brandDisplay(p.brand).toLowerCase().includes(query) ||
-      productType(p).toLowerCase().includes(query) ||
-      p.shortDescription.toLowerCase().includes(query) ||
-      p.industries.some(i => i.toLowerCase().includes(query)) ||
-      p.surfaces.some(s => s.toLowerCase().includes(query));
+      ylSearchNorm(p.name).includes(query) ||
+      ylSearchNorm(p.brand).includes(query) ||
+      ylSearchNorm(brandDisplay(p.brand)).includes(query) ||
+      ylSearchNorm(productType(p)).includes(query) ||
+      ylSearchNorm(p.shortDescription).includes(query) ||
+      p.industries.some(i => ylSearchNorm(i).includes(query)) ||
+      p.surfaces.some(s => ylSearchNorm(s).includes(query));
 
     const matchesType = activeFilters.productTypes.length === 0 ||
       activeFilters.productTypes.includes(productType(p));
@@ -929,11 +941,11 @@ function initSearchTypeahead() {
   // Escape the query for use inside a RegExp so special characters are literal.
   const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  // Matching is done on normalised text: lowercase, ™/® optional, hyphens
-  // folded to spaces (so "spray gun" finds "Spray-Gun" and vice versa), runs
-  // of whitespace collapsed. Other punctuation stays literal (never a crash,
-  // never a wildcard). URL slugs use ylSlug, not this.
-  const norm = s => String(s || "").toLowerCase().replace(/[™®]/g, "").replace(/[-‐-―]/g, " ").replace(/\s+/g, " ").trim();
+  // Matching is done on normalised text via the shared ylSearchNorm (also used
+  // by applyFilters' free-text matching, so grid and suggestions always agree):
+  // lowercase, ™/® optional, hyphens folded to spaces, whitespace collapsed.
+  // Other punctuation stays literal. URL slugs use ylSlug, not this.
+  const norm = ylSearchNorm;
 
   // Reviewed synonym map (SEARCH-001 A2, documented in the QA tracker). Purely
   // navigational: each entry maps a common word to an EXISTING filter label so

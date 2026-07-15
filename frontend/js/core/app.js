@@ -104,7 +104,10 @@
   // A single polite live region, injected once outside #swup so it survives page
   // swaps. Used to confirm basket changes for assistive tech now that the visible
   // success toast is gone. Clearing then setting re-announces identical messages.
-  window.announce = function (message) {
+  // The region is created at page init, not lazily on the first announce():
+  // assistive tech can miss a message that lands in a live region created in the
+  // same tick, so it must already exist before the first user action.
+  function ensureStatusRegion() {
     var el = document.getElementById("ylStatus");
     if (!el) {
       el = document.createElement("div");
@@ -115,6 +118,12 @@
       el.setAttribute("aria-atomic", "true");
       document.body.appendChild(el);
     }
+    return el;
+  }
+  window.ylReady(ensureStatusRegion); // idempotent: getElementById guard, one region ever
+
+  window.announce = function (message) {
+    var el = ensureStatusRegion();
     el.textContent = "";
     window.setTimeout(function () { el.textContent = message; }, 50);
   };

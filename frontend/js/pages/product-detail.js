@@ -274,20 +274,29 @@ function escapeDocAttr(s) {
     .replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// A document only renders when its record is a genuine, well-formed http(s)
-// URL (absolute or site-relative). Malformed values (placeholders, stray
-// text, unsafe schemes) are treated as "no document" rather than a broken
-// button.
+// A document only renders when its record is a genuine same-site root-relative
+// path (/uploads/docs/x.pdf) or an explicit absolute https URL. Malformed
+// values (placeholders, stray text, unsafe schemes) are treated as "no
+// document" rather than a broken button.
 function validDocUrl(raw) {
   const s = String(raw || "").trim();
   if (!s) return null;
-  // Must be an explicit absolute http(s) URL or a site-rooted path. Bare
-  // tokens ("x", "tbc") would otherwise resolve as relative URLs and render
-  // a broken button for what is really placeholder data.
-  if (!/^https?:\/\//i.test(s) && !s.startsWith("/")) return null;
+  // Protocol-relative / UNC-style values (//host, \\host, /\host, ///host)
+  // begin with a slash but resolve to an EXTERNAL host — never a document.
+  if (/^[\/\\]{2,}/.test(s)) return null;
+  if (s.startsWith("/")) {
+    // Site-rooted path: must parse and stay on this origin.
+    try {
+      const u = new URL(s, window.location.origin);
+      return u.origin === window.location.origin ? s : null;
+    } catch { return null; }
+  }
+  // Absolute external URL: https only. Bare tokens ("x", "tbc") fail this
+  // test and fall through to the empty state instead of a broken button.
+  if (!/^https:\/\//i.test(s)) return null;
   try {
-    const u = new URL(s, window.location.origin);
-    return (u.protocol === "http:" || u.protocol === "https:") ? s : null;
+    const u = new URL(s);
+    return u.protocol === "https:" ? s : null;
   } catch { return null; }
 }
 
