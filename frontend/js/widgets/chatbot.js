@@ -82,6 +82,15 @@
       }
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      #yl-advisor-panel, .yl-adv-backdrop {
+        transition: none;
+        transform: none;
+      }
+      #yl-advisor-panel.open { transform: none; }
+      .yl-adv-messages { scroll-behavior: auto; }
+    }
+
     /* Header */
     .yl-adv-header {
       position: relative;
