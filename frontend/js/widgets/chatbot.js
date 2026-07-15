@@ -59,9 +59,16 @@
     }
 
     @media (max-width: 520px) {
+      /* ADV-001: fit the content on open (greeting + chips), never a huge
+         blank middle. Grows with the conversation up to 78dvh, then the
+         messages list scrolls. Safe-area padded so the input clears the
+         home indicator. */
       #yl-advisor-panel {
         width: 100%;
-        height: 82vh;
+        height: auto;
+        min-height: 320px;
+        max-height: 78dvh;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         top: auto;
         left: 0;
         bottom: 0;
