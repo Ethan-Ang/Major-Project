@@ -543,14 +543,17 @@ function renderFullDesc(product) {
     parts.push(`<div class="usage-box">${usageParts.join("")}</div>`);
   }
 
+  /* PD-CTA-001: expert-help framing, not a second conversion CTA. The primary
+     Add-to-Enquiry action already lives in the sticky bar (mobile) and the
+     action panel (desktop), so this card offers human confirmation instead of
+     repeating another giant enquiry button right above the fixed bar. */
   parts.push(`
     <div class="enquiry-guidance">
       <div class="enquiry-guidance-copy">
-        <h2 class="enquiry-guidance-title">Not sure if this product fits your application?</h2>
-        <p>Send your surface, application, and quantity requirements to Yee Lim.
-        Our team will advise on suitability and quotation.</p>
+        <h2 class="enquiry-guidance-title">Need help confirming compatibility?</h2>
+        <p>Tell our team your surface and application. We&rsquo;ll confirm suitability before you order.</p>
       </div>
-      <a href="/enquiry" class="enquiry-guidance-link" onclick="enquireAboutProduct('${product.id}')">Send Product Enquiry &rarr;</a>
+      <a href="/contact" class="enquiry-guidance-link">Contact an Expert &rarr;</a>
     </div>`);
   el.innerHTML = parts.join("\n");
 }
