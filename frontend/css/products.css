@@ -1239,6 +1239,32 @@ body.detail-has-cta .toast {
   transform: translateY(-2px);
 }
 
+/* CLIENT-002 empty state: warm-neutral information, deliberately NOT styled
+   as an error. Mirrors the row layout so the section keeps its shape. */
+.doc-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface, #fbfaf6);
+}
+.doc-empty-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2ece0;
+  color: var(--muted);
+}
+.doc-empty-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.doc-empty-main { font-size: 0.9rem; color: var(--text); }
+.doc-empty-sub  { font-size: 0.78rem; color: var(--muted); }
+
 .doc-download-icon {
   flex-shrink: 0;
   width: 40px;

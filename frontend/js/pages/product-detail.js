@@ -264,25 +264,46 @@ function renderSpecTable(product) {
 }
 
 // ─── Product Documents (SDS / TDS downloads) ──────────────────────
-// Renders a clean download section ONLY when a document URL exists.
-// If neither SDS nor TDS is set, the whole section stays hidden.
+// CLIENT-002: the "Downloads" section is ALWAYS visible. With no documents it
+// shows an honest empty state; otherwise one row per available document.
+// CLIENT-003 (visitor-details gate before download) is NOT built yet — when it
+// is, it wraps the docRow action below; the states/markup here stay as-is.
 function escapeDocAttr(s) {
   return String(s)
     .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
     .replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// A document only renders when its record is a genuine, well-formed http(s)
+// URL (absolute or site-relative). Malformed values (placeholders, stray
+// text, unsafe schemes) are treated as "no document" rather than a broken
+// button.
+function validDocUrl(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return null;
+  // Must be an explicit absolute http(s) URL or a site-rooted path. Bare
+  // tokens ("x", "tbc") would otherwise resolve as relative URLs and render
+  // a broken button for what is really placeholder data.
+  if (!/^https?:\/\//i.test(s) && !s.startsWith("/")) return null;
+  try {
+    const u = new URL(s, window.location.origin);
+    return (u.protocol === "http:" || u.protocol === "https:") ? s : null;
+  } catch { return null; }
+}
+
 function renderDownloads(product) {
   const el = document.getElementById("detailDownloads");
   if (!el) return;
 
-  const sds = (product.sdsUrl || "").trim();
-  const tds = (product.tdsUrl || "").trim();
+  const sds = validDocUrl(product.sdsUrl);
+  const tds = validDocUrl(product.tdsUrl);
 
-  // Hide the entire section when there are no documents.
-  if (!sds && !tds) { el.innerHTML = ""; return; }
-
-  const docLink = (href, label) => `
+  // ── The single future integration point for CLIENT-003: the gate will
+  // replace this anchor's direct navigation with the visitor-details flow.
+  // Until then the approved behaviour stands: open the PDF in a new tab. ──
+  const docRow = (href, label) => {
+    const type = /\.pdf(\?|#|$)/i.test(href) ? "PDF document" : "Document";
+    return `
     <a class="doc-download" href="${escapeDocAttr(href)}" target="_blank" rel="noopener">
       <span class="doc-download-icon" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -294,20 +315,36 @@ function renderDownloads(product) {
       </span>
       <span class="doc-download-text">
         <span class="doc-download-label">${label}</span>
-        <span class="doc-download-sub">PDF document, opens in a new tab</span>
+        <span class="doc-download-sub">${type}, opens in a new tab</span>
       </span>
       <span class="doc-download-go" aria-hidden="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </span>
     </a>`;
+  };
+
+  const body = (sds || tds)
+    ? `<div class="doc-download-list">
+        ${sds ? docRow(sds, "Safety Data Sheet") : ""}
+        ${tds ? docRow(tds, "Technical Data Sheet") : ""}
+      </div>`
+    : `<div class="doc-empty">
+        <span class="doc-empty-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </span>
+        <span class="doc-empty-text">
+          <span class="doc-empty-main">No downloads are currently available for this product.</span>
+          <span class="doc-empty-sub">Contact Yee Lim if you require technical documentation.</span>
+        </span>
+      </div>`;
 
   el.innerHTML = `
-    <section class="detail-downloads" aria-label="Product documents">
-      <h2 class="section-heading">Product Documents</h2>
-      <div class="doc-download-list">
-        ${sds ? docLink(sds, "Download Safety Data Sheet") : ""}
-        ${tds ? docLink(tds, "Download Technical Data Sheet") : ""}
-      </div>
+    <section class="detail-downloads" aria-label="Product downloads">
+      <h2 class="section-heading">Downloads</h2>
+      ${body}
     </section>`;
 }
 

@@ -161,23 +161,10 @@
       color: #8a93a0;
     }
     .site-footer-bottom strong { color: #cdc7b9; font-weight: 600; }
-    .site-footer-admin {
-      color: #8a93a0;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-    /* Underline ONLY the label. Putting the underline on the whole <a> also
-       underlines the ::before "·" and its spaces (a child's text-decoration
-       can't cancel an ancestor's) — that was the stray "half underline". The
-       separator stays in CSS + nowrap so it never dangles from the link. */
-    .site-footer-admin-label { text-decoration: underline; text-underline-offset: 2px; }
-    .site-footer-admin::before { content: " · "; }
-    .site-footer-admin:hover { color: #fff; }
-    .site-footer-admin:focus-visible {
-      outline: 2px solid #CC2929;
-      outline-offset: 2px;
-      border-radius: 3px;
-    }
+    /* CLIENT-007: the public Admin Login link was removed at the client's
+       request (they bookmark /admin/login.html directly). The login page and
+       its authentication are unchanged; this is discoverability, not a
+       security control. */
 
     @media (max-width: 900px) {
       .site-footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
@@ -351,7 +338,7 @@
 
     <div class="site-footer-bottom">
       <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
-      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore<a class="site-footer-admin" href="/admin/login.html"><span class="site-footer-admin-label">Admin Login</span></a></span>
+      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore</span>
     </div>
 
     <!-- Compact mobile footer (≤640px) — matches the mobile prototype: a small
