@@ -115,6 +115,21 @@ function scrollToCatalogue() {
 }
 
 // ─── URL state ──────────────────────────────────────────────────
+// FBL-001: footer/nav deep-links use stable slugs (?brand=deer) that must not
+// depend on trademark symbols, punctuation, or case. Both slug and full
+// display-name URLs resolve to the canonical checkbox value; unknown tokens
+// pass through unchanged (harmlessly matching nothing).
+const BRAND_SLUGS = {
+  deer:     "Deer™ Brand",
+  horsemen: "Horsemen™ Brand",
+  premier:  "Premier™ Brand",
+  rhino:    "Rhino™ Brand",
+};
+function canonicalBrand(token) {
+  const key = String(token).toLowerCase().replace(/™|®/g, "").replace(/\s*brand\s*$/i, "").trim();
+  return BRAND_SLUGS[key] || token;
+}
+
 function readStateFromURL() {
   const params = new URLSearchParams(window.location.search);
   const searchInput = document.getElementById("searchInput");
@@ -129,7 +144,7 @@ function readStateFromURL() {
   }
 
   activeFilters.productTypes = params.get("type")     ? params.get("type").split("|")     : [];
-  activeFilters.brands       = params.get("brand")    ? params.get("brand").split("|")    : [];
+  activeFilters.brands       = params.get("brand")    ? params.get("brand").split("|").map(canonicalBrand) : [];
   activeFilters.industries   = params.get("industry") ? params.get("industry").split("|") : [];
   activeFilters.surfaces     = params.get("surface")  ? params.get("surface").split("|")  : [];
 }

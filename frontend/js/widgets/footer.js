@@ -288,8 +288,12 @@
   `;
   document.head.appendChild(style);
 
-  // Brand filter deep-links reuse the products page ?brand= URL state
-  const brandLink = b => `/products?brand=${encodeURIComponent(b)}`;
+  // Brand filter deep-links use stable slugs (?brand=deer) so the URL never
+  // depends on trademark symbols or exact label punctuation. products.js
+  // resolves the slug back to the official display name (FBL-001); the old
+  // full-name URLs keep working there too.
+  const BRAND_SLUGS = { "Deer™ Brand": "deer", "Horsemen™ Brand": "horsemen", "Premier™ Brand": "premier", "Rhino™ Brand": "rhino" };
+  const brandLink = b => `/products?brand=${BRAND_SLUGS[b] || encodeURIComponent(b)}`;
 
   const footer = document.createElement("footer");
   footer.className = "site-footer";

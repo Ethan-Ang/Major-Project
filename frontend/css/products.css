@@ -34,6 +34,23 @@
 
 /* ─── Variables ─────────────────────────────────────────────── */
 :root {
+  /* Bottom-overlay stacking ladder. One place to reason about what floats over
+     what. The navbar widget owns 98-100 (backdrop/drawer/bar, inline in
+     navbar.js); everything products.css controls uses these tokens. Order:
+     typeahead < nav(98-100) < filter sheet < compare tray < compare edge tab
+     < sticky detail CTA < toast < compare review sheet < rotate overlay.
+     The Product Advisor (chatbot.js, 9990) and Swup transition overlay (10000)
+     intentionally sit above all of these. */
+  --z-typeahead:      50;
+  --z-filter-backdrop:119;
+  --z-filter-sheet:   120;
+  --z-compare-tray:   200;
+  --z-cmp-tab:        850;
+  --z-sticky-cta:     900;
+  --z-toast:          999;
+  --z-cmp-modal:      1100;
+  --z-rotate-overlay: 1200;
+
   /* Warm palette — canonical direction (design handoff: WARM confirmed). */
   --red:       #CC2929;   /* primary CTA, accents, eyebrow labels, links */
   --red-dark:  #a82020;   /* link hover on dark */
@@ -82,6 +99,13 @@ body.compare-open .site-footer { padding-bottom: calc(var(--compare-tray-height)
 body.compare-open .filter-sidebar {
   max-height: calc(100vh - 104px - var(--compare-tray-height));
 }
+
+/* CMP-001: while the mobile nav menu is open (navbar.js sets this class), the
+   bottom overlays must never float over the menu or its backdrop. Hidden, not
+   restacked, so the menu is the single interactive layer while open. */
+body.nav-drawer-open .cmp-tab,
+body.nav-drawer-open .sticky-cta,
+body.nav-drawer-open .compare-tray { visibility: hidden; }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -269,7 +293,7 @@ h1, h2, h3,
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
-  z-index: 50;
+  z-index: var(--z-typeahead);
   max-height: 320px;
   overflow-y: auto;
 }
@@ -914,7 +938,7 @@ h1, h2, h3,
   padding: 0.75rem 1.25rem;
   border-radius: var(--radius);
   font-size: 0.875rem;
-  z-index: 999;
+  z-index: var(--z-toast);
   opacity: 0;
   transform: translateY(10px);
   transition: all 0.3s;
@@ -2593,7 +2617,7 @@ body.detail-has-cta .toast {
   bottom: 18px;
   left: 50%;
   width: min(1180px, calc(100% - 32px));
-  z-index: 200;
+  z-index: var(--z-compare-tray);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3167,7 +3191,7 @@ body.detail-has-cta .toast {
 .cx-rotate-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: var(--z-rotate-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5002,7 +5026,7 @@ body:has(.compare-tray.visible) .toast {
     position: fixed !important;
     inset: auto 0 0 0;
     max-height: 88%;
-    z-index: 120;
+    z-index: var(--z-filter-sheet);
     width: 100% !important;
     display: flex !important;
     flex-direction: column;
@@ -5021,7 +5045,7 @@ body:has(.compare-tray.visible) .toast {
     position: fixed;
     inset: 0;
     background: rgba(16,13,9,0.5);
-    z-index: 119;
+    z-index: var(--z-filter-backdrop);
     animation: ylFilterFade 0.2s ease both;
   }
   .filter-backdrop.show { display: block; }
@@ -5165,12 +5189,17 @@ body:has(.compare-tray.visible) .toast {
 
   /* ─── Step 3: sticky bottom action bar ──────────────────────── */
   body.detail-has-cta { padding-bottom: 4.9rem; }
+  /* Extra breathing room above the fixed bar at the very end of the page.
+     Added INSIDE the dark footer (like body.compare-open above) so it can
+     never expose a cream strip; the JS-measured body reservation stays an
+     exact fit to the bar. Keeps footer links comfortably tappable. */
+  body.detail-has-cta .site-footer { padding-bottom: 20px; }
   .sticky-cta {
     display: flex;
     gap: 0.5rem;
     position: fixed;
     left: 0; right: 0; bottom: 0;
-    z-index: 900;
+    z-index: var(--z-sticky-cta);
     padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
     /* Solid (not 0.95 alpha) so the cream body background never shows through as
        a strip between the dark footer and this bar. Blur kept for depth. */
@@ -5251,7 +5280,7 @@ body:has(.compare-tray.visible) .toast {
     right: 0;
     top: 63%;
     transform: translateY(-50%);
-    z-index: 850;
+    z-index: var(--z-cmp-tab);
     flex-direction: column;
     align-items: center;
     gap: 4px;
@@ -5284,7 +5313,7 @@ body:has(.compare-tray.visible) .toast {
     display: block;
     position: fixed;
     inset: 0;
-    z-index: 1100;
+    z-index: var(--z-cmp-modal);
   }
   .cmp-modal-backdrop {
     position: absolute;
