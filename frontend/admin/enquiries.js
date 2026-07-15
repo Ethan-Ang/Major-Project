@@ -398,13 +398,22 @@ function closePanel() {
 
 // ─── Export CSV ───────────────────────────────────────────────────
 function exportEnquiriesCSV() {
-  const headers = ["Name", "Company", "Email", "Phone", "Products", "Message", "Date", "Status"];
+  // Neutralise spreadsheet formula injection: a leading = + - @ would be
+  // executed as a formula by Excel/Sheets, so such values get a leading
+  // apostrophe (the standard mitigation; renders as plain text).
+  const csvCell = v => {
+    let s = String(v ?? "");
+    if (/^[=+\-@]/.test(s)) s = "'" + s;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
+  const headers = ["Reference", "Name", "Company", "Email", "Phone", "Products", "Message", "Date", "Status"];
   const rows = enquiries.map(e => [
+    e.reference || "",
     e.name, e.company, e.email, e.phone || "",
     e.products.join("; "), e.message,
     new Date(e.date).toLocaleDateString("en-SG"),
     isReplied(e.id) ? "Replied" : "New"
-  ].map(v => `"${String(v).replace(/"/g, '""')}"`));
+  ].map(csvCell));
 
   const csv  = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
