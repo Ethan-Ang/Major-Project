@@ -25,6 +25,12 @@
       transition: box-shadow 0.25s ease;
     }
     .nav.is-scrolled { box-shadow: 0 6px 20px -6px rgba(16, 13, 9, 0.35); }
+    /* While the mobile drawer is open, the page scroll is locked with
+       body { overflow: hidden }. On a scrolled page that knocks the sticky bar
+       out of its sticky context, so it drops to the document top (off-screen)
+       and leaves a 60px gap above the drawer where the page shows through. Pin
+       the bar explicitly for that state so it stays glued to the viewport top. */
+    body.nav-drawer-open .nav { position: fixed; top: 0; left: 0; right: 0; }
     @media (prefers-reduced-motion: reduce) { .nav { transition: none; } }
     .nav-logo {
       justify-self: start;
@@ -321,6 +327,7 @@
     function openDrawer() {
       drawerEl.classList.add("open");
       backdropEl.classList.add("open");
+      document.body.classList.add("nav-drawer-open"); // pins the sticky bar (see CSS)
       document.body.style.overflow = "hidden"; // lock page scroll behind the overlay
       hamburger.setAttribute("aria-expanded", "true");
       hamburger.setAttribute("aria-label", "Close navigation menu");
@@ -328,6 +335,7 @@
     function closeDrawer() {
       drawerEl.classList.remove("open");
       backdropEl.classList.remove("open");
+      document.body.classList.remove("nav-drawer-open");
       document.body.style.overflow = "";
       hamburger.setAttribute("aria-expanded", "false");
       hamburger.setAttribute("aria-label", "Open navigation menu");

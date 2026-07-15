@@ -73,7 +73,12 @@
         selectIndex(i);
         close({ focusTrigger: true });
       });
-      li.addEventListener("mouseenter", () => setActive(i, { scroll: false }));
+      // Only follow real hover. A touch tap emits a synthetic mouseenter on the
+      // option under the finger; with no pointer to move away the highlight would
+      // stick and the selected row would read shaded (blending into the warm bg).
+      li.addEventListener("mouseenter", () => {
+        if (window.matchMedia("(hover: hover)").matches) setActive(i, { scroll: false });
+      });
 
       listbox.appendChild(li);
       return li;
@@ -89,9 +94,11 @@
       });
     }
 
-    function setActive(index, { scroll = true } = {}) {
+    function setActive(index, { scroll = true, visual = true } = {}) {
       activeIndex = Math.max(0, Math.min(index, optionEls.length - 1));
-      optionEls.forEach((li, i) => li.classList.toggle("is-active", i === activeIndex));
+      // `visual: false` tracks the active row for keyboard/aria without painting
+      // the shaded highlight, so a pointer/touch open stays clean (white + check).
+      optionEls.forEach((li, i) => li.classList.toggle("is-active", visual && i === activeIndex));
       trigger.setAttribute("aria-activedescendant", optionEls[activeIndex].id);
       if (scroll) optionEls[activeIndex].scrollIntoView({ block: "nearest" });
     }
@@ -113,16 +120,16 @@
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          if (listbox.hidden) open(); else setActive(activeIndex + 1);
+          if (listbox.hidden) open({ viaKeyboard: true }); else setActive(activeIndex + 1);
           break;
         case "ArrowUp":
           e.preventDefault();
-          if (listbox.hidden) open(); else setActive(activeIndex - 1);
+          if (listbox.hidden) open({ viaKeyboard: true }); else setActive(activeIndex - 1);
           break;
         case "Enter":
         case " ":
           e.preventDefault();
-          if (listbox.hidden) open();
+          if (listbox.hidden) open({ viaKeyboard: true });
           else { selectIndex(activeIndex); close({ focusTrigger: true }); }
           break;
         case "Escape":
@@ -140,10 +147,12 @@
       }
     }
 
-    function open() {
+    function open({ viaKeyboard = false } = {}) {
       listbox.hidden = false;
       trigger.setAttribute("aria-expanded", "true");
-      setActive(select.selectedIndex);
+      // Keyboard opens paint the active highlight (you need a visible cursor);
+      // pointer/touch opens leave the selected row white with just its check.
+      setActive(select.selectedIndex, { visual: viaKeyboard });
       document.addEventListener("click", onDocClick);
     }
 

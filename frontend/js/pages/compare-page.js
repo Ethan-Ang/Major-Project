@@ -122,7 +122,7 @@ function renderComparePage() {
           <div class="compare-col-avail ${availClass}">
             <span class="avail-dot"></span>${ylEscapeHtml(p.status)}
           </div>
-          <button class="btn-add-enquiry${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}')">${inBasket ? "In Product Enquiry" : "Add to Product Enquiry"}</button>
+          <button class="btn-add-enquiry${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}', '${ylTxt(p.name)}')">${inBasket ? "In Product Enquiry" : "Add to Product Enquiry"}</button>
         </div>
       </td>`;
   }).join("");
@@ -254,7 +254,7 @@ function buildCompareMobile(products) {
         </div>
         <a class="cx-head-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
         <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${ylEscapeHtml(p.status)}</span>
-        <button class="cx-head-select${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
+        <button class="cx-head-select${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}', '${ylTxt(p.name)}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
       </div>`;
   }).join("");
 
@@ -323,16 +323,25 @@ function toggleDiff() {
   });
 }
 
-function addToBasket(productId) {
+function addToBasket(productId, productName) {
   const basket = getEnquiryBasket();
   const id     = String(productId);
+  const name   = (productName && String(productName).trim()) ? String(productName).trim() : "Product";
   if (!basket.includes(id)) {
     basket.push(id);
-    localStorage.setItem("enquiryBasket", JSON.stringify(basket));
+    try {
+      localStorage.setItem("enquiryBasket", JSON.stringify(basket));
+    } catch (e) {
+      // Real failure to persist: show a visible error, do not flip the button.
+      (window.showToast || function () {})("Sorry, we couldn't update your enquiry. Please try again.", "error");
+      return;
+    }
     window.dispatchEvent(new Event("basketUpdated"));
-    showToast("Added to your product enquiry");
+    // No visible success toast — the button flips to "In Enquiry"; announce for SR.
+    (window.announce || function () {})(name + " was added to your product enquiry.");
   } else {
-    showToast("Already in your product enquiry");
+    // Already present: no duplicate, no visible toast; quietly confirm for SR.
+    (window.announce || function () {})(name + " is already in your product enquiry.");
   }
 }
 

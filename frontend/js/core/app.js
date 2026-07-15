@@ -58,18 +58,27 @@
   };
 
   // Generic add/remove. Page-specific UI updates happen in each page's
-  // "basketUpdated" listener, not here.
-  window.toggleBasket = function (productId) {
+  // "basketUpdated" listener, not here. Success is confirmed by the button state
+  // flipping to "In Enquiry" + the header count; there is deliberately NO visible
+  // success toast (it was redundant and covered content / the mobile action bar).
+  // A screen-reader-only aria-live message announces the change instead. A real
+  // failure to persist (e.g. localStorage unavailable) still shows a visible error
+  // and does NOT flip the button, so the user can retry.
+  window.toggleBasket = function (productId, productName) {
     var basket = window.getBasket();
     var idx = basket.indexOf(productId);
-    if (idx === -1) {
-      basket.push(productId);
-      window.showToast("Added to your product enquiry");
-    } else {
-      basket.splice(idx, 1);
-      window.showToast("Removed from your product enquiry");
+    var adding = idx === -1;
+    if (adding) basket.push(productId); else basket.splice(idx, 1);
+    try {
+      window.saveBasket(basket); // persists + updates count + dispatches basketUpdated
+    } catch (e) {
+      window.showToast("Sorry, we couldn't update your enquiry. Please try again.", "error");
+      return; // basket not persisted -> button state unchanged, retry possible
     }
-    window.saveBasket(basket);
+    var name = (productName && String(productName).trim()) ? String(productName).trim() : "Product";
+    window.announce(adding
+      ? name + " was added to your product enquiry."
+      : name + " was removed from your product enquiry.");
   };
 
   window.updateBasketCount = function () {
@@ -77,14 +86,43 @@
     if (el) el.textContent = window.getBasket().length;
   };
 
-  // ─── Toast ────────────────────────────────────────────────────
+  // ─── Toast (VISIBLE — errors / warnings only) ─────────────────
+  // No longer used for add-to-enquiry success (see toggleBasket). Kept for real
+  // problems the user must see. Pass type "error" for a distinct error style.
   var toastTimer = null;
-  window.showToast = function (message) {
+  window.showToast = function (message, type) {
     var toast = document.getElementById("toast");
     if (!toast) return;
     toast.textContent = message;
+    toast.classList.toggle("toast--error", type === "error");
     toast.classList.add("show");
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2500);
+    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, type === "error" ? 4000 : 2500);
+  };
+
+  // ─── Screen-reader announcements (no visible UI) ──────────────
+  // A single polite live region, injected once outside #swup so it survives page
+  // swaps. Used to confirm basket changes for assistive tech now that the visible
+  // success toast is gone. Clearing then setting re-announces identical messages.
+  window.announce = function (message) {
+    var el = document.getElementById("ylStatus");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "ylStatus";
+      el.className = "sr-only";
+      el.setAttribute("role", "status");
+      el.setAttribute("aria-live", "polite");
+      el.setAttribute("aria-atomic", "true");
+      document.body.appendChild(el);
+    }
+    el.textContent = "";
+    window.setTimeout(function () { el.textContent = message; }, 50);
+  };
+
+  // Sanitise a value for safe use inside an inline handler's single-quoted JS
+  // string (strips quotes/brackets/ampersand). No-op for the clean product names
+  // in the catalogue; degrades gracefully if data ever contains those chars.
+  window.ylTxt = function (s) {
+    return String(s == null ? "" : s).replace(/[\\'"<>&]/g, " ").replace(/\s+/g, " ").trim();
   };
 })();

@@ -342,7 +342,7 @@ function renderSidebar(product) {
         id="sidebarBasketBtn"
         data-enquiry-label="${enquiryLabel}"
         aria-pressed="${inBasket ? "true" : "false"}"
-        onclick="toggleBasket('${product.id}')">
+        onclick="toggleBasket('${product.id}', '${ylTxt(product.name)}')">
         ${inBasket ? "In Product Enquiry" : enquiryLabel}
       </button>
       <div class="sidebar-action-row">
@@ -406,7 +406,7 @@ function renderStickyCta(product) {
     <button class="sticky-cta-add${inBasket ? " added" : ""}" id="stickyBasketBtn"
       data-add-label="${addLabel}"
       aria-pressed="${inBasket ? "true" : "false"}"
-      onclick="toggleBasket('${product.id}')">
+      onclick="toggleBasket('${product.id}', '${ylTxt(product.name)}')">
       ${inBasket ? "In Enquiry" : addLabel}
     </button>
     <button class="sticky-cta-cmp${inCompare ? " on" : ""}" id="stickyCompareBtn"
@@ -467,27 +467,17 @@ function parseUsage(raw) {
   return { method, steps: "", items };
 }
 
-// Split a "suitable for" list into individual values. The catalogue data is
-// inconsistently delimited — some records use "; ", some use commas, some just
-// run values together with spaces. Split on ";", "•" and top-level commas, but
-// NOT commas inside parentheses (e.g. "laminates (E.g. Carpentry, Door)"), so a
-// real list becomes chips while a parenthetical example stays intact. Values
-// that carry no delimiter at all come back as a single item and render as one
-// clean panel rather than being mangled by a guessed word-boundary split.
+// Split a "suitable for" list into individual values on EXPLICIT delimiters only
+// ("; " or "•"). Commas are NOT delimiters: professional values legitimately
+// contain them (e.g. "carpentry, doors and cabinetry", "laminates (E.g. Carpentry,
+// Door)"), so splitting on commas would wrongly fragment a single use. A value
+// with no ";"/"•" delimiter comes back as ONE item (the un-delimited DB data of
+// today, and any single-use product) — never a guessed word/space/capital split.
 function splitSuitableFor(str) {
-  const parts = [];
-  let buf = "", depth = 0;
-  for (const ch of str) {
-    if (ch === "(") depth++;
-    else if (ch === ")") depth = Math.max(0, depth - 1);
-    if (ch === ";" || ch === "•" || (ch === "," && depth === 0)) {
-      parts.push(buf); buf = "";
-    } else {
-      buf += ch;
-    }
-  }
-  parts.push(buf);
-  return parts.map(s => s.trim()).filter(Boolean);
+  return String(str == null ? "" : str)
+    .split(/[;•]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
 }
 
 function renderFullDesc(product) {
@@ -509,7 +499,15 @@ function renderFullDesc(product) {
 
   const usage = isMeaningfulText(product.usage) ? parseUsage(product.usage) : null;
   if (usage) {
-    parts.push(`<h2 class="section-heading"${descText ? ' style="margin-top:1.75rem"' : ""}>How to Use</h2>`);
+    // "How to Use" only when the data is genuine step instructions. parseUsage
+    // puts free-form / numbered text in `steps` (a string) and leaves it "" for
+    // the "Apply by X. Suitable for: ..." shape, which is just a method + labels
+    // — that reads honestly as "Application & Suitable Uses", not instructions.
+    const hasUsageSteps = Array.isArray(usage.steps)
+      ? usage.steps.length > 0
+      : Boolean(String(usage.steps || "").trim());
+    const usageHeading = hasUsageSteps ? "How to Use" : "Application &amp; Suitable Uses";
+    parts.push(`<h2 class="section-heading"${descText ? ' style="margin-top:1.75rem"' : ""}>${usageHeading}</h2>`);
     const usageParts = [];
     if (usage.method) {
       usageParts.push(`
@@ -524,12 +522,19 @@ function renderFullDesc(product) {
         </div>`);
     }
     if (usage.items.length) {
+      // Multiple delimited values render as tag chips. A single value (common
+      // when the source string carries no "; " delimiters) renders as a clean
+      // readable line — never a full-width box that looks like a disabled input.
+      // Multiple values render as a compact scannable list (professional wording
+      // can be long, which reads better as list rows than as oversized chips). A
+      // single value renders as a clean line — never a full-width input-looking box.
+      const suitableBody = usage.items.length > 1
+        ? `<ul class="usage-list">${usage.items.map(i => `<li>${ylEscapeHtml(i)}</li>`).join("")}</ul>`
+        : `<p class="usage-suitable-single">${ylEscapeHtml(usage.items[0])}</p>`;
       usageParts.push(`
         <div class="usage-suitable">
           <span class="usage-suitable-label">Suitable for</span>
-          <div class="usage-chips">
-            ${usage.items.map(i => `<span class="usage-chip">${ylEscapeHtml(i)}</span>`).join("")}
-          </div>
+          ${suitableBody}
         </div>`);
     }
     if (usage.steps) {

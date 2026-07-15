@@ -56,6 +56,7 @@ async function initProductsPage() {
     applyFilters({ skipUrlWrite: true });
     initialLoadDone = true;
     updateFilterScrollFade();
+    initStickyToolbar();
     // Arriving from a footer/brand deep-link (e.g. ?brand=Deer™ Brand) should
     // land the visitor on the filtered results, not the top hero/search. A plain
     // /products visit (no filter params) still opens at the hero as before.
@@ -533,7 +534,7 @@ function productCardHTML(p) {
         </button>
         <button
           class="pcard-add${inBasket ? ' added' : ''}"
-          onclick="event.stopPropagation();toggleBasket('${p.id}')"
+          onclick="event.stopPropagation();toggleBasket('${p.id}', '${ylTxt(p.name)}')"
           title="${inBasket ? 'Remove from Enquiry' : 'Add to Enquiry'}"
           aria-label="${inBasket ? 'Remove from Enquiry' : 'Add to Enquiry'}">
           ${inBasket
@@ -570,7 +571,7 @@ function productCardHTML(p) {
           <button
             class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
             aria-pressed="${inBasket ? "true" : "false"}"
-            onclick="toggleBasket('${p.id}')"
+            onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')"
             aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
             ${inBasket
               ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="enq-label-full">In Enquiry</span><span class="enq-label-short">Added</span>`
@@ -710,8 +711,39 @@ function toggleFilterGroup(btn) {
 // scrolls (rows would otherwise hard-cut); no fade when the list fits.
 function updateFilterScrollFade() {
   document.querySelectorAll(".filter-sidebar .drawer-body").forEach(el => {
-    el.classList.toggle("has-overflow", el.scrollHeight > el.clientHeight + 1);
+    const overflowing = el.scrollHeight > el.clientHeight + 1;
+    el.classList.toggle("has-overflow", overflowing);
+    if (overflowing) {
+      updateFilterEdgeState(el);
+      if (!el._fadeScrollBound) {
+        el._fadeScrollBound = true;
+        el.addEventListener("scroll", () => updateFilterEdgeState(el), { passive: true });
+      }
+    }
   });
+}
+
+// Elevate the mobile sticky toolbar only once it actually pins under the nav, so
+// at rest it sits flat in the page and only lifts (shadow) when content scrolls
+// beneath it. Uses the negative-rootMargin sticky-sentinel trick on the bar
+// itself. Re-bound on each products entry (SPA swaps rebuild the DOM).
+let _toolbarStuckObserver = null;
+function initStickyToolbar() {
+  if (_toolbarStuckObserver) { _toolbarStuckObserver.disconnect(); _toolbarStuckObserver = null; }
+  const toolbar = document.querySelector(".mobile-toolbar");
+  if (!toolbar || !("IntersectionObserver" in window)) return;
+  _toolbarStuckObserver = new IntersectionObserver(
+    ([entry]) => toolbar.classList.toggle("is-stuck", entry.intersectionRatio < 1),
+    { threshold: [1], rootMargin: "-61px 0px 0px 0px" }  // -61px = just under the 60px nav
+  );
+  _toolbarStuckObserver.observe(toolbar);
+}
+
+// Suppress the fade on whichever edge is fully in view, so the top heading and
+// count aren't dimmed at rest and the last row isn't dimmed at the bottom.
+function updateFilterEdgeState(el) {
+  el.classList.toggle("at-top", el.scrollTop <= 1);
+  el.classList.toggle("at-bottom", el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
 }
 
 // Default filter-group state: expanded on desktop, collapsed inside the ≤900

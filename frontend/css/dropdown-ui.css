@@ -44,7 +44,11 @@
   transition: border-color 0.18s, box-shadow 0.18s;
 }
 
-.custom-select-trigger:hover { border-color: #c9bfaa; }
+/* Scope hover to real pointer devices: on touchscreens :hover "sticks" after a
+   tap, leaving the trigger visibly highlighted until you tap elsewhere. */
+@media (hover: hover) {
+  .custom-select-trigger:hover { border-color: #c9bfaa; }
+}
 
 /* Open / focused trigger uses a neutral active state (no brand red), while
    staying clearly visible for keyboard focus. */
@@ -98,9 +102,16 @@
   white-space: nowrap;
 }
 
-.custom-select-option:hover,
 .custom-select-option.is-active {
   background: var(--panel, #fbfaf6);
+}
+
+/* Hover highlight only where a real pointer exists (see note above): keeps a
+   tapped option from staying shaded on touch. */
+@media (hover: hover) {
+  .custom-select-option:hover {
+    background: var(--panel, #fbfaf6);
+  }
 }
 
 /* The current choice is marked by a quiet check only: no brand red and no bold
