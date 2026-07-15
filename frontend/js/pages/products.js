@@ -929,10 +929,11 @@ function initSearchTypeahead() {
   // Escape the query for use inside a RegExp so special characters are literal.
   const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  // Matching is done on normalised text: lowercase, ™/® optional, runs of
-  // whitespace collapsed. Punctuation stays literal (never a crash, never a
-  // wildcard). The same helper backs the canonical URL slugs.
-  const norm = s => String(s || "").toLowerCase().replace(/[™®]/g, "").replace(/\s+/g, " ").trim();
+  // Matching is done on normalised text: lowercase, ™/® optional, hyphens
+  // folded to spaces (so "spray gun" finds "Spray-Gun" and vice versa), runs
+  // of whitespace collapsed. Other punctuation stays literal (never a crash,
+  // never a wildcard). URL slugs use ylSlug, not this.
+  const norm = s => String(s || "").toLowerCase().replace(/[™®]/g, "").replace(/[-‐-―]/g, " ").replace(/\s+/g, " ").trim();
 
   // Reviewed synonym map (SEARCH-001 A2, documented in the QA tracker). Purely
   // navigational: each entry maps a common word to an EXISTING filter label so

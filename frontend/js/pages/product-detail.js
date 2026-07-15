@@ -337,7 +337,7 @@ function renderDownloads(product) {
         </span>
         <span class="doc-empty-text">
           <span class="doc-empty-main">No downloads are currently available for this product.</span>
-          <span class="doc-empty-sub">Contact Yee Lim if you require technical documentation.</span>
+          <span class="doc-empty-sub"><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> if you require technical documentation.</span>
         </span>
       </div>`;
 
@@ -582,15 +582,18 @@ function renderFullDesc(product) {
 
   /* PD-CTA-001: expert-help framing, not a second conversion CTA. The primary
      Add-to-Enquiry action already lives in the sticky bar (mobile) and the
-     action panel (desktop), so this card offers human confirmation instead of
-     repeating another giant enquiry button right above the fixed bar. */
+     action panel (desktop). Approved copy (client run 2026-07-16): the CTA
+     opens the Product Advisor (never adds to the basket); if the advisor
+     script is unavailable it degrades to the contact page. */
   parts.push(`
     <div class="enquiry-guidance">
       <div class="enquiry-guidance-copy">
         <h2 class="enquiry-guidance-title">Need help confirming compatibility?</h2>
-        <p>Tell our team your surface and application. We&rsquo;ll confirm suitability before you order.</p>
+        <p>Share your materials, application and quantity requirements. Our team will help confirm the most suitable option.</p>
       </div>
-      <a href="/contact" class="enquiry-guidance-link">Contact an Expert &rarr;</a>
+      <button type="button" class="enquiry-guidance-link"
+        onclick="if(window.openProductAdvisor){openProductAdvisor()}else{window.location.href='/contact'}">
+        Get Product Advice &rarr;</button>
     </div>`);
   el.innerHTML = parts.join("\n");
 }

@@ -1264,6 +1264,9 @@ body.detail-has-cta .toast {
 .doc-empty-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .doc-empty-main { font-size: 0.9rem; color: var(--text); }
 .doc-empty-sub  { font-size: 0.78rem; color: var(--muted); }
+.doc-empty-link { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.doc-empty-link:hover { color: var(--red); }
+.doc-empty-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
 
 .doc-download-icon {
   flex-shrink: 0;
@@ -1353,6 +1356,10 @@ body.detail-has-cta .toast {
   padding: 0.7rem 1.25rem;
   border-radius: var(--radius);
   text-decoration: none;
+  /* Also rendered as a <button> (PD-CTA-001 opens the advisor): neutralise UA button chrome. */
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
   transition: background 0.18s, transform 0.1s;
 }
 
