@@ -703,14 +703,6 @@ h1, h2, h3,
   color: var(--muted);
   margin-bottom: 0.65rem;
   line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  /* Reserve two lines so a short (one-line) description does not shorten the
-     card and shift the bottom-aligned actions up. Keeps every card equal-height
-     alongside the reserved title and always-present tags row. */
-  min-height: 2.38rem;
 }
 
 /* Primary application line — the single red accent in the card body */
@@ -742,28 +734,8 @@ h1, h2, h3,
   font-weight: 600;
 }
 
-.product-tags {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 0.3rem;
-  margin-bottom: 0.9rem;
-  overflow: hidden;
-  min-height: 1.35rem;
-}
-
-.product-tag {
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: var(--bg);
-  border: 1px solid #e6e0d2;
-  color: #47433b;
-  padding: 0.18rem 0.45rem;
-  border-radius: 3px;
-  white-space: nowrap;
-}
+.card-workson { margin-top: 0.15rem; }
+.card-workson-spacer { min-height: 0; }
 
 /* Brand tag on the image well — the "product label on a shelf" motif. */
 .pcard-brand-tag {
@@ -4766,10 +4738,9 @@ body:has(.compare-tray.visible) .toast {
   .product-card .pcard-meta { margin-bottom: 0.2rem; }
   .product-card .card-application { display: flex; margin: 0 0 0.55rem; }
 
-  /* Show the button row + best-for; hide description + surface tags on mobile */
+  /* Show the button row, best-for and works-on; hide the long description on mobile */
   .product-card .product-card-actions { display: flex; margin-top: auto; }
-  .product-card .product-card-body > p,
-  .product-card .product-tags { display: none !important; }
+  .product-card .product-card-body > p { display: none !important; }
 
   /* In-Enquiry confirmed state (pink) per prototype */
   .product-card-actions .pcard-enq { transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s; }

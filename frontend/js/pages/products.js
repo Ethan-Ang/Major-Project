@@ -639,7 +639,7 @@ function productCardHTML(p) {
 
   const isUnavailable = p.status === "Unavailable";
   const primaryApps = escapeHTML(bestForText(p));
-  const surfaceTags = p.surfaces.slice(0, 2).map(s => `<span class="product-tag">${escapeHTML(s)}</span>`).join("");
+  const worksOn = p.surfaces && p.surfaces.length ? escapeHTML(p.surfaces.slice(0, 3).join(", ")) : "";
 
   const hasRealImage = p.images && p.images.length > 0;
   const brandLabel = escapeHTML(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
@@ -709,7 +709,7 @@ function productCardHTML(p) {
         <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
         ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span class="card-application-val">${primaryApps}</span></div>` : ""}
         <p>${escapeHTML(p.shortDescription)}</p>
-        <div class="product-tags"${surfaceTags ? ' aria-label="Suitable surfaces"' : ' aria-hidden="true"'}>${surfaceTags}</div>
+        ${worksOn ? `<div class="card-application card-workson"><span class="card-application-label">Works on</span><span class="card-application-val">${worksOn}</span></div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
         <div class="product-card-actions">
           <button
             class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
