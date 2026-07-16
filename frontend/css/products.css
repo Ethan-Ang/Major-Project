@@ -1042,12 +1042,18 @@ body.detail-has-cta .toast {
 .apply-method,
 .apply-suitable-single {
   font-size: 0.95rem;
-  font-weight: 600;
   color: var(--text);
   line-height: 1.5;
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+/* Normal weight always: this also carries the free-form "How to Use" body
+   text (id=8/9-style numbered instructions), which reads as a wall of bold
+   text at the longer lengths those records run to. The heading (not the
+   body) carries the visual emphasis. */
+.apply-method { font-weight: 400; }
+.apply-suitable-single { font-weight: 600; }
 
 .apply-uses {
   margin: 0;
@@ -2053,7 +2059,6 @@ body.detail-has-cta .toast {
 .detail-tablist {
   display: flex;
   border: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
   border-radius: 14px 14px 0 0;
   background: var(--card);
   overflow: hidden;

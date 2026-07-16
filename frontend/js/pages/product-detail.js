@@ -68,10 +68,12 @@ async function initDetailPage() {
 
   if (!product) {
     const grid = document.getElementById("detailPageGrid");
+    // This replaces #detailPageGrid's whole innerHTML, which already removes
+    // #detailGallery and #detailSummary (its two children) along with any
+    // skeleton content they held, so no separate clearing of #detailSummary
+    // is needed here.
     if (grid) grid.innerHTML =
       "<p style='padding:3rem 1.5rem;color:var(--muted)'>Product not found. <a href='/products' style='color:var(--red)'>Back to products</a></p>";
-    const summary = document.getElementById("detailSummary");
-    if (summary) summary.innerHTML = ""; // clear the skeleton on the not-found path
     const tabs = document.querySelector(".detail-tabs");
     if (tabs) tabs.style.display = "none";
     const advice = document.getElementById("detailAdvice");
@@ -549,7 +551,10 @@ function renderApplication(product) {
   const el = document.getElementById("detailApply");
   if (!el) return;
   const usage = String(product.usage || "").trim();
-  if (!usage) {
+  // isMeaningfulText filters out placeholder junk ("x", "-", "n/a", etc, same
+  // guard used for the summary description) so a placeholder usage value
+  // falls to the honest empty state instead of rendering the placeholder text.
+  if (!isMeaningfulText(usage)) {
     el.innerHTML = `
       <div class="apply-empty">
         <p>Application guidance for this product is available from our team.</p>
@@ -557,7 +562,11 @@ function renderApplication(product) {
       </div>`;
     return;
   }
-  const m = usage.match(/suitable for\s*:?\s*/i);
+  // The colon is required: "Suitable for:" is the real delimiter the seed data
+  // uses. Free-form / numbered records (no such segment at all) fall straight
+  // to the "How to Use" method-only branch below rather than being matched on
+  // a loose, unanchored "suitable for" substring.
+  const m = usage.match(/suitable for\s*:\s*/i);
   const method = m ? usage.slice(0, m.index).trim() : usage;
   const uses = m ? usage.slice(m.index + m[0].length).split(/;|•/).map(s => s.trim().replace(/\.$/, "")).filter(Boolean) : [];
   // The live DB's "suitable for" text is un-delimited today (no "; " or "*"
@@ -568,11 +577,16 @@ function renderApplication(product) {
   // items still gets the real bulleted list).
   const usesList = uses.length >= 2 ? uses : [];
   const usesSingle = uses.length === 1 ? uses[0] : "";
+  // With no "Suitable for:" segment at all, the whole usage string is
+  // free-form / numbered instructions (e.g. PVC pipe cement), not a short
+  // method label, so it reads as "How to Use" rather than "Application
+  // Method" (which implies a short method name beside a Suitable Uses list).
+  const methodHeading = m ? "Application Method" : "How to Use";
   el.innerHTML = `
     <div class="apply-grid">
       ${method ? `
       <div class="apply-col">
-        <h3 class="apply-heading">Application Method</h3>
+        <h3 class="apply-heading">${methodHeading}</h3>
         <p class="apply-method">${ylEscapeHtml(method)}</p>
       </div>` : ""}
       ${usesList.length ? `
