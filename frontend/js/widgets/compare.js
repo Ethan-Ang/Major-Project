@@ -79,9 +79,9 @@ function renderCompareTray() {
   const tray = document.getElementById("compareTray");
   if (!tray) return;
 
-  const list = getCompareList();
+  const rawList = getCompareList();
 
-  if (list.length === 0) {
+  if (rawList.length === 0) {
     tray.classList.remove("visible");
     // Reset to the expanded (default) state so the drawer reappears in full
     // next time something is added, instead of staying slim-collapsed.
@@ -96,6 +96,33 @@ function renderCompareTray() {
     return;
   }
 
+  // Resolve stored ids to real products first. An id that no longer resolves
+  // (e.g. the product was removed from the catalogue) must not be able to
+  // sit invisible while still counting toward the (n/3) cap, so prune it
+  // from storage and re-render from the clean list. Guarded by the length
+  // comparison: after the write-back the lengths match, so this can only
+  // fire once per stale batch, never loop.
+  const products = rawList
+    .map(id => PRODUCTS.find(p => String(p.id) === String(id)))
+    .filter(Boolean);
+
+  if (!PRODUCTS.length) {
+    // The catalogue has not loaded yet: this fires on DOMContentLoaded,
+    // before the async product fetch resolves, so every id would look
+    // unresolvable right now. Do not mistake "not loaded yet" for "no
+    // longer exists": bail without touching storage or the DOM. products.js
+    // / product-detail.js call renderCompareTray() again once PRODUCTS is
+    // populated, and that call does the real (and, if needed, pruning) render.
+    return;
+  }
+
+  if (products.length !== rawList.length) {
+    saveCompareList(products.map(p => String(p.id))); // dispatches compareUpdated, which re-renders with the clean list
+    return;
+  }
+
+  const list = products; // resolved products only, from here on
+
   tray.classList.add("visible");
   const countEl = document.getElementById("compareTrayCount");
   if (countEl) countEl.textContent = `(${list.length}/${COMPARE_MAX})`;
@@ -104,11 +131,7 @@ function renderCompareTray() {
   document.body.classList.add("compare-open");
   requestAnimationFrame(updateCompareTrayHeight);
 
-  const products = list
-    .map(id => PRODUCTS.find(p => String(p.id) === String(id)))
-    .filter(Boolean);
-
-  const slotHTML = products.map(p => {
+  const slotHTML = list.map(p => {
     const name = ylEscapeHtml(p.name);
     const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
     const hasImg = p.images && p.images.length > 0;
@@ -179,10 +202,15 @@ function toggleCompareTray() {
   requestAnimationFrame(updateCompareTrayHeight);
 }
 
-// ─── Mobile compare: edge tab + review sheet (≤640px) ───────────
-// One implementation, injected once into <body>, shared by the products
-// and product-detail pages. Replaces the bottom tray on phones (the tray
-// is hidden by CSS at ≤640px). Skipped on compare.html itself.
+// ─── Mobile compare: edge tab + review sheet (dormant, scheduled for
+// deletion) ───────────────────────────────────────────────────────
+// This block predates the unified bottom drawer (.compare-tray), which now
+// covers every breakpoint per the locked mobile redesign, including the
+// mobile mockup this block used to implement. renderCompareMobile() below
+// is a no-op, so nothing here is ever invoked: ensureMobileCompareUI never
+// runs, the tab and sheet elements are never created, and openCompareSheet
+// / closeCompareSheet are unreachable. Left in place only so a later
+// cleanup task can remove it outright, not because it still does anything.
 function onComparePage() {
   return location.pathname === '/compare' || /compare\.html$/.test(location.pathname);
 }

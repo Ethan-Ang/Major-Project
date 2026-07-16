@@ -2881,6 +2881,18 @@ body.detail-has-cta .toast {
   .compare-tray-actions { order: 4; flex-basis: 100%; gap: 0.6rem; }
   .compare-tray-clear,
   .compare-tray-btn { flex: 1 1 50%; justify-content: center; }
+
+  /* Stack, don't overlap: product-detail.html also shows a fixed mobile
+     sticky action bar (.sticky-cta) at the very bottom. Without this, the
+     compare drawer's actions row (or its head row when collapsed) would be
+     painted under that bar and become unclickable. Offset the tray up by
+     the sticky bar's live measured height, exposed as --sticky-cta-height
+     by syncStickyCtaReserve in product-detail.js. The calc() fallback
+     matches the sticky bar's own CSS baseline (4.9rem + safe area) for the
+     brief window before that JS has run. */
+  body.detail-has-cta .compare-tray {
+    bottom: var(--sticky-cta-height, calc(4.9rem + env(safe-area-inset-bottom, 0px)));
+  }
 }
 
 /* ─── Comparison overlay removed; comparison now uses dedicated compare.html page ─── */
@@ -3332,7 +3344,7 @@ body.detail-has-cta .toast {
 
 /* ─── Toast offset when compare tray is open ─────────────────── */
 body:has(.compare-tray.visible) .toast {
-  bottom: calc(5rem + 1.5rem);
+  bottom: calc(var(--compare-tray-height) + 1.5rem);
   transition: bottom 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 

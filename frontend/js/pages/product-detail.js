@@ -481,9 +481,16 @@ function syncStickyCtaReserve() {
   const cta = document.getElementById("stickyCta");
   if (!cta || window.innerWidth > 640) {
     document.body.style.paddingBottom = "";
+    // Also clear the exposed height so the compare drawer (compare.js) does
+    // not stack itself above a sticky bar that is not actually shown.
+    document.documentElement.style.setProperty("--sticky-cta-height", "0px");
     return;
   }
   document.body.style.paddingBottom = cta.offsetHeight + "px";
+  // Expose the same measurement so the compare drawer can stack above this
+  // bar instead of overlapping it. See body.detail-has-cta .compare-tray
+  // in products.css.
+  document.documentElement.style.setProperty("--sticky-cta-height", cta.offsetHeight + "px");
 }
 
 // Some catalogue rows carry placeholder copy ("x", "-", "n/a") for fields that

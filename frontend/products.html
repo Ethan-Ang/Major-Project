@@ -271,13 +271,13 @@
       <span class="compare-tray-sub">Add up to 3 products</span>
     </div>
     <div class="compare-tray-slots" id="compareTraySlots"></div>
-    <div class="compare-tray-actions">
+    <div class="compare-tray-actions" id="compareTrayActions">
       <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison">Clear all</button>
       <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view">Compare now
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>
-    <button class="compare-tray-collapse" id="compareTrayToggle" type="button" onclick="toggleCompareTray()" aria-expanded="true" aria-label="Collapse comparison tray">
+    <button class="compare-tray-collapse" id="compareTrayToggle" type="button" onclick="toggleCompareTray()" aria-expanded="true" aria-controls="compareTraySlots compareTrayActions" aria-label="Collapse comparison tray">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
   </div>
