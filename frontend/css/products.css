@@ -735,7 +735,8 @@ h1, h2, h3,
 }
 
 .card-workson { margin-top: 0.15rem; }
-.card-workson-spacer { min-height: 0; }
+/* Reserves the Works-on row height so no-surface cards stay aligned with row-mates */
+.card-workson-spacer { min-height: 1.9rem; }
 
 /* Brand tag on the image well — the "product label on a shelf" motif. */
 .pcard-brand-tag {
