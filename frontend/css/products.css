@@ -1020,7 +1020,7 @@ body.detail-has-cta .toast {
 
 /* ─── Application & Suitable Uses tab content ────────────────────
    Replaces the old .usage-box/.usage-chip family (that markup is no longer
-   rendered — the tab panel itself already provides the surface/padding). */
+   rendered, the tab panel itself already provides the surface/padding). */
 .apply-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2403,7 +2403,7 @@ body.detail-has-cta .toast {
 
 /* ─── Summary actions (buy box, no longer a separate bordered card) ────
    Lives directly inside .detail-summary beside the gallery, so it needs no
-   card background/border/sticky positioning of its own — .detail-product-
+   card background/border/sticky positioning of its own. .detail-product-
    header (name/brand/availability/description, reused unchanged) already
    supplies the divider above these buttons. */
 .sidebar-actions {

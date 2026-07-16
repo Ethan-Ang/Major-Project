@@ -253,7 +253,7 @@ function renderSummary(product) {
 
   // The one summary paragraph: prefer the full description, fall back to the
   // short one when the full field is a placeholder ("x", "n/a", etc). Real
-  // data only — never invented copy.
+  // data only, never invented copy.
   const descText = isMeaningfulText(product.fullDescription)
     ? product.fullDescription
     : (isMeaningfulText(product.shortDescription) ? product.shortDescription : "");
@@ -543,8 +543,8 @@ function isMeaningfulText(text) {
 //   in-soles; General purpose."
 // Older / free-form records with no "Suitable for:" segment (e.g. numbered
 // step instructions) render their whole usage text as the method column
-// rather than being force-fit into a "suitable uses" list that isn't there —
-// real data only, never invented structure.
+// rather than being force-fit into a "suitable uses" list that isn't there.
+// Real data only, never invented structure.
 function renderApplication(product) {
   const el = document.getElementById("detailApply");
   if (!el) return;
