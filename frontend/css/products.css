@@ -569,17 +569,6 @@ h1, h2, h3,
   gap: 1.25rem;
 }
 
-/* Wide monitors: flow to 4-up so the catalogue fills the screen instead of
-   sitting as a centred 3-column block. Kept as an explicit min-width step
-   (rather than auto-fill) because the 304px filter sidebar sits beside the
-   grid on desktop — an auto-fill minmax(300px) would compute to only 2
-   columns at 1025–1440px laptop widths and regress the current 3-up. At
-   >=1600px the capped 1680px layout leaves ~1280px of grid width, enough for
-   four >=300px cards. */
-@media (min-width: 1600px) {
-  .product-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
 /* ─── Product Card ────────────────────────────────────────────── */
 .product-card.animate {
   animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
