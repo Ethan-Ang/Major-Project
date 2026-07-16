@@ -83,50 +83,56 @@ function renderCompareTray() {
 
   if (list.length === 0) {
     tray.classList.remove("visible");
-    // Reset to the collapsed pill so it reappears unobtrusive next time.
-    tray.classList.remove("expanded");
-    const t = document.getElementById("compareTrayToggle");
-    if (t) t.setAttribute("aria-expanded", "false");
+    // Reset to the expanded (default) state so the drawer reappears in full
+    // next time something is added, instead of staying slim-collapsed.
+    tray.classList.remove("is-collapsed");
+    const toggle = document.getElementById("compareTrayToggle");
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-label", "Collapse comparison tray");
+    }
     document.body.classList.remove("compare-open");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
 
   tray.classList.add("visible");
-  // Keep the collapsed-pill count in step with the list.
   const countEl = document.getElementById("compareTrayCount");
-  if (countEl) countEl.textContent = `(${list.length})`;
+  if (countEl) countEl.textContent = `(${list.length}/${COMPARE_MAX})`;
   // Reserve space so the fixed tray never sits over the last products or the
   // bottom filter rows: expose its real height as a CSS var and flag the body.
   document.body.classList.add("compare-open");
   requestAnimationFrame(updateCompareTrayHeight);
 
-  const slots = [];
-  for (let i = 0; i < COMPARE_MAX; i++) {
-    const id = list[i];
-    if (id !== undefined) {
-      const p    = PRODUCTS.find(p => String(p.id) === String(id));
-      const name = ylEscapeHtml(p ? p.name : "Unknown product");
-      const brandLabel = ylEscapeHtml(p ? p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase() : "YL");
-      const hasImg = p && p.images && p.images.length > 0;
-      const thumb = hasImg
-        ? `<div class="compare-slot-thumb"><img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')"></div>`
-        : `<div class="compare-slot-thumb no-image"><span class="no-image-mark" aria-hidden="true">${brandLabel}</span></div>`;
-      slots.push(`
-        <div class="compare-slot compare-slot-filled">
-          ${thumb}
-          <span class="compare-slot-name" title="${name}">${name}</span>
-          <button class="compare-slot-remove"
-            onclick="removeFromCompare('${id}')"
-            aria-label="Remove ${name} from comparison">&times;</button>
-        </div>`);
-    } else {
-      slots.push(`<div class="compare-slot compare-slot-empty">+ Add product</div>`);
-    }
-  }
+  const products = list
+    .map(id => PRODUCTS.find(p => String(p.id) === String(id)))
+    .filter(Boolean);
+
+  const slotHTML = products.map(p => {
+    const name = ylEscapeHtml(p.name);
+    const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
+    const hasImg = p.images && p.images.length > 0;
+    const img = hasImg
+      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+      : `<span class="no-image-mark" aria-hidden="true">${brandLabel}</span>`;
+    return `
+      <div class="cmp-slot">
+        <span class="cmp-slot-img">${img}</span>
+        <span class="cmp-slot-name" title="${name}">${name}</span>
+        <button class="cmp-slot-x" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${name} from comparison">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+  }).join("");
+
+  const addSlot = list.length < COMPARE_MAX ? `
+    <button class="cmp-slot cmp-slot-add" onclick="ylCompareAddMore()" aria-label="Add a product to compare">
+      <span class="cmp-slot-add-icon" aria-hidden="true">+</span>
+      <span class="cmp-slot-add-text"><strong>Add a product</strong><small>Search or browse</small></span>
+    </button>` : "";
 
   const slotsEl = document.getElementById("compareTraySlots");
-  if (slotsEl) slotsEl.innerHTML = slots.join("");
+  if (slotsEl) slotsEl.innerHTML = slotHTML + addSlot;
 
   const btn = document.getElementById("compareBtn");
   if (btn) {
@@ -139,6 +145,14 @@ function renderCompareTray() {
   }
 }
 
+// Add-a-product slot: on the catalogue page focus the existing search,
+// anywhere else go to the catalogue.
+function ylCompareAddMore() {
+  const search = document.getElementById("searchInput");
+  if (search) { search.focus(); search.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
+  location.href = "/products#catalogue";
+}
+
 // Measure the (collapsed or expanded) tray and reserve exactly its height so it
 // never occludes the last products, the footer, or the bottom filter rows.
 function updateCompareTrayHeight() {
@@ -149,15 +163,19 @@ function updateCompareTrayHeight() {
   if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
 }
 
-// Canyon-style collapse: the tray sits as a small "Compare (N)" pill until the
-// user expands it into the full comparison bar. Re-measures so the reserved
+// Full-width drawer, open by default: the collapse chevron slims it down to
+// just the head row (title + count) so it stays out of the way while
+// browsing, without losing the selection. Re-measures so the reserved
 // bottom space follows the tray's new height.
 function toggleCompareTray() {
   const tray = document.getElementById("compareTray");
   if (!tray) return;
-  const expanded = tray.classList.toggle("expanded");
+  const collapsed = tray.classList.toggle("is-collapsed");
   const toggle = document.getElementById("compareTrayToggle");
-  if (toggle) toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    toggle.setAttribute("aria-label", collapsed ? "Expand comparison tray" : "Collapse comparison tray");
+  }
   requestAnimationFrame(updateCompareTrayHeight);
 }
 
@@ -231,6 +249,13 @@ function closeCompareSheet() {
 }
 
 function renderCompareMobile() {
+  // Superseded: the compare drawer (.compare-tray) is now a responsive
+  // full-width bar at every breakpoint per the locked redesign, so the
+  // separate edge-tab + slide-up sheet is retired. Kept as a no-op (rather
+  // than deleted) since products.js / product-detail.js still call it
+  // defensively on load and on every compareUpdated event.
+  return;
+  // eslint-disable-next-line no-unreachable
   if (onComparePage()) return;
   // The mobile compare tab shadows the desktop bottom tray, so only surface it
   // on pages that actually have the tray (products / product-detail). On other

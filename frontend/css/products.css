@@ -94,8 +94,9 @@
    last products or the bottom filter rows. Set live from JS (compare.js). The
    space is added inside the (dark) footer rather than as body padding, so the
    reserved strip matches the footer instead of exposing a cream band of page
-   background beneath it. The +30px covers the tray's bottom float gap. */
-body.compare-open .site-footer { padding-bottom: calc(var(--compare-tray-height) + 30px); }
+   background beneath it. The tray sits flush with the viewport edge (no float
+   gap); the +16px is just breathing room above it. */
+body.compare-open .site-footer { padding-bottom: calc(var(--compare-tray-height) + 16px); }
 body.compare-open .filter-sidebar {
   max-height: calc(100vh - 104px - var(--compare-tray-height));
 }
@@ -2650,149 +2651,110 @@ body.detail-has-cta .toast {
   }
 }
 
-/* ─── Compare Tray (floating, collapsible — Canyon pattern) ──────
-   The toggle is a standalone rounded pill that floats as a tab; expanding
-   reveals a separate card just below it with a small gap between the two.
-   Collapsed, only the pill shows, so it stays unobtrusive while browsing.
-   The container itself is transparent and click-through except on its two
-   children. body.compare-open reserves its live height plus the float gap. */
+/* ─── Compare Tray (full-width bottom drawer) ────────────────────
+   A persistent full-width bar pinned to the viewport bottom once at least
+   one product is selected. Open by default; the collapse chevron slims it
+   to just the head row (title + count) without losing the selection. One
+   responsive layout covers desktop, tablet and phone (≤640px) rather than
+   swapping in a separate mobile widget. body.compare-open reserves the
+   tray's live measured height (see updateCompareTrayHeight in compare.js). */
 .compare-tray {
   position: fixed;
-  bottom: 18px;
-  left: 50%;
-  width: min(1180px, calc(100% - 32px));
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: var(--z-compare-tray);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  pointer-events: none;
-  transform: translate(-50%, calc(100% + 44px));
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(32,30,24,0.06);
+  transform: translateY(100%);
   transition: transform 0.34s cubic-bezier(0.23, 1, 0.32, 1);
 }
-.compare-tray > * { pointer-events: auto; }
-.compare-tray.visible { transform: translate(-50%, 0); }
-.compare-tray.expanded { gap: 10px; }
+.compare-tray.visible { transform: translateY(0); }
 
-/* Floating pill (the tab). Rounded, soft-shadowed, lifts on hover. */
-.compare-tray-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.62rem 1.2rem;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text);
-  box-shadow: 0 10px 26px -12px rgba(32,30,24,0.30), 0 2px 6px rgba(32,30,24,0.10);
-  transition: transform 0.16s var(--ease), box-shadow 0.2s var(--ease), color 0.15s var(--ease);
-}
-.compare-tray-toggle:hover { transform: translateY(-1px); box-shadow: 0 16px 32px -12px rgba(32,30,24,0.36), 0 2px 8px rgba(32,30,24,0.12); }
-.compare-tray-toggle:active { transform: translateY(0) scale(0.98); }
-.compare-tray-toggle:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.compare-tray-toggle .cmp-toggle-icon { color: var(--red); flex-shrink: 0; }
-.compare-tray-toggle-label { letter-spacing: -0.005em; }
-.compare-tray-toggle-label #compareTrayCount { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 2px; }
-.cmp-toggle-chevron { color: var(--muted); flex-shrink: 0; transition: transform 0.28s var(--ease); }
-.compare-tray.expanded .cmp-toggle-chevron { transform: rotate(180deg); }
-
-/* The card that reveals below the pill. Animates up + fades on expand. */
-.compare-tray-body {
+.compare-tray-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-  width: 100%;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 0.85rem 1.35rem;
-  box-shadow: 0 18px 44px -16px rgba(32,30,24,0.32), 0 2px 8px rgba(32,30,24,0.10);
-  transform-origin: bottom center;
-  transition: opacity 0.24s var(--ease), transform 0.28s var(--ease);
+  gap: 1rem;
 }
-.compare-tray:not(.expanded) .compare-tray-body {
-  opacity: 0;
-  visibility: hidden;
-  height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  border-width: 0;
-  overflow: hidden;
-  transform: translateY(10px) scale(0.985);
-  pointer-events: none;
-}
+/* Collapsed: only the head row remains, as a slim bar. */
+.compare-tray.is-collapsed .compare-tray-inner { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+.compare-tray.is-collapsed .compare-tray-slots,
+.compare-tray.is-collapsed .compare-tray-actions { display: none; }
 
-.compare-tray-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--muted);
+.compare-tray-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
   flex-shrink: 0;
+  padding-right: 0.25rem;
+}
+.compare-tray-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+.compare-tray-title #compareTrayCount { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.compare-tray-sub { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+
+.compare-tray-slots {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding: 2px;
 }
 
-.compare-tray-slots { display: flex; gap: 0.625rem; flex: 1; min-width: 0; flex-wrap: wrap; }
-
-.compare-slot {
+.cmp-slot {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: var(--radius);
-  font-size: 0.78rem;
-}
-
-.compare-slot-filled {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: 0.35rem 0.5rem 0.35rem 0.35rem;
-  max-width: 215px;
-}
-
-.compare-slot-empty {
-  border: 1.5px dashed #ccc;
-  color: #aaa;
-  padding: 0.6rem 1rem;
-  min-width: 140px;
-  justify-content: center;
-  font-size: 0.73rem;
-}
-
-.compare-slot-thumb {
-  width: 44px;
-  height: 44px;
+  flex-shrink: 0;
   background: #fff;
   border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.5rem 0.35rem 0.35rem;
+  font-family: inherit;
+}
+
+.cmp-slot-img {
+  width: 40px;
+  height: 40px;
   border-radius: 4px;
+  background: var(--well);
+  border: 1px solid var(--border);
   flex-shrink: 0;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.compare-slot-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; }
-.compare-slot-thumb .no-image-mark { font-size: 0.58rem; letter-spacing: 0.3px; text-align: center; padding: 0 2px; }
+.cmp-slot-img img { width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; }
+.cmp-slot-img .no-image-mark { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; text-align: center; padding: 0 2px; color: var(--muted); }
 
-.compare-slot-name {
-  flex: 1;
-  font-size: 0.76rem;
+.cmp-slot-name {
+  max-width: 160px;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--text);
-  line-height: 1.25;
+  white-space: nowrap;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  max-width: 110px;
+  text-overflow: ellipsis;
 }
 
-.compare-slot-remove {
+.cmp-slot-x {
   background: none;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid var(--line-2);
   color: var(--muted);
   width: 22px;
   height: 22px;
@@ -2801,23 +2763,71 @@ body.detail-has-cta .toast {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 0.85rem;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-  line-height: 1;
   padding: 0;
+  transition: border-color 0.15s, color 0.15s;
 }
+.cmp-slot-x:hover { border-color: var(--red); color: var(--red); }
 
-.compare-slot-remove:hover { border-color: var(--red); color: var(--red); }
+/* Dashed "add another product" slot, shown only while list.length < 3. */
+.cmp-slot-add {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1.5px dashed var(--line-2);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.cmp-slot-add:hover { border-color: var(--red); background: var(--red-tint); }
+.cmp-slot-add-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+.cmp-slot-add-text { display: flex; flex-direction: column; gap: 1px; }
+.cmp-slot-add-text strong { font-size: 0.76rem; font-weight: 600; color: var(--text); }
+.cmp-slot-add-text small { font-size: 0.68rem; color: var(--muted); }
 
-.compare-tray-actions { display: flex; align-items: center; gap: 0.875rem; flex-shrink: 0; }
+.compare-tray-actions { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+
+.compare-tray-clear {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 20px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.compare-tray-clear:hover { color: var(--text); border-color: var(--line-2); }
 
 .compare-tray-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   background: var(--red);
   color: #fff;
   border: none;
   border-radius: 20px;
-  padding: 0.55rem 1.5rem;
+  padding: 0.55rem 1.4rem;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -2825,84 +2835,52 @@ body.detail-has-cta .toast {
   font-family: inherit;
   white-space: nowrap;
 }
-
 .compare-tray-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .compare-tray-btn:not(:disabled):hover { background: var(--red-dark); }
 .compare-tray-btn:not(:disabled):active { transform: scale(0.97); }
 
-.compare-tray-clear {
+.compare-tray-collapse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
   background: none;
-  border: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
   color: var(--muted);
-  font-size: 0.75rem;
   cursor: pointer;
-  padding: 0.25rem;
-  font-family: inherit;
   transition: color 0.15s;
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
+.compare-tray-collapse:hover { color: var(--text); }
+.compare-tray-collapse svg { transition: transform 0.28s var(--ease); }
+.compare-tray.is-collapsed .compare-tray-collapse svg { transform: rotate(180deg); }
 
-.compare-tray-clear:hover { color: var(--text); }
-
-/* Tablet band (641-860px): keep the tray a single row. The desktop default
-   lets the slot cluster wrap, which dropped "+ Add product" onto a ragged
-   second line at this width. Scroll the chips horizontally instead so the
-   label and the Compare / Clear all actions stay pinned and the tray height
-   is constant. Phones (<=640px) use the stacked layout below. */
+/* Tablet band (641-860px): keep the slot row single-line by scrolling it
+   horizontally rather than wrapping, so the head and actions stay pinned
+   and the tray height is constant. Phones (<=640px) use the stacked
+   layout below. */
 @media (min-width: 641px) and (max-width: 860px) {
-  .compare-tray-body { flex-wrap: nowrap; gap: 1rem; }
-  .compare-tray-slots {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    padding-bottom: 2px;
-  }
-  .compare-tray-slots .compare-slot { flex-shrink: 0; }
+  .compare-tray-inner { gap: 0.75rem; }
 }
 
-/* Mobile compare tray: stack into clean rows instead of one cramped line.
-   "Comparing:" gets its own row, the selected products scroll horizontally if
-   space is tight (no wrapping, no page overflow), and the Compare / Clear all
-   actions sit in a tidy row with Compare leading and Clear all secondary. */
+/* Mobile: stack into rows — head (title + collapse chevron), then the
+   selected slots scrolling horizontally, then Clear all / Compare now as a
+   two-up button row. Bottom safe-area padding for notched phones. */
 @media (max-width: 640px) {
-  .compare-tray {
-    flex-direction: column;
-    align-items: stretch;
-    flex-wrap: nowrap;
-    gap: 0.6rem;
-    padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  .compare-tray-inner {
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.65rem;
   }
-  .compare-tray-label { width: 100%; }
-  .compare-tray-slots {
-    flex: 1;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    gap: 0.5rem;
-    padding-bottom: 2px;
-    scrollbar-width: thin;
-  }
-  .compare-slot-filled {
-    flex-shrink: 0;
-    width: 9.75rem;
-    max-width: none;
-  }
-  .compare-slot-empty {
-    flex-shrink: 0;
-    min-width: 8rem;
-    padding: 0.55rem 0.85rem;
-  }
-  .compare-slot-name { max-width: none; }
-  .compare-tray-actions {
-    width: 100%;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-  .compare-tray-btn { flex: 1; text-align: center; }
-  /* Easier-to-tap remove control on the mobile compare tray. */
-  .compare-slot-remove { width: 28px; height: 28px; }
+  .compare-tray.is-collapsed .compare-tray-inner { padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px)); }
+  .compare-tray-head { flex: 1 1 auto; min-width: 0; }
+  .compare-tray-collapse { order: 2; }
+  .compare-tray-slots { order: 3; flex-basis: 100%; }
+  .compare-tray-actions { order: 4; flex-basis: 100%; gap: 0.6rem; }
+  .compare-tray-clear,
+  .compare-tray-btn { flex: 1 1 50%; justify-content: center; }
 }
 
 /* ─── Comparison overlay removed; comparison now uses dedicated compare.html page ─── */
@@ -3343,7 +3321,10 @@ body.detail-has-cta .toast {
 }
 
 .compare-tray-btn:focus-visible,
-.compare-slot-remove:focus-visible,
+.compare-tray-clear:focus-visible,
+.compare-tray-collapse:focus-visible,
+.cmp-slot-x:focus-visible,
+.cmp-slot-add:focus-visible,
 .compare-col-remove:focus-visible {
   outline: 2px solid var(--red);
   outline-offset: 2px;
@@ -5354,10 +5335,13 @@ body:has(.compare-tray.visible) .toast {
   }
   .sticky-cta-wa:active { transform: scale(0.97); background: #dcefe1; }
 
-  /* The desktop compare tray is replaced on phones by the edge tab + sheet */
-  .compare-tray { display: none !important; }
+  /* Compare tray retired on phones: it now covers ≤640px itself (see the
+     "Mobile: stack into rows" rules above). renderCompareMobile() in
+     compare.js is now a no-op, so the .cmp-tab/.cmp-modal markup below is
+     never built or shown; their rules are left in place only in case a
+     future page still wants the standalone sheet pattern. */
 
-  /* ─── Step 4: compare edge tab ──────────────────────────────── */
+  /* ─── Step 4: compare edge tab (retired, see note above) ─────── */
   /* Bottom-anchored (not vertical-center) so it never sits on top of the
      hero search bar on load or scrolling product cards further down — the
      same reasoning as the bottom-anchored .sticky-cta on product-detail. */
