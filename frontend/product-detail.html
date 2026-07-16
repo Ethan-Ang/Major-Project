@@ -25,20 +25,26 @@
 </nav>
 
 <main id="mainContent">
-<!-- Gallery + sidebar side by side -->
-<div class="detail-gallery-row" id="detailPageGrid">
+<!-- Gallery left, product summary right -->
+<div class="detail-top" id="detailPageGrid">
   <div id="detailGallery"></div>
-  <aside class="detail-sidebar" id="detailSidebar" aria-label="Product actions"></aside>
+  <div class="detail-summary" id="detailSummary"></div>
 </div>
 
-<!-- Full-width: header, spec table, description -->
-<div class="detail-content">
-  <div id="detailHeader"></div>
-  <div id="detailSpecs"></div>
-  <div id="detailDesc"></div>
-  <div id="detailDownloads"></div>
-  <div id="detailAdvice"></div>
-</div>
+<!-- Three-tab container: Specifications / Application & Suitable Uses / Downloads -->
+<section class="detail-tabs" aria-label="Product information">
+  <div class="detail-tablist" role="tablist" aria-label="Product information tabs">
+    <button class="detail-tab" id="tab-specs" role="tab" aria-selected="true" aria-controls="panel-specs" onclick="ylDetailTab('specs')">Specifications</button>
+    <button class="detail-tab" id="tab-apply" role="tab" aria-selected="false" aria-controls="panel-apply" tabindex="-1" onclick="ylDetailTab('apply')">Application &amp; Suitable Uses</button>
+    <button class="detail-tab" id="tab-downloads" role="tab" aria-selected="false" aria-controls="panel-downloads" tabindex="-1" onclick="ylDetailTab('downloads')">Downloads</button>
+  </div>
+  <div class="detail-tabpanel" id="panel-specs" role="tabpanel" aria-labelledby="tab-specs"><div id="detailSpecs"></div></div>
+  <div class="detail-tabpanel" id="panel-apply" role="tabpanel" aria-labelledby="tab-apply" hidden><div id="detailApply"></div></div>
+  <div class="detail-tabpanel" id="panel-downloads" role="tabpanel" aria-labelledby="tab-downloads" hidden><div id="detailDownloads"></div></div>
+</section>
+
+<!-- Product Advice: outside the tabs, identical whatever tab is active -->
+<div id="detailAdvice"></div>
 
 <div class="related-section" id="relatedSection" style="display:none">
   <h2>Related Products</h2>

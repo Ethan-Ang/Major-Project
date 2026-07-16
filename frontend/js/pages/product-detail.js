@@ -19,7 +19,7 @@ if (typeof window !== "undefined" && typeof window.ylEscapeHtml !== "function") 
 function renderDetailSkeleton() {
   const g = document.getElementById("detailGallery");
   if (g) g.innerHTML = '<div class="skeleton-img" aria-hidden="true" style="border-radius:8px;aspect-ratio:1/1"></div>';
-  const h = document.getElementById("detailHeader");
+  const h = document.getElementById("detailSummary");
   if (h) h.innerHTML =
     '<div aria-hidden="true" style="max-width:520px">' +
     '<div class="skeleton-line skeleton-line-short"></div>' +
@@ -62,12 +62,22 @@ async function initDetailPage() {
   document.body.classList.remove("detail-has-cta");
   document.body.style.paddingBottom = ""; // drop any measured reservation
 
+  // Rendered before the not-found early-return so an invalid deep link still
+  // shows the compare tray if items are already stored (known edge case fix).
+  if (typeof renderCompareTray === "function") renderCompareTray();
+
   if (!product) {
     const grid = document.getElementById("detailPageGrid");
     if (grid) grid.innerHTML =
       "<p style='padding:3rem 1.5rem;color:var(--muted)'>Product not found. <a href='/products' style='color:var(--red)'>Back to products</a></p>";
-    const hdr = document.getElementById("detailHeader");
-    if (hdr) hdr.innerHTML = ""; // clear the header skeleton on the not-found path
+    const summary = document.getElementById("detailSummary");
+    if (summary) summary.innerHTML = ""; // clear the skeleton on the not-found path
+    const tabs = document.querySelector(".detail-tabs");
+    if (tabs) tabs.style.display = "none";
+    const advice = document.getElementById("detailAdvice");
+    if (advice) advice.innerHTML = "";
+    const related = document.getElementById("relatedSection");
+    if (related) related.style.display = "none";
     return;
   }
 
@@ -75,17 +85,22 @@ async function initDetailPage() {
   const breadcrumb = document.getElementById("breadcrumbProduct");
   if (breadcrumb) breadcrumb.textContent = product.name;
 
+  // Undo the not-found path's display:none, in case a prior invalid id was
+  // rendered in this same page instance (e.g. a history navigation Swup does
+  // not re-fetch for).
+  const tabsSection = document.querySelector(".detail-tabs");
+  if (tabsSection) tabsSection.style.display = "";
+
   renderGallery(product);
-  renderHeader(product);
+  renderSummary(product);
   renderSpecTable(product);
-  renderFullDesc(product);
+  renderApplication(product);
   renderDownloads(product);
   renderAdvice(product);
-  renderSidebar(product);
   renderStickyCta(product);
   renderRelated(product);
   updateBasketCount();
-  if (typeof renderCompareTray === "function") renderCompareTray();
+  ylDetailTab("specs");
 
   // Registered once for the app's lifetime; they read the current detailProduct.
   ylOnce("detail:listeners", () => {
@@ -100,6 +115,23 @@ async function initDetailPage() {
     // browser-chrome show/hide, breakpoint crossing).
     window.addEventListener("resize", syncStickyCtaReserve);
     window.addEventListener("orientationchange", syncStickyCtaReserve);
+
+    // Arrow-key navigation between the three detail tabs. Delegated on
+    // document (not bound to the tab buttons directly) so it keeps working
+    // after a Swup page swap re-creates the tablist markup.
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const target = e.target;
+      if (!target || !target.classList || !target.classList.contains("detail-tab")) return;
+      e.preventDefault();
+      const current = YL_DETAIL_TABS.indexOf(target.id.replace("tab-", ""));
+      if (current === -1) return;
+      const delta = e.key === "ArrowRight" ? 1 : -1;
+      const nextName = YL_DETAIL_TABS[(current + delta + YL_DETAIL_TABS.length) % YL_DETAIL_TABS.length];
+      ylDetailTab(nextName);
+      const nextTab = document.getElementById(`tab-${nextName}`);
+      if (nextTab) nextTab.focus();
+    });
   });
 }
 ylReady(initDetailPage);
@@ -204,11 +236,34 @@ function galleryStep(delta) {
   gallerySet((index + delta + images.length) % images.length);
 }
 
-// ─── Product Header ───────────────────────────────────────────────
-function renderHeader(product) {
-  const el = document.getElementById("detailHeader");
+// ─── Product Summary (gallery-adjacent column) ────────────────────
+// Replaces the old separate renderHeader (name/desc/availability) and
+// renderSidebar (buy box). Element IDs and classes on the action controls are
+// unchanged from the old sidebar markup so updateSidebarCompareBtn and
+// syncDetailBasketButtons (which target them by id) keep working untouched.
+function renderSummary(product) {
+  const el = document.getElementById("detailSummary");
   if (!el) return;
-  const availClass = product.status === "Available" ? "available" : "unavailable";
+
+  const basket    = getBasket();
+  const inBasket  = basket.includes(product.id);
+  const inCompare = isInCompare(product.id);
+  const availClass   = product.status === "Available" ? "available" : "unavailable";
+  const enquiryLabel  = product.status === "Available" ? "Add to Product Enquiry" : "Enquire About Availability";
+
+  // The one summary paragraph: prefer the full description, fall back to the
+  // short one when the full field is a placeholder ("x", "n/a", etc). Real
+  // data only — never invented copy.
+  const descText = isMeaningfulText(product.fullDescription)
+    ? product.fullDescription
+    : (isMeaningfulText(product.shortDescription) ? product.shortDescription : "");
+
+  // WhatsApp quick-chat, pre-filled with the product name so the sales team
+  // has context. Uses the same number as the contact page + footer.
+  const waText = encodeURIComponent(
+    `Hello Yee Lim, I would like to enquire about ${product.name}.`);
+  const waHref = `https://wa.me/6588755786?text=${waText}`;
+
   el.innerHTML = `
     <div class="detail-product-header">
       <div class="detail-product-meta">
@@ -218,7 +273,33 @@ function renderHeader(product) {
         </span>
       </div>
       <h1 class="detail-product-name">${ylEscapeHtml(product.name)}</h1>
-      <p class="detail-product-desc">${ylEscapeHtml(product.shortDescription)}</p>
+      ${descText ? `<p class="detail-product-desc">${ylEscapeHtml(descText)}</p>` : ""}
+    </div>
+    <div class="sidebar-actions">
+      <button
+        class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
+        id="sidebarBasketBtn"
+        data-enquiry-label="${enquiryLabel}"
+        aria-pressed="${inBasket ? "true" : "false"}"
+        onclick="toggleBasket('${product.id}', '${ylTxt(product.name)}')">
+        ${inBasket ? "In Product Enquiry" : enquiryLabel}
+      </button>
+      <div class="sidebar-action-row">
+        <button
+          class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
+          id="sidebarCompareBtn"
+          onclick="toggleCompare('${product.id}')">
+          ${inCompare ? "&#10003; In Comparison" : "+ Compare"}
+        </button>
+        <a class="btn-whatsapp-sidebar" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Chat about this product on WhatsApp">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>
+          WhatsApp
+        </a>
+      </div>
+    </div>
+    <div class="sidebar-foot">
+      <a href="/enquiry" class="sidebar-enquiry-link" id="sidebarEnquiryLink"${inBasket ? "" : " hidden"}>View Product Enquiry &rarr;</a>
+      <p class="sidebar-note">Yee Lim's team will advise on suitability, pricing &amp; lead time.</p>
     </div>`;
 }
 
@@ -255,7 +336,6 @@ function renderSpecTable(product) {
 
   el.innerHTML = `
     <div class="spec-table-wrap">
-      <div class="spec-table-heading">Specifications</div>
       ${rows.map(r => `
       <div class="spec-row">
         <div class="spec-key">${r.key}</div>
@@ -308,6 +388,11 @@ function renderDownloads(product) {
   const sds = validDocUrl(product.sdsUrl);
   const tds = validDocUrl(product.tdsUrl);
 
+  // Same WhatsApp quick-chat pattern used in the summary actions, offered as
+  // a fallback when no document exists for this product.
+  const waHref = `https://wa.me/6588755786?text=${encodeURIComponent(
+    `Hello Yee Lim, I would like to enquire about ${product.name}.`)}`;
+
   // ── The single future integration point for CLIENT-003: the gate will
   // replace this anchor's direct navigation with the visitor-details flow.
   // Until then the approved behaviour stands: open the PDF in a new tab. ──
@@ -349,66 +434,16 @@ function renderDownloads(product) {
           <span class="doc-empty-main">No downloads are currently available for this product.</span>
           <span class="doc-empty-sub"><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> if you require technical documentation.</span>
         </span>
-      </div>`;
+      </div>
+      <a class="btn-whatsapp-sidebar doc-empty-wa" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Chat about this product on WhatsApp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>
+        Talk to Yee Lim
+      </a>`;
 
   el.innerHTML = `
     <section class="detail-downloads" aria-label="Product downloads">
-      <h2 class="section-heading">Downloads</h2>
       ${body}
     </section>`;
-}
-
-// ─── Sticky Sidebar ───────────────────────────────────────────────
-function renderSidebar(product) {
-  const el        = document.getElementById("detailSidebar");
-  if (!el) return;
-  const basket    = getBasket();
-  const inBasket  = basket.includes(product.id);
-  const inCompare = isInCompare(product.id);
-  const availClass = product.status === "Available" ? "available" : "unavailable";
-  const availLabel = product.status === "Available" ? "Available for Enquiry" : "Currently Unavailable";
-  const enquiryLabel = product.status === "Available" ? "Add to Product Enquiry" : "Enquire About Availability";
-
-  // WhatsApp quick-chat, pre-filled with the product name so the sales team
-  // has context. Uses the same number as the contact page + footer.
-  const waText = encodeURIComponent(
-    `Hello Yee Lim, I would like to enquire about ${product.name}.`);
-  const waHref = `https://wa.me/6588755786?text=${waText}`;
-
-  el.innerHTML = `
-    <div class="sidebar-avail-bar ${availClass}" aria-label="Availability: ${product.status}">
-      <span class="avail-dot" aria-hidden="true"></span>${availLabel}
-    </div>
-    <div class="sidebar-identity">
-      <div class="sidebar-brand">${ylEscapeHtml(brandDisplay(product.brand))}</div>
-      <div class="sidebar-product-name">${ylEscapeHtml(product.name)}</div>
-    </div>
-    <div class="sidebar-actions">
-      <button
-        class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
-        id="sidebarBasketBtn"
-        data-enquiry-label="${enquiryLabel}"
-        aria-pressed="${inBasket ? "true" : "false"}"
-        onclick="toggleBasket('${product.id}', '${ylTxt(product.name)}')">
-        ${inBasket ? "In Product Enquiry" : enquiryLabel}
-      </button>
-      <div class="sidebar-action-row">
-        <button
-          class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
-          id="sidebarCompareBtn"
-          onclick="toggleCompare('${product.id}')">
-          ${inCompare ? "&#10003; In Comparison" : "+ Compare"}
-        </button>
-        <a class="btn-whatsapp-sidebar" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Chat about this product on WhatsApp">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>
-          WhatsApp
-        </a>
-      </div>
-    </div>
-    <div class="sidebar-foot">
-      <a href="/enquiry" class="sidebar-enquiry-link" id="sidebarEnquiryLink"${inBasket ? "" : " hidden"}>View Product Enquiry &rarr;</a>
-      <p class="sidebar-note">Yee Lim's team will advise on suitability, pricing &amp; lead time.</p>
-    </div>`;
 }
 
 function updateSidebarCompareBtn(productId) {
@@ -502,102 +537,56 @@ function isMeaningfulText(text) {
   return !/^(x+|-+|\.+|n\/?a|tbd|none|null)$/i.test(t);
 }
 
-// ─── Full Description + Usage ─────────────────────────────────────
-// The source usage strings follow one of two shapes:
-//   "Apply by <method>. Suitable for: <a>; <b>; <c>."  (most products)
-//   free-form multi-step instructions            (e.g. PVC pipe cement)
-// parseUsage separates the application method from the "suitable for" list so
-// the two can be rendered distinctly instead of running together as one blob.
-// The list is split on the "; " delimiters carried in the data — if a string
-// has not been delimited (older records), it renders as one clean line rather
-// than being mangled by a guessed word-boundary split.
-function parseUsage(raw) {
-  const text = (raw == null ? "" : String(raw)).trim();
-  if (!text) return null;
-  const m = text.match(/^(.*?)\.\s*suitable for:\s*(.+?)\.?\s*$/i);
-  if (!m) return { method: "", steps: text, items: [] };
-  const method = m[1].trim();
-  const items = splitSuitableFor(m[2]);
-  return { method, steps: "", items };
-}
-
-// Split a "suitable for" list into individual values on EXPLICIT delimiters only
-// ("; " or "•"). Commas are NOT delimiters: professional values legitimately
-// contain them (e.g. "carpentry, doors and cabinetry", "laminates (E.g. Carpentry,
-// Door)"), so splitting on commas would wrongly fragment a single use. A value
-// with no ";"/"•" delimiter comes back as ONE item (the un-delimited DB data of
-// today, and any single-use product) — never a guessed word/space/capital split.
-function splitSuitableFor(str) {
-  return String(str == null ? "" : str)
-    .split(/[;•]+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-}
-
-function renderFullDesc(product) {
-  const el = document.getElementById("detailDesc");
+// ─── Application & Suitable Uses tab ──────────────────────────────
+// Built ONLY from the real usage field. Seed format:
+//   "Apply by brush or roll. Suitable for: Leather product bonding; Shoe
+//   in-soles; General purpose."
+// Older / free-form records with no "Suitable for:" segment (e.g. numbered
+// step instructions) render their whole usage text as the method column
+// rather than being force-fit into a "suitable uses" list that isn't there —
+// real data only, never invented structure.
+function renderApplication(product) {
+  const el = document.getElementById("detailApply");
   if (!el) return;
-
-  // Prefer the full description; fall back to the short one when the full field
-  // is a placeholder, and omit "How to Use" entirely when there's no real usage
-  // text — an honest omission reads better than a stray "x".
-  const descText = isMeaningfulText(product.fullDescription)
-    ? product.fullDescription
-    : (isMeaningfulText(product.shortDescription) ? product.shortDescription : "");
-
-  const parts = [];
-  if (descText) {
-    parts.push(`<h2 class="section-heading">Product Description</h2>`);
-    parts.push(`<p class="detail-product-desc">${ylEscapeHtml(descText)}</p>`);
+  const usage = String(product.usage || "").trim();
+  if (!usage) {
+    el.innerHTML = `
+      <div class="apply-empty">
+        <p>Application guidance for this product is available from our team.</p>
+        <p><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> for advice on your surface and application.</p>
+      </div>`;
+    return;
   }
+  const m = usage.match(/suitable for\s*:?\s*/i);
+  const method = m ? usage.slice(0, m.index).trim() : usage;
+  const uses = m ? usage.slice(m.index + m[0].length).split(/;|•/).map(s => s.trim().replace(/\.$/, "")).filter(Boolean) : [];
+  el.innerHTML = `
+    <div class="apply-grid">
+      ${method ? `
+      <div class="apply-col">
+        <h3 class="apply-heading">Application Method</h3>
+        <p class="apply-method">${ylEscapeHtml(method)}</p>
+      </div>` : ""}
+      ${uses.length ? `
+      <div class="apply-col">
+        <h3 class="apply-heading">Suitable Uses</h3>
+        <ul class="apply-uses">${uses.map(u => `<li>${ylEscapeHtml(u)}</li>`).join("")}</ul>
+      </div>` : ""}
+    </div>`;
+}
 
-  const usage = isMeaningfulText(product.usage) ? parseUsage(product.usage) : null;
-  if (usage) {
-    // "How to Use" only when the data is genuine step instructions. parseUsage
-    // puts free-form / numbered text in `steps` (a string) and leaves it "" for
-    // the "Apply by X. Suitable for: ..." shape, which is just a method + labels
-    // — that reads honestly as "Application & Suitable Uses", not instructions.
-    const hasUsageSteps = Array.isArray(usage.steps)
-      ? usage.steps.length > 0
-      : Boolean(String(usage.steps || "").trim());
-    const usageHeading = hasUsageSteps ? "How to Use" : "Application &amp; Suitable Uses";
-    parts.push(`<h2 class="section-heading"${descText ? ' style="margin-top:1.75rem"' : ""}>${usageHeading}</h2>`);
-    const usageParts = [];
-    if (usage.method) {
-      usageParts.push(`
-        <div class="usage-method">
-          <span class="usage-method-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>
-          </span>
-          <div class="usage-method-text">
-            <span class="usage-method-label">Application Method</span>
-            <span class="usage-method-value">${ylEscapeHtml(usage.method)}</span>
-          </div>
-        </div>`);
-    }
-    if (usage.items.length) {
-      // Multiple delimited values render as tag chips. A single value (common
-      // when the source string carries no "; " delimiters) renders as a clean
-      // readable line — never a full-width box that looks like a disabled input.
-      // Multiple values render as a compact scannable list (professional wording
-      // can be long, which reads better as list rows than as oversized chips). A
-      // single value renders as a clean line — never a full-width input-looking box.
-      const suitableBody = usage.items.length > 1
-        ? `<ul class="usage-list">${usage.items.map(i => `<li>${ylEscapeHtml(i)}</li>`).join("")}</ul>`
-        : `<p class="usage-suitable-single">${ylEscapeHtml(usage.items[0])}</p>`;
-      usageParts.push(`
-        <div class="usage-suitable">
-          <span class="usage-suitable-label">Suitable for</span>
-          ${suitableBody}
-        </div>`);
-    }
-    if (usage.steps) {
-      usageParts.push(`<p class="usage-steps">${ylEscapeHtml(usage.steps)}</p>`);
-    }
-    parts.push(`<div class="usage-box">${usageParts.join("")}</div>`);
-  }
-
-  el.innerHTML = parts.join("\n");
+// ─── Tab switcher (Specifications / Application / Downloads) ──────
+const YL_DETAIL_TABS = ["specs", "apply", "downloads"];
+function ylDetailTab(name) {
+  YL_DETAIL_TABS.forEach(t => {
+    const tab = document.getElementById(`tab-${t}`);
+    const panel = document.getElementById(`panel-${t}`);
+    if (!tab || !panel) return;
+    const on = t === name;
+    tab.setAttribute("aria-selected", on ? "true" : "false");
+    tab.tabIndex = on ? 0 : -1;
+    panel.hidden = !on;
+  });
 }
 
 function renderAdvice(product) {

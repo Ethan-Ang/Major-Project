@@ -160,7 +160,6 @@ body {
 /* Display typeface for headings — engineered, B2B character */
 h1, h2, h3,
 .detail-product-name,
-.sidebar-product-name,
 .section-heading {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   letter-spacing: -0.01em;
@@ -1020,77 +1019,48 @@ body.detail-has-cta .toast {
   font-size: 0.95rem;
 }
 
-.usage-box {
-  /* Warm neutral surface (was a pale-red panel that read like a warning/error).
-     Red is kept only as a small accent on the method icon. */
-  background: #faf7f0;
-  border: 1px solid #e8e1d2;
-  border-radius: 12px;
-  padding: 1rem 1.1rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--text);
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
+/* ─── Application & Suitable Uses tab content ────────────────────
+   Replaces the old .usage-box/.usage-chip family (that markup is no longer
+   rendered — the tab panel itself already provides the surface/padding). */
+.apply-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem;
 }
 
-.usage-method {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
+.apply-col { min-width: 0; }
 
-.usage-method-icon {
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f1ece1;
-  color: var(--red);
-}
-
-.usage-method-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding-top: 0.05rem;
-}
-
-.usage-method-label,
-.usage-suitable-label {
+.apply-heading {
   font-family: var(--mono);
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--muted-2);
+  margin: 0 0 0.6rem;
 }
 
-.usage-method-value {
-  font-size: 0.92rem;
+.apply-method {
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
-  line-height: 1.4;
+  line-height: 1.5;
+  margin: 0;
   overflow-wrap: anywhere;
 }
 
-.usage-suitable {
+.apply-uses {
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid #e8e1d2;
 }
 
-/* Single, un-delimited suitable-use value: a clean readable line, NOT a chip
-   pill or an input-looking box. Handles long values gracefully by wrapping. */
-.usage-suitable-single {
-  margin: 0;
+.apply-uses li {
+  position: relative;
+  padding-left: 1.05rem;
   font-size: 0.9rem;
   font-weight: 500;
   line-height: 1.5;
@@ -1098,26 +1068,7 @@ body.detail-has-cta .toast {
   overflow-wrap: anywhere;
 }
 
-/* Multiple suitable uses: a compact list (scans better than large chips for the
-   longer professional wording). Small red dot = the one restrained accent. */
-.usage-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-.usage-list li {
-  position: relative;
-  padding-left: 1.05rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  line-height: 1.45;
-  color: var(--text);
-  overflow-wrap: anywhere;
-}
-.usage-list li::before {
+.apply-uses li::before {
   content: "";
   position: absolute;
   left: 0.1rem;
@@ -1128,34 +1079,18 @@ body.detail-has-cta .toast {
   background: var(--red);
 }
 
-.usage-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.usage-chip {
-  background: #fff;
-  border: 1px solid #ddd4c2;
-  color: var(--text);
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.28rem 0.7rem;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-/* Free-form multi-step usage (e.g. PVC pipe cement) has no "suitable for" list;
-   it renders as a plain readable paragraph inside the same box. */
-.usage-steps {
+.apply-empty {
+  color: var(--muted);
   font-size: 0.9rem;
-  line-height: 1.65;
-  color: var(--text);
-  margin: 0;
+  line-height: 1.6;
 }
+.apply-empty a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.apply-empty a:hover { color: var(--red); }
+.apply-empty a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
-/* When the box holds only the steps paragraph, drop the flex gap padding feel. */
-.usage-box > .usage-steps:only-child { }
+@media (max-width: 640px) {
+  .apply-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+}
 
 /* Product Documents (SDS / TDS downloads) on the product detail page.
    Only rendered when a document URL exists, so there is no empty state to style. */
@@ -1218,6 +1153,11 @@ body.detail-has-cta .toast {
 .doc-empty-link { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
 .doc-empty-link:hover { color: var(--red); }
 .doc-empty-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
+
+/* WhatsApp fallback offered under the empty-downloads state. .btn-whatsapp-sidebar
+   is a block-level flex element in its original (sidebar row) context, which
+   would otherwise stretch full-width here; inline-flex keeps it content-sized. */
+.doc-empty-wa { display: inline-flex; margin-top: 1rem; }
 
 .doc-download-icon {
   flex-shrink: 0;
@@ -2081,24 +2021,80 @@ body.detail-has-cta .toast {
   .search-bar { margin-top: 1.5rem; }
 }
 
-/* ─── Detail Page — Gallery + Sidebar Row ────────────────────── */
-.detail-gallery-row {
+/* ─── Detail Page — Gallery + Summary Row ────────────────────── */
+.detail-top {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 40px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 2rem;
   max-width: 1180px;
   margin: 1.25rem auto 0;
   padding: 0 40px;
   align-items: start;
 }
 
-/* Full-width content section below gallery row. Shares the fold row's max-width
-   and 40px inline padding so the spec table, description, and enquiry band all
-   line up on the same left edge as the gallery. */
-.detail-content {
+.detail-summary {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Three-tab container (Specifications / Application / Downloads) ──
+   Shares the fold row's max-width and 40px inline padding so it lines up on
+   the same left edge as the gallery/summary and the related grid below. The
+   visible white/bordered "card" is split across .detail-tablist (top half)
+   and the currently visible .detail-tabpanel (bottom half, only one is ever
+   in flow at a time via [hidden]) so it fuses into one seamless container
+   without needing an extra wrapper element around both. */
+.detail-tabs {
   max-width: 1180px;
-  margin: 2.25rem auto 2.5rem;
+  margin: 2.25rem auto 0;
   padding: 0 40px;
+}
+
+.detail-tablist {
+  display: flex;
+  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 14px 14px 0 0;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.detail-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0.85rem 1rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.detail-tab:hover { color: var(--text); }
+
+.detail-tab[aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--red);
+}
+
+.detail-tab:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: -2px;
+}
+
+.detail-tabpanel {
+  padding: 1.4rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+}
+
+@media (max-width: 640px) {
+  .detail-tab { font-size: 0.78rem; padding: 0.7rem 0.5rem; line-height: 1.3; }
 }
 
 /* ─── Gallery ────────────────────────────────────────────────── */
@@ -2321,18 +2317,6 @@ body.detail-has-cta .toast {
   margin: 1.25rem 0;
 }
 
-.spec-table-heading {
-  background: var(--panel);
-  padding: 0.7rem 1.25rem;
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted-2);
-  border-bottom: 1px solid var(--line);
-}
-
 .spec-row {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
@@ -2418,77 +2402,12 @@ body.detail-has-cta .toast {
 
 .spec-feature-text { min-width: 0; }
 
-/* ─── Sidebar (action rail / buy box) ───────────────────────────── */
-.detail-sidebar {
-  position: sticky;
-  top: 84px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 1px 3px rgba(32,30,24,0.05), 0 10px 24px -14px rgba(32,30,24,0.18);
-}
-
-.sidebar-avail-bar {
-  padding: 0.6rem 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  border-bottom: 1px solid transparent;
-  flex-shrink: 0;
-}
-
-.sidebar-avail-bar.available {
-  background: var(--green-tint);
-  color: var(--green);
-  border-bottom-color: var(--green-tint-bdr);
-}
-
-.sidebar-avail-bar.unavailable {
-  background: #fdf3e2;
-  color: #8a5a12;
-  border-bottom-color: #f0dcb8;
-}
-
-.sidebar-avail-bar .avail-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
-}
-
-.sidebar-identity {
-  padding: 1.05rem 1.25rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
-}
-
-.sidebar-brand {
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--red);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.sidebar-product-name {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 1.08rem;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
+/* ─── Summary actions (buy box, no longer a separate bordered card) ────
+   Lives directly inside .detail-summary beside the gallery, so it needs no
+   card background/border/sticky positioning of its own — .detail-product-
+   header (name/brand/availability/description, reused unchanged) already
+   supplies the divider above these buttons. */
 .sidebar-actions {
-  padding: 1.05rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -2533,14 +2452,13 @@ body.detail-has-cta .toast {
 }
 
 .sidebar-foot {
-  padding: 0.875rem 1.25rem;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+  padding-top: 1rem;
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.4rem;
-  margin-top: auto;
 }
 
 .sidebar-enquiry-link {
@@ -2556,7 +2474,7 @@ body.detail-has-cta .toast {
 .sidebar-note {
   font-size: 0.72rem;
   color: var(--muted);
-  text-align: center;
+  text-align: left;
   line-height: 1.5;
 }
 
@@ -2584,71 +2502,41 @@ body.detail-has-cta .toast {
 .btn-compare-sidebar:active { transform: scale(0.97); }
 
 /* ─── Responsive — detail page ───────────────────────────────── */
-@media (max-width: 900px) {
-  .detail-gallery-row {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-  /* Natural mobile order: show the product image first, then the action
-     sidebar (name, availability, Add to Enquiry / Compare). Previously the
-     sidebar was forced above the gallery (order:-1), which made the page feel
-     CTA-first before the visitor had even seen the product. */
-  /* Stacked full-width, the buy box no longer needs to stick alongside the
-     gallery — un-stick it so it scrolls with the content. */
-  .detail-sidebar { position: static; top: auto; }
+@media (max-width: 768px) {
+  /* Single column, gallery first (its natural DOM order), summary below. */
+  .detail-top { grid-template-columns: 1fr; }
   .gallery-main { height: 380px; }
 }
 
 /* Trim the shared 40px inline padding on smaller viewports so no section can
    push the page into horizontal overflow. */
 @media (max-width: 768px) {
-  .detail-gallery-row,
-  .detail-content,
+  .detail-top,
+  .detail-tabs,
   .related-section { padding-left: 24px; padding-right: 24px; }
   .enquiry-guidance { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 560px) {
-  .detail-gallery-row,
-  .detail-content,
+  .detail-top,
+  .detail-tabs,
   .related-section { padding-left: 16px; padding-right: 16px; }
   .gallery-main { height: 250px; }   /* capped so the photo doesn't dominate (per prototype) */
   .spec-row { grid-template-columns: 120px minmax(0, 1fr); }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* On phones the action card sits directly above the full header (brand,
-   availability badge, h1 name, description), so its own name + availability
-   just repeat what the h1 block shows one screen down. Drop them here so the
-   card leads straight into the buttons; the h1 block is the single source of
-   identity. Desktop keeps the buy-box identity since the card sits beside the
-   gallery, not stacked above the header. */
+/* On phones the primary actions live in the fixed sticky CTA bar, so the
+   in-flow buttons directly under the h1/description block would just
+   duplicate them. Hide only the action buttons + footer note; the header
+   block (brand, availability, name, description) stays as the single source
+   of identity all the way down to mobile. */
 @media (max-width: 640px) {
-  /* Actions live in the fixed sticky CTA bar on phones, so the in-flow buy-box
-     would just duplicate them. Hide the whole sidebar card; the h1 block is the
-     single source of identity and the sticky bar carries Enquiry/Compare/WA. */
-  .detail-sidebar { display: none; }
+  .detail-summary .sidebar-actions,
+  .detail-summary .sidebar-foot { display: none; }
   /* Nothing overlays the product photo on mobile — brand shows as the eyebrow
      above the h1, not as a chip on the image. */
   .gallery-brand-chip { display: none; }
-  /* Compact the whole usage card on phones (less vertical weight so it does not
-     fight the fixed bottom action bar or the enquiry card below). */
-  .usage-box { padding: 0.85rem 0.9rem; gap: 0.7rem; }
-
-  /* "Suitable for" chips: clean rounded rectangles, warm hairline, even padding,
-     wrapping. Content-width (NOT full-width) so a chip never looks like a
-     disabled input; a single value renders as a plain line via
-     .usage-suitable-single instead. Desktop keeps its own pills. */
-  .usage-chips { gap: 0.45rem; }
-  .usage-chip {
-    white-space: normal;
-    overflow-wrap: break-word;
-    max-width: 100%;
-    border-radius: 9px;
-    border-color: #ddd4c2;
-    padding: 0.42rem 0.7rem;
-    line-height: 1.4;
-  }
 }
 
 /* ─── Compare Tray (full-width bottom drawer) ────────────────────
