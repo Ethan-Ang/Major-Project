@@ -3440,6 +3440,7 @@ body:has(.compare-tray.visible) .toast {
   line-height: 1.3;
   transition: background 0.14s ease, color 0.14s ease;
 }
+.filter-group label:last-child { margin-bottom: 0; }
 
 /* "Show more" for long groups + the heading's active-total chip (FILTER-001) */
 .fg-more-btn {
@@ -3485,6 +3486,9 @@ body:has(.compare-tray.visible) .toast {
    a small margin-bottom (above) so two adjacent checked rows never merge
    into one block. */
 .filter-group label:has(input:checked) { background: var(--red-tint); }
+/* Hover on an already-checked row must not flip it back to the neutral hover
+   fill (0,3,2 beats the plain :hover rule's 0,3,1). */
+.filter-group label:hover:has(input:checked) { background: var(--red-tint); }
 .filter-group label:has(input:checked) .filter-label-text {
   color: var(--text);
   font-weight: 600;
@@ -5210,6 +5214,7 @@ body:has(.compare-tray.visible) .toast {
     border-radius: 6px;
     font-size: 0.88rem;
   }
+  .filter-group label:last-child { margin-bottom: 0; }
   .filter-group label:active { background: var(--panel); }  /* press, not hover, on mobile */
 
   /* ─── Step 2: drawer footer ─────────────────────────────── */
