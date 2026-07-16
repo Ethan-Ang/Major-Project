@@ -1039,7 +1039,8 @@ body.detail-has-cta .toast {
   margin: 0 0 0.6rem;
 }
 
-.apply-method {
+.apply-method,
+.apply-suitable-single {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
@@ -2020,7 +2021,7 @@ body.detail-has-cta .toast {
   .search-bar { margin-top: 1.5rem; }
 }
 
-/* ─── Detail Page — Gallery + Summary Row ────────────────────── */
+/* ─── Detail Page: Gallery + Summary Row ────────────────────── */
 .detail-top {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);

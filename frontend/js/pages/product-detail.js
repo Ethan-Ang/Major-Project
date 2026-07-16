@@ -560,6 +560,14 @@ function renderApplication(product) {
   const m = usage.match(/suitable for\s*:?\s*/i);
   const method = m ? usage.slice(0, m.index).trim() : usage;
   const uses = m ? usage.slice(m.index + m[0].length).split(/;|•/).map(s => s.trim().replace(/\.$/, "")).filter(Boolean) : [];
+  // The live DB's "suitable for" text is un-delimited today (no "; " or "*"
+  // separators), so splitting it yields exactly one "item" that is really the
+  // whole sentence. Rendering that as a one-line bulleted <ul> would fake a
+  // list structure the data doesn't have, so fewer than 2 items render as a
+  // plain paragraph instead (matches how a genuinely delimited value with 2+
+  // items still gets the real bulleted list).
+  const usesList = uses.length >= 2 ? uses : [];
+  const usesSingle = uses.length === 1 ? uses[0] : "";
   el.innerHTML = `
     <div class="apply-grid">
       ${method ? `
@@ -567,10 +575,15 @@ function renderApplication(product) {
         <h3 class="apply-heading">Application Method</h3>
         <p class="apply-method">${ylEscapeHtml(method)}</p>
       </div>` : ""}
-      ${uses.length ? `
+      ${usesList.length ? `
       <div class="apply-col">
         <h3 class="apply-heading">Suitable Uses</h3>
-        <ul class="apply-uses">${uses.map(u => `<li>${ylEscapeHtml(u)}</li>`).join("")}</ul>
+        <ul class="apply-uses">${usesList.map(u => `<li>${ylEscapeHtml(u)}</li>`).join("")}</ul>
+      </div>` : ""}
+      ${usesSingle ? `
+      <div class="apply-col">
+        <h3 class="apply-heading">Suitable Uses</h3>
+        <p class="apply-suitable-single">${ylEscapeHtml(usesSingle)}</p>
       </div>` : ""}
     </div>`;
 }
