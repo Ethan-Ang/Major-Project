@@ -2905,6 +2905,12 @@ body.detail-has-cta .toast {
   border-top: 1px solid var(--border);
   white-space: nowrap;
   vertical-align: middle;
+  /* Sticky first column (also the thead "Product" corner cell, which shares
+     this class): stays pinned and readable while the table scrolls
+     horizontally inside .cx-scroll on narrow viewports. */
+  position: sticky;
+  left: 0;
+  z-index: 2;
 }
 
 .compare-row-value {
@@ -2974,17 +2980,173 @@ body.detail-has-cta .toast {
 .compare-page-top {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0.875rem 1.5rem;
+  padding: 1.25rem 1.5rem 1.1rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.35rem;
   border-bottom: 1px solid var(--border);
 }
 
 .compare-page-top .breadcrumb {
-  margin: 0;
+  margin: 0 0 0.15rem;
   max-width: none;
   padding: 0;
+}
+
+.compare-page-lead {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ─── Selection panel ("Products to compare (n/3)") ─────────────
+   Sits above the comparison table: one card per selected product, a
+   dashed add-slot while under COMPARE_MAX, and the grouped actions.
+   Mirrors the bottom .compare-tray drawer's cmp-slot pattern. ──── */
+.compare-select-panel {
+  max-width: 1280px;
+  margin: 1.25rem auto 0;
+  padding: 1.1rem 1.25rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.compare-select-panel[hidden] { display: none; }
+
+.csel-head {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 0.85rem;
+}
+
+.csel-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.csel-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 1.85rem 0.6rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.csel-img {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.csel-img img { width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; }
+.csel-img .no-image-mark { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.3px; text-align: center; padding: 0 2px; color: var(--muted); }
+
+.csel-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.csel-brand {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--red);
+}
+
+.csel-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.csel-x {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.csel-x:hover { color: var(--red); border-color: var(--red-tint-bdr); }
+.csel-x:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+.csel-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.9rem 0.75rem;
+  border: 1.5px dashed var(--line-2);
+  border-radius: 10px;
+  text-decoration: none;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.csel-add:hover { border-color: var(--red); background: var(--red-tint); }
+.csel-add:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.csel-add-icon {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--red);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.csel-add-text { display: flex; flex-direction: column; gap: 1px; }
+.csel-add-text strong { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+.csel-add-text small { font-size: 0.68rem; color: var(--muted); }
+
+.csel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+.csel-compare { text-decoration: none; }
+
+@media (max-width: 640px) {
+  .csel-row { grid-template-columns: 1fr; }
+  .csel-actions .compare-page-clear,
+  .csel-actions .csel-compare { flex: 1 1 50%; justify-content: center; }
 }
 
 .compare-img-placeholder {
@@ -3052,67 +3214,13 @@ body.detail-has-cta .toast {
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
-/* ─── Compare "Highlight differences" toggle (shared desktop + mobile) ───── */
-.cx-difftoggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0.9rem;
-  margin-bottom: 0.85rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text);
+/* Scroll container for the comparison table at every breakpoint (shares the
+   element with .compare-page-table-wrap above). The sticky .compare-row-label
+   column below keeps row labels in view while the rest scrolls horizontally. */
+.cx-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
-/* Header instance: a light, borderless control that sits in the compare header
-   row beside "Clear all" (not the boxed pill the mobile grid once used). */
-.cx-difftoggle--header {
-  padding: 0;
-  margin: 0;
-  background: none;
-  border: none;
-  border-radius: 0;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-.cx-difftoggle[hidden] { display: none; } /* base sets display:flex, which beats [hidden] */
-.compare-page-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  flex-shrink: 0;
-}
-.cx-switch {
-  position: relative;
-  width: 42px;
-  height: 24px;
-  border-radius: 12px;
-  border: none;
-  background: var(--line-2);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.18s;
-}
-.cx-switch.on { background: var(--red); }
-.cx-knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.18s;
-}
-.cx-switch.on .cx-knob { transform: translateX(18px); }
-
-/* Desktop diff shading: only rows where products actually disagree. Default off. */
-.compare-table.diffon tr.cx-diff { background: #fff7e6; }
-.compare-table.diffon tr.cx-diff .compare-row-label { background: #fdf3da; }
 
 /* ─── Rotate-to-landscape nudge (portrait phones only, JS-gated) ─────────── */
 .cx-rotate-overlay {
@@ -3177,13 +3285,11 @@ body.detail-has-cta .toast {
 
 .compare-page-table-wrap .compare-table { border-radius: var(--radius); }
 
-/* On narrow screens, give each product column a readable width and let the
-   wrapper scroll horizontally instead of crushing 3 columns into ~80px each.
-   The scroll is contained in the wrapper, so the page itself never overflows. */
-@media (max-width: 640px) {
-  .compare-page-table-wrap .compare-table { min-width: 540px; }
-  .compare-page-table-wrap .compare-label-col { width: 116px; min-width: 116px; }
-}
+/* Each product column's readable min-width (~220px) is set inline per render
+   (compare-page.js), scaled to the product count, so the table forces the
+   .cx-scroll wrapper to scroll horizontally on narrow screens instead of
+   crushing columns flat. The scroll is contained in the wrapper, so the
+   page itself never overflows. */
 
 .compare-product-name {
   font-size: 1rem;
@@ -3555,12 +3661,6 @@ body:has(.compare-tray.visible) .toast {
   color: var(--text);
   margin: 0;
   line-height: 1.2;
-}
-
-.compare-page-top .compare-page-title-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5145,8 +5245,7 @@ body:has(.compare-tray.visible) .toast {
    ════════════════════════════════════════════════════════════════ */
 .sticky-cta,
 .cmp-tab,
-.cmp-modal,
-.cx-wrap { display: none; }
+.cmp-modal { display: none; }
 
 @media (max-width: 640px) {
   /* ─── Step 3: product detail spec fixes ─────────────────────── */
@@ -5409,28 +5508,15 @@ body:has(.compare-tray.visible) .toast {
   }
   .cmp-sheet-go:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* ─── Step 5: compare page — mobile column view ─────────────── */
-  .compare-page-table-wrap { display: none; }
-  .cx-wrap { display: block; padding: 0 0.75rem 1.5rem; }
-
-  /* Compare header wraps: title on line 1, then the Highlight-differences toggle
-     and Clear all together on line 2 (space-between). */
-  .compare-page-top { flex-wrap: wrap; row-gap: 0.7rem; }
-  .compare-page-title-wrap { flex: 1 1 100%; }
-  .compare-page-controls { width: 100%; justify-content: space-between; }
-  /* ≥44px tap targets for the switch (extend hit area) and Clear all. */
-  .cx-switch::after { content: ""; position: absolute; inset: -11px -6px; }
-  .compare-page-clear { padding: 0.6rem 0.9rem; }
-
-  /* .cx-difftoggle / .cx-switch / .cx-knob are defined globally (shared by the
-     desktop toggle above the table and this mobile one). See "compare diff
-     toggle" block near the compare table styles. */
-
+  /* ─── Compare page: mobile scroll hint ───────────────────────
+     The table itself is unified across breakpoints (see .cx-scroll /
+     .compare-row-label near the compare table styles); this hint just
+     nudges the user to swipe when the columns overflow the viewport. */
   .cx-scrollhint {
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    margin-bottom: 0.6rem;
+    margin: 0 0 0.6rem;
     color: var(--red);
     font-size: 0.76rem;
     font-weight: 600;
@@ -5438,173 +5524,4 @@ body:has(.compare-tray.visible) .toast {
   }
   .cx-scrollhint svg { flex-shrink: 0; }
   .cx-scrollhint[hidden] { display: none; }
-  .cx-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-  }
-  .cx-grid {
-    display: grid;
-    min-width: min-content;
-  }
-  .cx-corner {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: var(--bg);
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .cx-head {
-    padding: 0.7rem 0.6rem;
-    border-bottom: 1px solid var(--border);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-  .cx-head-img {
-    position: relative; /* anchor for the corner remove (×) button */
-    width: 100%;
-    aspect-ratio: 4/3;
-    background: var(--bg);
-    border-radius: 7px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: var(--muted);
-    text-align: center;
-  }
-  .cx-head-img img { width: 100%; height: 100%; object-fit: cover; }
-  .cx-head-name {
-    font-size: 0.76rem;
-    font-weight: 700;
-    line-height: 1.25;
-    color: var(--text);
-    text-decoration: none;
-    /* Reserve two lines so 1-line and 2-line names align the rows below. */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    min-height: 2.5em;
-  }
-  .cx-head-avail {
-    font-size: 0.66rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-  .cx-head-avail.available   { color: var(--green); }
-  .cx-head-avail.unavailable { color: var(--muted); }
-  .cx-head-select {
-    margin-top: auto; /* pin CTA to the bottom so all columns' buttons align */
-    background: var(--red);
-    color: #fff;
-    border: none;
-    border-radius: 7px;
-    padding: 0.4rem;
-    font-size: 0.68rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .cx-head-select.added {
-    background: var(--red-tint);
-    color: var(--red);
-    border: 1px solid var(--red-tint-bdr);
-  }
-  /* Small × over the image corner (matches the desktop remove control). */
-  .cx-head-rm {
-    position: absolute;
-    top: 0.3rem;
-    right: 0.3rem;
-    z-index: 2;
-    width: 1.4rem;
-    height: 1.4rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    background: rgba(255,255,255,0.9);
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    color: var(--muted);
-    font-size: 0.95rem;
-    line-height: 1;
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .cx-head-rm:active { color: var(--red); border-color: var(--red-tint-bdr); }  /* press, not hover */
-  .cx-rowlabel {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    background: var(--bg);
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    padding: 0.6rem 0.55rem;
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-  }
-  .cx-cell {
-    padding: 0.6rem 0.55rem;
-    border-bottom: 1px solid var(--border);
-    border-left: 1px solid var(--border);
-    font-size: 0.74rem;
-    line-height: 1.4;
-    color: var(--text);
-  }
-  .cx-grid > .cx-cell:nth-last-child(-n + 1),
-  .cx-grid > .cx-rowlabel:last-of-type { }
-  .cx-celltag {
-    display: inline-block;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 0.64rem;
-    padding: 0.1rem 0.35rem;
-    border-radius: 3px;
-    margin: 0 0.2rem 0.2rem 0;
-  }
-  .cx-cellfeat {
-    display: flex;
-    gap: 0.25rem;
-    margin-bottom: 0.2rem;
-  }
-  .cx-cellfeat::before {
-    content: "✓";
-    color: var(--red);
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  /* Diff highlight — only active when the toggle is on */
-  .cx-grid.diffon .cx-diff { background: #fff7e6; }
-  .cx-grid.diffon .cx-rowlabel.cx-diff { background: #fdf3da; }
-
-  .cx-add {
-    display: block;
-    width: 100%;
-    margin-top: 0.85rem;
-    background: #fff;
-    border: 1.5px dashed var(--line-2);
-    color: var(--red);
-    border-radius: 10px;
-    padding: 0.8rem;
-    font-size: 0.84rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-  }
 }

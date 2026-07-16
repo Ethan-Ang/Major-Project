@@ -58,26 +58,50 @@ function getEnquiryBasket() {
   return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
 }
 
-function updateClearAllButton(hasItems) {
-  const btn = document.querySelector(".compare-page-clear");
-  if (!btn) return;
-  btn.disabled = !hasItems;
-  btn.style.visibility = hasItems ? "visible" : "hidden";
+// Shared brand-monogram label (uppercased, trademark suffix collapsed) used
+// for image-fallback thumbnails in both the header cards and the selection panel.
+function cxBrandLabel(brand) {
+  return ylEscapeHtml(brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
 }
 
-// The "Highlight differences" toggle lives in the header (beside Clear all). It
-// only applies when a comparison is on screen, so hide it below 2 products; and
-// since each render rebuilds the table/grid un-highlighted, reset it to off.
-function updateDiffToggle(show) {
-  const toggle = document.getElementById("cxDiffToggle");
-  if (!toggle) return;
-  toggle.hidden = !show;
-  if (show) {
-    toggle.querySelectorAll(".cx-switch").forEach(sw => {
-      sw.classList.remove("on");
-      sw.setAttribute("aria-checked", "false");
-    });
-  }
+// "Products to compare (n/3)" header panel: one card per product, an add
+// slot below 3, and the grouped actions. Mirrors the bottom drawer.
+function renderSelectPanel(products) {
+  const el = document.getElementById("compareSelectPanel");
+  if (!el) return;
+  if (!products.length) { el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false;
+
+  const cards = products.map(p => {
+    const brandLabel = cxBrandLabel(p.brand);
+    const hasImg = p.images && p.images.length > 0;
+    const img = hasImg
+      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+      : `<span class="no-image-mark" aria-hidden="true">${brandLabel}</span>`;
+    return `
+      <div class="csel-card">
+        <span class="csel-img">${img}</span>
+        <span class="csel-text">
+          <span class="csel-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
+          <span class="csel-name">${ylEscapeHtml(p.name)}</span>
+        </span>
+        <button class="csel-x" onclick="toggleCompare('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from comparison">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+  }).join("");
+
+  const addSlot = products.length < COMPARE_MAX
+    ? `<a class="csel-card csel-add" href="/products#catalogue"><span class="csel-add-icon" aria-hidden="true">+</span><span class="csel-add-text"><strong>Add a product</strong><small>Search or browse</small></span></a>`
+    : "";
+
+  el.innerHTML = `
+    <div class="csel-head">Products to compare (${products.length}/3)</div>
+    <div class="csel-row">${cards}${addSlot}</div>
+    <div class="csel-actions">
+      <button class="compare-page-clear" onclick="clearAll()">Clear all</button>
+      <a class="btn btn-primary csel-compare" href="#comparePageContent">Compare now</a>
+    </div>`;
 }
 
 function renderComparePage() {
@@ -86,8 +110,9 @@ function renderComparePage() {
   const content  = document.getElementById("comparePageContent");
   if (!content) return;
 
-  updateClearAllButton(list.length > 0);
-  updateDiffToggle(products.length >= 2);
+  // The selection panel tracks the raw compare list (0-3 products); it is
+  // independent of the "need 2+ to compare" gate below.
+  renderSelectPanel(products);
 
   if (products.length < 2) {
     content.innerHTML = `
@@ -103,7 +128,7 @@ function renderComparePage() {
 
   const headerCols = products.map(p => {
     const availClass  = p.status === "Available" ? "available" : "unavailable";
-    const brandLabel  = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
+    const brandLabel  = cxBrandLabel(p.brand);
     const placeholderSub = ylEscapeHtml((p.category && p.category !== "Others") ? p.category : "Adhesive Solution");
     const hasRealImage = p.images && p.images.length > 0;
     const imgContent = hasRealImage
@@ -127,26 +152,31 @@ function renderComparePage() {
       </td>`;
   }).join("");
 
-  // `cmp` is the same normalised value the mobile grid diffs on, so one row is
-  // flagged cx-diff (and shaded when the toggle is on) only when products differ.
   const specRows = [
-    { label: "Category",     render: p => ylEscapeHtml(p.category),                                                    cmp: p => p.category || "" },
-    { label: "Industries",   render: p => p.industries.map(i => `<span class="compare-tag">${ylEscapeHtml(i)}</span>`).join(""), cmp: p => [...p.industries].sort().join("|") },
-    { label: "Surfaces",     render: p => p.surfaces.map(s => `<span class="compare-tag">${ylEscapeHtml(s)}</span>`).join(""),   cmp: p => [...p.surfaces].sort().join("|") },
-    { label: "Key Features", render: p => p.features.map(f => `<div class="compare-feature">${ylEscapeHtml(f)}</div>`).join(""), cmp: p => [...p.features].sort().join("|") }
-  ].map(row => {
-    const values  = products.map(row.cmp);
-    const allSame = values.every(v => v === values[0]);
-    return `
-    <tr class="${allSame ? "" : "cx-diff"}">
+    { label: "Category",     render: p => ylEscapeHtml(p.category) },
+    { label: "Industries",   render: p => p.industries.map(i => `<span class="compare-tag">${ylEscapeHtml(i)}</span>`).join("") },
+    { label: "Surfaces",     render: p => p.surfaces.map(s => `<span class="compare-tag">${ylEscapeHtml(s)}</span>`).join("") },
+    { label: "Key Features", render: p => p.features.map(f => `<div class="compare-feature">${ylEscapeHtml(f)}</div>`).join("") }
+  ].map(row => `
+    <tr>
       <td class="compare-row-label">${row.label}</td>
       ${products.map(p => `<td class="compare-row-value">${row.render(p)}</td>`).join("")}
-    </tr>`;
-  }).join("");
+    </tr>`).join("");
+
+  // Single comparison table at every breakpoint: .cx-scroll makes it
+  // horizontally scrollable on narrow viewports while the sticky
+  // .compare-row-label column (see products.css) keeps row labels in view.
+  // The inline min-width gives each product column room (~220px) so 2-3
+  // products scroll cleanly on a phone instead of being crushed flat.
+  const minTableWidth = 150 + products.length * 220;
 
   content.innerHTML = `
-    <div class="compare-page-table-wrap">
-      <table class="compare-table">
+    <div class="cx-scrollhint" id="cxScrollHint" hidden>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      Swipe to compare all ${products.length} products
+    </div>
+    <div class="compare-page-table-wrap cx-scroll">
+      <table class="compare-table" style="min-width:${minTableWidth}px">
         <colgroup>
           <col class="compare-label-col">
           ${products.map(() => "<col>").join("")}
@@ -161,8 +191,7 @@ function renderComparePage() {
           ${specRows}
         </tbody>
       </table>
-    </div>
-    ${buildCompareMobile(products)}`;
+    </div>`;
 
   // Measure after layout so the swipe hint only appears when columns overflow.
   requestAnimationFrame(updateCompareScrollHint);
@@ -174,7 +203,7 @@ function renderComparePage() {
 // One-time, dismissible "rotate your phone" overlay. Only on a portrait,
 // coarse-pointer phone (≤640px) with 2+ products. Dismissal persists in
 // localStorage; it also auto-hides the moment the device turns to landscape.
-// The horizontal-scroll grid remains the fallback for anyone who ignores it.
+// The horizontal-scroll table remains the fallback for anyone who ignores it.
 let rotateNudgeShown = false;
 function maybeShowRotateNudge(count) {
   if (rotateNudgeShown || count < 2) return;
@@ -216,86 +245,9 @@ function maybeShowRotateNudge(count) {
   landscapeMq.addEventListener("change", onRotate);
 }
 
-// ─── Mobile column comparison (≤640px) ────────────────────────────
-// A horizontally-scrollable grid: a sticky spec-label column on the left,
-// one column per product. A "Highlight differences" switch shades the rows
-// where products disagree. Hidden on desktop (the table above is shown
-// instead). Rebuilt whenever renderComparePage runs (incl. compareUpdated).
-function cxTags(arr) {
-  if (!arr || !arr.length) return "&ndash;";
-  return arr.map(x => `<span class="cx-celltag">${ylEscapeHtml(x)}</span>`).join("");
-}
-
-function cxFeatures(arr) {
-  if (!arr || !arr.length) return "&ndash;";
-  return arr.map(f => `<div class="cx-cellfeat">${ylEscapeHtml(f)}</div>`).join("");
-}
-
-function buildCompareMobile(products) {
-  const n      = products.length;
-  const cols   = `90px repeat(${n}, minmax(148px, 1fr))`;
-  const basket = getEnquiryBasket();
-
-  // Header row: corner + one product card per column
-  let cells = `<div class="cx-corner"></div>`;
-  cells += products.map(p => {
-    const availClass = p.status === "Available" ? "available" : "unavailable";
-    const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
-    const hasImg     = p.images && p.images.length > 0;
-    const img        = hasImg
-      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
-      : brandLabel;
-    const inBasket = basket.includes(String(p.id));
-    return `
-      <div class="cx-head">
-        <div class="cx-head-img">
-          <button class="cx-head-rm" aria-label="Remove from comparison" onclick="removeFromCompare('${p.id}')">&times;</button>
-          ${img}
-        </div>
-        <a class="cx-head-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
-        <span class="cx-head-avail ${availClass}"><span class="avail-dot"></span>${ylEscapeHtml(p.status)}</span>
-        <button class="cx-head-select${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}', '${ylTxt(p.name)}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
-      </div>`;
-  }).join("");
-
-  // Spec rows. `cmp` builds a normalised string used only for diff detection.
-  const specs = [
-    { label: "Category",     render: p => ylEscapeHtml(p.category) || "&ndash;", cmp: p => p.category || "" },
-    { label: "Industries",   render: p => cxTags(p.industries),    cmp: p => [...p.industries].sort().join("|") },
-    { label: "Surfaces",     render: p => cxTags(p.surfaces),      cmp: p => [...p.surfaces].sort().join("|") },
-    { label: "Key Features", render: p => cxFeatures(p.features),  cmp: p => [...p.features].sort().join("|") }
-  ];
-
-  specs.forEach(s => {
-    const values    = products.map(s.cmp);
-    const allSame   = values.every(v => v === values[0]);
-    const diffClass = allSame ? "" : " cx-diff";
-    cells += `<div class="cx-rowlabel${diffClass}">${s.label}</div>`;
-    cells += products.map(p => `<div class="cx-cell${diffClass}">${s.render(p)}</div>`).join("");
-  });
-
-  const addSlot = n < COMPARE_MAX
-    ? `<button class="cx-add" onclick="location.href='/products'">+ Add another product</button>`
-    : "";
-
-  return `
-    <div class="cx-wrap">
-      <div class="cx-scrollhint" id="cxScrollHint" hidden>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-        Swipe to compare all ${n} products
-      </div>
-      <div class="cx-scroll">
-        <div class="cx-grid" id="cxGrid" style="grid-template-columns:${cols}">
-          ${cells}
-        </div>
-      </div>
-      ${addSlot}
-    </div>`;
-}
-
 // Show the swipe hint only when the product columns actually overflow the
-// viewport (3+ products at phone widths). Fades out once the user reaches the
-// end of the scroll so it does not nag.
+// viewport (2-3 products at phone widths). Fades out once the user reaches
+// the end of the scroll so it does not nag.
 function updateCompareScrollHint() {
   const sc   = document.querySelector(".cx-scroll");
   const hint = document.getElementById("cxScrollHint");
@@ -305,22 +257,6 @@ function updateCompareScrollHint() {
     const atEnd = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 8;
     hint.style.opacity = atEnd ? "0" : "1";
   };
-}
-
-// One switch state drives both views: toggles `diffon` on the desktop table AND
-// the mobile grid, and syncs every .cx-switch (only one is visible at a time).
-function toggleDiff() {
-  const table  = document.querySelector(".compare-table");
-  const grid   = document.getElementById("cxGrid");
-  const anchor = table || grid;
-  if (!anchor) return;
-  const on = !anchor.classList.contains("diffon");
-  if (table) table.classList.toggle("diffon", on);
-  if (grid)  grid.classList.toggle("diffon", on);
-  document.querySelectorAll(".cx-switch").forEach(sw => {
-    sw.classList.toggle("on", on);
-    sw.setAttribute("aria-checked", on ? "true" : "false");
-  });
 }
 
 function addToBasket(productId, productName) {
