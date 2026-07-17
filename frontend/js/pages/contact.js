@@ -18,6 +18,15 @@ ${message}`
   window.location.href = `mailto:contact@yeelimadhesives.com.sg?subject=${mailSubject}&body=${mailBody}`;
 }
 
+// Clear Form: resets every field and any status message. Plain reset, no
+// confirmation dialog (nothing is submitted or lost server-side).
+function clearContactForm() {
+  const form = document.querySelector(".contact-form");
+  if (form) form.reset();
+  const status = document.getElementById("contactFormStatus");
+  if (status) { status.textContent = ""; status.className = "contact-form-status"; }
+}
+
 async function submitContactForm(event) {
   event.preventDefault();
 
@@ -69,6 +78,9 @@ async function submitContactForm(event) {
       + '<a href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a>.';
     status.className = "contact-form-status error";
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "Submit Enquiry"; }
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Message';
+    }
   }
 }

@@ -33,9 +33,10 @@ function renderBasket() {
   const list = document.getElementById("basketList");
   if (!list) return;
   const formSection = document.getElementById("enquiryFormSection");
-  const selectedDisplay = document.getElementById("selectedProductsDisplay");
   const colHead = document.getElementById("enquiryColHead");
   const countEl = document.getElementById("enquiryCount");
+  const totalBand = document.getElementById("enquiryTotalBand");
+  const totalCount = document.getElementById("enquiryTotalCount");
   const grid = document.querySelector(".enquiry-grid");
 
   if (products.length === 0) {
@@ -54,12 +55,17 @@ function renderBasket() {
       </div>`;
     if (formSection) formSection.style.display = "none";
     if (colHead) colHead.style.display = "none";
+    if (totalBand) totalBand.style.display = "none";
     return;
   }
 
   if (grid) grid.classList.remove("is-empty");
   if (colHead) colHead.style.display = "flex";
-  if (countEl) countEl.textContent = `(${products.length})`;
+  if (countEl) countEl.textContent = String(products.length);
+  if (totalBand) totalBand.style.display = "flex";
+  if (totalCount) totalCount.textContent = `${products.length} item${products.length !== 1 ? "s" : ""}`;
+
+  const subtype = p => (typeof productSubtype === "function") ? productSubtype(p) : (p.category || "");
 
   list.innerHTML = products.map(p => {
     const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
@@ -71,25 +77,19 @@ function renderBasket() {
       <div class="basket-item">
         <div class="basket-item-thumb" aria-hidden="true">${thumb}</div>
         <div class="basket-item-info">
-          <span class="basket-item-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
           <div class="basket-item-name">${ylEscapeHtml(p.name)}</div>
-          <p>${ylEscapeHtml(p.shortDescription)}</p>
+          <span class="basket-item-sub">${ylEscapeHtml(subtype(p))}</span>
+          <span class="basket-item-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
         </div>
         <button class="basket-remove" onclick="removeFromBasket('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from your product enquiry">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Remove</span>
         </button>
       </div>
     `;
   }).join("");
 
   if (formSection) formSection.style.display = "block";
-  if (selectedDisplay) {
-    const productLines = products.map(p => `<li>${ylEscapeHtml(p.name)}</li>`).join("");
-    selectedDisplay.innerHTML = `
-      <div class="enquiring-about-label">Enquiring about</div>
-      <ul class="enquiring-about-list">${productLines}</ul>
-    `;
-  }
 }
 
 function removeFromBasket(id) {
