@@ -37,19 +37,15 @@
   /* Bottom-overlay stacking ladder. One place to reason about what floats over
      what. The navbar widget owns 98-100 (backdrop/drawer/bar, inline in
      navbar.js); everything products.css controls uses these tokens. Order:
-     typeahead < nav(98-100) < filter sheet < compare tray < compare edge tab
-     < sticky detail CTA < toast < compare review sheet < rotate overlay.
-     The Product Advisor (chatbot.js, 9990) and Swup transition overlay (10000)
-     intentionally sit above all of these. */
+     typeahead < nav(98-100) < filter sheet < compare tray < sticky detail CTA
+     < toast. The Product Advisor (chatbot.js, 9990) and Swup transition
+     overlay (10000) intentionally sit above all of these. */
   --z-typeahead:      50;
   --z-filter-backdrop:119;
   --z-filter-sheet:   120;
   --z-compare-tray:   200;
-  --z-cmp-tab:        850;
   --z-sticky-cta:     900;
   --z-toast:          999;
-  --z-cmp-modal:      1100;
-  --z-rotate-overlay: 1200;
 
   /* Warm palette — canonical direction (design handoff: WARM confirmed). */
   --red:       #CC2929;   /* primary CTA, accents, eyebrow labels, links */
@@ -104,7 +100,6 @@ body.compare-open .filter-sidebar {
 /* CMP-001: while the mobile nav menu is open (navbar.js sets this class), the
    bottom overlays must never float over the menu or its backdrop. Hidden, not
    restacked, so the menu is the single interactive layer while open. */
-body.nav-drawer-open .cmp-tab,
 body.nav-drawer-open .sticky-cta,
 body.nav-drawer-open .compare-tray { visibility: hidden; }
 
@@ -167,115 +162,166 @@ h1, h2, h3,
 /* ─── Nav ────────────────────────────────────────────────────── */
 /* All nav styling is owned by js/widgets/navbar.js (injected at runtime). */
 
-/* ─── Page Hero / Search ─────────────────────────────────────── */
+/* ─── Page Hero / Search (locked final design: warm light hero) ──
+   One shared hero pattern for every owned public page: warm cream band,
+   dark editorial type, red mono eyebrow, and an optional industrial photo
+   pinned to the right edge behind a soft cream fade. */
 
 .page-hero {
-  background: var(--ink);
-  color: #fff;
+  background: linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
+  color: var(--text);
   padding: 0;
   text-align: left;
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--line);
 }
 
-.page-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
-  background-size: 24px 24px;
-  -webkit-mask-image: radial-gradient(120% 120% at 70% 0%, #000 35%, transparent 75%);
-  mask-image: radial-gradient(120% 120% at 70% 0%, #000 35%, transparent 75%);
-  pointer-events: none;
+/* Shared content container inside the hero. */
+.page-hero-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2.4rem 2rem 2.3rem;
+  position: relative;
+  z-index: 1;
 }
 
-.page-hero::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--red), var(--red) 38%, transparent 38%);
+/* Small breadcrumb inside the hero (enquiry page). */
+.hero-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+.hero-breadcrumb a { color: var(--muted); text-decoration: none; }
+.hero-breadcrumb a:hover { color: var(--red); }
+.hero-breadcrumb [aria-current] { color: var(--text); font-weight: 500; }
+
+.page-hero .hero-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.85rem;
 }
 
 .page-hero h1 {
-  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
-  line-height: 1.05;
+  font-size: clamp(1.9rem, 3.6vw, 2.8rem);
+  line-height: 1.08;
   margin-bottom: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   font-weight: 700;
-  color: #fff;
+  color: var(--text);
+  max-width: 22ch;
 }
 
 .page-hero p {
-  color: #b9b3a6;
-  margin-bottom: 0;
+  color: var(--muted);
+  margin: 0.85rem 0 0;
   font-size: 1rem;
+  max-width: 52ch;
+}
+
+/* Industrial photo treatment: pinned right, fading into the cream canvas so
+   the copy column stays crisp. Decorative only (aria-hidden container). */
+.page-hero-img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(54%, 780px);
+  background: url("/images/hero/industrial-dispense.jpg") right top / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 42%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 42%);
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  /* Phones: the photo stays a top-right corner accent behind the heading,
+     double-masked (left + bottom) so the copy always sits on readable cream. */
+  .page-hero-img {
+    width: 82%;
+    bottom: auto;
+    height: 72%;
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent 6%, #000 62%),
+      linear-gradient(180deg, #000 40%, transparent 96%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(90deg, transparent 6%, #000 62%),
+      linear-gradient(180deg, #000 40%, transparent 96%);
+    mask-composite: intersect;
+  }
+  .page-hero-inner { padding: 1.9rem 1.25rem 1.8rem; }
 }
 
 .search-bar {
   display: flex;
   align-items: stretch;
-  max-width: 560px;
-  margin: 2rem 0 0;
-  background: var(--ink-2);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
+  max-width: 620px;
+  margin: 1.6rem 0 0;
+  background: #fff;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow);
   transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
 
-/* Leading magnifier so the field reads unmistakably as search, and gives the bar
-   a more considered, premium feel than a bare input. */
+/* Leading magnifier so the field reads unmistakably as search. */
 .search-bar-icon {
   display: flex;
   align-items: center;
-  padding-left: 1.05rem;
-  color: #8a847a;
+  padding-left: 1rem;
+  color: var(--muted);
   flex-shrink: 0;
   transition: color 0.2s var(--ease);
 }
 
 .search-bar input {
   flex: 1;
-  padding: 1rem 1.1rem 1rem 0.7rem;
+  padding: 0.9rem 1rem 0.9rem 0.65rem;
   border: none;
   background: transparent;
-  font-size: 0.97rem;
+  font-size: 0.95rem;
   font-family: inherit;
-  color: #fff;
+  color: var(--text);
   outline: none;
   min-width: 0;
 }
 
 .search-bar input::placeholder {
-  color: #8a847a;
+  color: var(--muted);
 }
 
+/* Red square action button with the white magnifier glyph. */
 .search-bar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--red);
   color: #fff;
   border: none;
-  padding: 0 1.75rem;
+  min-width: 56px;
+  padding: 0 1.1rem;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 700;
   font-family: inherit;
-  letter-spacing: 0.2px;
   transition: background 0.2s;
 }
 
-.search-bar button:hover { background: var(--red-dark); }
+.search-bar button:hover { background: var(--red-hover); }
 
-/* Focus cue: a clean red edge plus a thin, tight ring — no diffuse glow (a halo
-   on the dark hero reads like an alert). Functional and on-brand, and it keeps a
-   clearly visible focus indicator for keyboard users. */
 .search-bar:focus-within {
   border-color: rgba(204, 41, 41, 0.55);
-  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.15);
+  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.13);
 }
-.search-bar:focus-within .search-bar-icon { color: #a49d90; }
+.search-bar:focus-within .search-bar-icon { color: var(--red); }
 
 /* ─── Hero search typeahead ──────────────────────────────────────
    Lightweight suggestion dropdown under the hero search bar. The hero inner
@@ -331,13 +377,10 @@ h1, h2, h3,
 
 /* ─── Grouped suggestions (SEARCH-001) ────────────────────────── */
 .search-typeahead { overscroll-behavior: contain; } /* inner scroll never drags the page */
-/* While suggestions are open, lift the hero's stacking contexts above later
-   page sections (advisor banner z=1 painted over the panel otherwise, because
-   .hero-inner's own z=1 tied with it and lost on DOM order). 60 sits above
-   the sticky toolbar (40), below the nav (98-100). */
-.hero-main.st-elevate,
-.hero-inner.st-elevate,
-.page-hero--rail .hero-inner.st-elevate { z-index: 60; } /* outranks the later `.page-hero--rail .hero-inner { z-index:1 }` */
+/* While suggestions are open, lift the hero container above later page
+   sections so the fixed panel always paints over them. 60 sits above the
+   sticky toolbar (40), below the nav (98-100). */
+.page-hero-inner.st-elevate { z-index: 60; }
 .st-group {
   padding: 0.55rem 0.7rem 0.25rem;
   font-family: var(--mono);
@@ -383,7 +426,7 @@ h1, h2, h3,
 /* ─── Layout: Sidebar + Grid ─────────────────────────────────── */
 .catalogue-layout {
   display: flex;
-  max-width: 1680px;
+  max-width: 1400px; /* shared content container (matches the hero) */
   margin: 1.5rem auto 4rem;
   padding: 0 2rem;
   gap: 2rem;
@@ -407,7 +450,7 @@ h1, h2, h3,
   border-radius: 14px;
   padding: 1.25rem;
 }
-.filter-heading, .filter-sub { flex-shrink: 0; }
+.filter-heading { flex-shrink: 0; }
 
 /* The scrolling region (filter groups + clear). Edge fades appear only when it
    actually overflows (.has-overflow, toggled in JS) so rows never hard-cut.
@@ -436,19 +479,28 @@ h1, h2, h3,
 .filter-sidebar .drawer-body::-webkit-scrollbar-thumb { background: #d9cfbb; border-radius: 4px; }
 .filter-sidebar .drawer-body::-webkit-scrollbar-thumb:hover { background: #c9bda3; }
 
+/* Panel title: mono "FILTERS" eyebrow + live "n filters active" summary. */
 .filter-heading {
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--ink);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.9rem;
 }
-
-.filter-sub {
-  font-size: 0.8rem;
-  color: var(--muted-2);
-  line-height: 1.45;
-  margin-bottom: 1.1rem;
+.filter-active-total {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--red);
+  white-space: nowrap;
 }
 
 .filter-group {
@@ -509,6 +561,11 @@ h1, h2, h3,
   background: var(--red-tint);
 }
 
+/* Filters backdrop: hidden by default at every width (the ≤640 drawer block
+   restyles it as the fixed dim layer). Without this base rule it sits in the
+   catalogue flex flow as a zero-height item and adds a phantom flex gap. */
+.filter-backdrop { display: none; }
+
 /* Mobile filter toggle */
 .filter-toggle {
   display: none;
@@ -568,7 +625,10 @@ h1, h2, h3,
   gap: 1.25rem;
 }
 
-/* ─── Product Card ────────────────────────────────────────────── */
+/* ─── Product Card (locked final design) ──────────────────────────
+   White card: brand mark + labelled Compare checkbox on a head row, image
+   well, product number, name, truthful subtype, labelled Best for / Works on
+   rows, and two equal actions. Same structure at every breakpoint. */
 .product-card.animate {
   animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
@@ -581,33 +641,96 @@ h1, h2, h3,
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-}
-
-.product-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--red);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
-  z-index: 2;
-  border-radius: var(--radius) var(--radius) 0 0;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
 
 .product-card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
   border-color: var(--line-2);
 }
 
-.product-card:hover::before {
-  transform: scaleX(1);
+/* Head row: official brand mark left, Compare checkbox right. */
+.pcard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem 0.55rem;
 }
+.pcard-brand { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 22px; min-width: 0; }
+/* The official marks sit centred on large padded canvases; a fixed window with
+   a CSS zoom crops the padding without touching (or redrawing) the asset. */
+.pcard-brand-ic {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.pcard-brand-ic img {
+  position: absolute;
+  width: 240%;
+  height: 240%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+.pcard-brand-name {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pcard-brand-text {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 3px 7px;
+  line-height: 1;
+}
+
+/* Labelled Compare checkbox (the same control on every breakpoint). */
+.pcard-cmp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: none;
+  padding: 0.25rem 0.1rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+.pcard-cmp .pcard-cb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 4px;
+  background: #fff;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pcard-cmp .pcard-cb svg { width: 11px; height: 11px; color: #fff; opacity: 0; }
+.pcard-cmp.on { color: var(--text); }
+.pcard-cmp.on .pcard-cb { background: var(--red); border-color: var(--red); }
+.pcard-cmp.on .pcard-cb svg { opacity: 1; }
+.pcard-cmp:disabled { opacity: 0.45; cursor: not-allowed; }
+.pcard-cmp:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 4px; }
 
 .product-card-image {
   width: 100%;
@@ -657,25 +780,20 @@ h1, h2, h3,
   flex-direction: column;
 }
 
-.brand-badge {
-  display: inline-block;
-  background: none;
-  border: none;
-  color: var(--red);
+/* Product number above the name (real short code only, never invented). */
+.pcard-code {
   font-family: var(--mono);
-  font-size: 0.66rem;
-  font-weight: 600;
-  padding: 0;
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: var(--muted-2);
+  letter-spacing: 0.03em;
+  margin-bottom: 0.15rem;
   white-space: nowrap;
 }
 
 .product-card-body h3 {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.15rem;
   color: var(--text);
   line-height: 1.3;
   /* Reserve two lines so long and short product names all occupy the same
@@ -685,7 +803,14 @@ h1, h2, h3,
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 2.65rem;
+  min-height: 2.75rem;
+}
+
+/* Truthful subtype line under the name. */
+.pcard-subtype {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.7rem;
 }
 
 /* Clickable product title -> product detail. */
@@ -704,115 +829,60 @@ h1, h2, h3,
   line-height: 1.45;
 }
 
-/* Primary application line — the single red accent in the card body */
+/* Labelled data rows: icon + label left, real value right. Hairline dividers
+   give the card its structured, industrial read. */
+.pcard-rows { border-top: 1px solid var(--line); margin-bottom: 0.85rem; }
+
 .card-application {
   display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-  font-size: 0.78rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
   color: var(--text);
-  margin-bottom: 0.55rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--line);
   min-width: 0;
 }
 
-.card-application-label {
-  font-family: var(--mono);
+.card-application-ic {
+  display: inline-flex;
   color: var(--muted-2);
-  font-weight: 500;
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   flex-shrink: 0;
 }
 
-.card-application span:not(.card-application-label) {
+.card-application-label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.card-application-val {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
-  font-weight: 600;
+  margin-left: auto;
+  text-align: right;
+  color: var(--muted);
 }
 
-.card-workson { margin-top: 0.15rem; }
 /* Reserves the Works-on row height so no-surface cards stay aligned with row-mates */
-.card-workson-spacer { min-height: 1.9rem; }
+.card-workson-spacer { min-height: 2.35rem; }
 
-/* Brand tag on the image well — the "product label on a shelf" motif. */
-.pcard-brand-tag {
-  position: absolute;
-  top: 11px;
-  left: 11px;
-  z-index: 3;
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: var(--red);
-  color: #fff;
-  padding: 3px 8px;
-  border-radius: 4px;
-  line-height: 1;
-}
-.pcard-brand-tag.is-accessory { background: #47433b; }
-
-/* Card meta line: short model code + live availability (from real data). */
-.pcard-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;         /* long status ("Enquire to order") drops to its own line */
-  gap: 0.2rem 0.5rem;      /* row-gap column-gap */
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  color: var(--muted-2);
-  margin-bottom: 0.25rem;
-  line-height: 1.3;        /* was 1: gave overlapping text once a line wrapped */
-}
-.pcard-code { letter-spacing: 0.02em; white-space: nowrap; }
-.pcard-avail {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.34rem;
-  color: var(--green);
-  font-weight: 500;
-  white-space: nowrap;     /* keep the status intact; wrap the row, not the words */
-}
-.pcard-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green-dot);
-  flex-shrink: 0;
-}
-.pcard-avail.is-unavail { color: #8a5a12; }
-.pcard-avail.is-unavail .pcard-dot { background: #d69220; }
-
-/* Compact "View" secondary beside the wide "+ Enquiry" primary. A quiet outline
-   at rest that fills ink on hover, with an arrow that slides right — reads as
-   "go to the detail page" and gives the card a premium, intentional interaction. */
+/* "View details" secondary: quiet outline with a chevron. */
 .product-card-actions .pcard-view {
   border-width: 1px;
-  border-color: var(--border-controls, #e0d9c9);
-  color: var(--text);
+  border-color: var(--red-tint-bdr);
+  color: var(--red);
   font-weight: 600;
-  gap: 0.4rem;
-  padding-left: 1rem;
-  padding-right: 0.85rem;
-}
-.product-card-actions .pcard-view::after {
-  content: "\2192"; /* → */
-  font-size: 1em;
-  line-height: 1;
-  opacity: 0.5;
-  transform: translateX(-2px);
-  transition: transform 0.2s var(--ease), opacity 0.2s var(--ease);
+  gap: 0.35rem;
 }
 .product-card-actions .pcard-view:hover {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: #fff;
+  border-color: var(--red);
+  background: var(--red-tint);
+  color: var(--red);
 }
-.product-card-actions .pcard-view:hover::after { opacity: 1; transform: translateX(2px); }
 
 .product-card-actions {
   display: flex;
@@ -871,13 +941,11 @@ h1, h2, h3,
   background: #faf7f0;
 }
 
-/* Card actions sit side-by-side (View Details + enquiry) on desktop; flex:1
-   keeps each button a fixed half-width so the row never reflows horizontally
-   when the enquiry label toggles between its long default and short selected
-   state. Stacks full-width on phones (≤640px) for larger tap targets. */
-/* "+ Enquiry" is the wide primary; "View" is a compact secondary beside it. */
-.product-card-actions .pcard-enq  { flex: 1 1 auto; min-width: 0; }
-.product-card-actions .pcard-view { flex: 0 0 auto; }
+/* Two equal actions per the locked design: red primary + outlined secondary.
+   flex:1 keeps each a fixed half-width so the row never reflows when the
+   enquiry label toggles between "Add to Enquiry" and "In Enquiry". */
+.product-card-actions .pcard-enq  { flex: 1 1 0; min-width: 0; }
+.product-card-actions .pcard-view { flex: 1 1 0; min-width: 0; }
 
 /* Selected ("In Product Enquiry") state: calm, confirmed red-tint. Not an
    alert, not a checkbox, not a cart button. Same height/width as the default
@@ -888,15 +956,6 @@ h1, h2, h3,
   border: 1px solid var(--red-tint-bdr) !important;
 }
 
-/* "In Product Enquiry" on wider screens, "In Enquiry" on narrow mobile. The
-   action button is full-width, so neither label truncates or shifts layout. */
-.enq-label-short { display: none; }
-@media (max-width: 480px) {
-  .enq-label-full { display: none; }
-  .enq-label-short { display: inline; }
-}
-
-/* legacy .btn-compare-card removed in Sprint 2 — replaced by .card-compare-btn */
 
 /* ─── Empty State ─────────────────────────────────────────────── */
 .empty-state {
@@ -997,26 +1056,6 @@ body.detail-has-cta .toast {
 }
 
 .related-section { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
-
-.tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.tag {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 0.8rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: var(--radius);
-}
-
-.btn-lg {
-  padding: 0.75rem 1.5rem;
-  font-size: 0.95rem;
-}
 
 /* ─── Application & Suitable Uses tab content ────────────────────
    Replaces the old .usage-box/.usage-chip family (that markup is no longer
@@ -1132,38 +1171,41 @@ body.detail-has-cta .toast {
 
 /* CLIENT-002 empty state: warm-neutral information, deliberately NOT styled
    as an error. Mirrors the row layout so the section keeps its shape. */
+/* Honest centred empty state (locked design): icon, one line, quiet sub,
+   Talk to Yee Lim fallback below. */
 .doc-empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.7rem;
-  max-width: 760px;
-  padding: 0.8rem 0.9rem;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  background: var(--surface, #fbfaf6);
+  text-align: center;
+  gap: 0.85rem;
+  padding: 2.2rem 1rem 0.4rem;
 }
 .doc-empty-icon {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f2ece0;
-  color: var(--muted);
+  color: var(--red);
 }
-.doc-empty-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.doc-empty-main { font-size: 0.88rem; color: var(--text); line-height: 1.45; }
-.doc-empty-sub  { font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+.doc-empty-icon svg { width: 34px; height: 34px; }
+.doc-empty-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.doc-empty-main { font-size: 0.98rem; font-weight: 700; color: var(--text); line-height: 1.45; }
+.doc-empty-sub  { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
 .doc-empty-link { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
 .doc-empty-link:hover { color: var(--red); }
 .doc-empty-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
 
-/* WhatsApp fallback offered under the empty-downloads state. .btn-whatsapp-sidebar
-   is a block-level flex element in its original (sidebar row) context, which
-   would otherwise stretch full-width here; inline-flex keeps it content-sized. */
-.doc-empty-wa { display: inline-flex; margin-top: 1rem; }
+/* WhatsApp fallback centred under the empty-downloads state. */
+.doc-empty-wa {
+  display: flex;
+  width: max-content;
+  flex: 0 0 auto;
+  margin: 0.9rem auto 1.2rem;
+  padding: 0.6rem 1.1rem;
+}
 
 .doc-download-icon {
   flex-shrink: 0;
@@ -1207,36 +1249,49 @@ body.detail-has-cta .toast {
   transform: translateX(2px);
 }
 
-/* Enquiry guidance band on the product detail page — dark, full-conviction
-   prompt that sits once below the description/usage content. */
+/* Product Advice band on the product detail page (locked design): white
+   functional card, red headset icon, copy left, red CTA right. Sits once,
+   outside the tab panels. */
 .enquiry-guidance {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem 1.25rem;
   flex-wrap: wrap;
-  background: #1a1712;
-  border: 1px solid #2c261d;
-  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 1.15rem 1.25rem;
   margin-top: 1.5rem;
 }
 
-.enquiry-guidance-copy { min-width: 0; }
+.enquiry-guidance-ic {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--red-tint);
+  color: var(--red);
+}
+
+.enquiry-guidance-copy { min-width: 0; flex: 1; }
 
 .enquiry-guidance-title {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   font-size: 1.03rem;
   font-weight: 700;
-  color: #fff;
-  margin: 0 0 0.35rem;
+  color: var(--text);
+  margin: 0 0 0.3rem;
   letter-spacing: -0.01em;
 }
 
 .enquiry-guidance p {
   font-size: 0.88rem;
   line-height: 1.55;
-  color: var(--muted-on-dark);
+  color: var(--muted);
   margin: 0;
   max-width: 68ch;
 }
@@ -1274,59 +1329,65 @@ body.detail-has-cta .toast {
   padding: 0 40px;
 }
 
-.related-section h2 {
-  font-size: 1.15rem;
-  font-weight: 700;
+.related-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1.25rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border);
 }
 
+.related-section h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.related-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--red);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.related-view-all:hover { text-decoration: underline; text-underline-offset: 3px; }
+.related-view-all:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
+
+/* Exactly three compact cards on desktop (locked design). */
 .related-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
-/* ─── Related product cards (compact, whole-card link) ───────────── */
+/* ─── Related product cards (locked design: brand head, image, actions) ── */
 .related-card {
   position: relative;
   display: flex;
   flex-direction: column;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
-  text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease), border-color 0.25s var(--ease);
-}
-
-/* Red top-accent reveal on hover — same language as the catalogue cards, so a
-   related card reads as the same object the visitor just came from. */
-.related-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--red);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 0.3s var(--ease);
-  z-index: 2;
+  transition: box-shadow 0.25s var(--ease), border-color 0.25s var(--ease);
 }
 
 .related-card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-4px);
   border-color: var(--line-2);
 }
 
-.related-card:hover::before { transform: scaleX(1); }
-
-.related-card:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.related-card-head {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem 0.45rem;
+}
 
 /* The Yee Lim product shots carry their own white backgrounds. A flat cream
    plate left them sitting as a hard white rectangle; a soft radial wash (white
@@ -1394,20 +1455,76 @@ body.detail-has-cta .toast {
   overflow: hidden;
 }
 
-.related-card:hover .related-card-name { color: var(--red); }
+.related-card-name a { color: inherit; text-decoration: none; }
+.related-card-name a:hover { color: var(--red); }
+.related-card-name a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
 
-/* Base type sits at the card foot as a quiet mono meta line — useful signal,
-   not a redundant "view product" CTA (the whole card already links out). */
+/* Base type as a quiet mono meta line above the actions. */
 .related-card-base {
   margin-top: auto;
-  padding-top: 0.7rem;
-  border-top: 1px solid var(--line);
+  padding-top: 0.55rem;
   font-family: var(--mono);
   font-size: 0.64rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted-2);
+}
+
+/* Card actions row: red text enquiry toggle left, quiet view link right. */
+.related-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+.related-card-enq {
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--red);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.related-card-enq:hover { text-decoration: underline; text-underline-offset: 3px; }
+.related-card-enq.added { color: var(--green); }
+.related-card-enq:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
+.related-card-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.related-card-view:hover { color: var(--red); }
+.related-card-view:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
+
+/* Phones: one horizontal scroll-snap carousel instead of squeezed columns. */
+@media (max-width: 640px) {
+  .related-grid {
+    display: flex;
+    gap: 0.8rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .related-grid::-webkit-scrollbar { width: 0; height: 0; }
+  .related-card {
+    flex: 0 0 78%;
+    max-width: 320px;
+    scroll-snap-align: start;
+  }
 }
 
 /* ─── Product Enquiry Page ────────────────────────────────────── */
@@ -1509,6 +1626,28 @@ body.detail-has-cta .toast {
 .enquiry-continue-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
 /* Selected products: each a standalone white card (not one bordered list). */
+/* White basket card wrapping the head + item rows (locked design). */
+.enquiry-basket-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+/* The empty state renders its own full panel inside the card shell. */
+.enquiry-grid.is-empty .enquiry-basket-card {
+  background: none;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.enquiry-basket-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0.2rem 0 0;
+}
+
 .basket-list {
   display: grid;
   gap: 12px;
@@ -1518,11 +1657,10 @@ body.detail-has-cta .toast {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   padding: 14px;
-  box-shadow: var(--shadow);
   transition: border-color 0.15s;
 }
 
@@ -1564,46 +1702,45 @@ body.detail-has-cta .toast {
 .basket-item-thumb .no-image-mark { font-size: 0.6rem; letter-spacing: 0.3px; padding: 0 3px; text-align: center; }
 
 .basket-item-info { flex: 1; min-width: 0; }
-.basket-item-brand {
-  display: block;
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--red);
-  margin-bottom: 0.25rem;
-}
 .basket-item-info .basket-item-name {
   font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: 0.2rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
   color: var(--text);
   line-height: 1.3;
 }
-.basket-item-info p {
-  font-size: 0.82rem;
+.basket-item-sub {
+  display: block;
+  font-size: 0.8rem;
   color: var(--muted);
-  line-height: 1.45;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin-bottom: 0.2rem;
+}
+.basket-item-brand {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
 }
 
+/* Labelled remove button (trash icon + "Remove"). */
 .basket-remove {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  color: var(--muted-2);
-  cursor: pointer;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
   flex-shrink: 0;
+  min-height: 40px;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
@@ -1615,11 +1752,62 @@ body.detail-has-cta .toast {
 
 .basket-remove:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
-/* Larger, comfortable remove target on touch devices (keeps the tidy 34px
-   button for mouse/trackpad users). */
-@media (pointer: coarse) {
-  .basket-remove { width: 44px; height: 44px; }
+/* Total-products band under the basket card, with the Product Advice path. */
+.enquiry-total-band {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-top: 14px;
 }
+.enquiry-total-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--red-tint);
+  color: var(--red);
+  flex-shrink: 0;
+}
+.enquiry-total-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.enquiry-total-text strong { font-size: 0.88rem; color: var(--text); }
+.enquiry-total-advice {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: right;
+}
+.enquiry-advice-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--red);
+  cursor: pointer;
+}
+.enquiry-advice-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.enquiry-advice-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
 
 /* Full-width, deliberate empty panel — generous vertical rhythm and a soft warm
    wash so it reads as an intentional state, not a lonely box in a sea of cream. */
@@ -1686,10 +1874,34 @@ body.detail-has-cta .toast {
 
 .enquiry-form-body { padding: 22px; }
 
-.enquiry-form-body h2 {
-  font-size: 19px;
-  margin-bottom: 1.1rem;
+.enquiry-form-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
+.enquiry-form-head h2 { font-size: 19px; margin: 0; }
+.enquiry-required-note { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+.enquiry-form-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0.25rem 0 1.1rem;
+}
+
+/* Security note under the form card. */
+.enquiry-security-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin: 0;
+}
+.enquiry-security-note svg { flex-shrink: 0; opacity: 0.75; }
 
 .enquiry-submit-btn {
   width: 100%;
@@ -1865,24 +2077,60 @@ body.detail-has-cta .toast {
 }
 
 /* ─── Active Filter Chips ─────────────────────────────────────── */
-/* Labelled active-filter strip above the grid. Content is width-matched to the
-   header/grid; a thin top divider separates it from the page header. Hidden
-   entirely (via [hidden] on #activeChips) when no filter is active. */
-.active-filter-bar {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+/* The active-filter state is shown ONCE per breakpoint (locked design):
+   desktop = the "Active filters" block inside the filter sidebar; mobile =
+   the compact #activeChips summary strip above the grid. */
+
+/* Desktop sidebar block */
+.sidebar-active {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 1rem;
 }
+.sidebar-active[hidden] { display: none; }
+.sidebar-active-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+}
+.sidebar-active-label {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--muted-2);
+}
+.sidebar-active-clear {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--red);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sidebar-active-clear:hover { text-decoration: underline; text-underline-offset: 2px; }
+.sidebar-active-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* Mobile summary strip (hidden on desktop, where the sidebar block shows). */
+.active-filter-bar { padding: 0.15rem 0 0.6rem; }
 .active-filter-bar[hidden] { display: none; }
+@media (min-width: 901px) {
+  .active-filter-bar { display: none; }
+}
 
 .active-filter-bar-inner {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem 0.7rem;
-  border-top: 1px solid #ddd3c0;
-  padding: 0.85rem 0 0.15rem;
-  margin-top: 0.6rem;
 }
 
 .active-filter-label {
@@ -1916,20 +2164,19 @@ body.detail-has-cta .toast {
 }
 .active-filter-clear:hover { color: var(--red); }
 
-/* Active-filter pill: warm neutral at rest (an applied filter is normal state,
-   not a warning), with a quiet red × cue. Hover shifts to red to signal the
-   click removes it. */
+/* Active-filter chip: low-radius, quiet neutral at rest (an applied filter is
+   normal state, not a warning). Hover shifts to red to signal removal. */
 .filter-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.34rem;
-  background: #f2ece0;
-  border: 1px solid var(--border);
+  background: #fff;
+  border: 1px solid var(--line-2);
   color: var(--body);
-  font-size: 0.78rem;
+  font-size: 0.77rem;
   font-weight: 600;
-  padding: 0.28rem 0.7rem;
-  border-radius: 20px;
+  padding: 0.26rem 0.6rem;
+  border-radius: 4px;
   cursor: pointer;
   transition: background 0.18s var(--ease), color 0.18s var(--ease), border-color 0.18s var(--ease);
   font-family: inherit;
@@ -2128,24 +2375,6 @@ body.detail-has-cta .toast {
   box-sizing: border-box;
 }
 
-/* Brand chip pinned to the stage corner (mono eyebrow on a soft plate). */
-.gallery-brand-chip {
-  position: absolute;
-  top: 0.85rem;
-  left: 0.85rem;
-  z-index: 2;
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--red);
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--line-2);
-  border-radius: 999px;
-  padding: 0.22rem 0.6rem;
-  user-select: none;
-}
-
 /* Product shots sit cleanly inside the frame (no awkward crop). */
 .gallery-main img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
@@ -2250,52 +2479,75 @@ body.detail-has-cta .toast {
   .gallery-next { right: 0.4rem; }
 }
 
-/* ─── Product Header (availability + name + desc) ────────────── */
+/* ─── Product Header (brand mark, name, summary, availability) ───
+   Locked design: boxed official brand mark, name, the ONE complete summary,
+   then a restrained availability row (small dot + status + muted note —
+   never a large green pill). */
 .detail-product-header {
-  margin-bottom: 1.75rem;
-  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.35rem;
   border-bottom: 1px solid var(--line);
 }
 
-.detail-product-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.7rem;
-  flex-wrap: wrap;
-}
-
-.avail-badge {
+.detail-brand-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
+  gap: 0.45rem;
+  border: 1px solid var(--red-tint-bdr);
+  border-radius: 4px;
+  padding: 3px 9px 3px 5px;
+  margin-bottom: 0.85rem;
+}
+.detail-brand-chip .pcard-brand-name { color: var(--red); }
+.detail-brand-chip.is-text {
+  font-family: var(--mono);
+  font-size: 0.68rem;
   font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
+  border-color: var(--line-2);
+  padding: 4px 9px;
 }
 
-.avail-badge.available {
-  background: var(--green-tint);
-  color: var(--green);
-  border: 1px solid var(--green-tint-bdr);
+.detail-avail-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.9rem;
 }
 
-/* "Enquire to order" is not an error and not a dead product — amber (matches the
-   catalogue card status) reads as "ask us", where grey read as disabled and red
-   would read as unavailable. */
-.avail-badge.unavailable {
-  background: #fdf3e2;
-  color: #8a5a12;
-  border: 1px solid #f0dcb8;
+.detail-avail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
+.detail-avail.is-in  { color: var(--green); }
+/* "Enquire to order" is not an error and not a dead product — amber reads as
+   "ask us", where grey reads disabled and red reads unavailable. */
+.detail-avail.is-out { color: #8a5a12; }
 
-.avail-badge .avail-dot {
-  width: 6px;
-  height: 6px;
+.detail-avail .avail-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: currentColor;
   flex-shrink: 0;
+}
+.detail-avail.is-in .avail-dot { background: var(--green-dot); }
+
+.detail-avail-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--line-2);
+  flex-shrink: 0;
+}
+
+.detail-avail-note {
+  font-size: 0.82rem;
+  color: var(--muted);
 }
 
 .detail-product-name {
@@ -2313,58 +2565,49 @@ body.detail-has-cta .toast {
   max-width: 68ch;
 }
 
-/* ─── Spec Table ─────────────────────────────────────────────── */
+/* ─── Spec rows (locked design) ─────────────────────────────────
+   Structured definition rows directly inside the shared tab panel (no card-
+   in-card): label left, real value right, hairline dividers, two columns on
+   desktop, one on mobile. */
 .spec-table-wrap {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  margin: 1.25rem 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 2.5rem;
+  margin: 0.25rem 0;
 }
 
 .spec-row {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 0 1rem;
   border-bottom: 1px solid var(--line);
+  padding: 0.85rem 0;
 }
 
+.spec-row-wide { grid-column: 1 / -1; }
 .spec-row:last-child { border-bottom: none; }
 
 .spec-key {
-  background: var(--card);
-  padding: 1.1rem 1.25rem;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: -0.005em;
   color: var(--text);
-  border-right: 1px solid var(--line);
   display: flex;
   /* Top-align the label with the first line of its value so multi-row values
-     (Key Features, Industries, Surfaces) read as "label heading its rows"
-     instead of the label floating in the vertical middle of a tall row. */
+     (Key Features) read as "label heading its rows". */
   align-items: flex-start;
 }
 
 .spec-val {
-  padding: 1.1rem 1.25rem;
   font-size: 0.9rem;
   color: var(--body);
   line-height: 1.5;
   align-self: start;
 }
 
-.spec-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-
-.spec-tag {
-  background: var(--panel);
-  border: 1px solid var(--line-2);
-  color: var(--text);
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.22rem 0.6rem;
-  border-radius: 6px;
-  white-space: nowrap;
+@media (max-width: 768px) {
+  .spec-table-wrap { grid-template-columns: 1fr; column-gap: 0; }
+  .spec-row-wide .spec-row:last-child { border-bottom: none; }
 }
 
 .spec-features {
@@ -2407,20 +2650,28 @@ body.detail-has-cta .toast {
 
 .spec-feature-text { min-width: 0; }
 
-/* ─── Summary actions (buy box, no longer a separate bordered card) ────
-   Lives directly inside .detail-summary beside the gallery, so it needs no
-   card background/border/sticky positioning of its own. .detail-product-
-   header (name/brand/availability/description, reused unchanged) already
-   supplies the divider above these buttons. */
+/* ─── Summary actions (locked design: one compact horizontal row) ────
+   Add to Enquiry is the red primary; Compare and Talk to Yee Lim are
+   coordinated secondary buttons beside it. Wraps responsively when the
+   column narrows. */
 .sidebar-actions {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 0.6rem;
 }
 
-.sidebar-action-row {
-  display: flex;
-  gap: 0.5rem;
+.sidebar-actions .detail-act-enq {
+  flex: 1.4 1 auto;
+  min-width: 180px;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+.sidebar-actions .btn-compare-sidebar,
+.sidebar-actions .btn-whatsapp-sidebar {
+  white-space: nowrap;
+  flex: 1 0 auto;
+  padding-left: 0.9rem;
+  padding-right: 0.9rem;
 }
 
 /* WhatsApp quick-chat button — sits beside Compare in the action row. Green
@@ -2451,9 +2702,10 @@ body.detail-has-cta .toast {
 .btn-whatsapp-sidebar svg { flex-shrink: 0; color: #25D366; }
 
 .sidebar-actions .btn {
-  width: 100%;
-  text-align: center;
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
 }
 
 .sidebar-foot {
@@ -2476,12 +2728,17 @@ body.detail-has-cta .toast {
 
 .sidebar-enquiry-link:hover { color: var(--red); }
 
+/* Quiet info note under the actions (dot icon + honest availability copy). */
 .sidebar-note {
-  font-size: 0.72rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.78rem;
   color: var(--muted);
   text-align: left;
   line-height: 1.5;
 }
+.sidebar-note svg { flex-shrink: 0; margin-top: 2px; opacity: 0.75; }
 
 .btn-compare-sidebar {
   display: flex;
@@ -2531,17 +2788,15 @@ body.detail-has-cta .toast {
   .related-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* On phones the primary actions live in the fixed sticky CTA bar, so the
-   in-flow buttons directly under the h1/description block would just
-   duplicate them. Hide only the action buttons + footer note; the header
-   block (brand, availability, name, description) stays as the single source
-   of identity all the way down to mobile. */
+/* Phones (locked mobile reference): the in-flow actions stack full-width
+   under the availability row; the fixed sticky bar still carries them once
+   the summary scrolls away. */
 @media (max-width: 640px) {
-  .detail-summary .sidebar-actions,
-  .detail-summary .sidebar-foot { display: none; }
-  /* Nothing overlays the product photo on mobile — brand shows as the eyebrow
-     above the h1, not as a chip on the image. */
-  .gallery-brand-chip { display: none; }
+  .sidebar-actions { flex-direction: column; }
+  .sidebar-actions .detail-act-enq { min-width: 0; }
+  .sidebar-actions .btn,
+  .btn-compare-sidebar,
+  .btn-whatsapp-sidebar { width: 100%; min-height: 46px; font-size: 0.88rem; }
 }
 
 /* ─── Compare Tray (full-width bottom drawer) ────────────────────
@@ -2792,7 +3047,7 @@ body.detail-has-cta .toast {
 
 .compare-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-.compare-label-col { width: 150px; min-width: 150px; }
+.compare-label-col { width: 180px; min-width: 180px; }
 
 .compare-col-header {
   padding: 1.5rem 1.25rem 1.25rem;
@@ -2815,10 +3070,12 @@ body.detail-has-cta .toast {
   position: relative; /* anchor for the corner remove (×) button */
   width: 100%;
   aspect-ratio: 4/3;
-  background: #efe9dc;
+  max-height: 200px;
+  background: #fff;
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2830,7 +3087,7 @@ body.detail-has-cta .toast {
   container-type: inline-size;
 }
 
-.compare-product-img img { width: 100%; height: 100%; object-fit: cover; }
+.compare-product-img img { width: 100%; height: 100%; object-fit: contain; padding: 0.75rem; box-sizing: border-box; }
 
 .compare-product-name {
   font-size: 1rem;
@@ -2840,27 +3097,16 @@ body.detail-has-cta .toast {
   line-height: 1.3;
 }
 
+/* Red mono brand line above the name (locked design). */
 .compare-product-brand {
-  font-size: 0.75rem;
-  color: var(--muted);
-  font-weight: 500;
-  margin-bottom: 0.6rem;
-}
-
-.compare-col-avail {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
   font-weight: 600;
-  padding: 0.15rem 0.5rem;
-  border-radius: 20px;
-  margin-bottom: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.3rem;
 }
-
-.compare-col-avail.available { background: var(--green-tint); color: var(--green); border: 1px solid var(--green-tint-bdr); }
-.compare-col-avail.unavailable { background: #f1ece1; color: var(--muted); border: 1px solid var(--border); }
-.compare-col-avail .avail-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 
 /* Small × in the top-right over the image corner. Muted grey by default, brand
    red on hover. Secondary to the red "Add to Product Enquiry" CTA. */
@@ -2895,7 +3141,7 @@ body.detail-has-cta .toast {
 }
 
 .compare-row-label {
-  padding: 0.875rem 1.25rem;
+  padding: 0.875rem 1rem 0.875rem 1.25rem;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -2903,7 +3149,7 @@ body.detail-has-cta .toast {
   color: var(--muted);
   background: var(--bg);
   border-top: 1px solid var(--border);
-  white-space: nowrap;
+  white-space: normal;
   vertical-align: middle;
   /* Sticky first column (also the thead "Product" corner cell, which shares
      this class): stays pinned and readable while the table scrolls
@@ -2922,58 +3168,8 @@ body.detail-has-cta .toast {
   line-height: 1.55;
 }
 
-.compare-tag {
-  display: inline-block;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.72rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
-  margin: 0.1rem 0.15rem 0.1rem 0;
-  white-space: nowrap;
-}
-
-.compare-feature { font-size: 0.82rem; padding: 0.15rem 0; color: var(--text); }
-.compare-feature::before { content: "• "; color: var(--muted); font-weight: 700; }
-
-.btn-add-enquiry {
-  width: 100%;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: 0.65rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s, transform 0.1s;
-  margin-bottom: 0.5rem;
-}
-
-/* Pin the CTA to the bottom of the flex column so every column's button lands
-   on the same baseline no matter the title/availability height above it. */
-.compare-col-inner .btn-add-enquiry { margin-top: auto; margin-bottom: 0; }
-
-.btn-add-enquiry:hover { background: var(--red-dark); }
-.btn-add-enquiry:active { transform: scale(0.97); }
-
-.btn-add-enquiry.added {
-  background: var(--red-tint);
-  color: var(--red);
-  border: 1px solid var(--red-tint-bdr);
-}
-.btn-add-enquiry.added:hover { background: var(--red-tint); }
-
 @media (max-width: 480px) {
   .compare-col-header { padding: 1rem 0.4rem 0.75rem; }
-
-  .btn-add-enquiry {
-    font-size: 0.7rem;
-    padding: 0.45rem 0.3rem;
-    line-height: 1.3;
-  }
 }
 
 /* ─── Comparison Page ────────────────────────────────────────── */
@@ -3025,10 +3221,19 @@ body.detail-has-cta .toast {
   margin-bottom: 0.85rem;
 }
 
+/* Tiles left, grouped actions right (desktop); stacks on mobile. */
+.csel-body {
+  display: flex;
+  align-items: stretch;
+  gap: 1.25rem;
+}
+
 .csel-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .csel-card {
@@ -3038,8 +3243,8 @@ body.detail-has-cta .toast {
   gap: 0.65rem;
   padding: 0.6rem 1.85rem 0.6rem 0.6rem;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg);
+  border-radius: var(--radius);
+  background: #fff;
 }
 
 .csel-img {
@@ -3081,6 +3286,14 @@ body.detail-has-cta .toast {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.csel-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .csel-x {
@@ -3137,16 +3350,34 @@ body.detail-has-cta .toast {
 
 .csel-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  justify-content: center;
   gap: 0.6rem;
-  margin-top: 0.9rem;
+  flex-shrink: 0;
+  border-left: 1px solid var(--line);
+  padding-left: 1.25rem;
+  min-width: 168px;
 }
-.csel-compare { text-decoration: none; }
+.csel-compare { text-decoration: none; justify-content: center; }
+.csel-actions .compare-page-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+}
 
 @media (max-width: 640px) {
+  .csel-body { flex-direction: column; gap: 0.9rem; }
   .csel-row { grid-template-columns: 1fr; }
+  .csel-actions {
+    flex-direction: row-reverse;
+    border-left: none;
+    padding-left: 0;
+    min-width: 0;
+  }
   .csel-actions .compare-page-clear,
-  .csel-actions .csel-compare { flex: 1 1 50%; justify-content: center; }
+  .csel-actions .csel-compare { flex: 1 1 50%; justify-content: center; min-height: 46px; }
 }
 
 .compare-img-placeholder {
@@ -3222,67 +3453,6 @@ body.detail-has-cta .toast {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ─── Rotate-to-landscape nudge (portrait phones only, JS-gated) ─────────── */
-.cx-rotate-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-rotate-overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.6rem;
-  background: rgba(32, 30, 24, 0.55);
-  animation: cxRotateFade 0.22s var(--ease) both;
-}
-.cx-rotate-card {
-  width: 100%;
-  max-width: 340px;
-  padding: 1.75rem 1.4rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: 0 16px 44px rgba(32, 30, 24, 0.32);
-  animation: cxRotateUp 0.28s var(--ease) both;
-}
-.cx-rotate-icon { display: inline-flex; color: var(--red); margin-bottom: 0.55rem; }
-.cx-rotate-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0 0 0.4rem; }
-.cx-rotate-text { font-size: 0.88rem; line-height: 1.55; color: var(--muted); margin: 0 0 1.25rem; }
-.cx-rotate-dismiss {
-  display: block;
-  width: 100%;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 0.8rem 1.2rem;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.12s;
-}
-.cx-rotate-dismiss:active { background: var(--red-dark); transform: scale(0.99); }
-.cx-rotate-stay {
-  display: block;
-  width: 100%;
-  margin-top: 0.5rem;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.5rem;
-  cursor: pointer;
-}
-.cx-rotate-stay:active { color: var(--text); }
-@keyframes cxRotateFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes cxRotateUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-@media (prefers-reduced-motion: reduce) {
-  .cx-rotate-overlay, .cx-rotate-card { animation: none; }
-}
-
 .compare-page-table-wrap .compare-table { border-radius: var(--radius); }
 
 /* Each product column's readable min-width (~220px) is set inline per render
@@ -3308,6 +3478,54 @@ body.detail-has-cta .toast {
 }
 
 .compare-product-name:hover { color: var(--red); }
+
+/* Truthful subtype under the product name in the table header cells. */
+.compare-product-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+/* Row-label icon + red check circles + em-dash empty values (locked design). */
+.compare-label-ic {
+  display: inline-flex;
+  color: var(--red);
+  margin-right: 0.5rem;
+  vertical-align: -2px;
+}
+
+.compare-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1.5px solid var(--red);
+  color: var(--red);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+.compare-feature {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+.compare-empty-val { color: var(--muted-2); }
+
+.compare-disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 1.1rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+}
+.compare-disclaimer svg { flex-shrink: 0; opacity: 0.7; }
 
 /* ─── Focus states ───────────────────────────────────────────── */
 .gallery-thumb:focus-visible {
@@ -3337,71 +3555,8 @@ body:has(.compare-tray.visible) .toast {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   SPRINT 2 ADDITIONS — card compare icon, filter counts, skeleton
+   SPRINT 2 ADDITIONS — filter counts, skeleton
    ════════════════════════════════════════════════════════════════ */
-
-/* ─── Card compare icon button (top-right of image) ─────────── */
-.card-compare-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border: 1px solid #e0d9c9;
-  border-radius: 6px;
-  padding: 0.3rem 0.55rem;
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #47433b;
-  cursor: pointer;
-  font-family: inherit;
-  transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.1s;
-  z-index: 3;
-  line-height: 1;
-}
-
-.card-compare-btn:hover:not(:disabled) {
-  color: var(--red);
-  border-color: var(--red-tint-bdr);
-  background: #fff;
-}
-
-.card-compare-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.card-compare-btn.in-compare {
-  background: var(--red);
-  color: #fff;
-  border-color: var(--red);
-}
-
-.card-compare-btn.in-compare:hover {
-  background: var(--red-dark);
-  border-color: var(--red-dark);
-  color: #fff;
-}
-
-.card-compare-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.card-compare-btn:focus-visible {
-  outline: 2px solid var(--red);
-  outline-offset: 2px;
-}
-
-.card-compare-btn svg {
-  flex-shrink: 0;
-}
 
 /* ─── Filter checkbox: label + count ─────────────────────────── */
 .filter-group label {
@@ -3438,21 +3593,6 @@ body:has(.compare-tray.visible) .toast {
 }
 .fg-more-btn:hover { background: var(--red-tint); }
 .fg-more-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.filter-active-total {
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: #7d6c4f;
-  background: #f2ece0;
-  border: 1px solid #e5dece;
-  border-radius: 999px;
-  padding: 0.16rem 0.6rem;
-  vertical-align: 2px;
-  margin-left: 0.45rem;
-}
-
 /* Short desktop viewports: a tiny nested scroll area is worse than letting the
    page scroll the sidebar naturally (FILTER-001 fallback). */
 @media (min-width: 769px) and (max-height: 620px) {
@@ -3586,57 +3726,6 @@ body:has(.compare-tray.visible) .toast {
   .page-breadcrumb .bc-sep-home { display: none; }
 }
 
-/* ─── Enquiring-about summary strip (top of the enquiry form card) ───── */
-.enquiring-about {
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
-  padding: 18px 22px;
-}
-
-.enquiring-about-label {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted-2);
-  margin-bottom: 8px;
-}
-
-.enquiring-about-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 5px;
-}
-
-.enquiring-about-list li {
-  font-size: 13.5px;
-  color: var(--text);
-  font-weight: 500;
-  position: relative;
-  padding-left: 1rem;
-}
-
-.enquiring-about-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.5em;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--red);
-}
-
-/* On phones the basket list directly above already shows the selected products
-   (with remove controls), so this summary box just repeats them. Hide it here;
-   it stays on larger screens where the form sits beside, not below, the list. */
-@media (max-width: 640px) {
-  .enquiring-about { display: none; }
-}
-
 /* Enquiry grid: collapse to one column, form drops below the product list,
    sticky positioning is meaningless once stacked so it's turned off. */
 @media (max-width: 900px) {
@@ -3677,77 +3766,138 @@ body:has(.compare-tray.visible) .toast {
    ════════════════════════════════════════════════════════════════ */
 
 
-/* ─── Contact Page ───────────────────────────────────────────── */
-/* Hero uses the shared .page-hero--rail pattern (see products.html); no
-   contact-specific hero rules are needed beyond the grid below. */
+/* ─── 404 Page (locked design) ──────────────────────────────────
+   Warm hero with actions + product search, "Helpful places to go" link
+   cards, and a Product Advice band. Shares the site nav/footer. */
+.nf-hero .hero-eyebrow { color: var(--red); }
+.nf-hero h1 { max-width: 20ch; }
+
+.nf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.nf-actions .btn { padding: 0.75rem 1.4rem; font-size: 0.92rem; }
+
+.nf-search { margin-top: 1rem; max-width: 560px; }
+
+.nf-help {
+  max-width: 1400px;
+  margin: 2.25rem auto 3rem;
+  padding: 0 2rem;
+}
+
+.nf-help h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1.1rem;
+}
+
+.nf-help-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.nf-help-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.nf-help-card:hover { box-shadow: var(--shadow-md); border-color: var(--line-2); }
+.nf-help-card:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+.nf-help-ic {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  background: var(--red-tint);
+  color: var(--red);
+}
+
+.nf-help-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.nf-help-text strong { font-size: 0.95rem; color: var(--text); }
+.nf-help-text span { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.nf-help-go { margin-left: auto; align-self: center; color: var(--muted); flex-shrink: 0; }
+.nf-help-card:hover .nf-help-go { color: var(--red); }
+
+.nf-advice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  background: var(--red-tint);
+  border: 1px solid var(--red-tint-bdr);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+.nf-advice-ic {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--red);
+}
+.nf-advice-copy { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 2px; }
+.nf-advice-copy strong { font-size: 0.98rem; color: var(--text); }
+.nf-advice-copy span { font-size: 0.85rem; color: var(--body); line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .nf-help-grid { grid-template-columns: 1fr; }
+  .nf-help { padding: 0 1.25rem; }
+  .nf-actions .btn { flex: 1 1 100%; justify-content: center; min-height: 46px; }
+}
+
+/* ─── Contact Page (locked design) ─────────────────────────────
+   White info card left (circular red icon chips, hairline rows, real data
+   only), white form card right with Send Message + Clear Form. */
 
 .contact-page {
-  max-width: 1440px;
-  margin: 3rem auto;
+  max-width: 1400px;
+  margin: 2.5rem auto 3rem;
   padding: 0 2rem;
   display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
+  grid-template-columns: 0.8fr 1.2fr;
   gap: 2rem;
   align-items: start;
-}
-
-.contact-info-col {
-  display: grid;
-  gap: 1.25rem;
-}
-
-/* Dark intro card: eyebrow + one line of context, red left border. */
-.contact-intro-card {
-  background: var(--dark);
-  color: #fff;
-  border-radius: 14px;
-  padding: 1.75rem 1.6rem;
-  border-left: 4px solid var(--red);
-}
-
-.contact-intro-card .contact-eyebrow { color: var(--red-on-dark); margin-bottom: 0; }
-
-.contact-intro-card p {
-  color: var(--muted-on-dark);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin: 0.75rem 0 0;
 }
 
 .contact-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 1.75rem;
 }
 
-.contact-form-card { padding: 2rem 2.1rem; }
+.contact-form-card { padding: 1.9rem 2rem; }
 
-/* Icon-row card: rows separated by hairlines instead of individually boxed. */
-.contact-info-card { padding: 0; overflow: hidden; }
-
-.contact-eyebrow {
-  display: block;
-  font-family: var(--mono);
-  color: var(--red);
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+.contact-info-heading {
+  font-size: 1.2rem;
   margin-bottom: 0.5rem;
 }
 
 .contact-card h2 {
   color: var(--dark);
-  font-size: 1.55rem;
+  font-size: 1.35rem;
   line-height: 1.25;
   margin-bottom: 0.75rem;
-}
-
-.contact-card p {
-  color: var(--muted);
-  margin-bottom: 1.25rem;
 }
 
 .contact-detail-list {
@@ -3756,26 +3906,21 @@ body:has(.compare-tray.visible) .toast {
 
 .contact-detail {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.9rem;
   border-bottom: 1px solid var(--line);
-  padding: 1.1rem 1.25rem;
-  transition: background 0.16s var(--ease);
+  padding: 1.1rem 0.15rem;
 }
 
-.contact-detail:last-child { border-bottom: none; }
+.contact-detail > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
-/* Rows that carry a link (email, WhatsApp) get a quiet hover so they read as
-   actionable; the address row stays static. */
-.contact-detail:has(a):hover { background: #faf6ee; }
-
+/* Circular red icon chip (locked design). */
 .contact-detail-icon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
-  border-radius: 11px;
-  background: #fbf1ee;
-  border: 1px solid #f1dbd4;
+  border-radius: 50%;
+  background: var(--red-tint);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3784,57 +3929,55 @@ body:has(.compare-tray.visible) .toast {
 
 .contact-detail strong {
   display: block;
-  font-family: var(--mono);
-  color: var(--muted-2);
-  font-size: 0.68rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  margin-bottom: 0.3rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.1rem;
 }
 
 .contact-detail span {
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.5;
 }
 
+.contact-detail-sub {
+  color: var(--muted) !important;
+  font-size: 0.82rem !important;
+}
+
 .contact-detail a {
-  color: var(--red);
+  color: var(--text);
   text-decoration: none;
   font-weight: 500;
   overflow-wrap: anywhere;
 }
 
-.contact-detail a:hover { text-decoration: underline; text-underline-offset: 2px; }
+.contact-detail a:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
 
-/* WhatsApp-specific CTA uses WhatsApp green for instant recognition. The red
-   single-accent stays reserved for Yee Lim's primary enquiry actions (Submit
-   Enquiry, Add to Product Enquiry); this green is scoped to WhatsApp only. */
+/* Outlined WhatsApp row (locked design: quiet functional control, not a
+   full-green banner). */
 .contact-whatsapp {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.55rem;
   width: 100%;
-  padding: 0.95rem;
-  background: #1fab54;
-  color: #fff;
+  margin-top: 1.1rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--text);
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 700;
-  border-radius: 10px;
-  transition: background 0.18s, box-shadow 0.18s;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  transition: border-color 0.18s, background 0.18s;
 }
 
-.contact-whatsapp:hover {
-  background: #178c44;
-  box-shadow: 0 2px 12px rgba(31, 171, 84, 0.30);
-}
-
-.contact-whatsapp:focus-visible { outline: 2px solid #0f7a34; outline-offset: 2px; }
-.contact-whatsapp svg { flex-shrink: 0; }
-
+.contact-whatsapp:hover { border-color: #16a34a; background: #f2faf4; }
+.contact-whatsapp:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.contact-whatsapp svg:first-child { flex-shrink: 0; color: #25D366; }
+.contact-whatsapp-go { margin-left: auto; color: var(--muted); }
 
 .contact-form {
   margin-top: 1rem;
@@ -3844,13 +3987,45 @@ body:has(.compare-tray.visible) .toast {
   min-height: 140px;
 }
 
-.contact-submit-btn {
-  width: 100%;
-  padding: 0.95rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  border-radius: 10px;
+.contact-security-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
 }
+.contact-security-note svg { flex-shrink: 0; opacity: 0.75; }
+
+.contact-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contact-submit-btn {
+  padding: 0.8rem 1.5rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.contact-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  padding: 0.5rem 0.25rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.contact-clear-btn:hover { color: var(--red); }
+.contact-clear-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
 
 .contact-form-status {
   margin: 0 0 0.9rem;
@@ -3892,672 +4067,9 @@ body:has(.compare-tray.visible) .toast {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   B2B REVAMP — hero, trust strip, applications, catalogue head
-   ════════════════════════════════════════════════════════════════ */
-
-/* ─── Hero (positioning) ─────────────────────────────────────── */
-.hero-inner {
-  position: relative;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 4.5rem 2rem 3.2rem;
-}
-
-.page-hero .hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--red-on-dark);
-  font-size: 0.74rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  margin-bottom: 1.1rem;
-}
-
-.page-hero .hero-eyebrow::before {
-  content: "";
-  width: 18px;
-  height: 1.5px;
-  background: var(--red);
-}
-
-.page-hero h1 {
-  max-width: 24ch;
-  margin-left: 0;
-  margin-right: 0;
-}
-
-
-.page-hero .hero-lead {
-  color: #b9b3a6;
-  font-size: 1.08rem;
-  line-height: 1.6;
-  max-width: 56ch;
-  margin: 1.3rem 0 0;
-}
-
-/* ════════════════════════════════════════════════════════════════
-   Hero: Bold Red Rail (Direction C)
-   Scoped to .page-hero--rail so the contact-page hero is untouched.
-   ════════════════════════════════════════════════════════════════ */
-/* Warm near-black base; the three hero layers (label wall, red spine, copy)
-   stack on top via z-index. */
-.page-hero.page-hero--rail {
-  background-color: #17130e;
-}
-
-/* The rail carries the red accent, so drop the dot-grid + red top line */
-.page-hero.page-hero--rail::before,
-.page-hero.page-hero--rail::after {
-  content: none;
-}
-
-/* Vertical red spine pinned to the hero's left edge (desktop) */
-.hero-rail {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 46px;
-  z-index: 2;
-  background: var(--red);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.hero-rail-text {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: #fff;
-}
-
-/* Horizontal red strip: shown only on mobile */
-.hero-strip { display: none; }
-
-/* Two-column content: text/actions on the left, brand stack on the right */
-.page-hero--rail .hero-inner {
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  display: block;
-  overflow: hidden;
-}
-
-.hero-main {
-  position: relative;
-  z-index: 1;
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 52px 40px 48px 86px;
-  min-width: 0;
-}
-
-/* Ranges: a quiet, secondary shortcut below the search for buyers who already
-   know which Yee Lim range they want. Deliberately subordinate to the search:
-   small label, low-contrast chips, neutral until hover. The red stays earned. */
-.hero-ranges {
-  margin-top: 34px;
-  max-width: 700px;
-}
-.hero-ranges-label {
-  display: block;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted-on-dark);
-  margin-bottom: 12px;
-}
-.hero-ranges-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.range-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  padding: 8px 16px 8px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.025);
-  color: inherit;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
-}
-.range-chip:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-.range-chip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-
-/* Logo sits in a tile that mirrors the Common Applications icon: neutral at rest,
-   red on hover/active so the accent follows the user's intent and the ranges read
-   as part of the same family as the application cards below. */
-.range-chip-mark {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
-}
-.range-chip-mark img {
-  width: 27px;
-  height: 27px;
-  object-fit: contain;
-}
-.range-chip:hover .range-chip-mark {
-  background: var(--red);
-  border-color: var(--red);
-}
-
-.range-chip-text { display: flex; flex-direction: column; line-height: 1.2; }
-.range-chip-text strong {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #fff;
-}
-.range-chip-text small {
-  font-size: 0.71rem;
-  color: var(--muted-on-dark);
-  margin-top: 2px;
-}
-
-/* The hero range chips are one-tap shortcuts, not toggle state: they show red
-   only on hover, and do NOT stay lit after clicking. The active brand filter is
-   reflected by the sidebar checkbox and the removable filter chips instead, so
-   the chip never looks permanently "pressed". */
-
-/* Eyebrow: mono, dim, no leading dash for this variant */
-.page-hero--rail .hero-eyebrow {
-  font-family: var(--mono);
-  color: var(--muted-on-dark);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  margin-bottom: 20px;
-}
-.page-hero--rail .hero-eyebrow::before { content: none; }
-
-/* Headline + red highlight on "perform" */
-.page-hero--rail .hero-inner h1 {
-  font-size: 56px;
-  line-height: 1.06;
-  letter-spacing: -0.02em;
-  max-width: 13ch;
-}
-/* line-height + asymmetric padding stop the red box clipping descenders */
-.page-hero--rail .hero-inner h1 mark {
-  background: var(--red);
-  color: #fff;
-  padding: 0.02em 0.12em 0.1em;
-  border-radius: 4px;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-
-/* Intro line */
-.page-hero--rail .hero-lead {
-  font-size: 16.5px;
-  line-height: 1.6;
-  max-width: 46ch;
-  margin: 20px 0 0;
-}
-
-/* Actions: kept balanced against the open right side */
-.page-hero--rail .hero-actions {
-  max-width: 700px;
-  margin-top: 30px;
-}
-.page-hero--rail .hero-actions .search-bar {
-  max-width: none;
-  margin: 0;
-}
-
-/* ── Rail → horizontal strip + scaled type (single breakpoint) ── */
-@media (max-width: 860px) {
-  .page-hero.page-hero--rail {
-    grid-template-columns: 1fr;
-  }
-  .hero-rail { display: none; }
-  .hero-strip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--red);
-    padding: 0.5rem 1.1rem;
-  }
-  .hero-strip span {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #fff;
-  }
-  .hero-strip span:last-child {
-    letter-spacing: 0.12em;
-  }
-  /* Brand stack drops below the text as a full-width single column */
-  .page-hero--rail .hero-inner {
-    grid-template-columns: 1fr;
-    padding: 0;
-  }
-  .hero-main {
-    padding: 30px 28px 30px;
-  }
-  .page-hero--rail .hero-eyebrow {
-    font-size: 11px;
-    letter-spacing: 0.07em;
-    margin-bottom: 14px;
-  }
-  .page-hero--rail .hero-inner h1 {
-    font-size: 33px;
-    line-height: 1.02;
-    max-width: none;
-  }
-  .page-hero--rail .hero-lead {
-    font-size: 15px;
-    margin-top: 14px;
-  }
-  .page-hero--rail .hero-actions {
-    max-width: none;
-    margin-top: 22px;
-  }
-  .page-hero--rail .hero-actions .search-bar { margin-bottom: 0; }
-}
-
-/* ─── Stats strip (dark continuation of hero) ────────────────── */
-.trust-strip {
-  background: var(--ink);
-}
-
-/* Full-bleed to match the hero (which is edge-to-edge with the red rail), so the
-   first stat lines up with the hero content column at every viewport width
-   instead of drifting right once the viewport passes the old 1280 cap. */
-.trust-strip-inner {
-  position: relative;
-  max-width: none;
-  margin: 0;
-  padding: 0 2rem;
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  text-align: left;
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-.trust-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1.4rem 1.4rem;
-  min-width: 0;
-  border-right: 1px solid rgba(255,255,255,0.08);
-}
-
-/* Align first stat with hero content (past the 62px rail + 56px content indent) */
-.trust-item:first-child { padding-left: calc(62px + 56px - 2rem); }
-.trust-item:last-child { border-right: none; }
-
-.trust-num {
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.trust-plus { font-size: 1.05rem; vertical-align: top; color: var(--red); margin-left: 1px; }
-
-/* Uppercase, tracked labels read as precise spec-sheet data rather than soft
-   captions, matching the mono eyebrow language used across the page. */
-.trust-label {
-  font-size: 0.72rem;
-  color: var(--muted-on-dark);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 1.35;
-  overflow-wrap: break-word;
-}
-/* Desktop uses the full descriptive labels; phones swap to short ones (≤640). */
-.trust-label .tl-short { display: none; }
-
-/* ─── Section heading (shared by applications + catalogue head) ── */
-.section-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--red);
-  font-size: 0.74rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  margin-bottom: 0.7rem;
-}
-
-.section-eyebrow::before {
-  content: "";
-  width: 18px;
-  height: 1.5px;
-  background: var(--red);
-}
-
-
-/* ─── Hero brand label wall ──────────────────────────────────── */
-/* Faint Deer/Horsemen/Premier/Rhino marks scattered behind the hero copy like
-   labels on a supplier's shelf. Positioned per-image inline in products.html;
-   a scrim keeps the left column of copy legible. */
-.hero-label-wall {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.hero-label-wall img {
-  position: absolute;
-  height: auto;
-}
-.hero-label-scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg,
-    rgba(23,19,14,0.97) 0%,
-    rgba(23,19,14,0.90) 30%,
-    rgba(23,19,14,0.60) 66%,
-    rgba(23,19,14,0.50) 100%);
-}
-/* Keep hero copy above the label wall (the red spine sets its own z-index:2). */
-.page-hero--rail .hero-inner { position: relative; z-index: 1; }
-/* Decorative label wall is a desktop flourish; hidden once the rail collapses. */
-@media (max-width: 860px) {
-  .hero-label-wall { display: none; }
-}
-
-/* ─── Product Advisor banner ─────────────────────────────────── */
-.advisor-banner-wrap {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 24px 2rem 0;
-}
-.advisor-banner {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-  background: linear-gradient(135deg, #211c15 0%, var(--ink) 58%);
-  color: #fff;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-left: 4px solid var(--red);
-  padding: 22px 26px;
-  box-shadow: var(--shadow-md);
-}
-/* Soft brand-red glow in the top-right — quiet depth, not a spotlight. */
-.advisor-banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(58% 130% at 93% 6%, rgba(204, 41, 41, 0.20), transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-.advisor-banner > * { position: relative; z-index: 1; }
-.advisor-banner-icon {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--red);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 16px -4px rgba(204, 41, 41, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-}
-.advisor-banner-text { flex: 1; min-width: 240px; }
-.advisor-banner-text strong {
-  display: block;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-bottom: 3px;
-}
-.advisor-banner-text span {
-  font-size: 14px;
-  color: var(--muted-on-dark);
-  line-height: 1.5;
-}
-.advisor-banner-btn {
-  flex-shrink: 0;
-  background: #fff;
-  color: var(--ink);
-  border: none;
-  font-family: inherit;
-  font-weight: 700;
-  font-size: 14px;
-  padding: 12px 22px;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.5);
-  transition: color 0.15s, transform 0.15s var(--ease), box-shadow 0.15s;
-}
-.advisor-banner-btn:hover { color: var(--red); transform: translateY(-2px); box-shadow: 0 9px 22px -6px rgba(0, 0, 0, 0.55); }
-.advisor-banner-btn:active { transform: translateY(0); }
-.advisor-banner-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-/* Desktop keeps the text label ("Ask the Product Advisor →"); the SVG arrow is a
-   mobile-only affordance (see the ≤640px block). */
-.advisor-banner-btn-arrow { display: none; }
-@media (max-width: 640px) {
-  /* Calm, LIGHT inline advisor banner (previously a heavy dark ink block): a
-     white card with a red left accent and a tinted-red icon chip, so it sits
-     with the product cards instead of overshadowing the "Full Catalogue"
-     heading below it. Desktop keeps its own dark banner. */
-  .advisor-banner-wrap { padding: 18px 16px 0; }   /* breathing room from trust strip + edge inset */
-  .advisor-banner {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 11px;
-    padding: 12px 13px;
-    background: #fff;
-    color: var(--ink);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--red);   /* red accent, not a full dark/red fill */
-    border-radius: 10px;
-    box-shadow: none;
-  }
-  .advisor-banner::before { display: none; }
-  /* Small tinted-red icon chip with a red glyph — quiet, not a solid red slab. */
-  .advisor-banner-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
-    background: rgba(204, 41, 41, 0.09);
-    color: var(--red);
-    box-shadow: none;
-  }
-  .advisor-banner-icon svg { width: 18px; height: 18px; }
-  .advisor-banner-text { flex: 1; min-width: 0; }
-  .advisor-banner-text strong { font-size: 12.5px; font-weight: 700; color: #201e18; margin-bottom: 2px; letter-spacing: -0.01em; }
-  .advisor-banner-text span { font-size: 11px; color: var(--muted); line-height: 1.45; }
-  .advisor-banner-text .advisor-sub-full  { display: none; }   /* desktop copy hidden on phones */
-  .advisor-banner-text .advisor-sub-short { display: block; }
-  /* Red circular arrow affordance (≥44px tap target). SVG (not the → glyph) so
-     it stays optically centred across devices/fonts. */
-  .advisor-banner-btn {
-    flex-shrink: 0;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--red);
-    color: #fff;
-    box-shadow: none;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-    transition: transform 0.12s var(--ease), background 0.15s;
-  }
-  .advisor-banner-btn-label { display: none; }   /* icon-only on phones */
-  .advisor-banner-btn-arrow { display: block; }
-  .advisor-banner-btn:active { transform: scale(0.9); background: var(--red-dark); }
-}
-/* The short mobile sub-copy is never shown on desktop. */
-.advisor-sub-short { display: none; }
-
-/* ─── Catalogue head ─────────────────────────────────────────── */
-.catalogue-head {
-  max-width: 1440px;
-  margin: 4rem auto 0;
-  padding: 0 2rem;
-  scroll-margin-top: 76px;
-}
-
-.catalogue-head h2 {
-  font-size: 1.85rem;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-  margin-bottom: 0.55rem;
-}
-
-.catalogue-head p {
-  color: var(--muted);
-  font-size: 1rem;
-  max-width: 62ch;
-}
-
-
-/* ─── Responsive — B2B sections ──────────────────────────────── */
-
-@media (max-width: 768px) {
-  .trust-strip-inner { grid-template-columns: repeat(2, minmax(0,1fr)); padding: 0 1.25rem; }
-  .trust-item { padding: 1.1rem 1rem; }
-  .trust-item:first-child { padding-left: 0; }
-  .trust-item:nth-child(2) { border-right: none; padding-right: 0; }
-  .trust-item:nth-child(3) { padding-left: 0; }
-  .trust-num { font-size: 1.5rem; }
-  .catalogue-head { padding: 0 1.25rem; margin-top: 2.75rem; }
-}
-
-/* ════════════════════════════════════════════════════════════════
    MOBILE REDESIGN — phones ≤640px
    Desktop layout is untouched below this line.
    ════════════════════════════════════════════════════════════════ */
-
-/* Card body top row (brand eyebrow + compare toggle) is mobile-only; hidden
-   on tablet/desktop, revealed as a flex row inside the ≤640px block. */
-.pcard-top { display: none; }
-
-/* ─── Mobile card: floating enquiry button on image ─────────── */
-.pcard-add {
-  display: none; /* revealed at ≤640px */
-  position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(204,41,41,0.30);
-  transition: transform 0.12s, background 0.15s;
-  cursor: pointer;
-  z-index: 4;
-}
-.pcard-add:active { transform: scale(0.88); }
-/* Keep the visible circle at 34px but extend the tap target to ~44px. */
-.pcard-add::before {
-  content: "";
-  position: absolute;
-  top: -5px;
-  bottom: -5px;
-  left: -5px;
-  right: -5px;
-}
-.pcard-add.added {
-  background: var(--green);
-  box-shadow: 0 2px 8px rgba(15,122,55,0.28);
-}
-
-/* ─── Mobile card: compare checkbox row in card footer ─────── */
-.pcard-cmp-row {
-  display: none; /* revealed at ≤640px */
-  margin-top: auto;
-  padding-top: 0.7rem;
-}
-.pcard-cmp {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: inherit;
-  font-size: 0.66rem;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  line-height: 1;
-  position: relative; /* anchor the expanded hit area below */
-}
-/* The visible toggle stays compact (checkbox + label), but the tap target was
-   only ~15px tall. Extend the clickable area to ~44px via an overlay without
-   changing the visual layout. */
-.pcard-cmp::before {
-  content: "";
-  position: absolute;
-  top: -14px;
-  bottom: -14px;
-  left: -8px;
-  right: -8px;
-}
-.pcard-cb {
-  width: 15px;
-  height: 15px;
-  border-radius: 4px;
-  border: 1.5px solid var(--line-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  flex-shrink: 0;
-}
-.pcard-cb svg { width: 10px; height: 10px; opacity: 0; }
-.pcard-cmp.on          { color: var(--red); }
-.pcard-cmp.on .pcard-cb { background: var(--red); border-color: var(--red); }
-.pcard-cmp.on .pcard-cb svg { opacity: 1; }
-.pcard-cmp:disabled    { opacity: 0.45; cursor: not-allowed; }
 
 /* ─── Filter group bar — desktop appearance (button replaces h3) */
 .filter-group-bar {
@@ -4615,124 +4127,20 @@ body:has(.compare-tray.visible) .toast {
 .drawer-foot           { display: none; } /* mobile only */
 .mobile-filter-bar     { display: none; } /* mobile only */
 
-/* ─── Step 1: 2-col grid + stripped cards ────────────────────── */
+/* ─── Phones ≤640px: single-column stacked cards (same structure as desktop,
+   just full width), compact toolbar + count row. ────────────────── */
 @media (max-width: 640px) {
-  /* Ranges shown on phones (per the prototype) as a horizontal SWIPE row. The
-     scrollbar is hidden for a clean swipe; the partially-visible last tile hints
-     there's more to the right. */
-  .page-hero--rail .hero-ranges { display: block; margin-top: 16px; }
-  .page-hero--rail .hero-ranges-label { margin-bottom: 9px; }
-  .page-hero--rail .hero-ranges-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 8px;
-    padding-bottom: 2px;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;                 /* Firefox: no scrollbar */
-  }
-  .page-hero--rail .hero-ranges-row::-webkit-scrollbar { width: 0; height: 0; }  /* WebKit: no scrollbar */
-  .page-hero--rail .range-chip { flex: 0 0 auto; scroll-snap-align: start; transition: background 0.15s, border-color 0.15s; }
-  .page-hero--rail .range-chip:active { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.18); }
+  .product-grid { grid-template-columns: 1fr; gap: 0.9rem; }
 
-  /* Match the prototype hero on phones: no red "Est. 1976" strip, and the search
-     bar is icon + input only (search runs live on input, so the separate Search
-     button is redundant). Both stay on tablet/desktop. */
-  .page-hero--rail .hero-strip { display: none; }
-  .hero-search .search-bar button { display: none; }
-  .hero-search .search-bar { padding-right: 0.5rem; }
-
-  /* Trim the hero's vertical height so the catalogue appears sooner. The ranges
-     row adds height, so tighten the padding + gaps to keep the hero compact. */
-  .page-hero--rail .hero-main { padding: 20px 18px 18px; }
-  .page-hero--rail .hero-eyebrow { margin-bottom: 10px; }
-  .page-hero--rail .hero-actions { margin-top: 16px; }
-
-  /* "perform" is red TEXT on the dark hero (not a red highlight box), and the
-     lead paragraph is dropped so the title flows straight into the search — both
-     per the prototype. Desktop keeps the boxed mark + lead. */
-  .page-hero--rail .hero-inner h1 mark {
-    background: none;
-    color: #ff5a4d;
-    padding: 0;
-    border-radius: 0;
-  }
-  .page-hero--rail .hero-lead { display: none; }
-  /* Cap the headline so it wraps to two tidy lines ("Adhesives that perform" /
-     "under pressure.") like the prototype, instead of three — a shorter hero
-     gets the catalogue on screen faster. */
-  .page-hero--rail .hero-inner h1 {
-    font-size: 1.72rem;
-    line-height: 1.1;
-  }
-
-  /* ── Single-column horizontal list card (116px thumb left, content right) ── */
-  .product-grid { grid-template-columns: 1fr; gap: 0.7rem; }
-
-  .product-card { flex-direction: row; align-items: stretch; }
-  .product-card::before { display: none; }               /* no top rail on the row card */
-  .product-card:active {                                  /* press, not hover, on mobile */
+  /* Press, not hover, on mobile */
+  .product-card:active {
     box-shadow: 0 12px 28px -12px rgba(16,13,9,0.28);
-    transform: translateY(-2px);
     border-color: #c9bfaa;
   }
 
-  /* Fixed 116px thumbnail: a warm cream frame with the product shot sitting on a
-     clean WHITE rounded plate (hairline border + soft shadow), so photos with a
-     white background read as an intentionally styled catalogue rather than a
-     white box floating on cream. Plate stretches the full card height. */
-  .product-card-image {
-    flex: 0 0 116px;
-    width: 116px;
-    min-height: 116px;
-    aspect-ratio: auto;
-    align-self: stretch;
-    background: #f6f2ea;
-    padding: 9px;
-    box-sizing: border-box;
-  }
-  .product-card-image-link {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    border: 1px solid #ece4d4;
-    border-radius: 9px;
-    box-shadow: 0 1px 2px rgba(32, 30, 24, 0.05);
-    overflow: hidden;
-  }
-  .product-card-image img { width: 100%; height: 100%; object-fit: contain; padding: 7px; box-sizing: border-box; }
-  /* No-image cards keep the cream frame; the brand mark sits on the white plate
-     (the .product-card-image-link above) like a real product shot. */
-  .product-card-image.no-image { background: #f6f2ea; }
-
-  /* Content column */
-  .product-card .product-card-body {
-    flex: 1;
-    min-width: 0;
-    padding: 0.7rem 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .product-card .product-card-body h3 { font-size: 0.94rem; line-height: 1.25; margin: 0 0 0.25rem; }
-  .product-card .pcard-meta { margin-bottom: 0.2rem; }
-  .product-card .card-application { display: flex; margin: 0 0 0.55rem; }
-
-  /* Show the button row, best-for and works-on; hide the long description on mobile */
-  .product-card .product-card-actions { display: flex; margin-top: auto; }
-  .product-card .product-card-body > p { display: none !important; }
-
-  /* In-Enquiry confirmed state (pink) per prototype */
+  /* In-Enquiry confirmed press feedback */
   .product-card-actions .pcard-enq { transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s; }
   .product-card-actions .pcard-enq:active { transform: scale(0.97); }
-  .product-card-actions .pcard-enq.btn-added {
-    background: #fbe9e4 !important;
-    color: var(--red) !important;
-    border-color: #f0cfc9 !important;
-  }
   /* A quick, subtle check-in so adding to the enquiry feels deliberate. */
   .product-card-actions .pcard-enq.btn-added svg { animation: ylEnqCheck 0.18s ease-out both; }
   @keyframes ylEnqCheck {
@@ -4743,61 +4151,9 @@ body:has(.compare-tray.visible) .toast {
     .product-card-actions .pcard-enq.btn-added svg { animation: none; }
   }
 
-  /* ── Nothing overlays the photo: the brand label and the compare toggle both
-     live in the card body top row, never on the image (handoff refinements). ── */
-  .product-card .pcard-brand-tag,      /* on-image brand chip  */
-  .product-card .card-compare-btn,     /* on-image compare pill */
-  .product-card .pcard-add { display: none !important; }
-
-  /* Body top row: brand eyebrow (left) + square compare toggle (right) */
-  .product-card .pcard-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.3rem;
-  }
-  .pcard-brand-m {
-    font-family: var(--mono);
-    font-size: 0.5625rem;              /* 9px */
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--red);                 /* real brand tags: red */
-    line-height: 1.5;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .pcard-brand-m.is-accessory { color: rgba(26,23,18,0.72); }  /* muted category, not a fake brand */
-
-  /* Reuse the already-synced body compare button as an icon-only square toggle */
-  .product-card .pcard-cmp-row {
-    display: block !important;
-    flex: 0 0 auto;
-    margin: 0;
-    padding: 0;
-  }
-  .product-card .pcard-cmp {
-    gap: 0;
-    font-size: 0;                      /* collapse the "Compare" text node */
-  }
-  .product-card .pcard-cmp .pcard-cb {
-    width: 26px;
-    height: 26px;
-    border-radius: 7px;
-    border: 1px solid #d9cfbb;
-    background: #fff;
-    color: #fff;
-    transition: background 0.15s, border-color 0.15s, transform 0.12s;
-  }
-  .product-card .pcard-cmp .pcard-cb svg { width: 13px; height: 13px; }
-  .product-card .pcard-cmp.on .pcard-cb { background: var(--red); border-color: var(--red); }
-  .product-card .pcard-cmp:active:not(:disabled) .pcard-cb { transform: scale(0.9); }
-
-  /* Status row = dot + availability only (no "No. NNN" code, per prototype) */
-  .product-card .pcard-meta .pcard-code { display: none; }
+  /* Comfortable 44px touch targets on the card actions */
+  .product-card-actions .btn { min-height: 44px; }
+  .pcard-cmp { min-height: 44px; }
 
   /* Catalogue layout padding */
   .catalogue-layout { padding: 0 0.75rem; margin-top: 0.75rem; }
@@ -4815,15 +4171,12 @@ body:has(.compare-tray.visible) .toast {
     justify-content: space-between;
     align-items: baseline;
   }
-  /* Quiet mono label ("31 PRODUCTS" / "8 OF 31 PRODUCTS"), matching the site's
-     mono eyebrows. No box, border, or fill. */
+  /* Quiet count caption ("31 products found"), sentence case per the locked
+     mobile reference. No box, border, or fill. */
   #resultCount {
-    font-family: var(--mono);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #8a847a;
+    color: var(--text);
     margin: 0;
   }
   .rc-of { display: inline; }   /* reveal the "of N" narrowing on phones */
@@ -4840,86 +4193,18 @@ body:has(.compare-tray.visible) .toast {
     cursor: pointer;
   }
 
-  /* Active-filter chips: subtle cream capsules with a small red accent dot (an
-     applied filter is a normal state, not an alert). No "Filtering by:" label and
-     no inline Clear here — clearing lives in the count row below the bar. */
-  .active-filter-bar { padding: 11px 0.75rem 0; }
-  .active-filter-bar-inner {
-    border-top: none;
-    margin: 0;
-    padding: 0;
-    gap: 7px;
-  }
-  .active-filter-label { display: none; }
-  .active-filter-clear { display: none; }
-  .filter-chip {
-    flex-shrink: 0;
-    white-space: nowrap;
-    gap: 6px;
-    padding: 6px 8px 6px 11px;
-    background: #f6f2ea;
-    border: 1px solid #e0d9c9;
-    border-radius: 999px;
-    color: #3c382f;
-    font-size: 11.5px;
-    font-weight: 600;
-  }
-  .filter-chip::before {
-    content: "";
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--red);
-    flex-shrink: 0;
-  }
+  /* Active-filter summary strip: horizontal swipe row of compact chips with
+     the "Active filters:" label and Clear all (locked design). */
+  .active-filter-bar { padding: 10px 0.25rem 0; }
+  .active-filter-bar-inner { gap: 7px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .active-filter-bar-inner::-webkit-scrollbar { width: 0; height: 0; }
+  .active-filter-label { flex-shrink: 0; }
+  .active-filter-clear { flex-shrink: 0; color: var(--red); }
+  .filter-chip { flex-shrink: 0; white-space: nowrap; }
   /* No hover-to-red on touch: a :hover that lingers after a tap must not flash
      the chip solid red. Keep it calm; give a gentle pressed state instead. */
-  .filter-chip:hover { background: #f6f2ea; color: #3c382f; border-color: #e0d9c9; }
+  .filter-chip:hover { background: #fff; color: var(--body); border-color: var(--line-2); }
   .filter-chip:active { background: #ede4d3; }
-
-  /* Trust strip: a compact LIGHT band (#f6f2ea) like the prototype — dark
-     numbers, grey short labels, light dividers — bridging the dark hero and the
-     catalogue. Desktop keeps the dark strip. */
-  .trust-strip { background: #f6f2ea; border-bottom: 1px solid #e6dfd0; }
-  .trust-strip-inner {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding: 0 0.6rem;
-  }
-  .trust-item {
-    padding: 0.6rem 0.4rem;
-    gap: 0.1rem;
-    align-items: center;
-    text-align: center;
-    border-right: none;
-  }
-  /* Even 4-up with light dividers between the cells (border-left on 2–4). */
-  .trust-item:first-child  { padding-left: 0.4rem; }
-  .trust-item:nth-child(2),
-  .trust-item:nth-child(3),
-  .trust-item:last-child   { border-left: 1px solid #e0d9c9; }
-  .trust-item:last-child   { padding-right: 0.4rem; }
-  /* Force clean Inter lining figures for the stat numbers: Space Grotesk's "1"
-     has a raised flag that makes "31" read like "3¹". Inter keeps both digits
-     full-height on the baseline. */
-  .trust-num   {
-    font-size: 1.15rem;
-    color: #201e18;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-variant-numeric: lining-nums tabular-nums;
-    letter-spacing: 0;
-  }
-  .trust-plus  { font-size: 0.7rem; }
-  .trust-label {
-    font-size: 0.56rem;
-    color: #767066;
-    text-transform: none;
-    letter-spacing: 0.01em;
-    line-height: 1.25;
-    overflow-wrap: normal;
-  }
-  /* Short one-word labels on mobile (Years / Products / Industries / Certified) */
-  .trust-label .tl-full  { display: none; }
-  .trust-label .tl-short { display: inline; }
 
   /* Hide the whole desktop sort control on mobile (mirrored in the mobile filter
      bar). Hiding the .grid-sort group covers the "Sort" label, the native
@@ -5153,7 +4438,6 @@ body:has(.compare-tray.visible) .toast {
   }
 
   .filter-heading { display: none; }
-  .filter-sub     { display: none; }
   .filter-clear   { display: none; }
 
   /* ─── Step 2: accordion filter groups ────────────────────── */
@@ -5240,12 +4524,10 @@ body:has(.compare-tray.visible) .toast {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   MOBILE STEP 3–5 — product detail CTA, compare tab/sheet, compare page
+   MOBILE — product detail sticky CTA, compare page scroll hint
    All hidden on desktop; revealed only at ≤640px.
    ════════════════════════════════════════════════════════════════ */
-.sticky-cta,
-.cmp-tab,
-.cmp-modal { display: none; }
+.sticky-cta { display: none; }
 
 @media (max-width: 640px) {
   /* ─── Step 3: product detail spec fixes ─────────────────────── */
@@ -5328,185 +4610,6 @@ body:has(.compare-tray.visible) .toast {
   }
   .sticky-cta-wa:active { transform: scale(0.97); background: #dcefe1; }
 
-  /* Compare tray retired on phones: it now covers ≤640px itself (see the
-     "Mobile: stack into rows" rules above). renderCompareMobile() in
-     compare.js is now a no-op, so the .cmp-tab/.cmp-modal markup below is
-     never built or shown; their rules are left in place only in case a
-     future page still wants the standalone sheet pattern. */
-
-  /* ─── Step 4: compare edge tab (retired, see note above) ─────── */
-  /* Bottom-anchored (not vertical-center) so it never sits on top of the
-     hero search bar on load or scrolling product cards further down — the
-     same reasoning as the bottom-anchored .sticky-cta on product-detail. */
-  /* Right-edge pull tab, vertically centred, rounded on the left (matches the
-     prototype). It is a fixed OVERLAY affordance and must NOT reflow the
-     catalogue — no grid gutter, so adding/removing a compare item never shifts
-     the cards. It simply floats over the right edge. */
-  .cmp-tab {
-    position: fixed;
-    right: 0;
-    top: 63%;
-    transform: translateY(-50%);
-    z-index: var(--z-cmp-tab);
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    background: var(--red);
-    color: #fff;
-    border: none;
-    border-radius: 12px 0 0 12px;
-    padding: 0.7rem 0.55rem;
-    box-shadow: 0 8px 22px -6px rgba(0,0,0,0.45);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .cmp-tab.show { display: flex; }
-  .cmp-tab:active { background: var(--red-dark); }
-  .cmp-tab-count {
-    background: #fff;
-    color: var(--red);
-    font-size: 0.66rem;
-    font-weight: 700;
-    min-width: 17px;
-    height: 17px;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* ─── Step 4: compare review sheet ──────────────────────────── */
-  .cmp-modal.open {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: var(--z-cmp-modal);
-  }
-  .cmp-modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(15,17,22,0.5);
-    animation: cmpFade 0.18s ease;
-  }
-  .cmp-sheet {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    background: #fff;
-    border-radius: 16px 16px 0 0;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    animation: cmpSlide 0.22s ease;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  @keyframes cmpFade { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes cmpSlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .cmp-sheet-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.1rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .cmp-sheet-head h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-weight: 700;
-  }
-  .cmp-sheet-x {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: #fff;
-    color: var(--muted);
-    font-size: 1.1rem;
-    line-height: 1;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .cmp-sheet-list {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0.25rem 1.1rem;
-    flex: 1;
-  }
-  .cmp-sheet-item {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    padding: 0.65rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .cmp-sheet-item:last-child { border-bottom: none; }
-  .cmp-sheet-thumb {
-    width: 46px;
-    height: 46px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--bg);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.55rem;
-    font-weight: 700;
-    color: var(--muted);
-  }
-  .cmp-sheet-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .cmp-sheet-name {
-    flex: 1;
-    font-size: 0.84rem;
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--text);
-  }
-  .cmp-sheet-rm {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: none;
-    background: var(--bg);
-    color: var(--muted);
-    font-size: 1.1rem;
-    line-height: 1;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .cmp-sheet-foot {
-    display: flex;
-    gap: 0.6rem;
-    padding: 0.8rem 1.1rem;
-    border-top: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .cmp-sheet-clear {
-    flex: 1;
-    background: #fff;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 9px;
-    padding: 0.75rem;
-    font-size: 0.84rem;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .cmp-sheet-go {
-    flex: 2;
-    background: var(--red);
-    border: none;
-    color: #fff;
-    border-radius: 9px;
-    padding: 0.75rem;
-    font-size: 0.84rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .cmp-sheet-go:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* ─── Compare page: mobile scroll hint ───────────────────────
      The table itself is unified across breakpoints (see .cx-scroll /

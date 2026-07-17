@@ -42,15 +42,11 @@ async function initProductsPage() {
     enhanceCustomSelect(document.getElementById("mobileSortSelect"));
   }
   buildFilterCheckboxes();
-  renderTrustStats();
   applyFilterGroupDefaults();
   applyStateToCheckboxes();
   syncShowMore(); // URL-restored checks must not hide behind "Show more"
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
-  // Also refresh the mobile compare tab/sheet now that PRODUCTS has loaded, so
-  // items persisted from a previous visit render instead of showing empty.
-  if (typeof renderCompareMobile === "function") renderCompareMobile();
   initSearchTypeahead();
 
   requestAnimationFrame(() => {
@@ -330,41 +326,6 @@ function revealCheckbox(cb) {
   }
 }
 
-// Trust-strip stats derived from the real catalogue (never hardcoded), so the
-// product + industry counts always match what's actually loaded.
-function renderTrustStats() {
-  const productEl  = document.getElementById("trustProductCount");
-  const industryEl = document.getElementById("trustIndustryCount");
-  if (productEl) productEl.textContent = PRODUCTS.length;
-  if (industryEl) {
-    const industries = new Set();
-    PRODUCTS.forEach(p => (p.industries || []).forEach(i => industries.add(i)));
-    industryEl.textContent = industries.size;
-  }
-}
-
-// Apply a single brand filter (from the hero "Our ranges" rows) and jump to the
-// catalogue, so the hero brand chips act as same-page filters.
-function filterByBrand(brand) {
-  document.querySelectorAll(".filter-sidebar input[type=checkbox]").forEach(cb => {
-    cb.checked = (cb.dataset.type === "brand" && cb.value === brand);
-  });
-  const search = document.getElementById("searchInput");
-  if (search) search.value = "";
-  applyFilters();
-  scrollToCatalogue();
-}
-
-// Highlight the hero "Our ranges" chip matching the active brand filter so it
-// stays lit while that brand is filtered. Runs through applyFilters(), so it
-// also covers brand state restored from the URL on load and brands toggled from
-// the sidebar.
-function syncBrandRows() {
-  document.querySelectorAll(".range-chip").forEach(chip => {
-    chip.classList.toggle("active", activeFilters.brands.includes(chip.dataset.brand));
-  });
-}
-
 // ─── Apply search + filters + sort ───────────────────────────────
 function applyFilters(opts = {}) {
   // Same normalisation as the typeahead (ylSearchNorm), so the live grid and
@@ -419,7 +380,6 @@ function applyFilters(opts = {}) {
   if (!opts.skipUrlWrite) writeStateToURL({ push: !!opts.pushHistory });
   updateClearVisibility();
   updateFilterGroupBadges();
-  syncBrandRows();
 }
 
 function updateFilterGroupBadges() {
@@ -480,53 +440,58 @@ function clearFilters() {
   writeStateToURL();
   updateClearVisibility();
   updateFilterGroupBadges();
-  syncBrandRows();
 }
 
-// ─── Active filter bar ────────────────────────────────────────────
-// A labelled strip above the grid: "Filtering by:" + one pill per active
-// filter (each × removes just that one) + a "Clear all" link on the right.
-// The whole bar is hidden when nothing is active.
+// ─── Active filters ────────────────────────────────────────────────
+// The active state is shown ONCE per breakpoint (locked final design):
+// desktop renders compact chips inside the filter sidebar's "Active filters"
+// block; mobile renders the same chips as a one-line summary strip above the
+// grid while the filter drawer is closed. Each chip's × removes just that one.
 function renderFilterChips() {
-  const container = document.getElementById("activeChips");
-  const pills = [];
+  const chips = [];
 
-  const pill = (label, aria, onclick) =>
-    `<button class="filter-chip" aria-label="${aria}" onclick="${onclick}">${label} &times;</button>`;
+  const chip = (label, aria, onclick) =>
+    `<button class="filter-chip" aria-label="${aria}" onclick="${onclick}">${label} <span aria-hidden="true">&times;</span></button>`;
 
   const query = document.getElementById("searchInput").value.trim();
   if (query) {
-    pills.push(pill(`Search: "${escapeHTML(query)}"`, "Remove search filter", "clearSearch()"));
+    chips.push(chip(`&ldquo;${escapeHTML(query)}&rdquo;`, "Remove search filter", "clearSearch()"));
   }
 
-  const addPill = (type, value) => {
+  const addChip = (type, value) => {
     const safe  = escapeHTML(value);            // safe as both text and quoted attr
     const jsVal = value.replace(/'/g, "\\'");   // safe inside the single-quoted onclick
-    pills.push(pill(safe, `Remove ${safe} filter`, `removeFilter('${type}','${jsVal}')`));
+    chips.push(chip(safe, `Remove ${safe} filter`, `removeFilter('${type}','${jsVal}')`));
   };
-  activeFilters.productTypes.forEach(t => addPill("producttype", t));
-  activeFilters.brands.forEach(b     => addPill("brand", b));
-  activeFilters.industries.forEach(i => addPill("industry", i));
-  activeFilters.surfaces.forEach(s   => addPill("surface", s));
+  activeFilters.productTypes.forEach(t => addChip("producttype", t));
+  activeFilters.brands.forEach(b     => addChip("brand", b));
+  activeFilters.industries.forEach(i => addChip("industry", i));
+  activeFilters.surfaces.forEach(s   => addChip("surface", s));
 
-  // Empty state: hide the whole bar rather than leave a labelled shell.
-  if (!pills.length) {
-    container.hidden = true;
-    container.innerHTML = "";
-    return;
+  // Desktop: the block inside the filter sidebar.
+  const sidebarBlock = document.getElementById("sidebarActive");
+  const sidebarChips = document.getElementById("sidebarActiveChips");
+  if (sidebarBlock && sidebarChips) {
+    sidebarBlock.hidden = !chips.length;
+    sidebarChips.innerHTML = chips.join("");
   }
 
-  const clearAll = pills.length > 1
-    ? `<button class="active-filter-clear" onclick="clearFilters()">Clear all</button>`
-    : "";
-
-  container.hidden = false;
-  container.innerHTML =
-    `<div class="active-filter-bar-inner">` +
-      `<span class="active-filter-label">Filtering by:</span>` +
-      `<div class="active-filter-pills">${pills.join("")}</div>` +
-      clearAll +
-    `</div>`;
+  // Mobile: compact one-line summary above the grid (drawer closed).
+  const strip = document.getElementById("activeChips");
+  if (strip) {
+    if (!chips.length) {
+      strip.hidden = true;
+      strip.innerHTML = "";
+    } else {
+      strip.hidden = false;
+      strip.innerHTML =
+        `<div class="active-filter-bar-inner">` +
+          `<span class="active-filter-label">Active filters:</span>` +
+          `<div class="active-filter-pills">${chips.join("")}</div>` +
+          `<button class="active-filter-clear" onclick="clearFilters()">Clear all</button>` +
+        `</div>`;
+    }
+  }
 }
 
 function escapeHTML(s) {
@@ -574,9 +539,9 @@ function renderGrid(products) {
   // Show the narrowing ("8 of 31 products") whenever filters/search reduce the
   // set, so buyers feel the effect. The "of N" span is revealed on mobile only.
   if (products.length < totalCount) {
-    countEl.innerHTML = `${products.length} <span class="rc-of">of ${totalCount} </span>${countNoun}`;
+    countEl.innerHTML = `${products.length} <span class="rc-of">of ${totalCount} </span>${countNoun} found`;
   } else {
-    countEl.textContent = `${products.length} ${countNoun}`;
+    countEl.textContent = `${products.length} ${countNoun} found`;
   }
 
   const applyBtn = document.getElementById("drawerApplyBtn");
@@ -630,6 +595,27 @@ function productCodeFromName(p) {
   return (code && code.length <= 10 && code.toLowerCase() !== String(p.name || "").toLowerCase()) ? code : "";
 }
 
+// Official brand marks (real assets only). Accessories have no brand mark and
+// fall back to a plain text tag.
+const BRAND_LOGOS = {
+  "Deer™ Brand":     "/images/logos/Deer.png",
+  "Horsemen™ Brand": "/images/logos/Horsemen.png",
+  "Premier™ Brand":  "/images/logos/Premier.png",
+  "Rhino™ Brand":    "/images/logos/Rhino.png",
+};
+
+// Truthful one-line subtype under the product name, derived from real data:
+// the solvent/water base feature when recorded, otherwise the product type.
+function productSubtype(p) {
+  if (productType(p) !== "Adhesives") return "Application Equipment";
+  const base = (p.features || []).find(f => /(solvent|water)[\s-]*based/i.test(f));
+  if (base) {
+    const m = base.match(/(solvent|water)[\s-]*based/i);
+    return m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase() + "-based Adhesive";
+  }
+  return "Adhesive";
+}
+
 function productCardHTML(p) {
   const basket   = getBasket();
   const inBasket = basket.includes(p.id);
@@ -637,7 +623,6 @@ function productCardHTML(p) {
   const compareListFull = getCompareList().length >= COMPARE_MAX;
   const compareDisabled = !inCompare && compareListFull;
 
-  const isUnavailable = p.status === "Unavailable";
   const primaryApps = escapeHTML(bestForText(p));
   const worksOn = p.surfaces && p.surfaces.length ? escapeHTML(p.surfaces.slice(0, 3).join(", ")) : "";
 
@@ -649,67 +634,58 @@ function productCardHTML(p) {
   const imageClass = hasRealImage ? "product-card-image" : "product-card-image no-image";
   const detailHref = `/product-detail?id=${encodeURIComponent(p.id)}`;
 
-  // Card meta: short model code (from the name) + real availability status.
   const isAccessory = /accessor/i.test(p.brand) || /accessor/i.test(p.category || "");
-  const brandTag = isAccessory ? "ACCESSORY" : brandLabel;
+  const logo = BRAND_LOGOS[p.brand];
+  // Official pictogram (CSS-cropped from its padded canvas, never redrawn)
+  // beside the brand name; accessories carry a plain text tag instead.
+  const brandMark = logo
+    ? `<span class="pcard-brand-ic"><img src="${logo}" alt="" loading="lazy"></span><span class="pcard-brand-name">${brandLabel}</span>`
+    : `<span class="pcard-brand-text">${isAccessory ? "ACCESSORY" : brandLabel}</span>`;
+
   const code = productCodeFromName(p);
-  const codeLabel = code ? `<span class="pcard-code">No. ${escapeHTML(code)}</span>` : "";
+  const subtype = productSubtype(p);
 
   const compareTitle = compareDisabled
     ? "Comparison full: remove one to add another"
     : inCompare ? "Remove from comparison" : "Add to compare";
 
   return `
-    <article class="product-card${isUnavailable ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
-      <div class="${imageClass}">
-        <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
-        <span class="pcard-brand-tag${isAccessory ? " is-accessory" : ""}" aria-hidden="true">${brandTag}</span>
+    <article class="product-card${p.status === "Unavailable" ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
+      <div class="pcard-head">
+        <span class="pcard-brand" aria-hidden="true">${brandMark}</span>
         <button
-          class="card-compare-btn${inCompare ? " in-compare" : ""}"
-          data-product-id="${p.id}" onclick="event.stopPropagation();toggleCompare('${p.id}')"
-          ${compareDisabled ? "disabled" : ""}
-          title="${compareTitle}"
+          class="pcard-cmp${inCompare ? ' on' : ''}"
+          data-product-id="${p.id}"
+          onclick="event.stopPropagation();toggleCompare('${p.id}')"
+          ${compareDisabled ? 'disabled' : ''}
+          aria-pressed="${inCompare ? "true" : "false"}"
           aria-label="${compareTitle}">
-          ${inCompare
-            ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>`
-            : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>`}
-          <span>Compare</span>
-        </button>
-        <button
-          class="pcard-add${inBasket ? ' added' : ''}"
-          onclick="event.stopPropagation();toggleBasket('${p.id}', '${ylTxt(p.name)}')"
-          title="${inBasket ? 'Remove from Enquiry' : 'Add to Enquiry'}"
-          aria-label="${inBasket ? 'Remove from Enquiry' : 'Add to Enquiry'}">
-          ${inBasket
-            ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-            : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>`}
+          <span class="pcard-cb" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          Compare
         </button>
       </div>
+      <div class="${imageClass}">
+        <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
+      </div>
       <div class="product-card-body">
-        <div class="pcard-top">
-          <span class="pcard-brand-m${isAccessory ? " is-accessory" : ""}" aria-hidden="true">${brandTag}</span>
-          <div class="pcard-cmp-row">
-            <button
-              class="pcard-cmp${inCompare ? ' on' : ''}"
-              data-product-id="${p.id}"
-              onclick="event.stopPropagation();toggleCompare('${p.id}')"
-              ${compareDisabled ? 'disabled' : ''}
-              aria-label="${compareTitle}">
-              <span class="pcard-cb">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </span>
-              Compare
-            </button>
-          </div>
-        </div>
-        <span class="pcard-meta">
-          ${codeLabel}
-          <span class="pcard-avail${isUnavailable ? " is-unavail" : ""}"><span class="pcard-dot" aria-hidden="true"></span>${isUnavailable ? "Enquire to order" : "Available"}</span>
-        </span>
+        ${code ? `<span class="pcard-code">${escapeHTML(code)}</span>` : ""}
         <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
-        ${primaryApps ? `<div class="card-application"><span class="card-application-label">Best for</span><span class="card-application-val">${primaryApps}</span></div>` : ""}
-        <p>${escapeHTML(p.shortDescription)}</p>
-        ${worksOn ? `<div class="card-application card-workson"><span class="card-application-label">Works on</span><span class="card-application-val">${worksOn}</span></div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
+        <p class="pcard-subtype">${escapeHTML(subtype)}</p>
+        <div class="pcard-rows">
+          <div class="card-application">
+            <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+            <span class="card-application-label">Best for</span>
+            <span class="card-application-val">${primaryApps}</span>
+          </div>
+          ${worksOn ? `
+          <div class="card-application card-workson">
+            <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/></svg></span>
+            <span class="card-application-label">Works on</span>
+            <span class="card-application-val">${worksOn}</span>
+          </div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
+        </div>
         <div class="product-card-actions">
           <button
             class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
@@ -717,10 +693,12 @@ function productCardHTML(p) {
             onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')"
             aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
             ${inBasket
-              ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="enq-label-full">In Enquiry</span><span class="enq-label-short">Added</span>`
-              : `+ Enquiry`}
+              ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>In Enquiry</span>`
+              : `Add to Enquiry`}
           </button>
-          <a href="${detailHref}" class="btn btn-outline pcard-view">View</a>
+          <a href="${detailHref}" class="btn btn-outline pcard-view">View details
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
         </div>
       </div>
     </article>`;
@@ -730,38 +708,18 @@ function brandSlug(brand) {
   return brand.replace(/[^a-z]/gi, "").toLowerCase();
 }
 
-// ─── Sync compare button states without rebuilding the grid ──────
+// ─── Sync compare checkbox states without rebuilding the grid ──────
 function syncCompareButtons() {
   const list = getCompareList();
   const full = list.length >= COMPARE_MAX;
 
-  document.querySelectorAll(".product-card").forEach(card => {
-    const btn = card.querySelector(".card-compare-btn");
-    if (!btn) return;
-    const id = btn.dataset.productId;
-    if (!id) return;
-    const inCompare = list.includes(id);
-    const disabled  = !inCompare && full;
-
-    btn.className = `card-compare-btn${inCompare ? " in-compare" : ""}`;
-    btn.disabled  = disabled;
-    btn.title     = disabled
-      ? "Comparison full: remove one to add another"
-      : inCompare ? "Remove from comparison" : "Add to compare";
-    btn.setAttribute("aria-label", btn.title);
-    btn.innerHTML = (inCompare
-      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="8 12 11 15 16 9"/></svg>`
-      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>`)
-      + `<span>Compare</span>`;
-  });
-
-  // Sync mobile compare checkboxes (.pcard-cmp)
   document.querySelectorAll(".pcard-cmp[data-product-id]").forEach(btn => {
     const id      = btn.dataset.productId;
     const inCmp   = list.includes(id);
     const dis     = !inCmp && full;
     btn.className = `pcard-cmp${inCmp ? " on" : ""}`;
     btn.disabled  = dis;
+    btn.setAttribute("aria-pressed", inCmp ? "true" : "false");
     btn.setAttribute("aria-label", dis
       ? "Comparison full: remove one to add another"
       : inCmp ? "Remove from comparison" : "Add to compare");
@@ -1065,12 +1023,9 @@ function initSearchTypeahead() {
   function open() {
     panel.hidden = false;
     input.setAttribute("aria-expanded", "true");
-    // The panel lives inside .hero-main > .hero-inner, BOTH z-index:1 stacking
-    // contexts. Painting is decided at the outermost of those, where z:1 ties
-    // with the advisor banner's z:1 and loses on DOM order. Lift every hero
-    // context ancestor while suggestions are open.
-    input.closest(".hero-main")?.classList.add("st-elevate");
-    input.closest(".hero-inner")?.classList.add("st-elevate");
+    // Lift the hero container while suggestions are open so the fixed panel
+    // paints above later page sections.
+    input.closest(".page-hero-inner")?.classList.add("st-elevate");
     reposition();
   }
 
@@ -1080,8 +1035,7 @@ function initSearchTypeahead() {
     input.setAttribute("aria-expanded", "false");
     input.removeAttribute("aria-activedescendant");
     highlight = -1;
-    input.closest(".hero-main")?.classList.remove("st-elevate");
-    input.closest(".hero-inner")?.classList.remove("st-elevate");
+    input.closest(".page-hero-inner")?.classList.remove("st-elevate");
   }
 
   function sectionOf(item) {

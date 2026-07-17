@@ -89,71 +89,48 @@
       justify-self: end;
       flex-shrink: 0;
     }
+    /* Outlined enquiry control on the dark bar (locked final design): white
+       hairline border, white label, red circular count badge. */
     .nav-basket {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.5rem;
       color: #fff;
       text-decoration: none;
       font-size: 0.85rem;
       font-weight: 600;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #CC2929;
-      padding: 0.38rem 0.85rem;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.38);
+      padding: 0.42rem 0.85rem;
       border-radius: 6px;
-      transition: background 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, background 0.2s;
       white-space: nowrap;
       flex-shrink: 0;
     }
     .nav-basket:hover {
-      background: #b62525;
-      box-shadow: 0 2px 8px rgba(204, 41, 41, 0.28);
+      border-color: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.06);
     }
     .nav-basket:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     .nav-basket svg { flex-shrink: 0; opacity: 0.9; }
     .nav-basket-label-short { display: none; }
-    /* Crisp white badge with red text reads clean on the red button. Squared
-       corners (3px) match the de-pilled 6px button; min-width lets 2+ digits
-       grow horizontally. */
     .nav-basket-count {
-      background: #fff;
-      color: #CC2929;
+      background: #CC2929;
+      color: #fff;
       font-size: 0.72rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
-      border-radius: 3px;
-      min-width: 16px;
-      height: 16px;
-      padding: 0 4px;
+      border-radius: 999px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       line-height: 1;
     }
     .nav-basket-count.is-empty { display: none; }
-
-    /* Compact mobile enquiry indicator: a small envelope + count chip shown in
-       the header only on narrow mobile and only when products are selected. It
-       replaces the full red pill so the header (logo / indicator / hamburger)
-       does not feel crowded. Hidden on tablet/desktop. */
-    .nav-enquiry-compact {
-      display: none;
-      align-items: center;
-      gap: 0.3rem;
-      height: 36px;
-      padding: 0 0.65rem;
-      color: #fff;
-      text-decoration: none;
-      background: #CC2929;
-      border-radius: 999px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      flex-shrink: 0;
-    }
-    .nav-enquiry-compact:hover { background: #b62525; }
-    .nav-enquiry-compact:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-    .nav-enquiry-compact svg { width: 16px; height: 16px; opacity: 0.95; }
 
     /* Count chip on the drawer "Product Enquiry" link. */
     .nav-drawer-count {
@@ -243,14 +220,14 @@
       .nav-hamburger { display: inline-flex; }
     }
     @media (max-width: 480px) {
-      /* Narrow mobile: clean header = logo, compact enquiry chip (only when
-         products are selected), hamburger. The full red pill is hidden here;
-         Product Enquiry stays reachable in the drawer. */
+      /* Narrow mobile keeps the SAME arrangement as every other page width:
+         logo left, outlined Product Enquiry control, hamburger right (locked
+         final design). Only the paddings compress. */
       .nav { padding: 0 1rem; gap: 0.4rem; }
       .nav-logo-img { height: 32px; }
-      .nav-right { gap: 0.5rem; }
-      .nav-basket { display: none; }
-      .nav-enquiry-compact.has-items { display: inline-flex; }
+      .nav-right { gap: 0.45rem; }
+      .nav-basket { font-size: 0.78rem; padding: 0.38rem 0.6rem; gap: 0.4rem; }
+      .nav-hamburger { min-width: 40px; padding: 0.4rem 0.4rem; }
     }
   `;
   document.head.appendChild(style);
@@ -295,10 +272,6 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
         <span class="nav-basket-label nav-basket-label-full">Product Enquiry</span>
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
-      </a>
-      <a href="/enquiry" class="nav-enquiry-compact" id="navEnquiryCompact" aria-label="Product Enquiry">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
-        <span id="navEnquiryCompactCount">${getBasketCount()}</span>
       </a>
       <button class="nav-hamburger" id="_navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="_navDrawer">&#9776;</button>
     </div>
@@ -377,15 +350,6 @@
       basketEl.textContent = n;
       basketEl.classList.toggle("is-empty", n === 0);
     }
-
-    // Compact mobile indicator: visible only when products are selected.
-    const compactEl = document.getElementById("navEnquiryCompact");
-    const compactCountEl = document.getElementById("navEnquiryCompactCount");
-    if (compactEl) {
-      compactEl.classList.toggle("has-items", n > 0);
-      compactEl.setAttribute("aria-label", `Product Enquiry, ${n} selected product${n === 1 ? "" : "s"}`);
-    }
-    if (compactCountEl) compactCountEl.textContent = n;
 
     // Drawer "Product Enquiry" count.
     const drawerCountEl = document.getElementById("navDrawerCount");
