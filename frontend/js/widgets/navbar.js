@@ -3,7 +3,7 @@
   const style = document.createElement("style");
   style.textContent = `
     .nav {
-      background: #1a1712;
+      background: #141310; /* deep warm-black (locked ReBond direction), never brown */
       color: #fff;
       position: sticky;
       top: 0;
@@ -89,31 +89,33 @@
       justify-self: end;
       flex-shrink: 0;
     }
-    /* Outlined enquiry control on the dark bar (locked final design): white
-       hairline border, white label, red circular count badge. */
+    /* Outlined enquiry control on the dark bar (locked ReBond design): quiet
+       hairline border with a faint fill, white label, red circular count
+       badge. Restrained and integrated, not flashy. */
     .nav-basket {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.55rem;
       color: #fff;
       text-decoration: none;
       font-size: 0.85rem;
       font-weight: 600;
+      letter-spacing: 0.01em;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.38);
-      padding: 0.42rem 0.85rem;
-      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.30);
+      padding: 0.5rem 0.95rem;
+      border-radius: 5px;
       transition: border-color 0.2s, background 0.2s;
       white-space: nowrap;
       flex-shrink: 0;
     }
     .nav-basket:hover {
-      border-color: rgba(255, 255, 255, 0.75);
-      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.08);
     }
     .nav-basket:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-    .nav-basket svg { flex-shrink: 0; opacity: 0.9; }
+    .nav-basket svg { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.95; }
     .nav-basket-label-short { display: none; }
     .nav-basket-count {
       background: #CC2929;
@@ -171,7 +173,7 @@
     /* Fixed overlay anchored under the 60px sticky nav, so opening it floats over
        the page instead of pushing content down. */
     .nav-mobile-drawer {
-      background: #17130e;
+      background: #131210;
       display: none;
       flex-direction: column;
       padding: 0.5rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
@@ -204,7 +206,7 @@
       font-size: 0.98rem;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       padding: 0.85rem 0.25rem;
-      border-bottom: 1px solid #2a2418;
+      border-bottom: 1px solid #262421;
       transition: color 0.2s;
     }
     .nav-mobile-drawer a:last-child { border-bottom: none; }

@@ -3,7 +3,7 @@
   const style = document.createElement("style");
   style.textContent = `
     .site-footer {
-      background: #17130e;
+      background: #131210;
       color: #b9b3a6;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.875rem;
@@ -13,19 +13,19 @@
     .site-footer-inner {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 3rem 1.5rem 2rem;
+      padding: 3.4rem 1.5rem 2.4rem;
       display: grid;
       grid-template-columns: 1.7fr 1fr 1fr 1.3fr;
-      gap: 2.5rem;
+      gap: 3rem;
     }
     .site-footer-col-title {
       color: #fff;
       font-family: 'Space Grotesk', 'Inter', sans-serif;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin: 0 0 1.1rem;
+      letter-spacing: 0.08em;
+      margin: 0 0 1.2rem;
     }
     .site-footer-brand {
       display: inline-flex;
@@ -82,12 +82,12 @@
     .site-footer-cert {
       font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
       color: #cdc7b9;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 4px;
-      padding: 0.2rem 0.5rem;
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 3px;
+      padding: 0.26rem 0.6rem;
       white-space: nowrap;
     }
     .site-footer-links {
@@ -95,7 +95,7 @@
       margin: 0;
       padding: 0;
       display: grid;
-      gap: 0.6rem;
+      gap: 0.7rem;
     }
     .site-footer-links a,
     .site-footer-contact a {
@@ -138,20 +138,19 @@
       text-decoration: none;
       font-size: 0.85rem;
       font-weight: 600;
-      padding: 0.6rem 1.1rem;
-      border-radius: 6px;
-      transition: background 0.18s, box-shadow 0.18s;
+      padding: 0.65rem 1.15rem;
+      border-radius: 5px;
+      transition: background 0.18s;
     }
     .site-footer-cta:hover {
       background: #a82020;
-      box-shadow: 0 2px 10px rgba(204, 41, 41, 0.35);
       color: #fff;
     }
     .site-footer-bottom {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       max-width: 1280px;
       margin: 0 auto;
-      padding: 1.1rem 1.5rem;
+      padding: 1.2rem 1.5rem;
       display: flex;
       flex-wrap: wrap;
       align-items: center;

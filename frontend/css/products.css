@@ -47,7 +47,8 @@
   --z-sticky-cta:     900;
   --z-toast:          999;
 
-  /* Warm palette — canonical direction (design handoff: WARM confirmed). */
+  /* Warm palette — ReBond direction: deep near-black ink + clean warm-neutral
+     canvas (replaces the earlier muddier beige). Still warm, never yellow. */
   --red:       #CC2929;   /* primary CTA, accents, eyebrow labels, links */
   --red-dark:  #a82020;   /* link hover on dark */
   --red-hover: #b62525;   /* button hover */
@@ -59,26 +60,26 @@
   --green-tint: #eaf5ec;
   --green-tint-bdr: #cfe8d5;
   --green-dot: #16a34a;
-  --dark:      #1a1712;   /* nav + dark hero blocks */
-  --dark-2:    #17130e;   /* footer dark (canonical) */
+  --dark:      #141310;   /* nav + dark hero blocks (deep warm-black, not brown) */
+  --dark-2:    #131210;   /* footer dark (canonical) */
   /* Structural ink + neutrals (warm B2B design system) */
-  --ink:       #1a1712;   /* darkest surface (hero/nav background) */
-  --ink-2:     #241f18;   /* raised warm dark — gradient depth */
-  --ink-3:     #322c22;
-  --panel:     #fbfaf6;   /* surface / input / spec-label cells */
-  --panel-2:   #f6f2ea;   /* image well / secondary panel */
-  --line:      #e6dfd0;   /* light divider (table rows) */
-  --line-2:    #d9cfbb;   /* stronger divider */
+  --ink:       #141310;   /* darkest surface (hero/nav background) */
+  --ink-2:     #1f1d19;   /* raised warm dark — gradient depth */
+  --ink-3:     #322e26;
+  --panel:     #faf9f5;   /* surface / input / spec-label cells */
+  --panel-2:   #f2f0ea;   /* image well / secondary panel */
+  --line:      #e7e3d8;   /* light divider (table rows) */
+  --line-2:    #d8d3c5;   /* stronger divider */
   --muted-2:   #767066;   /* captions / meta / mono labels (AA on light) */
   --muted-on-dark: #b9b3a6; /* body text on dark */
-  --bg:        #f3efe6;   /* page cream */
-  --card:      #ffffff;   /* card surface (crisp on cream) */
-  --well:      #f6f2ea;   /* product image well */
-  --border:    #d9cfbb;   /* card borders (border strong) */
-  --text:      #201e18;   /* body ink */
+  --bg:        #f6f4ef;   /* page canvas — clean warm neutral */
+  --card:      #ffffff;   /* card surface (crisp on the canvas) */
+  --well:      #f2f0ea;   /* product image well */
+  --border:    #dad5c8;   /* card borders (border strong) */
+  --text:      #1e1c17;   /* body ink */
   --body:      #47433b;   /* long-form body copy (softer than ink) */
   --muted:     #6a655a;   /* secondary text */
-  --radius:    6px;
+  --radius:    4px;
   --shadow:    0 1px 3px rgba(32,30,24,0.05);
   --shadow-md: 0 6px 20px -6px rgba(32,30,24,0.12);
   --ease:      cubic-bezier(0.23, 1, 0.32, 1);
@@ -136,7 +137,7 @@ html, body {
 html {
   /* Fallback for browsers that still bounce despite the above: the exposed sliver
      shows THIS near-black (matches the dark nav + footer), never the cream page. */
-  background: #17130e;
+  background: #131210;
   /* Kill iOS's default tap box: it's a hard rectangle that ignores border-radius,
      so it flashes an ugly corner-square on our rounded buttons/rows. Interactive
      elements supply their own :active feedback, so nothing is lost. */
@@ -168,7 +169,7 @@ h1, h2, h3,
    pinned to the right edge behind a soft cream fade. */
 
 .page-hero {
-  background: linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, #f9f7f2 0%, var(--bg) 100%);
   color: var(--text);
   padding: 0;
   text-align: left;
@@ -266,7 +267,7 @@ h1, h2, h3,
   margin: 1.6rem 0 0;
   background: #fff;
   border: 1px solid var(--line-2);
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   box-shadow: var(--shadow);
   transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
@@ -317,9 +318,10 @@ h1, h2, h3,
 
 .search-bar button:hover { background: var(--red-hover); }
 
+/* Crisp focus: red border + 1px hairline ring. No soft outer glow. */
 .search-bar:focus-within {
-  border-color: rgba(204, 41, 41, 0.55);
-  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.13);
+  border-color: var(--red);
+  box-shadow: 0 0 0 1px var(--red);
 }
 .search-bar:focus-within .search-bar-icon { color: var(--red); }
 
@@ -336,10 +338,12 @@ h1, h2, h3,
   list-style: none;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: var(--shadow-md);
   z-index: var(--z-typeahead);
-  max-height: 320px;
+  /* Controlled height: the panel must never sprawl over the filters/grid.
+     JS may lower this further to fit the viewport, never raise it. */
+  max-height: 420px;
   overflow-y: auto;
 }
 .search-typeahead[hidden] { display: none; }
@@ -398,7 +402,7 @@ h1, h2, h3,
   flex-shrink: 0;
   border-radius: 6px;
   object-fit: contain;
-  background: var(--img-well, #f6f2ea);
+  background: var(--img-well, #f2f0ea);
   border: 1px solid var(--line-2);
 }
 .st-thumb-ph { display: inline-block; }
@@ -447,7 +451,7 @@ h1, h2, h3,
   overflow: hidden;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 6px;
   padding: 1.25rem;
 }
 .filter-heading { flex-shrink: 0; }
@@ -461,7 +465,7 @@ h1, h2, h3,
   overflow-y: auto;
   padding-bottom: 8px;
   scrollbar-width: thin;
-  scrollbar-color: #d9cfbb transparent;
+  scrollbar-color: #d8d3c5 transparent;
   overscroll-behavior: contain; /* FILTER-001: sidebar scroll never chains into the page */
 }
 .filter-sidebar .drawer-body.has-overflow {
@@ -476,8 +480,8 @@ h1, h2, h3,
 .filter-sidebar .drawer-body.has-overflow.at-bottom { --fade-bot: 0px; }
 .filter-sidebar .drawer-body::-webkit-scrollbar { width: 8px; }
 .filter-sidebar .drawer-body::-webkit-scrollbar-track { background: transparent; }
-.filter-sidebar .drawer-body::-webkit-scrollbar-thumb { background: #d9cfbb; border-radius: 4px; }
-.filter-sidebar .drawer-body::-webkit-scrollbar-thumb:hover { background: #c9bda3; }
+.filter-sidebar .drawer-body::-webkit-scrollbar-thumb { background: #d8d3c5; border-radius: 4px; }
+.filter-sidebar .drawer-body::-webkit-scrollbar-thumb:hover { background: #c4bdac; }
 
 /* Panel title: mono "FILTERS" eyebrow + live "n filters active" summary. */
 .filter-heading {
@@ -544,7 +548,7 @@ h1, h2, h3,
   width: 100%;
   padding: 0.62rem;
   background: none;
-  border: 1px solid #d9d2c2;
+  border: 1px solid #d8d3c5;
   border-radius: 7px;
   color: #47433b;
   font-family: inherit;
@@ -589,19 +593,18 @@ h1, h2, h3,
   flex: 1;
 }
 
+/* Flat editorial results row (locked ReBond direction): no box, no pill —
+   the count reads as a page caption, the sort control is the only chrome. */
 .grid-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.25rem;
-  padding: 0.7rem 1.1rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: var(--shadow);
+  margin-bottom: 1.15rem;
+  padding: 0.15rem 0.1rem 0.35rem;
   font-size: 0.875rem;
   color: var(--muted);
+  border-bottom: 1px solid var(--line);
 }
 
 .grid-sort {
@@ -870,18 +873,19 @@ h1, h2, h3,
 /* Reserves the Works-on row height so no-surface cards stay aligned with row-mates */
 .card-workson-spacer { min-height: 2.35rem; }
 
-/* "View details" secondary: quiet outline with a chevron. */
+/* "View details" secondary (locked reference): white surface, red hairline
+   border, red label + chevron. Clearly secondary to the red primary. */
 .product-card-actions .pcard-view {
   border-width: 1px;
-  border-color: var(--red-tint-bdr);
+  border-color: var(--red);
   color: var(--red);
   font-weight: 600;
   gap: 0.35rem;
 }
 .product-card-actions .pcard-view:hover {
-  border-color: var(--red);
+  border-color: var(--red-dark);
   background: var(--red-tint);
-  color: var(--red);
+  color: var(--red-dark);
 }
 
 .product-card-actions {
@@ -923,22 +927,21 @@ h1, h2, h3,
   background: var(--red);
   color: #fff;
   border-color: var(--red);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 1px 2px rgba(204, 41, 41, 0.18);
 }
 
-.btn-primary:hover { background: var(--red-dark); border-color: var(--red-dark); box-shadow: 0 2px 4px rgba(204, 41, 41, 0.22); }
+.btn-primary:hover { background: var(--red-dark); border-color: var(--red-dark); }
 
 .btn-outline {
   background: #fff;
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   color: var(--text);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .btn-outline:hover {
-  border-color: #c9bfaa;
+  border-color: #c4bdac;
   color: var(--text);
-  background: #faf7f0;
+  background: #faf9f5;
 }
 
 /* Two equal actions per the locked design: red primary + outlined secondary.
@@ -979,7 +982,7 @@ h1, h2, h3,
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: #c9bfaa;
+  color: #c4bdac;
   margin-bottom: 0.5rem;
 }
 
@@ -1146,10 +1149,9 @@ body.detail-has-cta .toast {
   .apply-grid { grid-template-columns: 1fr; gap: 1.25rem; }
 }
 
-/* Product Documents (SDS / TDS downloads) on the product detail page.
-   Only rendered when a document URL exists, so there is no empty state to style. */
+/* Product Documents (SDS / TDS downloads) on the product detail page. */
 .detail-downloads {
-  margin-top: 1.6rem;
+  margin-top: 0;
 }
 
 .doc-download-list {
@@ -1178,31 +1180,30 @@ body.detail-has-cta .toast {
   transform: translateY(-2px);
 }
 
-/* CLIENT-002 empty state: warm-neutral information, deliberately NOT styled
-   as an error. Mirrors the row layout so the section keeps its shape. */
-/* Honest centred empty state (locked design): icon, one line, quiet sub,
-   Talk to Yee Lim fallback below. */
+/* Honest COMPACT empty state (locked ReBond reference): small document icon,
+   one concise line, quiet sub, Talk to Yee Lim — the panel ends just after.
+   Never a giant white rectangle. */
 .doc-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.65rem;
-  padding: 1.1rem 1rem 0.2rem;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem 0;
 }
 .doc-empty-icon {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--red);
 }
-.doc-empty-icon svg { width: 26px; height: 26px; }
-.doc-empty-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.doc-empty-main { font-size: 0.98rem; font-weight: 700; color: var(--text); line-height: 1.45; }
-.doc-empty-sub  { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
+.doc-empty-icon svg { width: 24px; height: 24px; }
+.doc-empty-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.doc-empty-main { font-size: 0.94rem; font-weight: 700; color: var(--text); line-height: 1.4; }
+.doc-empty-sub  { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
 .doc-empty-link { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
 .doc-empty-link:hover { color: var(--red); }
 .doc-empty-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
@@ -1212,8 +1213,8 @@ body.detail-has-cta .toast {
   display: flex;
   width: max-content;
   flex: 0 0 auto;
-  margin: 0.6rem auto 0.3rem;
-  padding: 0.55rem 1.1rem;
+  margin: 0.55rem auto 0.1rem;
+  padding: 0.5rem 1rem;
 }
 
 .doc-download-icon {
@@ -1432,7 +1433,7 @@ body.detail-has-cta .toast {
   height: 92px;
   /* Near-white plate: the product shots carry baked-in white backgrounds, so a
      white plate makes that white seamless instead of a hard rectangle on cream. */
-  background: radial-gradient(circle at 50% 46%, #ffffff 0%, #ffffff 60%, #fcfaf5 100%);
+  background: radial-gradient(circle at 50% 46%, #ffffff 0%, #ffffff 60%, #fbfaf7 100%);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   display: flex;
@@ -1569,6 +1570,18 @@ body.detail-has-cta .toast {
   padding: 36px 40px 64px;
 }
 
+/* Enquiry hero shares the SAME 1180px/40px container as the content below,
+   so breadcrumb, title, intro and cards all start on one left edge. */
+.page-hero-inner.hero-inner-narrow { max-width: 1180px; padding-left: 40px; padding-right: 40px; }
+@media (max-width: 900px) {
+  .page-hero-inner.hero-inner-narrow { padding-left: 24px; padding-right: 24px; }
+  .page-content { padding-left: 24px; padding-right: 24px; }
+}
+@media (max-width: 640px) {
+  /* Phones: both bands share the 1.25rem gutter (page-content already does). */
+  .page-hero-inner.hero-inner-narrow { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+
 /* Two-column body: selected products / details form. Collapses to one
    column (form below the list) on tablet and phone. */
 .enquiry-grid {
@@ -1585,7 +1598,6 @@ body.detail-has-cta .toast {
 .enquiry-grid.is-empty { grid-template-columns: 1fr; }
 .enquiry-grid.is-empty .enquiry-col-right { display: none; }
 .enquiry-grid.is-empty .enquiry-col-left { width: 100%; text-align: center; }
-.enquiry-grid.is-empty .enquiry-continue-link { display: none; }
 
 .enquiry-col-head {
   display: flex;
@@ -1600,71 +1612,26 @@ body.detail-has-cta .toast {
   margin: 0;
 }
 
-.enquiry-count {
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted-2);
-  margin-left: 4px;
-}
-
+/* Clear all: quiet text control — light at rest, red underline on intent. */
 .enquiry-clear-all {
   background: none;
   border: none;
   font-family: inherit;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--muted-2);
+  font-weight: 500;
+  color: var(--muted);
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
   padding: 0.35rem 0.1rem;
 }
 
-.enquiry-clear-all:hover { color: var(--red); }
+.enquiry-clear-all:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
 .enquiry-clear-all:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
 
-/* Ghost pill (catalogue "View" button language): quiet warm outline at rest,
-   fills ink on hover with the arrow sliding left — reads as a deliberate "back
-   to the catalogue" control, not a bare red link. */
-.enquiry-continue-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 20px;
-  padding: 0.6rem 1.15rem;
-  border: 1px solid #e0d9c9;
-  border-radius: 8px;
-  background: var(--card);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--body);
-  text-decoration: none;
-  transition: background 0.18s var(--ease), border-color 0.18s var(--ease), color 0.18s var(--ease);
-}
-
-.enquiry-continue-link::before {
-  content: "\2190"; /* ← */
-  font-size: 1em;
-  line-height: 1;
-  transition: transform 0.2s var(--ease);
-}
-
-.enquiry-continue-link:hover {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #fff;
-}
-
-.enquiry-continue-link:hover::before { transform: translateX(-3px); }
-.enquiry-continue-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-
-/* Selected products: each a standalone white card (not one bordered list). */
 /* White basket card wrapping the head + item rows (locked design). */
 .enquiry-basket-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 6px;
   padding: 20px;
   box-shadow: var(--shadow);
 }
@@ -1682,31 +1649,32 @@ body.detail-has-cta .toast {
   margin: 0.2rem 0 0;
 }
 
+/* Basket items: hairline-divided rows inside the one card (locked ReBond
+   reference) — not nested card-in-card boxes. */
 .basket-list {
   display: grid;
-  gap: 12px;
+  gap: 0;
 }
 
 .basket-item {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px;
-  transition: border-color 0.15s;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 16px 2px;
 }
-
-.basket-item:hover { border-color: var(--line-2); }
+.basket-item:last-child { border-bottom: none; padding-bottom: 6px; }
 
 .basket-item-thumb {
-  width: 76px;
-  height: 76px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
   background: var(--well);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1794,7 +1762,7 @@ body.detail-has-cta .toast {
   gap: 0.75rem 1rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 6px;
   padding: 14px 18px;
   margin-top: 14px;
 }
@@ -1850,13 +1818,12 @@ body.detail-has-cta .toast {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 5rem 2rem;
+  padding: 4.5rem 2rem;
   color: var(--muted);
-  background:
-    radial-gradient(120% 140% at 50% 0%, #ffffff 0%, #fdfbf6 55%, #f9f5ec 100%);
+  background: #fff;
   border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: var(--shadow-md);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
 }
 
 .basket-empty-icon {
@@ -1901,9 +1868,9 @@ body.detail-has-cta .toast {
   top: 84px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 6px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(32, 30, 24, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .enquiry-form-body { padding: 22px; }
@@ -1939,10 +1906,42 @@ body.detail-has-cta .toast {
 
 .enquiry-submit-btn {
   width: 100%;
-  padding: 14px;
+  padding: 13px;
   font-size: 15px;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: 5px;
+}
+
+/* Privacy consent row above the submit action (locked ReBond reference). */
+.form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 1.1rem 0 0;
+  font-size: 0.8rem;
+  color: var(--body);
+  line-height: 1.5;
+  cursor: pointer;
+}
+.form-check input[type="checkbox"] {
+  accent-color: var(--red);
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.form-check input[type="checkbox"]:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.form-check a { color: var(--red); text-decoration: none; font-weight: 600; }
+.form-check a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Live character counter under the message / notes textareas. */
+.ta-counter {
+  align-self: flex-end;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-2);
+  margin-top: 2px;
 }
 
 .enquiry-reassurance {
@@ -1975,13 +1974,13 @@ body.detail-has-cta .toast {
 .form-group input,
 .form-group textarea,
 .form-group select {
-  padding: 0.7rem 0.9rem;
-  border: 1px solid #e0d9c9;
-  border-radius: 8px;
+  padding: 0.66rem 0.85rem;
+  border: 1px solid #ded9cd;
+  border-radius: 5px;
   font-size: 0.9rem;
   font-family: inherit;
   color: var(--text);
-  background: var(--panel);
+  background: #fff;
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s;
 }
@@ -1994,14 +1993,14 @@ body.detail-has-cta .toast {
 .form-group input:hover,
 .form-group textarea:hover,
 .form-group select:hover {
-  border-color: #c9bfaa;
+  border-color: #c4bdac;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.12);
+  box-shadow: 0 0 0 1px var(--red);
 }
 
 .form-group textarea { resize: vertical; min-height: 100px; }
@@ -2102,12 +2101,12 @@ body.detail-has-cta .toast {
   line-height: 1.3;
 }
 
-.sort-select:hover { border-color: #c9bfaa; }
+.sort-select:hover { border-color: #c4bdac; }
 
 .sort-select:focus,
 .sort-select:focus-visible {
   border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(204, 41, 41, 0.15);
+  box-shadow: 0 0 0 1px var(--red);
 }
 
 /* ─── Active Filter Chips ─────────────────────────────────────── */
@@ -2340,7 +2339,7 @@ body.detail-has-cta .toast {
 .detail-tablist {
   display: flex;
   border: 1px solid var(--border);
-  border-radius: 8px 8px 0 0;
+  border-radius: 6px 6px 0 0;
   background: var(--card);
   overflow: hidden;
 }
@@ -2371,12 +2370,14 @@ body.detail-has-cta .toast {
   outline-offset: -2px;
 }
 
+/* Content-driven height: the visible panel hugs its content ([hidden] keeps
+   the others out of flow entirely) — no equal-height forcing anywhere. */
 .detail-tabpanel {
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.4rem 1.2rem;
   background: var(--card);
   border: 1px solid var(--border);
   border-top: none;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 6px 6px;
 }
 
 @media (max-width: 640px) {
@@ -2403,10 +2404,12 @@ body.detail-has-cta .toast {
 .gallery-main {
   position: relative;
   width: 100%;
-  aspect-ratio: 1.9 / 1;
+  /* Controlled, realistic media proportion (locked reference): tall enough to
+     balance the summary column, never a giant fixed height. */
+  aspect-ratio: 1.72 / 1;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -2424,8 +2427,18 @@ body.detail-has-cta .toast {
   box-sizing: border-box;
 }
 
-/* Product shots sit cleanly inside the frame (no awkward crop). */
-.gallery-main img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* Product shots sit cleanly inside the frame: contained, centred, no crop and
+   no stretch. The caps keep extreme shapes sane — wide tins/guns never blow up
+   to the full frame width, narrow bottles still stand tall. */
+.gallery-main img {
+  width: auto;
+  height: auto;
+  max-width: 82%;
+  max-height: 92%;
+  margin: auto;
+  object-fit: contain;
+  display: block;
+}
 
 .gallery-placeholder {
   display: flex;
@@ -2505,8 +2518,8 @@ body.detail-has-cta .toast {
    then a restrained availability row (small dot + status + muted note —
    never a large green pill). */
 .detail-product-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.9rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.8rem;
   border-bottom: 1px solid var(--line);
 }
 
@@ -2535,7 +2548,7 @@ body.detail-has-cta .toast {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.65rem;
-  margin-top: 0.7rem;
+  margin-top: 0.55rem;
 }
 
 .detail-avail {
@@ -2589,27 +2602,28 @@ body.detail-has-cta .toast {
   max-width: 62ch;
 }
 
-/* ─── Spec rows (locked design) ─────────────────────────────────
-   Structured definition rows directly inside the shared tab panel (no card-
-   in-card): label left, real value right, hairline dividers, two columns on
-   desktop, one on mobile. */
-.spec-table-wrap {
+/* ─── Spec rows (locked ReBond design) ──────────────────────────
+   Compact two-column definition table built from truthful fields only:
+   two balanced halves, label/value rows, thin dividers, aligned baselines.
+   No pills, no chips, no checkmark clusters. */
+.spec-cols {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 2.5rem;
-  margin: 0.25rem 0;
+  column-gap: 3rem;
+  margin: 0.15rem 0;
 }
+
+.spec-col { min-width: 0; }
 
 .spec-row {
   display: grid;
-  grid-template-columns: 158px minmax(0, 1fr);
+  grid-template-columns: 168px minmax(0, 1fr);
   gap: 0 1rem;
   border-bottom: 1px solid var(--line);
-  padding: 0.55rem 0;
+  padding: 0.68rem 0;
 }
 
-.spec-row-wide { grid-column: 1 / -1; }
-.spec-row:last-child { border-bottom: none; }
+.spec-col .spec-row:last-child { border-bottom: none; }
 
 .spec-key {
   font-size: 0.85rem;
@@ -2639,42 +2653,11 @@ body.detail-has-cta .toast {
 }
 
 @media (max-width: 768px) {
-  .spec-table-wrap { grid-template-columns: 1fr; column-gap: 0; }
-  .spec-row-wide .spec-row:last-child { border-bottom: none; }
+  /* One stacked column of label/value rows; the divider between the two
+     halves collapses into the continuous row rhythm. */
+  .spec-cols { grid-template-columns: 1fr; column-gap: 0; }
+  .spec-col:first-child .spec-row:last-child { border-bottom: 1px solid var(--line); }
 }
-
-/* Key Features as a compact plain list (locked design: structured rows, not
-   pill/chip cards) — no background, no border, no radius per feature. Two
-   text columns on desktop keep a longer genuine list short. */
-.spec-features {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 1.5rem;
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .spec-features { grid-template-columns: 1fr; }
-}
-
-.spec-feature {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.45rem;
-  font-size: 0.85rem;
-  line-height: 1.45;
-  color: var(--text);
-}
-
-.spec-feature-check {
-  flex-shrink: 0;
-  width: 15px;
-  height: 15px;
-  margin-top: 0.1em;
-  color: var(--red);
-}
-
-.spec-feature-text { min-width: 0; }
 
 /* ─── Summary actions (locked design: one compact horizontal row) ────
    Add to Enquiry is the red primary; Compare and Talk to Yee Lim are
@@ -2740,8 +2723,8 @@ body.detail-has-cta .toast {
 }
 
 .sidebar-foot {
-  padding-top: 1rem;
-  margin-top: 0.85rem;
+  padding-top: 0.8rem;
+  margin-top: 0.8rem;
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -2821,7 +2804,7 @@ body.detail-has-cta .toast {
   .detail-tabs,
   #detailAdvice,
   .related-section { padding-left: 16px; padding-right: 16px; }
-  .spec-row { grid-template-columns: 132px minmax(0, 1fr); }
+  .spec-row { grid-template-columns: 128px minmax(0, 1fr); }
 }
 
 /* Phones (locked mobile reference): the in-flow actions stack full-width
@@ -2899,11 +2882,15 @@ body.detail-has-cta .toast {
   padding: 2px;
 }
 
+/* Selected slot and add-slot share one silhouette (same height, radius and
+   inner rhythm) so the row reads as one component family. */
 .cmp-slot {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+  height: 54px;
+  box-sizing: border-box;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -2953,16 +2940,19 @@ body.detail-has-cta .toast {
 }
 .cmp-slot-x:hover { border-color: var(--red); color: var(--red); }
 
-/* Dashed "add another product" slot, shown only while list.length < 3. */
+/* Dashed "add another product" slot, shown only while list.length < 3.
+   Same height/radius as the filled slots so the row is one coherent system. */
 .cmp-slot-add {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex-shrink: 0;
+  height: 54px;
+  box-sizing: border-box;
   background: transparent;
-  border: 1.5px dashed var(--line-2);
+  border: 1px dashed var(--line-2);
   border-radius: var(--radius);
-  padding: 0.4rem 0.75rem;
+  padding: 0.4rem 0.9rem 0.4rem 0.6rem;
   cursor: pointer;
   font-family: inherit;
   text-align: left;
@@ -2970,16 +2960,16 @@ body.detail-has-cta .toast {
 }
 .cmp-slot-add:hover { border-color: var(--red); background: var(--red-tint); }
 .cmp-slot-add-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 1.5px dashed var(--line-2);
+  border: 1px dashed var(--line-2);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
+  color: var(--red);
+  font-size: 0.95rem;
   line-height: 1;
 }
 .cmp-slot-add-text { display: flex; flex-direction: column; gap: 1px; }
@@ -2992,8 +2982,8 @@ body.detail-has-cta .toast {
   background: none;
   border: 1px solid var(--border);
   color: var(--muted);
-  border-radius: 20px;
-  padding: 0.55rem 1.1rem;
+  border-radius: 5px;
+  padding: 0.58rem 1.1rem;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -3010,8 +3000,8 @@ body.detail-has-cta .toast {
   background: var(--red);
   color: #fff;
   border: none;
-  border-radius: 20px;
-  padding: 0.55rem 1.4rem;
+  border-radius: 5px;
+  padding: 0.58rem 1.4rem;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -3077,6 +3067,198 @@ body.detail-has-cta .toast {
   body.detail-has-cta .compare-tray {
     bottom: var(--sticky-cta-height, calc(4.9rem + env(safe-area-inset-bottom, 0px)));
   }
+}
+
+/* ─── Compare picker (dedicated add-product flow) ─────────────────
+   Slide-in side panel opened from the compare tray's / compare page's
+   "Add a product" slot. Canyon-inspired interaction model (segmented
+   Recently viewed / All products + search + direct add) rendered in the
+   Yee Lim language: white surface, warm hairlines, restrained red. */
+.cmp-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 14, 10, 0.5);
+  z-index: 300;
+  animation: ylPickerFade 0.2s ease both;
+}
+@keyframes ylPickerFade { from { opacity: 0; } to { opacity: 1; } }
+.cmp-picker {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(430px, 100%);
+  background: #fff;
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 44px -22px rgba(16, 14, 10, 0.4);
+  z-index: 301;
+  display: flex;
+  flex-direction: column;
+  animation: ylPickerIn 0.28s var(--ease) both;
+}
+@keyframes ylPickerIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cmp-picker { animation: none; } }
+
+.cmp-picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.15rem 1.25rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+.cmp-picker-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 0.3rem;
+}
+.cmp-picker-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0;
+}
+.cmp-picker-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+  display: block;
+}
+.cmp-picker-x {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.cmp-picker-x:hover { color: var(--text); border-color: var(--muted); }
+.cmp-picker-x:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+.cmp-picker-tools { padding: 0.9rem 1.25rem 0.75rem; border-bottom: 1px solid var(--line); }
+.cmp-picker-tabs {
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.8rem;
+}
+.cmp-picker-tab {
+  background: #fff;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cmp-picker-tab + .cmp-picker-tab { border-left: 1px solid var(--line-2); }
+.cmp-picker-tab[aria-selected="true"] { background: var(--ink); color: #fff; }
+.cmp-picker-tab:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }
+
+.cmp-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  background: #fff;
+  padding: 0 0.7rem;
+}
+.cmp-picker-search svg { color: var(--muted); flex-shrink: 0; }
+.cmp-picker-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--text);
+  padding: 0.55rem 0;
+}
+.cmp-picker-search:focus-within { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+
+.cmp-picker-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem 0.9rem;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.cmp-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 5px;
+  border-bottom: 1px solid var(--line);
+}
+.cmp-picker-row:last-child { border-bottom: none; }
+.cmp-picker-thumb {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.cmp-picker-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 3px; box-sizing: border-box; }
+.cmp-picker-thumb .no-image-mark { font-size: 0.5rem; font-weight: 700; color: var(--muted-2); text-align: center; padding: 0 2px; }
+.cmp-picker-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.cmp-picker-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cmp-picker-sub { font-size: 0.72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmp-picker-add {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fff;
+  border: 1px solid var(--red);
+  border-radius: 4px;
+  color: var(--red);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.cmp-picker-add:hover { background: var(--red); color: #fff; }
+.cmp-picker-add.is-added { background: var(--red-tint); border-color: var(--red-tint-bdr); color: var(--red); }
+.cmp-picker-add:disabled { border-color: var(--line-2); color: var(--muted-2); background: #fff; cursor: not-allowed; }
+.cmp-picker-add:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.cmp-picker-empty { padding: 1.5rem 1rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 560px) {
+  .cmp-picker { width: 100%; border-left: none; }
 }
 
 /* ─── Comparison overlay removed; comparison now uses dedicated compare.html page ─── */
@@ -3176,15 +3358,17 @@ body.detail-has-cta .toast {
   background: #fff;
 }
 
+/* Attribute (label) column: clearly its own rail — soft panel fill, a stronger
+   right rule, sentence-case bold labels (locked ReBond reference). */
 .compare-row-label {
   padding: 0.875rem 1rem 0.875rem 1.25rem;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  background: var(--bg);
-  border-top: 1px solid var(--border);
+  letter-spacing: -0.005em;
+  color: var(--text);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  border-right: 1px solid var(--line-2);
   white-space: normal;
   vertical-align: middle;
   /* Sticky first column (also the thead "Product" corner cell, which shares
@@ -3195,28 +3379,44 @@ body.detail-has-cta .toast {
   z-index: 2;
 }
 
+/* Corner "PRODUCT" cell keeps the quiet mono-caps eyebrow treatment. */
+.compare-corner {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-2);
+}
+
 .compare-row-value {
   padding: 0.875rem 1.25rem;
   font-size: 0.85rem;
   color: var(--text);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
   vertical-align: top;
   line-height: 1.55;
 }
+
+/* Thin vertical rules between product columns so each product reads as its
+   own scannable rail (labels column supplies the first rule itself). */
+.compare-row-value + .compare-row-value,
+.compare-col-header + .compare-col-header { border-left: 1px solid var(--line); }
 
 @media (max-width: 480px) {
   .compare-col-header { padding: 1rem 0.4rem 0.75rem; }
 }
 
 /* ─── Comparison Page ────────────────────────────────────────── */
+/* No band divider under the intro (locked ReBond reference): the heading
+   flows straight into the white selection panel below. */
 .compare-page-top {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1.25rem 1.5rem 1.1rem;
+  padding: 1.4rem 1.5rem 0.35rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  border-bottom: 1px solid var(--border);
 }
 
 .compare-page-top .breadcrumb {
@@ -3236,14 +3436,16 @@ body.detail-has-cta .toast {
    Sits above the comparison table: one card per selected product, a
    dashed add-slot while under COMPARE_MAX, and the grouped actions.
    Mirrors the bottom .compare-tray drawer's cmp-slot pattern. ──── */
+/* Inset white panel: always keeps left/right breathing room inside the page
+   (width cap + viewport margin), never touching the viewport edges. */
 .compare-select-panel {
-  max-width: 1280px;
-  margin: 1.25rem auto 0;
-  padding: 1.1rem 1.25rem;
+  width: min(1280px - 3rem, calc(100% - 3rem));
+  margin: 1.1rem auto 0;
+  padding: 1.25rem 1.5rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
 }
 .compare-select-panel[hidden] { display: none; }
 
@@ -3277,9 +3479,11 @@ body.detail-has-cta .toast {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  min-height: 76px;
+  box-sizing: border-box;
   padding: 0.6rem 1.85rem 0.6rem 0.6rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 5px;
   background: #fff;
 }
 
@@ -3357,10 +3561,15 @@ body.detail-has-cta .toast {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 0.9rem 0.75rem;
-  border: 1.5px dashed var(--line-2);
-  border-radius: 10px;
+  gap: 0.3rem;
+  min-height: 76px;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px dashed var(--line-2);
+  border-radius: 5px;
   text-decoration: none;
   text-align: center;
   transition: border-color 0.15s, background 0.15s;
@@ -3523,11 +3732,18 @@ body.detail-has-cta .toast {
 }
 
 /* Row-label icon + red check circles + em-dash empty values (locked design). */
+.compare-label-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.compare-label-wrap > span:last-child { min-width: 0; }
+
 .compare-label-ic {
   display: inline-flex;
+  flex-shrink: 0;
   color: var(--red);
-  margin-right: 0.5rem;
-  vertical-align: -2px;
+  margin-top: 0.1em;
 }
 
 .compare-check {
@@ -3704,7 +3920,7 @@ body:has(.compare-tray.visible) .toast {
 
 .skeleton-img,
 .skeleton-line {
-  background: linear-gradient(90deg, #efe9dc 0%, #e2d9c8 50%, #efe9dc 100%);
+  background: linear-gradient(90deg, #edebe3 0%, #e1ded4 50%, #edebe3 100%);
   background-size: 800px 100%;
   animation: shimmer 1.4s linear infinite;
   border-radius: 4px;
@@ -3735,9 +3951,10 @@ body:has(.compare-tray.visible) .toast {
 }
 
 #resultCount {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text);
 }
+#resultCount strong { font-weight: 700; }
 
 /* The "of N" narrowing and the count-row "Clear all" are mobile-only affordances
    (styled in the ≤640px block); hidden on desktop so the desktop count/sort row
@@ -3802,9 +4019,39 @@ body:has(.compare-tray.visible) .toast {
    ════════════════════════════════════════════════════════════════ */
 
 
-/* ─── 404 Page (locked design) ──────────────────────────────────
-   Warm hero with actions + product search, "Helpful places to go" link
-   cards, and a Product Advice band. Shares the site nav/footer. */
+/* ─── 404 Page (standalone recovery, locked ReBond design) ─────
+   Focused recovery page: minimal branded top bar (no full site nav), warm
+   hero with the back CTA + product search, "Helpful places to go" cards,
+   and a slim one-line footer (no full site footer). */
+/* The standalone page fills the viewport so the slim footer sits at the
+   bottom edge and the dark html fallback never shows as a band below it. */
+.nf-body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.nf-body main { flex: 1; }
+
+.nf-topbar {
+  background: var(--dark);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+}
+.nf-topbar a { display: inline-flex; align-items: center; }
+.nf-topbar img { height: 34px; width: auto; display: block; }
+.nf-topbar a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+.nf-footer {
+  border-top: 1px solid var(--line);
+  padding: 1.1rem 1.5rem calc(1.1rem + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.nf-footer strong { color: var(--body); font-weight: 600; }
+
 .nf-hero .hero-eyebrow { color: var(--red); }
 .nf-hero h1 { max-width: 20ch; }
 
@@ -3867,32 +4114,6 @@ body:has(.compare-tray.visible) .toast {
 .nf-help-text span { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
 .nf-help-go { margin-left: auto; align-self: center; color: var(--muted); flex-shrink: 0; }
 .nf-help-card:hover .nf-help-go { color: var(--red); }
-
-.nf-advice {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  background: var(--red-tint);
-  border: 1px solid var(--red-tint-bdr);
-  border-radius: var(--radius);
-  padding: 1.1rem 1.25rem;
-}
-.nf-advice-ic {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #fff;
-  color: var(--red);
-}
-.nf-advice-copy { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 2px; }
-.nf-advice-copy strong { font-size: 0.98rem; color: var(--text); }
-.nf-advice-copy span { font-size: 0.85rem; color: var(--body); line-height: 1.5; }
 
 @media (max-width: 900px) {
   .nf-help-grid { grid-template-columns: 1fr; }
@@ -4171,7 +4392,7 @@ body:has(.compare-tray.visible) .toast {
   /* Press, not hover, on mobile */
   .product-card:active {
     box-shadow: 0 12px 28px -12px rgba(16,13,9,0.28);
-    border-color: #c9bfaa;
+    border-color: #c4bdac;
   }
 
   /* In-Enquiry confirmed press feedback */
@@ -4240,7 +4461,7 @@ body:has(.compare-tray.visible) .toast {
   /* No hover-to-red on touch: a :hover that lingers after a tap must not flash
      the chip solid red. Keep it calm; give a gentle pressed state instead. */
   .filter-chip:hover { background: #fff; color: var(--body); border-color: var(--line-2); }
-  .filter-chip:active { background: #ede4d3; }
+  .filter-chip:active { background: #eae7de; }
 
   /* Hide the whole desktop sort control on mobile (mirrored in the mobile filter
      bar). Hiding the .grid-sort group covers the "Sort" label, the native
@@ -4265,8 +4486,8 @@ body:has(.compare-tray.visible) .toast {
     padding: 13px 16px 10px;
     /* Fully opaque cream (was 0.94 + blur): product cards must never ghost through
        as they scroll behind it. */
-    background: #f3efe6;
-    /* Transparent at rest: the bar shares the page cream (--bg #f3efe6), so with
+    background: #f6f4ef;
+    /* Transparent at rest: the bar shares the page cream (--bg #f6f4ef), so with
        no border it blends seamlessly into the flow. A visible divider here read
        as a stray full-width line across the page. The separator (border + shadow)
        is added only once it sticks — see .is-stuck. */
@@ -4278,7 +4499,7 @@ body:has(.compare-tray.visible) .toast {
      lifts into its own layer so cards pass cleanly beneath, not into, it. */
   .mobile-toolbar.is-stuck {
     box-shadow: 0 8px 18px -10px rgba(32, 30, 24, 0.34);
-    border-bottom-color: #dcd3c1;
+    border-bottom-color: #d8d3c5;
   }
   /* The one bar: white, warm border, rounded. NOTE: no `overflow:hidden` here —
      it would clip the sort dropdown's popup. Corners are instead rounded on each
@@ -4313,7 +4534,7 @@ body:has(.compare-tray.visible) .toast {
     cursor: pointer;
   }
   .mfb-btn svg { stroke: var(--ink); }
-  .mfb-btn:active { background: #f6f2ea; }
+  .mfb-btn:active { background: #f2f0ea; }
   /* Red applied-count badge, inline after the "Filters" label. */
   .mfb-count {
     background: var(--red);
@@ -4344,7 +4565,7 @@ body:has(.compare-tray.visible) .toast {
     top: 9px;
     bottom: 9px;
     width: 1px;
-    background: #e6dfd0;
+    background: #e7e3d8;
   }
   /* Reuse the accessible custom dropdown (custom-select.js) but strip its box so
      it reads as a borderless segment inside the shared bar: transparent, full
@@ -4364,7 +4585,7 @@ body:has(.compare-tray.visible) .toast {
     font-weight: 600;
   }
   /* Open state stays clean white: the chevron flip + the panel dropping below
-     already signal "open". A cream fill here (#f6f2ea) is the same family as the
+     already signal "open". A cream fill here (#f2f0ea) is the same family as the
      page bg, so "Default order" read as blending into the background. */
   .mfb-sort-wrap .custom-select-trigger[aria-expanded="true"] {
     background: transparent;
@@ -4373,10 +4594,10 @@ body:has(.compare-tray.visible) .toast {
   /* Warm press feedback only where a real pointer exists. On touch a :hover
      sticks after the tap and would leave the cream fill lingering (the blend). */
   @media (hover: hover) {
-    .mfb-sort-wrap .custom-select-trigger:hover { background: #f6f2ea; box-shadow: none; }
+    .mfb-sort-wrap .custom-select-trigger:hover { background: #f2f0ea; box-shadow: none; }
   }
   .mfb-sort-wrap .custom-select-trigger:focus-visible {
-    background: #f6f2ea;
+    background: #f2f0ea;
     outline: 2px solid var(--muted);
     outline-offset: -2px;
     box-shadow: none;
@@ -4415,7 +4636,7 @@ body:has(.compare-tray.visible) .toast {
     width: 100% !important;
     display: flex !important;
     flex-direction: column;
-    background: #f3efe6;
+    background: #f6f4ef;
     border-radius: 20px 20px 0 0;
     overflow: hidden;
     box-shadow: 0 -12px 40px -8px rgba(0,0,0,0.4);
@@ -4441,7 +4662,7 @@ body:has(.compare-tray.visible) .toast {
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid #e6dfd0;
+    border-bottom: 1px solid #e7e3d8;
     flex-shrink: 0;
   }
   .drawer-head h2 {
@@ -4455,7 +4676,7 @@ body:has(.compare-tray.visible) .toast {
     width: 44px;
     height: 44px;
     border-radius: 10px;
-    border: 1px solid #e6dfd0;
+    border: 1px solid #e7e3d8;
     background: transparent;
     display: flex;
     align-items: center;
@@ -4521,7 +4742,7 @@ body:has(.compare-tray.visible) .toast {
     gap: 0.6rem;
     padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
     background: var(--bg);
-    border-top: 1px solid #e6dfd0;
+    border-top: 1px solid #e7e3d8;
     box-shadow: 0 -10px 22px -18px rgba(26, 23, 18, 0.45);
     flex-shrink: 0;
   }
@@ -4541,7 +4762,7 @@ body:has(.compare-tray.visible) .toast {
     cursor: pointer;
     transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
   }
-  .drawer-clear:active { background: #ece4d4; border-color: #cdbfa4; }
+  .drawer-clear:active { background: #eae7de; border-color: #c4bdac; }
   .drawer-apply {
     flex: 2;
     min-height: 46px;
