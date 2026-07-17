@@ -87,6 +87,9 @@ async function initDetailPage() {
   const breadcrumb = document.getElementById("breadcrumbProduct");
   if (breadcrumb) breadcrumb.textContent = product.name;
 
+  // Feed the compare picker's "Recently viewed" tab (compare.js owns the key).
+  if (typeof ylPushRecentlyViewed === "function") ylPushRecentlyViewed(product.id);
+
   // Undo the not-found path's display:none, in case a prior invalid id was
   // rendered in this same page instance (e.g. a history navigation Swup does
   // not re-fetch for).
@@ -311,20 +314,21 @@ function renderSummary(product) {
 }
 
 // ─── Spec Table ───────────────────────────────────────────────────
-// Rows are built conditionally so the table never shows blank cells. Empty
-// Industries / Surfaces / Key Features (common for accessories and a few
-// adhesives) are omitted entirely. Accessories show a clear "Product Type"
-// instead of the internal "Brand: Others & Accessories".
-// Small restrained red outline icons for the fixed, known spec labels
-// (locked reference shows an icon beside each definition label). Real labels
-// only — an unknown label simply renders without an icon.
+// Clean two-column definition table built ONLY from truthful recorded fields
+// (locked ReBond design). The old generic "Key Features" catch-all checklist
+// is gone: recorded feature strings are parsed into their real labelled rows
+// (Application Method, Available Sizes) and the remainder — genuine recorded
+// characteristics like "Liquid, Yellow" or "Low VOC" — renders as one compact
+// Characteristics row. Nothing is invented; unavailable rows are hidden and
+// different products naturally show different rows.
 const SPEC_ICONS = {
-  "Brand":        '<path d="M20.59 13.41 12 22l-8.59-8.59A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.41.59L22 12a2 2 0 0 1-1.41 3.41Z" transform="scale(0.92)"/><circle cx="7.5" cy="7.5" r="1"/>',
-  "Product Type": '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>',
-  "Category":     '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
-  "Industries":   '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>',
-  "Surfaces":     '<polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/>',
-  "Key Features": '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  "Brand":              '<path d="M20.59 13.41 12 22l-8.59-8.59A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.41.59L22 12a2 2 0 0 1-1.41 3.41Z" transform="scale(0.92)"/><circle cx="7.5" cy="7.5" r="1"/>',
+  "Product Type":       '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>',
+  "Industries":         '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>',
+  "Surfaces / Materials": '<polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/>',
+  "Application Method": '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>',
+  "Available Sizes":    '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  "Characteristics":    '<line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>',
 };
 
 function specIcon(key) {
@@ -338,34 +342,47 @@ function renderSpecTable(product) {
   if (!el) return;
 
   const isAccessory = product.brand === "Others & Accessories" || product.category === "Others";
-  // Plain comma-separated values (locked design: structured rows, no pills).
   const listText = arr => ylEscapeHtml(arr.join(", "));
 
-  const rows = [];
+  // Parse the recorded feature strings into their real labelled fields.
+  let application = "", sizes = "";
+  const characteristics = [];
+  (product.features || []).forEach(f => {
+    const s = String(f).trim();
+    if (!s) return;
+    let m = s.match(/^application\s*:\s*(.+)$/i);
+    if (m) { application = application || m[1].trim(); return; }
+    m = s.match(/^available in\s+(.+)$/i);
+    if (m) { sizes = sizes || m[1].trim(); return; }
+    // The solvent/water base is already carried by the Product Type value
+    // (productSubtype), so the bare base entry would duplicate it.
+    if (/^(solvent|water)[\s-]*based$/i.test(s)) return;
+    characteristics.push(s);
+  });
+
+  // Truthful subtype ("Solvent-based Adhesive" / "Application Equipment").
+  const subtype = (typeof productSubtype === "function") ? productSubtype(product) : (product.category || "");
+
+  const left = [];
+  const right = [];
   if (isAccessory) {
-    // Not an adhesive brand: present it as a product type, not a fake brand.
-    rows.push({ key: "Product Type", val: "Spray Guns &amp; Accessories" });
+    left.push({ key: "Product Type", val: "Spray Guns &amp; Accessories" });
   } else {
-    if (product.brand)    rows.push({ key: "Brand",    val: ylEscapeHtml(product.brand) });
-    if (product.category) rows.push({ key: "Category", val: ylEscapeHtml(product.category) });
+    if (product.brand) left.push({ key: "Brand", val: ylEscapeHtml(product.brand) });
+    if (subtype)       right.push({ key: "Product Type", val: ylEscapeHtml(subtype) });
   }
-
-  if (product.industries.length) rows.push({ key: "Industries", val: listText(product.industries) });
-  if (product.surfaces.length)   rows.push({ key: "Surfaces",   val: listText(product.surfaces) });
-
-  // Key Features spans the full width below the two-column definition rows.
-  let featuresRow = "";
-  if (product.features.length) {
-    const check = `<span class="spec-feature-check" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`;
-    featuresRow = `
-      <div class="spec-row spec-row-wide">
-        <div class="spec-key">${specIcon("Key Features")}Key Features</div>
-        <div class="spec-val"><div class="spec-features">${product.features.map(f => `<span class="spec-feature">${check}<span class="spec-feature-text">${ylEscapeHtml(f)}</span></span>`).join("")}</div></div>
-      </div>`;
+  if (product.industries.length) left.push({ key: "Industries", val: listText(product.industries) });
+  if (application)               left.push({ key: "Application Method", val: ylEscapeHtml(application) });
+  if (product.surfaces.length)   right.push({ key: "Surfaces / Materials", val: listText(product.surfaces) });
+  if (sizes)                     right.push({ key: "Available Sizes", val: ylEscapeHtml(sizes) });
+  if (characteristics.length) {
+    // Keep the halves balanced: the row joins whichever side is shorter.
+    (left.length <= right.length ? left : right)
+      .push({ key: "Characteristics", val: listText(characteristics) });
   }
 
   // Honest compact empty state when no real specification data exists.
-  if (!rows.length && !featuresRow) {
+  if (!left.length && !right.length) {
     el.innerHTML = `
       <div class="apply-empty">
         <p>Specifications for this product are available from our team.</p>
@@ -374,14 +391,16 @@ function renderSpecTable(product) {
     return;
   }
 
-  el.innerHTML = `
-    <div class="spec-table-wrap">
-      ${rows.map(r => `
+  const rowsHTML = rows => rows.map(r => `
       <div class="spec-row">
         <div class="spec-key">${specIcon(r.key)}${r.key}</div>
         <div class="spec-val">${r.val}</div>
-      </div>`).join("")}
-      ${featuresRow}
+      </div>`).join("");
+
+  el.innerHTML = `
+    <div class="spec-cols">
+      <div class="spec-col">${rowsHTML(left)}</div>
+      ${right.length ? `<div class="spec-col">${rowsHTML(right)}</div>` : ""}
     </div>`;
 }
 

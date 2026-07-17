@@ -8,16 +8,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=76">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=6">
-  <script src="/js/widgets/navbar.js?v=13"></script>
-  <script src="/js/widgets/footer.js?v=17"></script>
+  <link rel="stylesheet" href="/css/products.css?v=77">
 </head>
-<body>
+<body class="nf-body">
 
-<div id="swup" class="transition-fade">
+<!-- Standalone recovery page (locked ReBond design): a minimal branded top
+     bar and a slim one-line footer instead of the full site nav/footer, so
+     the page reads as a focused guided recovery, not a content page. -->
+<header class="nf-topbar">
+  <a href="/" aria-label="Yee Lim Adhesives Industries home">
+    <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries">
+  </a>
+</header>
+
 <main id="mainContent">
-<!-- 404 hero: warm cream band, shared industrial photo treatment. -->
 <section class="page-hero nf-hero" aria-labelledby="nfHeading">
   <div class="page-hero-img" aria-hidden="true"></div>
   <div class="page-hero-inner">
@@ -30,13 +34,9 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Back to Products
       </a>
-      <a class="btn btn-outline nf-btn-contact" href="/contact">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 0 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/></svg>
-        Contact Yee Lim
-      </a>
     </div>
 
-    <!-- Product search: submits to the real catalogue search. -->
+    <!-- Product search: submits to the real catalogue search (no JS needed). -->
     <form class="search-bar nf-search" role="search" action="/products" method="get">
       <label for="nfSearchInput" class="sr-only">Search by product name, number, brand or keyword</label>
       <span class="search-bar-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
@@ -48,7 +48,7 @@
   </div>
 </section>
 
-<!-- Helpful destinations (real pages only; no catalogue PDF exists). -->
+<!-- Helpful destinations (real pages only). -->
 <section class="nf-help" aria-labelledby="nfHelpHeading">
   <h2 id="nfHelpHeading">Helpful places to go</h2>
   <div class="nf-help-grid">
@@ -83,40 +83,12 @@
       <svg class="nf-help-go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </a>
   </div>
-
-  <!-- Product Advice band -->
-  <div class="nf-advice">
-    <span class="nf-advice-ic" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 0 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
-    </span>
-    <div class="nf-advice-copy">
-      <strong>Still need help?</strong>
-      <span>Our technical experts are ready to assist you with the right bonding solution for your application.</span>
-    </div>
-    <button type="button" class="enquiry-guidance-link" onclick="if(window.openProductAdvisor){openProductAdvisor()}else{window.location.href='/contact'}">
-      Get Product Advice
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </button>
-  </div>
 </section>
-
-<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 </main>
-</div>
 
-<!-- Footer injected by js/widgets/footer.js -->
+<footer class="nf-footer">
+  &copy; 2026 <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.
+</footer>
 
-<script src="/js/vendor/swup.umd.js?v=1"></script>
-<script src="/js/data.js?v=7"></script>
-<script src="/js/core/app.js?v=3"></script>
-<script src="/js/widgets/compare.js?v=11"></script>
-<script src="/js/widgets/custom-select.js?v=4"></script>
-<script src="/js/pages/products.js?v=38"></script>
-<script src="/js/pages/product-detail.js?v=25"></script>
-<script src="/js/pages/compare-page.js?v=13"></script>
-<script src="/js/pages/enquiry.js?v=3"></script>
-<script src="/js/pages/contact.js?v=2"></script>
-<script src="/js/widgets/chatbot.js?v=18"></script>
-<script src="/js/widgets/page-transitions.js?v=3"></script>
 </body>
 </html>

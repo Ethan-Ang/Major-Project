@@ -19,6 +19,7 @@ function renderBasketSkeleton() {
 function initEnquiryPage() {
   const list = document.getElementById("basketList");
   if (!list) return;
+  initEnquiryCounters();
   if (PRODUCTS && PRODUCTS.length) { renderBasket(); return; }
   renderBasketSkeleton();
   loadProductsFromBackend()
@@ -27,6 +28,22 @@ function initEnquiryPage() {
 }
 ylReady(initEnquiryPage);
 
+// Live "n / 1000" counters under the Message and Enquiry Notes textareas.
+// Bound per page view (the swap replaces the fields), guarded so re-running
+// on the same DOM never stacks listeners.
+function initEnquiryCounters() {
+  [["eMessage", "eMessageCount"], ["eNotes", "eNotesCount"]].forEach(([taId, outId]) => {
+    const ta = document.getElementById(taId);
+    const out = document.getElementById(outId);
+    if (!ta || !out || ta._ylCounterBound) return;
+    ta._ylCounterBound = true;
+    const max = ta.getAttribute("maxlength") || 1000;
+    const sync = () => { out.textContent = `${ta.value.length} / ${max}`; };
+    ta.addEventListener("input", sync);
+    sync();
+  });
+}
+
 function renderBasket() {
   const ids = getBasket();
   const products = ids.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
@@ -34,7 +51,6 @@ function renderBasket() {
   if (!list) return;
   const formSection = document.getElementById("enquiryFormSection");
   const colHead = document.getElementById("enquiryColHead");
-  const countEl = document.getElementById("enquiryCount");
   const totalBand = document.getElementById("enquiryTotalBand");
   const totalCount = document.getElementById("enquiryTotalCount");
   const grid = document.querySelector(".enquiry-grid");
@@ -61,7 +77,6 @@ function renderBasket() {
 
   if (grid) grid.classList.remove("is-empty");
   if (colHead) colHead.style.display = "flex";
-  if (countEl) countEl.textContent = String(products.length);
   if (totalBand) totalBand.style.display = "flex";
   if (totalCount) totalCount.textContent = `${products.length} item${products.length !== 1 ? "s" : ""}`;
 
@@ -112,6 +127,11 @@ async function submitEnquiry() {
   const website = document.getElementById("eWebsite").value.trim(); // honeypot
   const errorEl = document.getElementById("enquiryError");
   const btn     = document.getElementById("submitEnquiryBtn");
+  // NOTE: #eSubject and #eNotes are design-stage frontend fields — the current
+  // API/database has no columns for them, so they are deliberately NOT posted.
+  // A later backend + schema update will wire them through.
+  const privacy = document.getElementById("ePrivacy");
+  const privacyErr = document.getElementById("ePrivacyErr");
 
   // Reset previous error state (summary + inline messages)
   ["eName", "eCompany", "eEmail"].forEach(fid => {
@@ -121,6 +141,8 @@ async function submitEnquiry() {
     const inline = document.getElementById(fid + "Err");
     if (inline) inline.hidden = true;
   });
+  if (privacy) privacy.removeAttribute("aria-invalid");
+  if (privacyErr) privacyErr.hidden = true;
 
   // Inline validation: each invalid field gets its own message + aria link;
   // the summary stays as the announced overview (not the only signal).
@@ -143,6 +165,16 @@ async function submitEnquiry() {
     errorEl.style.display = "block";
     document.getElementById(invalid[0].id).focus();
     window.scrollTo({ top: errorEl.offsetTop - 100, behavior: "smooth" });
+    return;
+  }
+
+  // Consent gate (frontend validation only; the API payload is unchanged).
+  if (privacy && !privacy.checked) {
+    privacy.setAttribute("aria-invalid", "true");
+    if (privacyErr) privacyErr.hidden = false;
+    errorEl.textContent   = "Please agree to the use of your information so we can process your enquiry.";
+    errorEl.style.display = "block";
+    privacy.focus();
     return;
   }
   errorEl.style.display = "none";
