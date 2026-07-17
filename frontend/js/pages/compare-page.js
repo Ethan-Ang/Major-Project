@@ -87,9 +87,10 @@ function renderSelectPanel(products) {
       </div>`;
   }).join("");
 
-  // Add/Search slot only below 3/3 — completely removed at the cap.
+  // Add/Search slot only below 3/3 — completely removed at the cap. Opens the
+  // dedicated compare picker (side panel), not a jump back to the catalogue.
   const addSlot = products.length < COMPARE_MAX
-    ? `<a class="csel-card csel-add" href="/products#catalogue"><span class="csel-add-icon" aria-hidden="true">+</span><span class="csel-add-text"><strong>Add a product</strong><small>Search or browse</small></span></a>`
+    ? `<button class="csel-card csel-add" type="button" onclick="ylCompareAddMore()"><span class="csel-add-icon" aria-hidden="true">+</span><span class="csel-add-text"><strong>Add a product</strong><small>Search or browse</small></span></button>`
     : "";
 
   el.innerHTML = `
@@ -185,7 +186,7 @@ function renderComparePage() {
         : EMPTY }
   ].map(row => `
     <tr>
-      <td class="compare-row-label">${row.ic}${row.label}</td>
+      <td class="compare-row-label"><span class="compare-label-wrap">${row.ic}<span>${row.label}</span></span></td>
       ${products.map(p => `<td class="compare-row-value">${row.render(p)}</td>`).join("")}
     </tr>`).join("");
 
@@ -209,7 +210,7 @@ function renderComparePage() {
         </colgroup>
         <thead>
           <tr>
-            <td class="compare-row-label">Product</td>
+            <td class="compare-row-label compare-corner">Product</td>
             ${headerCols}
           </tr>
         </thead>

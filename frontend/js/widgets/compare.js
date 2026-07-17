@@ -168,11 +168,11 @@ function renderCompareTray() {
   }
 }
 
-// Add-a-product slot: on the catalogue page focus the existing search,
-// anywhere else go to the catalogue.
+// Add-a-product slot: opens the dedicated compare picker (side panel with
+// search + Recently viewed / All products). Falls back to the catalogue if
+// the picker cannot be built for any reason.
 function ylCompareAddMore() {
-  const search = document.getElementById("searchInput");
-  if (search) { search.focus(); search.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
+  if (typeof openComparePicker === "function") { openComparePicker(); return; }
   location.href = "/products#catalogue";
 }
 
@@ -206,6 +206,196 @@ function toggleCompareTray() {
 window.addEventListener("resize", () => {
   if (!document.body.classList.contains("compare-open")) return;
   updateCompareTrayHeight();
+});
+
+// ─── Compare picker (dedicated add-product flow) ─────────────────
+// Slide-in side panel (Canyon-inspired interaction, Yee Lim visual language):
+// segmented Recently viewed / All products, live search, direct add into the
+// compare slots. Built lazily on first open, torn down fully on close.
+// Recently-viewed ids are written by product-detail.js (ylPushRecentlyViewed).
+const YL_RECENT_KEY = "recentlyViewed";
+
+function ylGetRecentlyViewed() {
+  try { return JSON.parse(localStorage.getItem(YL_RECENT_KEY) || "[]").map(String); }
+  catch (e) { return []; }
+}
+
+function ylPushRecentlyViewed(productId) {
+  const id = String(productId);
+  const list = ylGetRecentlyViewed().filter(x => x !== id);
+  list.unshift(id);
+  try { localStorage.setItem(YL_RECENT_KEY, JSON.stringify(list.slice(0, 8))); } catch (e) {}
+}
+
+let _pickerState = null; // { tab, query, release }
+
+function openComparePicker() {
+  if (document.getElementById("ylCmpPicker")) return; // already open
+
+  const recents = ylGetRecentlyViewed();
+  _pickerState = { tab: recents.length ? "recent" : "all", query: "" };
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "cmp-picker-backdrop";
+  backdrop.id = "ylCmpPickerBackdrop";
+
+  const panel = document.createElement("aside");
+  panel.className = "cmp-picker";
+  panel.id = "ylCmpPicker";
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-modal", "true");
+  panel.setAttribute("aria-labelledby", "ylCmpPickerTitle");
+  panel.innerHTML = `
+    <div class="cmp-picker-head">
+      <div>
+        <span class="cmp-picker-eyebrow">Compare Products</span>
+        <h2 class="cmp-picker-title" id="ylCmpPickerTitle">Add a product to compare</h2>
+        <span class="cmp-picker-count" id="ylCmpPickerCount"></span>
+      </div>
+      <button class="cmp-picker-x" type="button" onclick="closeComparePicker()" aria-label="Close product picker">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="cmp-picker-tools">
+      <div class="cmp-picker-tabs" role="tablist" aria-label="Product source">
+        <button class="cmp-picker-tab" id="ylCmpTabRecent" role="tab" type="button" onclick="ylCmpPickerTab('recent')">Recently viewed</button>
+        <button class="cmp-picker-tab" id="ylCmpTabAll" role="tab" type="button" onclick="ylCmpPickerTab('all')">All products</button>
+      </div>
+      <div class="cmp-picker-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <label class="sr-only" for="ylCmpPickerSearch">Search products to compare</label>
+        <input type="text" id="ylCmpPickerSearch" placeholder="Search by name, brand or keyword&hellip;" autocomplete="off">
+      </div>
+    </div>
+    <div class="cmp-picker-list" id="ylCmpPickerList" aria-live="polite"></div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(panel);
+  document.body.style.overflow = "hidden";
+
+  backdrop.addEventListener("click", closeComparePicker);
+  panel.querySelector("#ylCmpPickerSearch").addEventListener("input", (e) => {
+    _pickerState.query = e.target.value;
+    renderComparePickerList();
+  });
+
+  if (typeof ylFocusTrap === "function") {
+    _pickerState.release = ylFocusTrap(panel, { onEscape: closeComparePicker });
+  }
+
+  // Data may not be loaded yet on pages that render nothing else from it.
+  if (typeof PRODUCTS !== "undefined" && PRODUCTS.length) {
+    renderComparePickerList();
+  } else if (typeof loadProductsFromBackend === "function") {
+    const list = panel.querySelector("#ylCmpPickerList");
+    if (list) list.innerHTML = `<div class="cmp-picker-empty">Loading products&hellip;</div>`;
+    loadProductsFromBackend().catch(() => {}).finally(renderComparePickerList);
+  }
+}
+
+function closeComparePicker() {
+  const panel = document.getElementById("ylCmpPicker");
+  const backdrop = document.getElementById("ylCmpPickerBackdrop");
+  if (panel) panel.remove();
+  if (backdrop) backdrop.remove();
+  document.body.style.overflow = "";
+  if (_pickerState && typeof _pickerState.release === "function") _pickerState.release();
+  _pickerState = null;
+}
+
+function ylCmpPickerTab(tab) {
+  if (!_pickerState) return;
+  _pickerState.tab = tab;
+  renderComparePickerList();
+}
+
+function ylCmpPickerAdd(productId) {
+  toggleCompare(productId);
+  // Slots full: the job is done — close so the tray shows the result.
+  if (getCompareList().length >= COMPARE_MAX) {
+    setTimeout(closeComparePicker, 350);
+  }
+}
+
+function renderComparePickerList() {
+  const panel = document.getElementById("ylCmpPicker");
+  if (!panel || !_pickerState) return;
+  const listEl = panel.querySelector("#ylCmpPickerList");
+  const countEl = panel.querySelector("#ylCmpPickerCount");
+  const products = (typeof PRODUCTS !== "undefined" && PRODUCTS) ? PRODUCTS : [];
+  const compare = getCompareList().map(String);
+  const full = compare.length >= COMPARE_MAX;
+
+  if (countEl) countEl.textContent = `${compare.length} of ${COMPARE_MAX} selected`;
+
+  // Tab states (Recently viewed disabled when nothing was viewed yet).
+  const recents = ylGetRecentlyViewed();
+  const tabR = panel.querySelector("#ylCmpTabRecent");
+  const tabA = panel.querySelector("#ylCmpTabAll");
+  if (!recents.length && _pickerState.tab === "recent") _pickerState.tab = "all";
+  if (tabR) {
+    tabR.setAttribute("aria-selected", _pickerState.tab === "recent" ? "true" : "false");
+    tabR.disabled = !recents.length;
+    tabR.title = recents.length ? "" : "No recently viewed products yet";
+  }
+  if (tabA) tabA.setAttribute("aria-selected", _pickerState.tab === "all" ? "true" : "false");
+
+  // Source rows: recents keep their view order; All keeps catalogue order.
+  let rows = _pickerState.tab === "recent"
+    ? recents.map(id => products.find(p => String(p.id) === id)).filter(Boolean)
+    : products.slice();
+
+  // Live search across the same normalised fields the catalogue search uses.
+  const norm = (typeof ylSearchNorm === "function")
+    ? ylSearchNorm
+    : (s) => String(s || "").toLowerCase().trim();
+  const q = norm(_pickerState.query);
+  if (q) {
+    rows = rows.filter(p =>
+      norm(p.name).includes(q) ||
+      norm(p.brand).includes(q) ||
+      norm(typeof brandDisplay === "function" ? brandDisplay(p.brand) : p.brand).includes(q) ||
+      (p.industries || []).some(i => norm(i).includes(q)) ||
+      (p.surfaces || []).some(s => norm(s).includes(q)));
+  }
+
+  if (!listEl) return;
+  if (!rows.length) {
+    listEl.innerHTML = `<div class="cmp-picker-empty">${
+      q ? "No products match your search." :
+      (_pickerState.tab === "recent" ? "No recently viewed products yet." : "No products available.")
+    }</div>`;
+    return;
+  }
+
+  const subtype = p => (typeof productSubtype === "function") ? productSubtype(p) : (p.category || "");
+  listEl.innerHTML = rows.map(p => {
+    const name = ylEscapeHtml(p.name);
+    const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
+    const hasImg = p.images && p.images.length > 0;
+    const img = hasImg
+      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+      : `<span class="no-image-mark" aria-hidden="true">${brandLabel}</span>`;
+    const inCmp = compare.includes(String(p.id));
+    const disabled = !inCmp && full;
+    const btn = inCmp
+      ? `<button class="cmp-picker-add is-added" type="button" onclick="ylCmpPickerAdd('${p.id}')" aria-pressed="true" aria-label="Remove ${name} from comparison">&#10003; Added</button>`
+      : `<button class="cmp-picker-add" type="button" onclick="ylCmpPickerAdd('${p.id}')" ${disabled ? "disabled" : ""} aria-pressed="false" aria-label="${disabled ? "Comparison full: remove one to add another" : `Add ${name} to comparison`}">+ Add</button>`;
+    return `
+      <div class="cmp-picker-row">
+        <span class="cmp-picker-thumb" aria-hidden="true">${img}</span>
+        <span class="cmp-picker-info">
+          <span class="cmp-picker-name">${name}</span>
+          <span class="cmp-picker-sub">${ylEscapeHtml(subtype(p))}</span>
+        </span>
+        ${btn}
+      </div>`;
+  }).join("");
+}
+
+// Keep an open picker's rows/count in step with the compare list.
+window.addEventListener("compareUpdated", () => {
+  if (document.getElementById("ylCmpPicker")) renderComparePickerList();
 });
 
 // ─── Init ───────────────────────────────────────────────────────

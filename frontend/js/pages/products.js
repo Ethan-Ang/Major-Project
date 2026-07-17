@@ -538,10 +538,11 @@ function renderGrid(products) {
   const countNoun  = `product${products.length !== 1 ? "s" : ""}`;
   // Show the narrowing ("8 of 31 products") whenever filters/search reduce the
   // set, so buyers feel the effect. The "of N" span is revealed on mobile only.
+  // Bold count (locked ReBond reference: "31 products found", number leading).
   if (products.length < totalCount) {
-    countEl.innerHTML = `${products.length} <span class="rc-of">of ${totalCount} </span>${countNoun} found`;
+    countEl.innerHTML = `<strong>${products.length}</strong> <span class="rc-of">of ${totalCount} </span>${countNoun} found`;
   } else {
-    countEl.textContent = `${products.length} ${countNoun} found`;
+    countEl.innerHTML = `<strong>${products.length}</strong> ${countNoun} found`;
   }
 
   const applyBtn = document.getElementById("drawerApplyBtn");
@@ -694,7 +695,7 @@ function productCardHTML(p) {
             aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
             ${inBasket
               ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>In Enquiry</span>`
-              : `Add to Enquiry`}
+              : `Add to Enquiry <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`}
           </button>
           <a href="${detailHref}" class="btn btn-outline pcard-view">View details
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
@@ -887,8 +888,10 @@ function initSearchTypeahead() {
   const panel = document.getElementById("searchTypeahead");
   if (!input || !panel) return;
 
-  const MAX_PRODUCTS = 5;       // per group caps keep the popup compact (SEARCH-001 A6)
-  const MAX_PER_FILTER = 3;
+  const MAX_PRODUCTS = 5;       // top product matches lead (SEARCH-001 A6)
+  const MAX_PER_FILTER = 2;     // per-group cap
+  const MAX_FILTERS_TOTAL = 4;  // overall taxonomy cap so broad queries ("a")
+                                // never build a page-covering panel
   let items = [];               // flat, keyboard-navigable list of options
   let highlight = -1;
   let lastQuery = "";
@@ -980,8 +983,8 @@ function initSearchTypeahead() {
       .sort((a, b) => a.s - b.s); // stable: equal scores keep catalogue order
 
     let bestFilterScore = Infinity;
-    const filterItems = [];
-    filterSources().forEach(g => {
+    let filterItems = [];
+    filterSources().forEach((g, gi) => {
       g.labels
         .map(label => ({ label, s: scoreFilter(label, q, syn) }))
         .filter(x => x.s !== Infinity && (g.counts[x.label] || 0) > 0)
@@ -989,9 +992,15 @@ function initSearchTypeahead() {
         .slice(0, MAX_PER_FILTER)
         .forEach(m => {
           bestFilterScore = Math.min(bestFilterScore, m.s);
-          filterItems.push({ kind: "filter", group: g.group, type: g.type, label: m.label, count: g.counts[m.label] || 0 });
+          filterItems.push({ kind: "filter", group: g.group, type: g.type, label: m.label, count: g.counts[m.label] || 0, s: m.s, gi });
         });
     });
+    // Curate: keep only the best few taxonomy rows overall, then restore group
+    // order so the section headers render contiguously.
+    filterItems = filterItems
+      .sort((a, b) => a.s - b.s || a.gi - b.gi)
+      .slice(0, MAX_FILTERS_TOTAL)
+      .sort((a, b) => a.gi - b.gi || a.s - b.s);
 
     const productItems = prods.slice(0, MAX_PRODUCTS).map(x => ({ kind: "product", p: x.p }));
     const bestProductScore = prods.length ? prods[0].s : Infinity;
@@ -1016,8 +1025,10 @@ function initSearchTypeahead() {
     panel.style.left = `${Math.round(r.left)}px`;
     panel.style.top = `${Math.round(r.bottom + 6)}px`;
     panel.style.width = `${Math.round(r.width)}px`;
-    // A9: never taller than the space below the bar (keyboard/safe-area aware).
-    panel.style.maxHeight = `${Math.max(180, Math.round(window.innerHeight - r.bottom - 18))}px`;
+    // Controlled height (locked ReBond fix): capped at 420px so the panel can
+    // never sprawl over the filters/sort/grid; still shrinks to fit the space
+    // below the bar (keyboard/safe-area aware) and scrolls internally.
+    panel.style.maxHeight = `${Math.min(420, Math.max(180, Math.round(window.innerHeight - r.bottom - 18)))}px`;
   }
 
   function open() {
