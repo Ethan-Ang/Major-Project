@@ -1047,12 +1047,21 @@ body.detail-has-cta .toast {
 .breadcrumb span { margin: 0 0.4rem; }
 
 /* ─── Light page breadcrumb (replaces dark hero band) ────────── */
+/* Detail page breadcrumb: shares the SAME 1180px/40px content container as the
+   gallery/tabs/related sections below it, so every band starts on one left edge. */
 .page-breadcrumb {
-  max-width: 1280px;
-  margin: 0.75rem auto 0;
-  padding: 0 1.5rem;
+  max-width: 1180px;
+  margin: 0.6rem auto 0;
+  padding: 0 40px;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+@media (max-width: 768px) {
+  .page-breadcrumb { padding: 0 24px; }
+}
+@media (max-width: 560px) {
+  .page-breadcrumb { padding: 0 16px; }
 }
 
 .related-section { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
@@ -1269,9 +1278,9 @@ body.detail-has-cta .toast {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1rem 1.25rem;
-  margin-top: 1.25rem;
-  margin-bottom: 1.75rem;
+  padding: 0.85rem 1.15rem;
+  margin-top: 1rem;
+  margin-bottom: 1.1rem;
 }
 
 .enquiry-guidance-ic {
@@ -1333,7 +1342,7 @@ body.detail-has-cta .toast {
 
 .related-section {
   max-width: 1180px;
-  margin: 0 auto 3rem;
+  margin: 0 auto 2.5rem;
   padding: 0 40px;
 }
 
@@ -1391,23 +1400,41 @@ body.detail-has-cta .toast {
   border-color: var(--line-2);
 }
 
+/* Head row: brand mark left, the same compare checkbox as the catalogue
+   cards on the right (locked reference). */
 .related-card-head {
   display: flex;
   align-items: center;
-  padding: 0.55rem 0.95rem 0.35rem;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.55rem 0.9rem 0.3rem;
 }
 
-/* The Yee Lim product shots carry their own white backgrounds. A flat cream
-   plate left them sitting as a hard white rectangle; a soft radial wash (white
-   at the optical centre, easing to warm cream at the edges) lets that white melt
-   into the plate. Same wash as the main gallery stage, so the set reads as one. */
+.related-card-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+/* Compact media row (locked reference): small product image on the left,
+   name/summary beside it — not a full-width photo band. */
+.related-card-media {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.3rem 0.9rem 0.7rem;
+  flex: 1;
+}
+
 .related-card-img {
-  height: 128px;
+  flex: 0 0 92px;
+  height: 92px;
   /* Near-white plate: the product shots carry baked-in white backgrounds, so a
-     white plate makes that white seamless instead of a hard rectangle on cream.
-     A whisper of warmth at the very edge keeps it from reading as a cold box. */
+     white plate makes that white seamless instead of a hard rectangle on cream. */
   background: radial-gradient(circle at 50% 46%, #ffffff 0%, #ffffff 60%, #fcfaf5 100%);
-  border-bottom: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1418,7 +1445,7 @@ body.detail-has-cta .toast {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  padding: 1rem 1.1rem;
+  padding: 0.45rem;
   box-sizing: border-box;
   transition: transform 0.4s var(--ease);
 }
@@ -1427,18 +1454,18 @@ body.detail-has-cta .toast {
 
 .related-card-img.no-image .no-image-mark {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.5rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.25px;
   color: #cdc4b2;
   user-select: none;
 }
 
-.related-card-body {
-  padding: 0.85rem 0.95rem 0.9rem;
+.related-card-info {
+  min-width: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  flex: 1;
 }
 
 .related-card-name {
@@ -1448,7 +1475,7 @@ body.detail-has-cta .toast {
   color: var(--text);
   line-height: 1.3;
   letter-spacing: -0.01em;
-  margin: 0.1rem 0 0.3rem;
+  margin: 0 0 0.25rem;
   transition: color 0.2s var(--ease);
 }
 
@@ -1456,7 +1483,7 @@ body.detail-has-cta .toast {
   font-size: 0.78rem;
   color: var(--muted);
   line-height: 1.45;
-  margin: 0 0 0.6rem;
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1467,10 +1494,9 @@ body.detail-has-cta .toast {
 .related-card-name a:hover { color: var(--red); }
 .related-card-name a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
 
-/* Base type as a quiet mono meta line above the actions. */
+/* Base type as a quiet mono meta line under the summary. */
 .related-card-base {
-  margin-top: auto;
-  padding-top: 0.55rem;
+  margin-top: 0.4rem;
   font-family: var(--mono);
   font-size: 0.64rem;
   font-weight: 500;
@@ -1485,8 +1511,8 @@ body.detail-has-cta .toast {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
+  margin-top: auto;
+  padding: 0.5rem 0.9rem;
   border-top: 1px solid var(--line);
 }
 .related-card-enq {
@@ -1529,8 +1555,8 @@ body.detail-has-cta .toast {
   }
   .related-grid::-webkit-scrollbar { width: 0; height: 0; }
   .related-card {
-    flex: 0 0 78%;
-    max-width: 320px;
+    flex: 0 0 82%;
+    max-width: 330px;
     scroll-snap-align: start;
   }
 }
@@ -2288,7 +2314,7 @@ body.detail-has-cta .toast {
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   gap: 2rem;
   max-width: 1180px;
-  margin: 1.25rem auto 0;
+  margin: 0.9rem auto 0;
   padding: 0 40px;
   align-items: start;
 }
@@ -2307,7 +2333,7 @@ body.detail-has-cta .toast {
    without needing an extra wrapper element around both. */
 .detail-tabs {
   max-width: 1180px;
-  margin: 1.25rem auto 0;
+  margin: 1rem auto 0;
   padding: 0 40px;
 }
 
@@ -2323,12 +2349,12 @@ body.detail-has-cta .toast {
   flex: 1;
   background: none;
   border: none;
-  padding: 0.7rem 1rem;
+  padding: 0.75rem 1rem;
   font-family: inherit;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--muted);
-  border-bottom: 2px solid transparent;
+  border-bottom: 2.5px solid transparent;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
@@ -2346,7 +2372,7 @@ body.detail-has-cta .toast {
 }
 
 .detail-tabpanel {
-  padding: 1.1rem 1.25rem;
+  padding: 1rem 1.25rem;
   background: var(--card);
   border: 1px solid var(--border);
   border-top: none;
@@ -2358,22 +2384,33 @@ body.detail-has-cta .toast {
 }
 
 /* ─── Gallery ────────────────────────────────────────────────── */
-/* Landscape well (not a near-square box): aspect-ratio keeps the product
-   photo compact and lets it scale with the column instead of a fixed tall
-   height. Flat near-white plate — the previous cream gradient read too
-   beige next to the reference's cleaner warm-white surface. */
+/* Locked reference layout: a vertical thumbnail rail beside the main image
+   surface when a product has more than one real image; a full-width surface
+   (no rail, no blank column) with a single image. The rail becomes a
+   horizontal row UNDER the image at phone widths. */
+.gallery-wrap { width: 100%; }
+
+.gallery-wrap.has-rail {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+
+/* Soft-white plate (reference): the product shots carry their own white
+   backgrounds, so a white surface makes them seamless. aspect-ratio keeps the
+   photo compact and lets it scale with the column, no fixed heights. */
 .gallery-main {
   position: relative;
   width: 100%;
   aspect-ratio: 1.9 / 1;
-  background: var(--panel);
+  background: #fff;
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.6rem;
   cursor: default;
 }
 
@@ -2383,51 +2420,12 @@ body.detail-has-cta .toast {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem;
+  padding: 0.9rem;
   box-sizing: border-box;
 }
 
 /* Product shots sit cleanly inside the frame (no awkward crop). */
 .gallery-main img { width: 100%; height: 100%; object-fit: contain; display: block; }
-
-/* Subtle prev/next controls + counter - only rendered when >1 image. */
-.gallery-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid #e0d9c9;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--ink, #1a1712);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-  z-index: 2;
-}
-.gallery-nav:hover { background: #fff; border-color: #bbb; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); }
-.gallery-nav:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.gallery-prev { left: 0.6rem; }
-.gallery-next { right: 0.6rem; }
-
-.gallery-counter {
-  position: absolute;
-  bottom: 0.6rem;
-  right: 0.6rem;
-  background: rgba(14, 17, 22, 0.72);
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  padding: 0.18rem 0.5rem;
-  border-radius: 999px;
-  z-index: 2;
-  user-select: none;
-}
 
 .gallery-placeholder {
   display: flex;
@@ -2451,19 +2449,19 @@ body.detail-has-cta .toast {
   user-select: none;
 }
 
-.gallery-thumbs {
+/* Vertical thumbnail rail (desktop). Scrolls quietly if a product ever has
+   more real images than the main surface is tall. */
+.gallery-rail {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .gallery-thumb {
-  width: 66px;
+  width: 68px;
   height: 56px;
   background: #fff;
   border: 1.5px solid var(--border);
@@ -2482,13 +2480,24 @@ body.detail-has-cta .toast {
 .gallery-thumb.active { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
 .gallery-thumb:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .gallery-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
-.gallery-thumb svg { opacity: 0.25; }
+
+/* Phones (locked mobile reference): main image first, real thumbnails as a
+   horizontal row beneath it — never a vertical rail squeezed beside the image. */
+@media (max-width: 768px) {
+  .gallery-wrap.has-rail { grid-template-columns: minmax(0, 1fr); }
+  .gallery-rail {
+    order: 2;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+  }
+  .gallery-main { order: 1; }
+}
 
 @media (max-width: 560px) {
   .gallery-stage { padding: 0.75rem; }
-  .gallery-nav { width: 34px; height: 34px; }
-  .gallery-prev { left: 0.4rem; }
-  .gallery-next { right: 0.4rem; }
+  .gallery-thumb { width: 60px; height: 54px; }
 }
 
 /* ─── Product Header (brand mark, name, summary, availability) ───
@@ -2496,8 +2505,8 @@ body.detail-has-cta .toast {
    then a restrained availability row (small dot + status + muted note —
    never a large green pill). */
 .detail-product-header {
-  margin-bottom: 1.1rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--line);
 }
 
@@ -2562,16 +2571,19 @@ body.detail-has-cta .toast {
   color: var(--muted);
 }
 
+/* Locked hierarchy: Space Grotesk display, ~32-36px on desktop, tight leading. */
 .detail-product-name {
-  font-size: clamp(1.5rem, 2.6vw, 1.85rem);
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(1.65rem, 2.6vw, 2.1rem);
   font-weight: 700;
+  letter-spacing: -0.015em;
   color: var(--text);
-  line-height: 1.18;
-  margin-bottom: 0.5rem;
+  line-height: 1.15;
+  margin-bottom: 0.55rem;
 }
 
 .detail-product-desc {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: var(--body);
   line-height: 1.55;
   max-width: 62ch;
@@ -2590,10 +2602,10 @@ body.detail-has-cta .toast {
 
 .spec-row {
   display: grid;
-  grid-template-columns: 140px minmax(0, 1fr);
+  grid-template-columns: 158px minmax(0, 1fr);
   gap: 0 1rem;
   border-bottom: 1px solid var(--line);
-  padding: 0.6rem 0;
+  padding: 0.55rem 0;
 }
 
 .spec-row-wide { grid-column: 1 / -1; }
@@ -2605,9 +2617,18 @@ body.detail-has-cta .toast {
   letter-spacing: -0.005em;
   color: var(--text);
   display: flex;
+  gap: 0.5rem;
   /* Top-align the label with the first line of its value so multi-row values
      (Key Features) read as "label heading its rows". */
   align-items: flex-start;
+}
+
+/* Restrained red label icon (locked reference: small outline mark per row). */
+.spec-ic {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--red);
+  margin-top: 0.12em;
 }
 
 .spec-val {
@@ -2623,12 +2644,17 @@ body.detail-has-cta .toast {
 }
 
 /* Key Features as a compact plain list (locked design: structured rows, not
-   pill/chip cards) — no background, no border, no radius per feature. */
+   pill/chip cards) — no background, no border, no radius per feature. Two
+   text columns on desktop keep a longer genuine list short. */
 .spec-features {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.5rem;
   margin: 0;
+}
+
+@media (max-width: 768px) {
+  .spec-features { grid-template-columns: 1fr; }
 }
 
 .spec-feature {
@@ -2657,21 +2683,26 @@ body.detail-has-cta .toast {
 .sidebar-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
+/* One coordinated group (locked reference): equal ~46px heights, the red
+   primary visually dominant, both secondaries white with dark labels. */
 .sidebar-actions .detail-act-enq {
   flex: 1.4 1 auto;
   min-width: 170px;
-  padding-top: 0.6rem;
-  padding-bottom: 0.6rem;
+  min-height: 2.85rem;
+  font-size: 0.88rem;
 }
 .sidebar-actions .btn-compare-sidebar,
 .sidebar-actions .btn-whatsapp-sidebar {
   white-space: nowrap;
   flex: 1 0 auto;
-  padding: 0.6rem 0.9rem;
-  font-size: 0.85rem;
+  min-height: 2.85rem;
+  padding: 0.6rem 0.95rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
 /* WhatsApp quick-chat button — sits beside Compare in the action row. Green
@@ -2690,7 +2721,7 @@ body.detail-has-cta .toast {
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--text);
   text-decoration: none;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.1s;
@@ -2748,12 +2779,12 @@ body.detail-has-cta .toast {
   flex: 1;
   min-width: 0;
   padding: 0.55rem;
-  background: none;
+  background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--muted);
+  font-weight: 600;
+  color: var(--text);
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.1s;
   font-family: inherit;
@@ -2767,8 +2798,11 @@ body.detail-has-cta .toast {
 @media (max-width: 768px) {
   /* Single column, gallery first (its natural DOM order), summary below.
      A taller ratio than desktop: the stacked column is narrower, so the
-     landscape 1.9:1 well would leave the photo too small. */
+     landscape 1.9:1 well would leave the photo too small. Capped width keeps
+     the stacked well from ballooning on tablets (no effect at phone widths,
+     which are already narrower than the cap). */
   .detail-top { grid-template-columns: 1fr; }
+  .gallery-wrap { max-width: 560px; margin: 0 auto; }
   .gallery-main { aspect-ratio: 4 / 3; }
 }
 
@@ -2787,8 +2821,7 @@ body.detail-has-cta .toast {
   .detail-tabs,
   #detailAdvice,
   .related-section { padding-left: 16px; padding-right: 16px; }
-  .spec-row { grid-template-columns: 120px minmax(0, 1fr); }
-  .related-grid { grid-template-columns: repeat(2, 1fr); }
+  .spec-row { grid-template-columns: 132px minmax(0, 1fr); }
 }
 
 /* Phones (locked mobile reference): the in-flow actions stack full-width

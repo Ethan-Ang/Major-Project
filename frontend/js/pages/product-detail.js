@@ -108,6 +108,7 @@ async function initDetailPage() {
   ylOnce("detail:listeners", () => {
     window.addEventListener("compareUpdated", () => {
       if (detailProduct) updateSidebarCompareBtn(detailProduct.id);
+      syncRelatedCompareBtns();
     });
     window.addEventListener("basketUpdated", () => {
       if (detailProduct) syncDetailBasketButtons(detailProduct);
@@ -157,10 +158,13 @@ function backToProducts(e) {
 }
 
 // ─── Gallery ─────────────────────────────────────────────────────
-// Arrows, thumbnail row, and the "1 / N" counter only appear when a product
-// has more than one image. A single image (the usual case) shows a clean,
-// uncluttered frame. Broken/missing images fall back via ylImageFallback().
-let galleryState = { images: [], index: 0, label: "" };
+// Locked reference layout: with more than one real image a vertical thumbnail
+// rail sits beside the main image on desktop (the rail becomes a horizontal
+// row under the image on phones, via CSS). With a single image there is no
+// rail at all — the main surface takes the full gallery width. Thumbnails are
+// real <button>s (click + keyboard) and never fabricated. Broken/missing
+// images fall back via ylImageFallback().
+let galleryState = { images: [], index: 0, label: "", name: "" };
 
 function renderGallery(product) {
   const el = document.getElementById("detailGallery");
@@ -172,7 +176,7 @@ function renderGallery(product) {
     ? product.category
     : "Adhesive Solution");
 
-  galleryState = { images, index: 0, label: brandLabel };
+  galleryState = { images, index: 0, label: brandLabel, name: safeName };
   const multi = images.length > 1;
 
   const stageContent = images.length
@@ -182,43 +186,33 @@ function renderGallery(product) {
          <span>${placeholderSub}</span>
        </div>`;
 
-  const navHTML = multi ? `
-    <button class="gallery-nav gallery-prev" type="button" aria-label="Previous image" onclick="galleryStep(-1)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <button class="gallery-nav gallery-next" type="button" aria-label="Next image" onclick="galleryStep(1)">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-    <span class="gallery-counter" id="galleryCounter" aria-hidden="true">1 / ${images.length}</span>` : "";
-
-  const thumbsHTML = multi ? `
-    <div class="gallery-thumbs" aria-label="Product image thumbnails">
+  const railHTML = multi ? `
+    <div class="gallery-rail" role="group" aria-label="Product image thumbnails">
       ${images.map((src, i) => `
         <button class="gallery-thumb${i === 0 ? " active" : ""}" type="button"
-          onclick="gallerySet(${i})" aria-label="Show image ${i + 1}"${i === 0 ? ' aria-current="true"' : ""}>
+          onclick="gallerySet(${i})" aria-label="Show image ${i + 1} of ${images.length}"${i === 0 ? ' aria-current="true"' : ""}>
           <img src="${src}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">
         </button>`).join("")}
     </div>` : "";
 
   el.innerHTML = `
-    <div class="gallery-main${images.length ? "" : " no-image"}" id="galleryMain">
-      <div class="gallery-stage" id="galleryStage">${stageContent}</div>
-      ${navHTML}
-    </div>
-    ${thumbsHTML}`;
+    <div class="gallery-wrap${multi ? " has-rail" : ""}">
+      ${railHTML}
+      <div class="gallery-main${images.length ? "" : " no-image"}" id="galleryMain">
+        <div class="gallery-stage" id="galleryStage">${stageContent}</div>
+      </div>
+    </div>`;
 }
 
 function gallerySet(i) {
-  const { images, label } = galleryState;
+  const { images, label, name } = galleryState;
   if (!images.length || i < 0 || i >= images.length) return;
   galleryState.index = i;
 
   const stage = document.getElementById("galleryStage");
   if (stage) {
-    stage.innerHTML = `<img id="galleryMainImg" src="${encodeURI(images[i])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${label}')">`;
+    stage.innerHTML = `<img id="galleryMainImg" src="${encodeURI(images[i])}" alt="${name} image ${i + 1} of ${images.length}" loading="lazy" onerror="ylImageFallback(this,'${label}')">`;
   }
-  const counter = document.getElementById("galleryCounter");
-  if (counter) counter.textContent = `${i + 1} / ${images.length}`;
 
   document.querySelectorAll(".gallery-thumb").forEach((t, idx) => {
     const active = idx === i;
@@ -226,12 +220,6 @@ function gallerySet(i) {
     if (active) t.setAttribute("aria-current", "true");
     else t.removeAttribute("aria-current");
   });
-}
-
-function galleryStep(delta) {
-  const { images, index } = galleryState;
-  if (images.length < 2) return;
-  gallerySet((index + delta + images.length) % images.length);
 }
 
 // ─── Product Summary (gallery-adjacent column) ────────────────────
@@ -327,6 +315,24 @@ function renderSummary(product) {
 // Industries / Surfaces / Key Features (common for accessories and a few
 // adhesives) are omitted entirely. Accessories show a clear "Product Type"
 // instead of the internal "Brand: Others & Accessories".
+// Small restrained red outline icons for the fixed, known spec labels
+// (locked reference shows an icon beside each definition label). Real labels
+// only — an unknown label simply renders without an icon.
+const SPEC_ICONS = {
+  "Brand":        '<path d="M20.59 13.41 12 22l-8.59-8.59A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.41.59L22 12a2 2 0 0 1-1.41 3.41Z" transform="scale(0.92)"/><circle cx="7.5" cy="7.5" r="1"/>',
+  "Product Type": '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>',
+  "Category":     '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  "Industries":   '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>',
+  "Surfaces":     '<polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/>',
+  "Key Features": '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+};
+
+function specIcon(key) {
+  const paths = SPEC_ICONS[key];
+  if (!paths) return "";
+  return `<span class="spec-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths}</svg></span>`;
+}
+
 function renderSpecTable(product) {
   const el = document.getElementById("detailSpecs");
   if (!el) return;
@@ -353,7 +359,7 @@ function renderSpecTable(product) {
     const check = `<span class="spec-feature-check" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`;
     featuresRow = `
       <div class="spec-row spec-row-wide">
-        <div class="spec-key">Key Features</div>
+        <div class="spec-key">${specIcon("Key Features")}Key Features</div>
         <div class="spec-val"><div class="spec-features">${product.features.map(f => `<span class="spec-feature">${check}<span class="spec-feature-text">${ylEscapeHtml(f)}</span></span>`).join("")}</div></div>
       </div>`;
   }
@@ -372,7 +378,7 @@ function renderSpecTable(product) {
     <div class="spec-table-wrap">
       ${rows.map(r => `
       <div class="spec-row">
-        <div class="spec-key">${r.key}</div>
+        <div class="spec-key">${specIcon(r.key)}${r.key}</div>
         <div class="spec-val">${r.val}</div>
       </div>`).join("")}
       ${featuresRow}
@@ -690,6 +696,8 @@ function renderRelated(product) {
   if (!section || !grid) return;
 
   const basket = getBasket().map(String);
+  const cmpList = getCompareList();
+  const cmpFull = cmpList.length >= COMPARE_MAX;
 
   section.style.display = "block";
   grid.innerHTML = related.map(p => {
@@ -706,26 +714,67 @@ function renderRelated(product) {
       : `<span class="pcard-brand-text">${ylEscapeHtml(brandDisplay(p.brand)).toUpperCase()}</span>`;
     // Base type is a real differentiator B2B buyers scan for.
     const base = (p.features || []).find(f => /(solvent|water)[\s-]*based/i.test(f)) || "";
-    const inBasket = basket.includes(String(p.id));
+    const inBasket  = basket.includes(String(p.id));
+    const inCompare = cmpList.includes(String(p.id));
+    const cmpDis    = !inCompare && cmpFull;
+    const cmpTitle  = cmpDis
+      ? "Comparison full: remove one to add another"
+      : inCompare ? "Remove from comparison" : "Add to compare";
+    // Same .pcard-cmp control as the catalogue cards, kept in sync by
+    // syncRelatedCompareBtns on the compareUpdated event.
     return `
     <article class="related-card">
-      <div class="related-card-head">${mark}</div>
-      <a class="${imgClass}" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
-      <div class="related-card-body">
-        <h3 class="related-card-name"><a href="${detailHref}">${ylEscapeHtml(p.name)}</a></h3>
-        <p class="related-card-desc">${ylEscapeHtml(p.shortDescription)}</p>
-        ${base ? `<span class="related-card-base">${ylEscapeHtml(base)}</span>` : ""}
-        <div class="related-card-actions">
-          <button class="related-card-enq${inBasket ? " added" : ""}" data-product-id="${p.id}"
-            aria-pressed="${inBasket ? "true" : "false"}"
-            onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
-          <a class="related-card-view" href="${detailHref}">View details
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
+      <div class="related-card-head">
+        <span class="related-card-brand" aria-hidden="true">${mark}</span>
+        <button
+          class="pcard-cmp${inCompare ? " on" : ""}"
+          data-product-id="${p.id}"
+          onclick="toggleCompare('${p.id}')"
+          ${cmpDis ? "disabled" : ""}
+          aria-pressed="${inCompare ? "true" : "false"}"
+          aria-label="${cmpTitle}">
+          <span class="pcard-cb" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          Compare
+        </button>
+      </div>
+      <div class="related-card-media">
+        <a class="${imgClass}" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
+        <div class="related-card-info">
+          <h3 class="related-card-name"><a href="${detailHref}">${ylEscapeHtml(p.name)}</a></h3>
+          <p class="related-card-desc">${ylEscapeHtml(p.shortDescription)}</p>
+          ${base ? `<span class="related-card-base">${ylEscapeHtml(base)}</span>` : ""}
         </div>
+      </div>
+      <div class="related-card-actions">
+        <button class="related-card-enq${inBasket ? " added" : ""}" data-product-id="${p.id}"
+          aria-pressed="${inBasket ? "true" : "false"}"
+          onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
+        <a class="related-card-view" href="${detailHref}">View details
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
       </div>
     </article>`;
   }).join("");
+}
+
+// Keep the related-card compare checkboxes in step with the compare list
+// (mirrors products.js syncCompareButtons, which only registers on the
+// catalogue page).
+function syncRelatedCompareBtns() {
+  const list = getCompareList();
+  const full = list.length >= COMPARE_MAX;
+  document.querySelectorAll(".related-card .pcard-cmp[data-product-id]").forEach(btn => {
+    const inCmp = list.includes(String(btn.dataset.productId));
+    const dis   = !inCmp && full;
+    btn.classList.toggle("on", inCmp);
+    btn.disabled = dis;
+    btn.setAttribute("aria-pressed", inCmp ? "true" : "false");
+    btn.setAttribute("aria-label", dis
+      ? "Comparison full: remove one to add another"
+      : inCmp ? "Remove from comparison" : "Add to compare");
+  });
 }
 
 // Keep the related-card enquiry buttons in step with the basket.
