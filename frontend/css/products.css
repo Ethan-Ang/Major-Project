@@ -1063,7 +1063,7 @@ body.detail-has-cta .toast {
 .apply-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.75rem;
+  gap: 1.5rem;
 }
 
 .apply-col { min-width: 0; }
@@ -1178,19 +1178,19 @@ body.detail-has-cta .toast {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.85rem;
-  padding: 2.2rem 1rem 0.4rem;
+  gap: 0.65rem;
+  padding: 1.1rem 1rem 0.2rem;
 }
 .doc-empty-icon {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--red);
 }
-.doc-empty-icon svg { width: 34px; height: 34px; }
+.doc-empty-icon svg { width: 26px; height: 26px; }
 .doc-empty-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .doc-empty-main { font-size: 0.98rem; font-weight: 700; color: var(--text); line-height: 1.45; }
 .doc-empty-sub  { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
@@ -1203,8 +1203,8 @@ body.detail-has-cta .toast {
   display: flex;
   width: max-content;
   flex: 0 0 auto;
-  margin: 0.9rem auto 1.2rem;
-  padding: 0.6rem 1.1rem;
+  margin: 0.6rem auto 0.3rem;
+  padding: 0.55rem 1.1rem;
 }
 
 .doc-download-icon {
@@ -1251,7 +1251,15 @@ body.detail-has-cta .toast {
 
 /* Product Advice band on the product detail page (locked design): white
    functional card, red headset icon, copy left, red CTA right. Sits once,
-   outside the tab panels. */
+   outside the tab panels, aligned to the SAME content container as the
+   gallery/tabs above and Related Products below (previously unconstrained,
+   so it spanned the full browser width instead of the page's max-width). */
+#detailAdvice {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
 .enquiry-guidance {
   display: flex;
   align-items: center;
@@ -1261,8 +1269,9 @@ body.detail-has-cta .toast {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.15rem 1.25rem;
-  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.75rem;
 }
 
 .enquiry-guidance-ic {
@@ -1270,12 +1279,11 @@ body.detail-has-cta .toast {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--red-tint);
+  width: 30px;
+  height: 30px;
   color: var(--red);
 }
+.enquiry-guidance-ic svg { width: 22px; height: 22px; }
 
 .enquiry-guidance-copy { min-width: 0; flex: 1; }
 
@@ -1334,7 +1342,7 @@ body.detail-has-cta .toast {
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.9rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border);
 }
@@ -1386,7 +1394,7 @@ body.detail-has-cta .toast {
 .related-card-head {
   display: flex;
   align-items: center;
-  padding: 0.7rem 1rem 0.45rem;
+  padding: 0.55rem 0.95rem 0.35rem;
 }
 
 /* The Yee Lim product shots carry their own white backgrounds. A flat cream
@@ -1394,7 +1402,7 @@ body.detail-has-cta .toast {
    at the optical centre, easing to warm cream at the edges) lets that white melt
    into the plate. Same wash as the main gallery stage, so the set reads as one. */
 .related-card-img {
-  height: 158px;
+  height: 128px;
   /* Near-white plate: the product shots carry baked-in white backgrounds, so a
      white plate makes that white seamless instead of a hard rectangle on cream.
      A whisper of warmth at the very edge keeps it from reading as a cold box. */
@@ -1427,7 +1435,7 @@ body.detail-has-cta .toast {
 }
 
 .related-card-body {
-  padding: 1rem 1.05rem 1.05rem;
+  padding: 0.85rem 0.95rem 0.9rem;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1435,22 +1443,22 @@ body.detail-has-cta .toast {
 
 .related-card-name {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--text);
   line-height: 1.3;
   letter-spacing: -0.01em;
-  margin: 0.15rem 0 0.4rem;
+  margin: 0.1rem 0 0.3rem;
   transition: color 0.2s var(--ease);
 }
 
 .related-card-desc {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
-  line-height: 1.5;
-  margin: 0 0 0.85rem;
+  line-height: 1.45;
+  margin: 0 0 0.6rem;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1477,8 +1485,8 @@ body.detail-has-cta .toast {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: 0.7rem;
-  padding-top: 0.7rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--line);
 }
 .related-card-enq {
@@ -2299,14 +2307,14 @@ body.detail-has-cta .toast {
    without needing an extra wrapper element around both. */
 .detail-tabs {
   max-width: 1180px;
-  margin: 2.25rem auto 0;
+  margin: 1.25rem auto 0;
   padding: 0 40px;
 }
 
 .detail-tablist {
   display: flex;
   border: 1px solid var(--border);
-  border-radius: 14px 14px 0 0;
+  border-radius: 8px 8px 0 0;
   background: var(--card);
   overflow: hidden;
 }
@@ -2315,9 +2323,9 @@ body.detail-has-cta .toast {
   flex: 1;
   background: none;
   border: none;
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 1rem;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--muted);
   border-bottom: 2px solid transparent;
@@ -2338,30 +2346,34 @@ body.detail-has-cta .toast {
 }
 
 .detail-tabpanel {
-  padding: 1.4rem;
+  padding: 1.1rem 1.25rem;
   background: var(--card);
   border: 1px solid var(--border);
   border-top: none;
-  border-radius: 0 0 14px 14px;
+  border-radius: 0 0 8px 8px;
 }
 
 @media (max-width: 640px) {
-  .detail-tab { font-size: 0.78rem; padding: 0.7rem 0.5rem; line-height: 1.3; }
+  .detail-tab { font-size: 0.78rem; padding: 0.65rem 0.5rem; line-height: 1.3; }
 }
 
 /* ─── Gallery ────────────────────────────────────────────────── */
+/* Landscape well (not a near-square box): aspect-ratio keeps the product
+   photo compact and lets it scale with the column instead of a fixed tall
+   height. Flat near-white plate — the previous cream gradient read too
+   beige next to the reference's cleaner warm-white surface. */
 .gallery-main {
   position: relative;
   width: 100%;
-  height: 420px;
-  background: radial-gradient(circle at 50% 38%, #fff, #f4efe5);
+  aspect-ratio: 1.9 / 1;
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
   cursor: default;
 }
 
@@ -2371,7 +2383,7 @@ body.detail-has-cta .toast {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.75rem;
+  padding: 1.25rem;
   box-sizing: border-box;
 }
 
@@ -2484,8 +2496,8 @@ body.detail-has-cta .toast {
    then a restrained availability row (small dot + status + muted note —
    never a large green pill). */
 .detail-product-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.35rem;
+  margin-bottom: 1.1rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid var(--line);
 }
 
@@ -2496,7 +2508,7 @@ body.detail-has-cta .toast {
   border: 1px solid var(--red-tint-bdr);
   border-radius: 4px;
   padding: 3px 9px 3px 5px;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.6rem;
 }
 .detail-brand-chip .pcard-brand-name { color: var(--red); }
 .detail-brand-chip.is-text {
@@ -2514,7 +2526,7 @@ body.detail-has-cta .toast {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.65rem;
-  margin-top: 0.9rem;
+  margin-top: 0.7rem;
 }
 
 .detail-avail {
@@ -2551,18 +2563,18 @@ body.detail-has-cta .toast {
 }
 
 .detail-product-name {
-  font-size: clamp(1.7rem, 3.5vw, 2.1rem);
+  font-size: clamp(1.5rem, 2.6vw, 1.85rem);
   font-weight: 700;
   color: var(--text);
-  line-height: 1.15;
-  margin-bottom: 0.65rem;
+  line-height: 1.18;
+  margin-bottom: 0.5rem;
 }
 
 .detail-product-desc {
-  font-size: 1rem;
+  font-size: 0.92rem;
   color: var(--body);
-  line-height: 1.65;
-  max-width: 68ch;
+  line-height: 1.55;
+  max-width: 62ch;
 }
 
 /* ─── Spec rows (locked design) ─────────────────────────────────
@@ -2578,17 +2590,17 @@ body.detail-has-cta .toast {
 
 .spec-row {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
+  grid-template-columns: 140px minmax(0, 1fr);
   gap: 0 1rem;
   border-bottom: 1px solid var(--line);
-  padding: 0.85rem 0;
+  padding: 0.6rem 0;
 }
 
 .spec-row-wide { grid-column: 1 / -1; }
 .spec-row:last-child { border-bottom: none; }
 
 .spec-key {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: -0.005em;
   color: var(--text);
@@ -2599,9 +2611,9 @@ body.detail-has-cta .toast {
 }
 
 .spec-val {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--body);
-  line-height: 1.5;
+  line-height: 1.45;
   align-self: start;
 }
 
@@ -2610,41 +2622,29 @@ body.detail-has-cta .toast {
   .spec-row-wide .spec-row:last-child { border-bottom: none; }
 }
 
+/* Key Features as a compact plain list (locked design: structured rows, not
+   pill/chip cards) — no background, no border, no radius per feature. */
 .spec-features {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
   margin: 0;
 }
 
-/* Each feature is a bordered tile with a red-tint check badge — reads as a
-   deliberate spec card rather than a floating checklist. */
 .spec-feature {
   display: flex;
-  /* Centre the check badge with the text: most features are a single line, and
-     the 21px badge is taller than the line, so top-aligning left it looking
-     slightly off. Centring reads cleanly inline (and stays fine for the rare
-     two-line feature, where the badge sits beside the text block). */
-  align-items: center;
-  gap: 0.55rem;
-  background: #fbfaf6;
-  border: 1px solid #ece7dc;
-  border-radius: 9px;
-  padding: 11px 14px;
-  font-size: 0.83rem;
-  line-height: 1.4;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
   color: var(--text);
 }
 
 .spec-feature-check {
   flex-shrink: 0;
-  width: 21px;
-  height: 21px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(204, 41, 41, 0.1);
+  width: 15px;
+  height: 15px;
+  margin-top: 0.1em;
   color: var(--red);
 }
 
@@ -2657,21 +2657,21 @@ body.detail-has-cta .toast {
 .sidebar-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .sidebar-actions .detail-act-enq {
   flex: 1.4 1 auto;
-  min-width: 180px;
-  padding-top: 0.65rem;
-  padding-bottom: 0.65rem;
+  min-width: 170px;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
 }
 .sidebar-actions .btn-compare-sidebar,
 .sidebar-actions .btn-whatsapp-sidebar {
   white-space: nowrap;
   flex: 1 0 auto;
-  padding-left: 0.9rem;
-  padding-right: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.85rem;
 }
 
 /* WhatsApp quick-chat button — sits beside Compare in the action row. Green
@@ -2765,9 +2765,11 @@ body.detail-has-cta .toast {
 
 /* ─── Responsive — detail page ───────────────────────────────── */
 @media (max-width: 768px) {
-  /* Single column, gallery first (its natural DOM order), summary below. */
+  /* Single column, gallery first (its natural DOM order), summary below.
+     A taller ratio than desktop: the stacked column is narrower, so the
+     landscape 1.9:1 well would leave the photo too small. */
   .detail-top { grid-template-columns: 1fr; }
-  .gallery-main { height: 380px; }
+  .gallery-main { aspect-ratio: 4 / 3; }
 }
 
 /* Trim the shared 40px inline padding on smaller viewports so no section can
@@ -2775,6 +2777,7 @@ body.detail-has-cta .toast {
 @media (max-width: 768px) {
   .detail-top,
   .detail-tabs,
+  #detailAdvice,
   .related-section { padding-left: 24px; padding-right: 24px; }
   .enquiry-guidance { flex-direction: column; align-items: flex-start; }
 }
@@ -2782,8 +2785,8 @@ body.detail-has-cta .toast {
 @media (max-width: 560px) {
   .detail-top,
   .detail-tabs,
+  #detailAdvice,
   .related-section { padding-left: 16px; padding-right: 16px; }
-  .gallery-main { height: 250px; }   /* capped so the photo doesn't dominate (per prototype) */
   .spec-row { grid-template-columns: 120px minmax(0, 1fr); }
   .related-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -4530,9 +4533,6 @@ body:has(.compare-tray.visible) .toast {
 .sticky-cta { display: none; }
 
 @media (max-width: 640px) {
-  /* ─── Step 3: product detail spec fixes ─────────────────────── */
-  .spec-features { grid-template-columns: 1fr; gap: 0.5rem; }
-
   /* ─── Step 3: sticky bottom action bar ──────────────────────── */
   body.detail-has-cta { padding-bottom: 4.9rem; }
   /* Extra breathing room above the fixed bar at the very end of the page.
