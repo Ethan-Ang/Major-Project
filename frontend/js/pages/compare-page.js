@@ -46,17 +46,10 @@ function initComparePage() {
   // compare content anchor is absent, so these are safe on other pages.
   ylOnce("compare:listeners", () => {
     window.addEventListener("compareUpdated", renderComparePage);
-    window.addEventListener("basketUpdated", renderComparePage);
     window.addEventListener("resize", updateCompareScrollHint);
   });
 }
 ylReady(initComparePage);
-
-// Local basket helpers (compare-page.js does not load js/pages/products.js,
-// so it cannot rely on that file's getBasket()/toggleBasket()).
-function getEnquiryBasket() {
-  return JSON.parse(localStorage.getItem("enquiryBasket") || "[]");
-}
 
 // Shared brand-monogram label (uppercased, trademark suffix collapsed) used
 // for image-fallback thumbnails in both the header cards and the selection panel.
@@ -72,6 +65,8 @@ function renderSelectPanel(products) {
   if (!products.length) { el.hidden = true; el.innerHTML = ""; return; }
   el.hidden = false;
 
+  const subtype = p => (typeof productSubtype === "function") ? productSubtype(p) : (p.category || "");
+
   const cards = products.map(p => {
     const brandLabel = cxBrandLabel(p.brand);
     const hasImg = p.images && p.images.length > 0;
@@ -84,6 +79,7 @@ function renderSelectPanel(products) {
         <span class="csel-text">
           <span class="csel-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
           <span class="csel-name">${ylEscapeHtml(p.name)}</span>
+          <span class="csel-sub">${ylEscapeHtml(subtype(p))}</span>
         </span>
         <button class="csel-x" onclick="toggleCompare('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from comparison">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -91,16 +87,24 @@ function renderSelectPanel(products) {
       </div>`;
   }).join("");
 
+  // Add/Search slot only below 3/3 — completely removed at the cap.
   const addSlot = products.length < COMPARE_MAX
     ? `<a class="csel-card csel-add" href="/products#catalogue"><span class="csel-add-icon" aria-hidden="true">+</span><span class="csel-add-text"><strong>Add a product</strong><small>Search or browse</small></span></a>`
     : "";
 
   el.innerHTML = `
     <div class="csel-head">Products to compare (${products.length}/3)</div>
-    <div class="csel-row">${cards}${addSlot}</div>
-    <div class="csel-actions">
-      <button class="compare-page-clear" onclick="clearAll()">Clear all</button>
-      <a class="btn btn-primary csel-compare" href="#comparePageContent">Compare now</a>
+    <div class="csel-body">
+      <div class="csel-row">${cards}${addSlot}</div>
+      <div class="csel-actions">
+        <a class="btn btn-primary csel-compare" href="#comparePageContent">Compare now
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <button class="compare-page-clear" onclick="clearAll()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Clear all
+        </button>
+      </div>
     </div>`;
 }
 
@@ -124,17 +128,15 @@ function renderComparePage() {
     return;
   }
 
-  const basket = getEnquiryBasket();
+  const subtype = p => (typeof productSubtype === "function") ? productSubtype(p) : (p.category || "");
 
   const headerCols = products.map(p => {
-    const availClass  = p.status === "Available" ? "available" : "unavailable";
     const brandLabel  = cxBrandLabel(p.brand);
     const placeholderSub = ylEscapeHtml((p.category && p.category !== "Others") ? p.category : "Adhesive Solution");
     const hasRealImage = p.images && p.images.length > 0;
     const imgContent = hasRealImage
       ? `<img src="${encodeURI(p.images[0])}" alt="${ylEscapeHtml(p.name)}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : `<span class="compare-img-placeholder">${brandLabel}</span><span class="compare-img-placeholder-sub">${placeholderSub}</span>`;
-    const inBasket = basket.includes(String(p.id));
     return `
       <td class="compare-col-header">
         <div class="compare-col-inner">
@@ -142,24 +144,48 @@ function renderComparePage() {
             <button class="compare-col-remove" aria-label="Remove from comparison" onclick="removeFromCompare('${p.id}')">&times;</button>
             ${imgContent}
           </div>
-          <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
           <div class="compare-product-brand">${ylEscapeHtml(brandDisplay(p.brand))}</div>
-          <div class="compare-col-avail ${availClass}">
-            <span class="avail-dot"></span>${ylEscapeHtml(p.status)}
-          </div>
-          <button class="btn-add-enquiry${inBasket ? " added" : ""}" aria-pressed="${inBasket ? "true" : "false"}" onclick="addToBasket('${p.id}', '${ylTxt(p.name)}')">${inBasket ? "In Product Enquiry" : "Add to Product Enquiry"}</button>
+          <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
+          <div class="compare-product-sub">${ylEscapeHtml(subtype(p))}</div>
         </div>
       </td>`;
   }).join("");
 
+  // Real comparison fields only; a missing value renders as an em dash.
+  const EMPTY = `<span class="compare-empty-val" aria-label="Not specified">&mdash;</span>`;
+  const text = v => (v && String(v).trim()) ? ylEscapeHtml(String(v).trim()) : EMPTY;
+  const listVals = arr => (arr && arr.length) ? ylEscapeHtml(arr.join(", ")) : EMPTY;
+  // The real "Suitable for" method segment of the usage field, when present.
+  const methodOf = p => {
+    const usage = String(p.usage || "").trim();
+    if (!usage || /^(x+|-+|\.+|n\/?a|tbd|none|null)$/i.test(usage)) return "";
+    const m = usage.match(/suitable for\s*:\s*/i);
+    return (m ? usage.slice(0, m.index) : usage).trim();
+  };
+  const check = `<span class="compare-check" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`;
+  const icon = d => `<span class="compare-label-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg></span>`;
+
   const specRows = [
-    { label: "Category",     render: p => ylEscapeHtml(p.category) },
-    { label: "Industries",   render: p => p.industries.map(i => `<span class="compare-tag">${ylEscapeHtml(i)}</span>`).join("") },
-    { label: "Surfaces",     render: p => p.surfaces.map(s => `<span class="compare-tag">${ylEscapeHtml(s)}</span>`).join("") },
-    { label: "Key Features", render: p => p.features.map(f => `<div class="compare-feature">${ylEscapeHtml(f)}</div>`).join("") }
+    { label: "Best for",
+      ic: icon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>'),
+      render: p => listVals(p.industries) },
+    { label: "Surface / Material",
+      ic: icon('<polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/>'),
+      render: p => listVals(p.surfaces) },
+    { label: "Application Method",
+      ic: icon('<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>'),
+      render: p => text(methodOf(p)) },
+    { label: "Category",
+      ic: icon('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>'),
+      render: p => text(p.category === "Others" ? "Application Equipment" : p.category) },
+    { label: "Key Features",
+      ic: icon('<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'),
+      render: p => p.features.length
+        ? p.features.map(f => `<div class="compare-feature">${check}${ylEscapeHtml(f)}</div>`).join("")
+        : EMPTY }
   ].map(row => `
     <tr>
-      <td class="compare-row-label">${row.label}</td>
+      <td class="compare-row-label">${row.ic}${row.label}</td>
       ${products.map(p => `<td class="compare-row-value">${row.render(p)}</td>`).join("")}
     </tr>`).join("");
 
@@ -191,58 +217,14 @@ function renderComparePage() {
           ${specRows}
         </tbody>
       </table>
-    </div>`;
+    </div>
+    <p class="compare-disclaimer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Product information is provided for general guidance only. Contact Yee Lim for full technical details.
+    </p>`;
 
   // Measure after layout so the swipe hint only appears when columns overflow.
   requestAnimationFrame(updateCompareScrollHint);
-
-  // Portrait phones get a one-time nudge to rotate for the side-by-side view.
-  maybeShowRotateNudge(products.length);
-}
-
-// One-time, dismissible "rotate your phone" overlay. Only on a portrait,
-// coarse-pointer phone (≤640px) with 2+ products. Dismissal persists in
-// localStorage; it also auto-hides the moment the device turns to landscape.
-// The horizontal-scroll table remains the fallback for anyone who ignores it.
-let rotateNudgeShown = false;
-function maybeShowRotateNudge(count) {
-  if (rotateNudgeShown || count < 2) return;
-  if (localStorage.getItem("ylCompareRotateDismissed")) return;
-
-  const coarse   = window.matchMedia("(pointer: coarse)").matches;
-  const portrait = window.matchMedia("(orientation: portrait)").matches;
-  if (!coarse || !portrait || window.innerWidth > 640) return;
-  if (document.getElementById("cxRotateOverlay")) return;
-  rotateNudgeShown = true;
-
-  const overlay = document.createElement("div");
-  overlay.className = "cx-rotate-overlay";
-  overlay.id = "cxRotateOverlay";
-  overlay.innerHTML = `
-    <div class="cx-rotate-card" role="dialog" aria-modal="true" aria-labelledby="cxRotateTitle">
-      <span class="cx-rotate-icon" aria-hidden="true">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="10" height="20" rx="2"/><path d="M14 8l3-3 3 3"/><path d="M17 5v6a9 9 0 0 1-9 9"/></svg>
-      </span>
-      <h3 class="cx-rotate-title" id="cxRotateTitle">Rotate for the best view</h3>
-      <p class="cx-rotate-text">Turn your phone sideways to compare all products side by side in one glance.</p>
-      <button type="button" class="cx-rotate-dismiss">I&rsquo;ve rotated, continue</button>
-      <button type="button" class="cx-rotate-stay">Stay in portrait &amp; scroll instead</button>
-    </div>`;
-  document.body.appendChild(overlay);
-
-  const landscapeMq = window.matchMedia("(orientation: landscape)");
-  const onRotate = (e) => { if (e.matches) close(false); };
-  const close = (persist) => {
-    if (persist) localStorage.setItem("ylCompareRotateDismissed", "1");
-    landscapeMq.removeEventListener("change", onRotate);
-    overlay.remove();
-  };
-  // Both buttons dismiss and remember the choice; portrait scroll is the
-  // fallback, never blocked. Auto-dismiss (no persist) when turned to landscape.
-  overlay.querySelector(".cx-rotate-dismiss").addEventListener("click", () => close(true));
-  overlay.querySelector(".cx-rotate-stay").addEventListener("click", () => close(true));
-  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(true); });
-  landscapeMq.addEventListener("change", onRotate);
 }
 
 // Show the swipe hint only when the product columns actually overflow the
@@ -257,28 +239,6 @@ function updateCompareScrollHint() {
     const atEnd = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 8;
     hint.style.opacity = atEnd ? "0" : "1";
   };
-}
-
-function addToBasket(productId, productName) {
-  const basket = getEnquiryBasket();
-  const id     = String(productId);
-  const name   = (productName && String(productName).trim()) ? String(productName).trim() : "Product";
-  if (!basket.includes(id)) {
-    basket.push(id);
-    try {
-      localStorage.setItem("enquiryBasket", JSON.stringify(basket));
-    } catch (e) {
-      // Real failure to persist: show a visible error, do not flip the button.
-      (window.showToast || function () {})("Sorry, we couldn't update your enquiry. Please try again.", "error");
-      return;
-    }
-    window.dispatchEvent(new Event("basketUpdated"));
-    // No visible success toast — the button flips to "In Enquiry"; announce for SR.
-    (window.announce || function () {})(name + " was added to your product enquiry.");
-  } else {
-    // Already present: no duplicate, no visible toast; quietly confirm for SR.
-    (window.announce || function () {})(name + " is already in your product enquiry.");
-  }
 }
 
 function clearAll() {

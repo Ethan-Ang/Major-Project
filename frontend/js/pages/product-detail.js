@@ -111,6 +111,7 @@ async function initDetailPage() {
     });
     window.addEventListener("basketUpdated", () => {
       if (detailProduct) syncDetailBasketButtons(detailProduct);
+      syncRelatedEnqButtons();
       syncStickyCtaReserve(); // Add→Added can reflow the bar; re-measure
     });
     // Re-measure the bar reservation when the viewport changes (rotation,
@@ -199,13 +200,8 @@ function renderGallery(product) {
         </button>`).join("")}
     </div>` : "";
 
-  const brandChip = images.length
-    ? `<span class="gallery-brand-chip" aria-hidden="true">${brandLabel}</span>`
-    : "";
-
   el.innerHTML = `
     <div class="gallery-main${images.length ? "" : " no-image"}" id="galleryMain">
-      ${brandChip}
       <div class="gallery-stage" id="galleryStage">${stageContent}</div>
       ${navHTML}
     </div>
@@ -243,6 +239,15 @@ function galleryStep(delta) {
 // renderSidebar (buy box). Element IDs and classes on the action controls are
 // unchanged from the old sidebar markup so updateSidebarCompareBtn and
 // syncDetailBasketButtons (which target them by id) keep working untouched.
+// Official brand marks (real assets only, shared shape with the catalogue
+// cards). Accessories have no brand mark and show a plain text tag.
+const DETAIL_BRAND_LOGOS = {
+  "Deer™ Brand":     "/images/logos/Deer.png",
+  "Horsemen™ Brand": "/images/logos/Horsemen.png",
+  "Premier™ Brand":  "/images/logos/Premier.png",
+  "Rhino™ Brand":    "/images/logos/Rhino.png",
+};
+
 function renderSummary(product) {
   const el = document.getElementById("detailSummary");
   if (!el) return;
@@ -250,8 +255,7 @@ function renderSummary(product) {
   const basket    = getBasket();
   const inBasket  = basket.includes(product.id);
   const inCompare = isInCompare(product.id);
-  const availClass   = product.status === "Available" ? "available" : "unavailable";
-  const enquiryLabel  = product.status === "Available" ? "Add to Product Enquiry" : "Enquire About Availability";
+  const available = product.status === "Available";
 
   // The one summary paragraph: prefer the full description, fall back to the
   // short one when the full field is a placeholder ("x", "n/a", etc). Real
@@ -266,42 +270,55 @@ function renderSummary(product) {
     `Hello Yee Lim, I would like to enquire about ${product.name}.`);
   const waHref = `https://wa.me/6588755786?text=${waText}`;
 
+  const logo = DETAIL_BRAND_LOGOS[product.brand];
+  const brandLabel = ylEscapeHtml(product.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
+  const brandMark = logo
+    ? `<span class="detail-brand-chip"><span class="pcard-brand-ic"><img src="${logo}" alt=""></span><span class="pcard-brand-name">${brandLabel}</span></span>`
+    : `<span class="detail-brand-chip is-text">${ylEscapeHtml(brandDisplay(product.brand)).toUpperCase()}</span>`;
+
   el.innerHTML = `
     <div class="detail-product-header">
-      <div class="detail-product-meta">
-        <span class="brand-badge">${ylEscapeHtml(brandDisplay(product.brand))}</span>
-        <span class="avail-badge ${availClass}" aria-label="Availability: ${ylEscapeHtml(product.status)}">
-          <span class="avail-dot" aria-hidden="true"></span>${product.status}
-        </span>
-      </div>
+      ${brandMark}
       <h1 class="detail-product-name">${ylEscapeHtml(product.name)}</h1>
       ${descText ? `<p class="detail-product-desc">${ylEscapeHtml(descText)}</p>` : ""}
+      <div class="detail-avail-row">
+        <span class="detail-avail ${available ? "is-in" : "is-out"}" aria-label="Availability: ${ylEscapeHtml(product.status)}">
+          <span class="avail-dot" aria-hidden="true"></span>${ylEscapeHtml(product.status)}
+        </span>
+        <span class="detail-avail-sep" aria-hidden="true"></span>
+        <span class="detail-avail-note">Our team will advise on suitability, pricing &amp; lead time</span>
+      </div>
     </div>
     <div class="sidebar-actions">
       <button
-        class="btn btn-primary btn-lg${inBasket ? " btn-added" : ""}"
+        class="btn btn-primary detail-act-enq${inBasket ? " btn-added" : ""}"
         id="sidebarBasketBtn"
-        data-enquiry-label="${enquiryLabel}"
+        data-enquiry-label="Add to Enquiry"
         aria-pressed="${inBasket ? "true" : "false"}"
         onclick="toggleBasket('${product.id}', '${ylTxt(product.name)}')">
-        ${inBasket ? "In Product Enquiry" : enquiryLabel}
+        ${inBasket
+          ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> In Enquiry`
+          : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Add to Enquiry`}
       </button>
-      <div class="sidebar-action-row">
-        <button
-          class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
-          id="sidebarCompareBtn"
-          onclick="toggleCompare('${product.id}')">
-          ${inCompare ? "&#10003; In Comparison" : "+ Compare"}
-        </button>
-        <a class="btn-whatsapp-sidebar" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Chat about this product on WhatsApp">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>
-          WhatsApp
-        </a>
-      </div>
+      <button
+        class="btn-compare-sidebar${inCompare ? " in-compare" : ""}"
+        id="sidebarCompareBtn"
+        onclick="toggleCompare('${product.id}')">
+        ${inCompare
+          ? "&#10003; In Comparison"
+          : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg> Compare`}
+      </button>
+      <a class="btn-whatsapp-sidebar" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Talk to Yee Lim about this product on WhatsApp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>
+        Talk to Yee Lim
+      </a>
     </div>
     <div class="sidebar-foot">
       <a href="/enquiry" class="sidebar-enquiry-link" id="sidebarEnquiryLink"${inBasket ? "" : " hidden"}>View Product Enquiry &rarr;</a>
-      <p class="sidebar-note">Yee Lim's team will advise on suitability, pricing &amp; lead time.</p>
+      <p class="sidebar-note">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        If this product is out of stock, you can still submit an enquiry and we&rsquo;ll advise on availability.
+      </p>
     </div>`;
 }
 
@@ -315,7 +332,8 @@ function renderSpecTable(product) {
   if (!el) return;
 
   const isAccessory = product.brand === "Others & Accessories" || product.category === "Others";
-  const tagList = arr => `<div class="spec-tags">${arr.map(x => `<span class="spec-tag">${ylEscapeHtml(x)}</span>`).join("")}</div>`;
+  // Plain comma-separated values (locked design: structured rows, no pills).
+  const listText = arr => ylEscapeHtml(arr.join(", "));
 
   const rows = [];
   if (isAccessory) {
@@ -326,14 +344,28 @@ function renderSpecTable(product) {
     if (product.category) rows.push({ key: "Category", val: ylEscapeHtml(product.category) });
   }
 
-  if (product.industries.length) rows.push({ key: "Industries", val: tagList(product.industries) });
-  if (product.surfaces.length)   rows.push({ key: "Surfaces",   val: tagList(product.surfaces) });
+  if (product.industries.length) rows.push({ key: "Industries", val: listText(product.industries) });
+  if (product.surfaces.length)   rows.push({ key: "Surfaces",   val: listText(product.surfaces) });
+
+  // Key Features spans the full width below the two-column definition rows.
+  let featuresRow = "";
   if (product.features.length) {
     const check = `<span class="spec-feature-check" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`;
-    rows.push({
-      key: "Key Features",
-      val: `<div class="spec-features">${product.features.map(f => `<span class="spec-feature">${check}<span class="spec-feature-text">${ylEscapeHtml(f)}</span></span>`).join("")}</div>`
-    });
+    featuresRow = `
+      <div class="spec-row spec-row-wide">
+        <div class="spec-key">Key Features</div>
+        <div class="spec-val"><div class="spec-features">${product.features.map(f => `<span class="spec-feature">${check}<span class="spec-feature-text">${ylEscapeHtml(f)}</span></span>`).join("")}</div></div>
+      </div>`;
+  }
+
+  // Honest compact empty state when no real specification data exists.
+  if (!rows.length && !featuresRow) {
+    el.innerHTML = `
+      <div class="apply-empty">
+        <p>Specifications for this product are available from our team.</p>
+        <p><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> for detailed technical information.</p>
+      </div>`;
+    return;
   }
 
   el.innerHTML = `
@@ -343,6 +375,7 @@ function renderSpecTable(product) {
         <div class="spec-key">${r.key}</div>
         <div class="spec-val">${r.val}</div>
       </div>`).join("")}
+      ${featuresRow}
     </div>`;
 }
 
@@ -454,7 +487,9 @@ function updateSidebarCompareBtn(productId) {
   const btn = document.getElementById("sidebarCompareBtn");
   if (btn) {
     btn.className = `btn-compare-sidebar${inCompare ? " in-compare" : ""}`;
-    btn.innerHTML = inCompare ? "&#10003; In Comparison" : "+ Add to Compare";
+    btn.innerHTML = inCompare
+      ? "&#10003; In Comparison"
+      : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg> Compare`;
   }
 
   // Keep the mobile sticky-bar compare button in step with the sidebar.
@@ -622,29 +657,39 @@ function renderAdvice(product) {
 
   el.innerHTML = `
     <div class="enquiry-guidance">
+      <span class="enquiry-guidance-ic" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 0 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
+      </span>
       <div class="enquiry-guidance-copy">
         <h2 class="enquiry-guidance-title">Need help confirming compatibility?</h2>
         <p>Share your materials, application and quantity requirements. Our team will help confirm the most suitable option.</p>
       </div>
       <button type="button" class="enquiry-guidance-link"
         onclick="if(window.openProductAdvisor){openProductAdvisor()}else{window.location.href='/contact'}">
-        Get Product Advice &rarr;</button>
+        Get Product Advice
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
     </div>`;
 }
 
 // ─── Related Products ─────────────────────────────────────────────
+// Three compact cards on desktop; a horizontal scroll-snap carousel on phones
+// (one shared markup, CSS switches the layout). Appears once, below the
+// Product Advice band.
 function renderRelated(product) {
   const related = PRODUCTS.filter(p =>
     String(p.id) !== String(product.id) &&
     (p.brand === product.brand ||
      p.industries.some(i => product.industries.includes(i)))
-  ).slice(0, 4);
+  ).slice(0, 3);
 
   if (related.length === 0) return;
 
   const section = document.getElementById("relatedSection");
   const grid    = document.getElementById("relatedGrid");
   if (!section || !grid) return;
+
+  const basket = getBasket().map(String);
 
   section.style.display = "block";
   grid.innerHTML = related.map(p => {
@@ -655,20 +700,43 @@ function renderRelated(product) {
       : `<div class="no-image-mark" aria-hidden="true">${brandLabel}</div>`;
     const imgClass = hasRealImage ? "related-card-img" : "related-card-img no-image";
     const detailHref = `/product-detail?id=${encodeURIComponent(p.id)}`;
-    // The whole card is the link, so no CTA is needed. Fill the bottom slot with
-    // the base type instead — a real differentiator B2B buyers scan for.
+    const logo = DETAIL_BRAND_LOGOS[p.brand];
+    const mark = logo
+      ? `<span class="pcard-brand-ic"><img src="${logo}" alt="" loading="lazy"></span><span class="pcard-brand-name">${brandLabel}</span>`
+      : `<span class="pcard-brand-text">${ylEscapeHtml(brandDisplay(p.brand)).toUpperCase()}</span>`;
+    // Base type is a real differentiator B2B buyers scan for.
     const base = (p.features || []).find(f => /(solvent|water)[\s-]*based/i.test(f)) || "";
+    const inBasket = basket.includes(String(p.id));
     return `
-    <a class="related-card" href="${detailHref}" aria-label="${ylEscapeHtml(p.name)}, view product">
-      <div class="${imgClass}">${imageContent}</div>
+    <article class="related-card">
+      <div class="related-card-head">${mark}</div>
+      <a class="${imgClass}" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
       <div class="related-card-body">
-        <span class="brand-badge">${ylEscapeHtml(brandDisplay(p.brand))}</span>
-        <h3 class="related-card-name">${ylEscapeHtml(p.name)}</h3>
+        <h3 class="related-card-name"><a href="${detailHref}">${ylEscapeHtml(p.name)}</a></h3>
         <p class="related-card-desc">${ylEscapeHtml(p.shortDescription)}</p>
         ${base ? `<span class="related-card-base">${ylEscapeHtml(base)}</span>` : ""}
+        <div class="related-card-actions">
+          <button class="related-card-enq${inBasket ? " added" : ""}" data-product-id="${p.id}"
+            aria-pressed="${inBasket ? "true" : "false"}"
+            onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')">${inBasket ? "In Enquiry" : "Add to Enquiry"}</button>
+          <a class="related-card-view" href="${detailHref}">View details
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
       </div>
-    </a>`;
+    </article>`;
   }).join("");
+}
+
+// Keep the related-card enquiry buttons in step with the basket.
+function syncRelatedEnqButtons() {
+  const basket = getBasket().map(String);
+  document.querySelectorAll(".related-card-enq[data-product-id]").forEach(btn => {
+    const on = basket.includes(String(btn.dataset.productId));
+    btn.classList.toggle("added", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    btn.textContent = on ? "In Enquiry" : "Add to Enquiry";
+  });
 }
 
 // ─── Basket helpers ───────────────────────────────────────────────
@@ -681,7 +749,9 @@ function syncDetailBasketButtons(product) {
 
   const btn = document.getElementById("sidebarBasketBtn");
   if (btn) {
-    btn.textContent = inBasket ? "In Product Enquiry" : (btn.dataset.enquiryLabel || "Add to Product Enquiry");
+    btn.innerHTML = inBasket
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> In Enquiry`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg> ${btn.dataset.enquiryLabel || "Add to Enquiry"}`;
     btn.classList.toggle("btn-added", inBasket);
     btn.setAttribute("aria-pressed", inBasket ? "true" : "false");
   }
