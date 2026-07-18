@@ -18,15 +18,6 @@ ${message}`
   window.location.href = `mailto:contact@yeelimadhesives.com.sg?subject=${mailSubject}&body=${mailBody}`;
 }
 
-// Clear Form: resets every field and any status message. Plain reset, no
-// confirmation dialog (nothing is submitted or lost server-side).
-function clearContactForm() {
-  const form = document.querySelector(".contact-form");
-  if (form) form.reset();
-  const status = document.getElementById("contactFormStatus");
-  if (status) { status.textContent = ""; status.className = "contact-form-status"; }
-}
-
 async function submitContactForm(event) {
   event.preventDefault();
 

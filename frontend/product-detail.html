@@ -8,10 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=77">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=7">
-  <script src="/js/widgets/navbar.js?v=14"></script>
-  <script src="/js/widgets/footer.js?v=18"></script>
+  <link rel="stylesheet" href="/css/products.css?v=78">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
+  <script src="/js/widgets/navbar.js?v=15"></script>
+  <script src="/js/widgets/footer.js?v=19"></script>
 </head>
 <body>
 
@@ -56,23 +56,27 @@
   <div class="related-grid" id="relatedGrid"></div>
 </div>
 
-<!-- Compare tray -->
+<!-- Compare tray: quiet centred trigger tab; the full panel expands on demand -->
 <div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
-  <div class="compare-tray-inner">
-    <div class="compare-tray-head">
-      <span class="compare-tray-title">Compare <span id="compareTrayCount">(0/3)</span></span>
-      <span class="compare-tray-sub">Add up to 3 products</span>
+  <button class="compare-tray-trigger" id="compareTrayToggle" type="button" onclick="toggleCompareTray()" aria-expanded="false" aria-controls="compareTrayPanel">
+    <svg class="ctt-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+    Compare <span id="compareTrayCount">(0)</span>
+    <svg class="ctt-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+  <div class="compare-tray-panel" id="compareTrayPanel">
+    <div class="compare-tray-inner">
+      <div class="compare-tray-head">
+        <span class="compare-tray-title">Compare <span id="compareTrayFull">(0/3)</span></span>
+        <span class="compare-tray-sub">Add up to 3 products</span>
+      </div>
+      <div class="compare-tray-slots" id="compareTraySlots"></div>
+      <div class="compare-tray-actions" id="compareTrayActions">
+        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison">Clear all</button>
+        <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view">Compare now
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
     </div>
-    <div class="compare-tray-slots" id="compareTraySlots"></div>
-    <div class="compare-tray-actions" id="compareTrayActions">
-      <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison">Clear all</button>
-      <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view">Compare now
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </button>
-    </div>
-    <button class="compare-tray-collapse" id="compareTrayToggle" type="button" onclick="toggleCompareTray()" aria-expanded="true" aria-controls="compareTraySlots compareTrayActions" aria-label="Collapse comparison tray">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
   </div>
 </div>
 
@@ -83,16 +87,17 @@
 <!-- Footer injected by js/widgets/footer.js -->
 
 <script src="/js/vendor/swup.umd.js?v=1"></script>
-<script src="/js/data.js?v=7"></script>
+<script src="/js/data.js?v=8"></script>
 <script src="/js/core/app.js?v=3"></script>
-<script src="/js/widgets/compare.js?v=12"></script>
-<script src="/js/widgets/custom-select.js?v=4"></script>
-<script src="/js/pages/products.js?v=39"></script>
-<script src="/js/pages/product-detail.js?v=26"></script>
+<script src="/js/widgets/compare.js?v=13"></script>
+<script src="/js/widgets/custom-select.js?v=5"></script>
+<script src="/js/pages/products.js?v=40"></script>
+<script src="/js/pages/home.js?v=1"></script>
+<script src="/js/pages/product-detail.js?v=27"></script>
 <script src="/js/pages/compare-page.js?v=14"></script>
-<script src="/js/pages/enquiry.js?v=4"></script>
-<script src="/js/pages/contact.js?v=2"></script>
+<script src="/js/pages/enquiry.js?v=5"></script>
+<script src="/js/pages/contact.js?v=3"></script>
 <script src="/js/widgets/chatbot.js?v=18"></script>
-<script src="/js/widgets/page-transitions.js?v=3"></script>
+<script src="/js/widgets/page-transitions.js?v=4"></script>
 </body>
 </html>

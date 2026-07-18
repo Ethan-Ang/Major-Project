@@ -305,7 +305,6 @@ function renderSummary(product) {
       </a>
     </div>
     <div class="sidebar-foot">
-      <a href="/enquiry" class="sidebar-enquiry-link" id="sidebarEnquiryLink"${inBasket ? "" : " hidden"}>View Product Enquiry &rarr;</a>
       <p class="sidebar-note">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         If this product is out of stock, you can still submit an enquiry and we&rsquo;ll advise on availability.
@@ -485,14 +484,16 @@ function renderDownloads(product) {
       </div>`
     : `<div class="doc-empty">
         <span class="doc-empty-icon" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="17" x2="12" y2="11"/>
+            <polyline points="9.5 14.5 12 17 14.5 14.5"/>
           </svg>
         </span>
         <span class="doc-empty-text">
           <span class="doc-empty-main">No downloads are currently available for this product.</span>
-          <span class="doc-empty-sub"><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> if you require technical documentation.</span>
+          <span class="doc-empty-sub">Contact Yee Lim for technical documentation.</span>
         </span>
       </div>
       <a class="btn-whatsapp-sidebar doc-empty-wa" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Chat about this product on WhatsApp">
@@ -642,24 +643,72 @@ function renderApplication(product) {
   // method label, so it reads as "How to Use" rather than "Application
   // Method" (which implies a short method name beside a Suitable Uses list).
   const methodHeading = m ? "Application Method" : "How to Use";
-  el.innerHTML = `
-    <div class="apply-grid">
-      ${method ? `
+
+  // Numbered steps ONLY from genuinely sequential real instructions: the
+  // method text's own sentences, verbatim. A single-sentence method ("Apply
+  // by brush or roll.") stays a single statement — no invented steps.
+  const sentences = method
+    .split(/(?<=\.)\s+(?=[A-Z0-9])/)
+    .map(s => s.trim())
+    .filter(s => s.length > 2);
+  const steps = sentences.length >= 2 ? sentences : [];
+
+  // Key Benefits: recorded claim strings only, verbatim. The rows already
+  // parsed into the Specifications table (Application:, Available in, the
+  // solvent/water base) and the physical-form characteristics line are
+  // excluded; what remains are the genuine recorded claims (e.g. "Low VOC
+  // (as stated by Yee Lim)"). Nothing is invented — no claims, no column.
+  const claims = (product.features || [])
+    .map(f => String(f).trim())
+    .filter(f => f &&
+      !/^application\s*:/i.test(f) &&
+      !/^available in\s+/i.test(f) &&
+      !/^(solvent|water)[\s-]*based$/i.test(f) &&
+      !/^(liquid|paste|gel|aerosol|semi[-\s]?solid|solid)\b/i.test(f));
+
+  const cols = [];
+
+  if (method) {
+    cols.push(`
       <div class="apply-col">
-        <h3 class="apply-heading">${methodHeading}</h3>
-        <p class="apply-method">${ylEscapeHtml(method)}</p>
-      </div>` : ""}
-      ${usesList.length ? `
+        <h3 class="apply-heading">${applyIcon("method")}${methodHeading}</h3>
+        ${steps.length
+          ? `<ol class="apply-steps">${steps.map(s => `<li><span class="apply-step-n" aria-hidden="true"></span><span class="apply-step-text">${ylEscapeHtml(s)}</span></li>`).join("")}</ol>`
+          : `<p class="apply-method">${ylEscapeHtml(method)}</p>`}
+      </div>`);
+  }
+
+  if (usesList.length || usesSingle) {
+    cols.push(`
       <div class="apply-col">
-        <h3 class="apply-heading">Suitable Uses</h3>
-        <ul class="apply-uses">${usesList.map(u => `<li>${ylEscapeHtml(u)}</li>`).join("")}</ul>
-      </div>` : ""}
-      ${usesSingle ? `
+        <h3 class="apply-heading">${applyIcon("uses")}Suitable Uses</h3>
+        ${usesList.length
+          ? `<ul class="apply-uses">${usesList.map(u => `<li>${ylEscapeHtml(u)}</li>`).join("")}</ul>`
+          : `<p class="apply-suitable-single">${ylEscapeHtml(usesSingle)}</p>`}
+      </div>`);
+  }
+
+  if (claims.length) {
+    cols.push(`
       <div class="apply-col">
-        <h3 class="apply-heading">Suitable Uses</h3>
-        <p class="apply-suitable-single">${ylEscapeHtml(usesSingle)}</p>
-      </div>` : ""}
-    </div>`;
+        <h3 class="apply-heading">${applyIcon("benefits")}Key Benefits</h3>
+        <ul class="apply-claims">${claims.map(c => `
+          <li><span class="apply-claim-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8.5 12.2 11 14.7 15.5 9.8"/></svg></span>${ylEscapeHtml(c)}</li>`).join("")}
+        </ul>
+      </div>`);
+  }
+
+  el.innerHTML = `<div class="apply-grid apply-cols-${cols.length}">${cols.join("")}</div>`;
+}
+
+// Restrained red heading icons for the Application tab columns.
+function applyIcon(kind) {
+  const paths = {
+    method:   '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>',
+    uses:     '<polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/>',
+    benefits: '<path d="M20 6 9 17l-5-5"/>',
+  }[kind] || "";
+  return `<span class="apply-heading-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${paths}</svg></span>`;
 }
 
 // ─── Tab switcher (Specifications / Application / Downloads) ──────
@@ -830,9 +879,6 @@ function syncDetailBasketButtons(product) {
     sticky.classList.toggle("added", inBasket);
     sticky.setAttribute("aria-pressed", inBasket ? "true" : "false");
   }
-
-  const enquiryLink = document.getElementById("sidebarEnquiryLink");
-  if (enquiryLink) enquiryLink.hidden = !inBasket;
 }
 
 // Bottom "Send Product Enquiry" CTA: the visitor is already looking at a

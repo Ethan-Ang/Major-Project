@@ -20,6 +20,14 @@ function initEnquiryPage() {
   const list = document.getElementById("basketList");
   if (!list) return;
   initEnquiryCounters();
+  // Subject uses the same accessible custom dropdown as the catalogue sort,
+  // replacing the native browser option list. The native <select> stays in
+  // the DOM as the value source, so submitEnquiry and the frontend-only
+  // Subject handling are unchanged. Safe to re-run across Swup swaps
+  // (enhanceCustomSelect guards against double enhancement).
+  if (typeof enhanceCustomSelect === "function") {
+    enhanceCustomSelect(document.getElementById("eSubject"));
+  }
   if (PRODUCTS && PRODUCTS.length) { renderBasket(); return; }
   renderBasketSkeleton();
   loadProductsFromBackend()
