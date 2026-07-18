@@ -1947,12 +1947,13 @@ body.detail-has-cta .toast {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem 0.8rem;            /* tight icon→label; advice is pushed right by auto margin */
-  margin: 14px -20px -14px;      /* reach the card's side + bottom padding edges */
-  padding: 13px 20px;
+  margin: 16px 0 0;
+  padding: 14px 16px;
   /* Same white surface as the card — separated only by one hairline divider, not
      a tinted footer band (the reported "heavy tinted band"). Compact. */
-  background: var(--card);
-  border-top: 1px solid var(--line);
+  background: #f7f6f2;
+  border: 1px solid var(--line);
+  border-radius: 8px;
 }
 .enquiry-total-ic {
   display: inline-flex;
@@ -1960,7 +1961,7 @@ body.detail-has-cta .toast {
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 9px;           /* small rounded-square holder (target direction) */
+  border-radius: 50%;
   background: var(--red-tint);
   color: var(--red);
   flex-shrink: 0;
@@ -3369,43 +3370,37 @@ body.detail-has-cta .toast {
   .compare-tray-inner { gap: 0.75rem; }
 }
 
-/* ── Mobile compare: Canyon-inspired side tab + bottom sheet ──────────
-   Collapsed, the tray is a slim VERTICAL side tab pinned to the LEFT edge and
-   vertically centred (it no longer sits as a bar over the card actions). Tapping
-   it opens a bottom SHEET (dimmed backdrop, injected close control, focus trap in
-   compare.js). Desktop (>640px) keeps the centred bottom trigger + drawer,
-   untouched. */
+/* Mobile compare: thumb-reachable bottom bar + modal detail sheet. */
 @media (max-width: 640px) {
-  /* COLLAPSED — left-edge vertical side tab. The tray repositions to the left
-     centre and slides in from the left edge. */
+  /* COLLAPSED — compact bottom bar above the device safe area. */
   .compare-tray:not(.is-expanded) {
-    top: 50%;
-    bottom: auto;
-    left: 0;
-    right: auto;
+    top: auto;
+    bottom: 0;
+    left: 12px;
+    right: 12px;
     width: auto;
-    align-items: flex-start;
-    transform: translate(-110%, -50%);
+    align-items: stretch;
+    transform: translateY(120%);
     transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 0.32s;
   }
   .compare-tray.visible:not(.is-expanded) {
-    transform: translate(0, -50%);
+    transform: translateY(0);
     transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s;
   }
   .compare-tray:not(.is-expanded) .compare-tray-trigger {
-    writing-mode: vertical-rl;               /* legible vertical "Compare (N)" */
+    writing-mode: horizontal-tb;
     gap: 0.55rem;
-    padding: 0.95rem 0.5rem;
-    border-left: none;
-    border-radius: 0 12px 12px 0;            /* rounded on the exposed edge only */
-    box-shadow: 3px 3px 16px -6px rgba(32, 30, 24, 0.3);
-    font-size: 0.8rem;
-    letter-spacing: 0.03em;
-    min-width: 44px;
-    min-height: 44px;
+    width: 100%;
+    padding: 0 1rem;
+    border: 1px solid var(--line-2);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -8px 24px -12px rgba(32, 30, 24, 0.42);
+    font-size: 0.86rem;
+    min-height: 52px;
   }
   .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-ic { writing-mode: horizontal-tb; }
-  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-chev { display: none; }
+  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-chev { display: block; margin-left: auto; }
   @media (prefers-reduced-motion: reduce) {
     .compare-tray:not(.is-expanded),
     .compare-tray.visible:not(.is-expanded) { transition: none; }
@@ -3487,9 +3482,8 @@ body.detail-has-cta .toast {
   body.cmp-sheet-open #swup { position: relative; z-index: var(--z-compare-sheet); }
   body.filter-drawer-open #swup { position: relative; z-index: var(--z-filter-sheet); }
 
-  /* No bottom-space reservation on mobile: the side tab floats on the edge and
-     the sheet is a modal over a backdrop. */
-  body.compare-open .site-footer { padding-bottom: 0; }
+  body.compare-open:not(.cmp-sheet-open) { padding-bottom: 52px; }
+  body.compare-open:not(.cmp-sheet-open) .site-footer { padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px)); }
   body.filter-drawer-open .compare-tray { visibility: hidden; }
 }
 
@@ -5104,8 +5098,8 @@ body:has(.compare-tray.visible) .toast {
   .pcard-head { padding: 0.7rem 0.85rem 0.5rem; }
   .pcard-main {
     display: grid;
-    grid-template-columns: 42% 1fr;
-    gap: 0.85rem;
+    grid-template-columns: 46% 1fr;
+    gap: 1rem;
     align-items: start;
     padding: 0 0.85rem;
   }
@@ -5115,7 +5109,7 @@ body:has(.compare-tray.visible) .toast {
     border-radius: 7px;
     background: var(--panel-2);
   }
-  .product-card-image img { padding: 0.5rem; }
+  .product-card-image img { padding: 0.25rem; }
   .product-card-body { padding: 0; min-width: 0; }
   .product-card-body h3 {
     font-size: 1rem;
@@ -5461,10 +5455,11 @@ body:has(.compare-tray.visible) .toast {
   .filter-group.open .fg-rows { padding-bottom: 0.85rem; }
 
   .filter-group label {
-    padding: 0.5rem 0.55rem;
+    min-height: 46px;
+    padding: 0.7rem 0.55rem;
     margin: 0 0 2px;
     border-radius: 6px;
-    font-size: 0.88rem;
+    font-size: 0.94rem;
   }
   .filter-group label:last-child { margin-bottom: 0; }
   .filter-group label:active { background: var(--panel); }  /* press, not hover, on mobile */

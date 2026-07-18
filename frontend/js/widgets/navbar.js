@@ -300,7 +300,6 @@
   drawerEl.id = "_navDrawer";
   drawerEl.innerHTML = `
     ${links.map(l => `<a href="${l.href}">${l.label}</a>`).join("")}
-    <a href="/enquiry">Product Enquiry<span class="nav-drawer-count" id="navDrawerCount">${getBasketCount()}</span></a>
   `;
 
   const backdropEl = document.createElement("div");
