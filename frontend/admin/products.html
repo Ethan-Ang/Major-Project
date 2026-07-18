@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Products | Yee Lim Adhesives Admin</title>
-  <link rel="stylesheet" href="admin.css?v=17">
-  <link rel="stylesheet" href="../css/dropdown-ui.css?v=3">
+  <link rel="stylesheet" href="admin.css?v=27">
+  <link rel="stylesheet" href="../css/dropdown-ui.css?v=6">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
@@ -237,37 +237,104 @@
         <textarea id="fieldUsage" rows="3" placeholder="Application instructions…"></textarea>
       </div>
 
-      <div class="form-row-2">
-        <div class="form-group">
-          <label for="fieldImageUrl">Image URL</label>
-          <input type="text" id="fieldImageUrl" placeholder="images/products/name.jpg" oninput="updateImagePreview()">
-          <label for="fieldImages" style="margin-top:0.75rem">Additional Image URLs</label>
-          <input type="text" id="fieldImages" placeholder="url1.jpg, url2.jpg">
-          <div class="image-preview-box" id="imagePreview">
-            <span>No image URL entered</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="fieldStatus">Status</label>
-          <select id="fieldStatus">
-            <option value="Available">Available</option>
-            <option value="Unavailable">Unavailable</option>
-          </select>
-        </div>
-      </div>
+      <div class="form-section-label">Product Images</div>
+
+<input type="hidden" id="fieldImageUrl">
+<input type="hidden" id="fieldImages">
+
+<div class="image-upload-layout">
+  <div class="image-upload-card">
+    <div class="image-upload-head">
+      <label for="fieldMainImageFile">Main Product Image</label>
+      <p>This appears first on the product card and product detail page.</p>
+    </div>
+
+    <label class="image-upload-drop" for="fieldMainImageFile">
+      <input type="file" id="fieldMainImageFile" accept="image/jpeg,image/png,image/webp">
+      <span class="upload-icon">+</span>
+      <span>Choose main image</span>
+      <small>JPG, PNG or WEBP. Max 5MB.</small>
+    </label>
+
+    <div class="main-image-preview" id="imagePreview">
+      <span>No main image selected</span>
+    </div>
+  </div>
+
+  <div class="image-upload-card">
+    <div class="image-upload-head">
+      <label for="fieldExtraImageFiles">Additional Product Images</label>
+      <p>These appear as gallery images on the product detail page.</p>
+    </div>
+
+    <label class="image-upload-drop" for="fieldExtraImageFiles">
+      <input type="file" id="fieldExtraImageFiles" accept="image/jpeg,image/png,image/webp" multiple>
+      <span class="upload-icon">+</span>
+      <span>Choose additional images</span>
+      <small>You can select more than one image.</small>
+    </label>
+
+    <div class="extra-image-preview-grid" id="extraImagePreview">
+      <div class="extra-image-empty">No additional images selected</div>
+    </div>
+  </div>
+</div>
+
+<div class="form-group" style="margin-top:1rem">
+  <label for="fieldStatus">Status</label>
+  <select id="fieldStatus">
+    <option value="Available">Available</option>
+    <option value="Unavailable">Unavailable</option>
+  </select>
+</div>
 
       <div class="form-section-label">Product Documents <span class="form-section-optional">optional</span></div>
-      <div class="form-row-2">
-        <div class="form-group">
-          <label for="fieldSdsUrl">Safety Data Sheet URL</label>
-          <input type="text" id="fieldSdsUrl" placeholder="uploads/documents/sds-name.pdf or https://…">
-        </div>
-        <div class="form-group">
-          <label for="fieldTdsUrl">Technical Data Sheet URL</label>
-          <input type="text" id="fieldTdsUrl" placeholder="uploads/documents/tds-name.pdf or https://…">
-        </div>
-      </div>
-      <p class="form-help-text">Leave blank if no document is available. Customers only see a download link when a URL is set. Accepts a full URL or a relative path such as uploads/documents/file.pdf.</p>
+
+<input type="hidden" id="fieldSdsUrl">
+<input type="hidden" id="fieldTdsUrl">
+
+<div class="document-upload-layout">
+  <div class="document-upload-card">
+    <div class="image-upload-head">
+      <label for="fieldSdsFile">Safety Data Sheet</label>
+      <p>Upload the SDS PDF for this product.</p>
+    </div>
+
+    <label class="image-upload-drop document-drop" for="fieldSdsFile" id="sdsDropZone">
+      <input type="file" id="fieldSdsFile" accept="application/pdf">
+      <span class="upload-icon">+</span>
+      <span>Choose or drop SDS PDF</span>
+      <small>PDF only. Max 10MB.</small>
+    </label>
+
+    <div class="document-preview" id="sdsDocPreview">
+      <span>No SDS document selected</span>
+    </div>
+  </div>
+
+  <div class="document-upload-card">
+    <div class="image-upload-head">
+      <label for="fieldTdsFile">Technical Data Sheet</label>
+      <p>Upload the TDS PDF for this product.</p>
+    </div>
+
+    <label class="image-upload-drop document-drop" for="fieldTdsFile" id="tdsDropZone">
+      <input type="file" id="fieldTdsFile" accept="application/pdf">
+      <span class="upload-icon">+</span>
+      <span>Choose or drop TDS PDF</span>
+      <small>PDF only. Max 10MB.</small>
+    </label>
+
+    <div class="document-preview" id="tdsDocPreview">
+      <span>No TDS document selected</span>
+    </div>
+  </div>
+</div>
+
+<div class="product-docs-help">
+  Customers only see download links when a document is uploaded. Leave blank if no document is available.
+</div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
@@ -318,8 +385,8 @@
 <div class="admin-toast" id="adminToast"></div>
 
 <script src="../js/data.js?v=7"></script>
-<script src="../js/widgets/custom-select.js?v=2"></script>
-<script src="admin.js?v=7"></script>
+<script src="../js/widgets/custom-select.js?v=4"></script>
+<script src="admin.js?v=18"></script>
 <script src="admin-nav.js?v=3"></script>
 <script>
   // Reflect logged-in username into the sidebar

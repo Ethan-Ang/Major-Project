@@ -10,6 +10,14 @@ let pageSize       = 10;
 let sortCol        = "";
 let sortDir        = "asc";
 let demoMode       = false;
+let selectedMainImageFile = null;
+let selectedExtraImageFiles = [];
+let existingExtraImageUrls = [];
+let selectedSdsFile = null;
+let selectedTdsFile = null;
+
+let existingSdsDocument = null;
+let existingTdsDocument = null;
 
 // Demo fallback when the backend is unreachable. Built from the bundled
 // DEMO_PRODUCTS catalogue (the same data the public pages fall back to), not the
@@ -26,6 +34,7 @@ function isNetworkError(err) {
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
+  bindProductImageUploadInputs();
 
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("pageSizeSelect"));
@@ -60,6 +69,129 @@ function logout() {
   window.location.href = "login.html";
 }
 
+function bindProductImageUploadInputs() {
+  const mainInput = document.getElementById("fieldMainImageFile");
+  const extraInput = document.getElementById("fieldExtraImageFiles");
+  const sdsInput = document.getElementById("fieldSdsFile");
+  const tdsInput = document.getElementById("fieldTdsFile");
+
+  setupDropZone("sdsDropZone", sdsInput, files => {
+    selectedSdsFile = validatePdfFile(files[0]);
+    renderDocumentPreview("SDS");
+  });
+
+  setupDropZone("tdsDropZone", tdsInput, files => {
+    selectedTdsFile = validatePdfFile(files[0]);
+    renderDocumentPreview("TDS");
+  });
+
+  setupDropZone(null, mainInput, files => {
+    selectedMainImageFile = validateImageFile(files[0]);
+    updateImagePreview();
+  });
+
+  setupDropZone(null, extraInput, files => {
+    selectedExtraImageFiles = Array.from(files).map(validateImageFile);
+    renderExtraImagePreview();
+  });
+
+  const mainDrop = mainInput?.closest(".image-upload-drop");
+  const extraDrop = extraInput?.closest(".image-upload-drop");
+
+  setupDropZoneElement(mainDrop, files => {
+    selectedMainImageFile = validateImageFile(files[0]);
+    if (mainInput) mainInput.value = "";
+    updateImagePreview();
+  });
+
+  setupDropZoneElement(extraDrop, files => {
+    selectedExtraImageFiles = Array.from(files).map(validateImageFile);
+    if (extraInput) extraInput.value = "";
+    renderExtraImagePreview();
+  });
+}
+
+function setupDropZone(dropId, input, onFiles) {
+  if (input) {
+    input.addEventListener("change", function () {
+      if (this.files && this.files.length) {
+        onFiles(this.files);
+      }
+    });
+  }
+
+  if (dropId) {
+    const dropEl = document.getElementById(dropId);
+    setupDropZoneElement(dropEl, onFiles);
+  }
+}
+
+function setupDropZoneElement(dropEl, onFiles) {
+  if (!dropEl) return;
+
+  ["dragenter", "dragover"].forEach(eventName => {
+    dropEl.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropEl.classList.add("is-dragover");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(eventName => {
+    dropEl.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropEl.classList.remove("is-dragover");
+    });
+  });
+
+  dropEl.addEventListener("drop", e => {
+    const files = e.dataTransfer.files;
+    if (files && files.length) {
+      onFiles(files);
+    }
+  });
+}
+
+function validateImageFile(file) {
+  if (!file) return null;
+
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+
+  if (!allowed.includes(file.type)) {
+    showToast("Only JPG, PNG and WEBP images are allowed.", "error");
+    throw new Error("Invalid image type.");
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("Each image must be below 5MB.", "error");
+    throw new Error("Image too large.");
+  }
+
+  return file;
+}
+
+function validatePdfFile(file) {
+  if (!file) return null;
+
+  if (file.type !== "application/pdf") {
+    showToast("Only PDF documents are allowed.", "error");
+    throw new Error("Invalid document type.");
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    showToast("Document must be below 10MB.", "error");
+    throw new Error("Document too large.");
+  }
+
+  return file;
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return "";
+  const mb = bytes / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+}
 // ─── Load products ────────────────────────────────────────────────
 async function loadProducts() {
   const tbody   = document.getElementById("productTableBody");
@@ -534,9 +666,22 @@ function openAddModal() {
   document.getElementById("productModal").classList.add("open");
 }
 
-function openEditModal(id) {
+async function openEditModal(id) {
   const p = allProducts.find(p => p._id === id);
   if (!p) return;
+
+  selectedMainImageFile = null;
+  selectedExtraImageFiles = [];
+  selectedSdsFile = null;
+  selectedTdsFile = null;
+  
+  existingSdsDocument = null;
+existingTdsDocument = null;
+
+  const allImages = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  const mainImage = p.imageUrl || allImages[0] || "";
+  existingExtraImageUrls = allImages.filter(img => img && img !== mainImage);
+
   document.getElementById("modalTitle").textContent   = "Edit Product";
   document.getElementById("editingId").value          = p._id;
   document.getElementById("fieldName").value          = p.name || "";
@@ -545,18 +690,36 @@ function openEditModal(id) {
   document.getElementById("fieldShortDesc").value     = p.shortDescription || "";
   document.getElementById("fieldFullDesc").value      = p.fullDescription || "";
   document.getElementById("fieldUsage").value         = p.usage || "";
-  document.getElementById("fieldImageUrl").value      = p.imageUrl || "";
-  document.getElementById("fieldImages").value        = joinList(p.images);
-  document.getElementById("fieldSdsUrl").value        = p.sdsUrl || "";
-  document.getElementById("fieldTdsUrl").value        = p.tdsUrl || "";
+  document.getElementById("fieldImageUrl").value      = mainImage;
+  document.getElementById("fieldImages").value        = existingExtraImageUrls.join(", ");
+  document.getElementById("fieldSdsUrl").value = "";
+document.getElementById("fieldTdsUrl").value = "";
   document.getElementById("fieldIndustries").value    = joinList(p.industries);
   document.getElementById("fieldSurfaces").value      = joinList(p.surfaces);
   document.getElementById("fieldFeatures").value      = joinList(p.features);
   document.getElementById("fieldStatus").value        = p.status || "Available";
+
+  const mainInput = document.getElementById("fieldMainImageFile");
+  const extraInput = document.getElementById("fieldExtraImageFiles");
+  const sdsInput = document.getElementById("fieldSdsFile");
+  const tdsInput = document.getElementById("fieldTdsFile");
+
+  if (mainInput) mainInput.value = "";
+  if (extraInput) extraInput.value = "";
+  if (sdsInput) sdsInput.value = "";
+  if (tdsInput) tdsInput.value = "";
+
   document.getElementById("modalError").style.display = "none";
+
   syncModalSelects();
   updateImagePreview();
-  document.getElementById("productModal").classList.add("open");
+  renderExtraImagePreview();
+  renderDocumentPreview("SDS");
+renderDocumentPreview("TDS");
+
+document.getElementById("productModal").classList.add("open");
+
+await loadProductDocuments(p._id);
 }
 
 // Re-sync the custom-dropdown UI after the native <select> values are set
@@ -572,38 +735,492 @@ function closeModal() {
 }
 
 function clearForm() {
+  selectedMainImageFile = null;
+  selectedExtraImageFiles = [];
+  existingExtraImageUrls = [];
+  selectedSdsFile = null;
+  selectedTdsFile = null;
+  
+  existingSdsDocument = null;
+  existingTdsDocument = null;
+
   ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl","fieldImages","fieldSdsUrl","fieldTdsUrl","fieldIndustries","fieldSurfaces","fieldFeatures"].forEach(id => {
     document.getElementById(id).value = "";
   });
+
+  const mainInput = document.getElementById("fieldMainImageFile");
+  const extraInput = document.getElementById("fieldExtraImageFiles");
+  if (mainInput) mainInput.value = "";
+  if (extraInput) extraInput.value = "";
+
   document.getElementById("fieldCategory").value      = "Industrial";
   document.getElementById("fieldBrand").value         = "Deer™ Brand";
   document.getElementById("fieldStatus").value        = "Available";
   document.getElementById("modalError").style.display = "none";
+
   syncModalSelects();
   updateImagePreview();
+  renderExtraImagePreview();
+  
+  const sdsInput = document.getElementById("fieldSdsFile");
+const tdsInput = document.getElementById("fieldTdsFile");
+if (sdsInput) sdsInput.value = "";
+if (tdsInput) tdsInput.value = "";
+
+renderDocumentPreview("SDS");
+renderDocumentPreview("TDS");
 }
 
 function updateImagePreview() {
-  const url = document.getElementById("fieldImageUrl").value.trim();
+  const urlInput = document.getElementById("fieldImageUrl");
   const box = document.getElementById("imagePreview");
-  if (!url) {
-    box.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
-      <span>No image URL entered</span>`;
+
+  if (!box) return;
+
+  const url = urlInput ? urlInput.value.trim() : "";
+
+  if (selectedMainImageFile) {
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      box.innerHTML = `
+        <div class="admin-image-thumb">
+          <img src="${e.target.result}" alt="Main image preview">
+          <button type="button" class="admin-image-remove" onclick="removeSelectedMainImage()" aria-label="Remove main image">&times;</button>
+        </div>`;
+    };
+
+    reader.readAsDataURL(selectedMainImageFile);
     return;
   }
-  box.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<span>Image not found</span>'">`;
+
+  if (!url) {
+    box.innerHTML = `<span>No main image selected</span>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="admin-image-thumb">
+      <img src="${url}" alt="Main image preview" onerror="this.parentElement.parentElement.innerHTML='<span>Image not found</span>'">
+      <button type="button" class="admin-image-remove" onclick="clearMainImageUrl()" aria-label="Remove main image">&times;</button>
+    </div>`;
+}
+
+function removeSelectedMainImage() {
+  selectedMainImageFile = null;
+  const input = document.getElementById("fieldMainImageFile");
+  if (input) input.value = "";
+  updateImagePreview();
+}
+
+function clearMainImageUrl() {
+  document.getElementById("fieldImageUrl").value = "";
+  selectedMainImageFile = null;
+  const input = document.getElementById("fieldMainImageFile");
+  if (input) input.value = "";
+  updateImagePreview();
+}
+
+function removeExistingExtraImage(index) {
+  existingExtraImageUrls.splice(index, 1);
+  document.getElementById("fieldImages").value = existingExtraImageUrls.join(", ");
+  renderExtraImagePreview();
+}
+
+function removeSelectedExtraImage(index) {
+  selectedExtraImageFiles.splice(index, 1);
+  const input = document.getElementById("fieldExtraImageFiles");
+  if (input) input.value = "";
+  renderExtraImagePreview();
+}
+
+function renderExtraImagePreview() {
+  const box = document.getElementById("extraImagePreview");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  existingExtraImageUrls.forEach((url, index) => {
+    const item = document.createElement("div");
+    item.className = "admin-image-thumb";
+    item.innerHTML = `
+      <img src="${url}" alt="Additional image ${index + 1}" onerror="this.parentElement.innerHTML='<span style=&quot;font-size:0.75rem;color:#6b7480;padding:0.5rem&quot;>Image not found</span>'">
+      <button type="button" class="admin-image-remove" onclick="removeExistingExtraImage(${index})" aria-label="Remove additional image">&times;</button>
+    `;
+    box.appendChild(item);
+  });
+
+  selectedExtraImageFiles.forEach((file, index) => {
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const item = document.createElement("div");
+      item.className = "admin-image-thumb";
+      item.innerHTML = `
+        <img src="${e.target.result}" alt="New additional image ${index + 1}">
+        <button type="button" class="admin-image-remove" onclick="removeSelectedExtraImage(${index})" aria-label="Remove selected image">&times;</button>
+      `;
+      box.appendChild(item);
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  if (!existingExtraImageUrls.length && !selectedExtraImageFiles.length) {
+    box.innerHTML = `<div class="extra-image-empty">No additional images selected</div>`;
+  }
+}
+
+async function loadProductDocuments(productId) {
+  existingSdsDocument = null;
+  existingTdsDocument = null;
+
+  if (!productId) {
+    renderDocumentPreview("SDS");
+    renderDocumentPreview("TDS");
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/product_documents.php?product_id=${encodeURIComponent(productId)}`
+    );
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Failed to load product documents."
+      );
+    }
+
+    const documents = Array.isArray(data.documents)
+      ? data.documents
+      : [];
+
+    existingSdsDocument =
+      documents.find(item => item.document_type === "SDS") || null;
+
+    existingTdsDocument =
+      documents.find(item => item.document_type === "TDS") || null;
+
+    renderDocumentPreview("SDS");
+    renderDocumentPreview("TDS");
+  } catch (error) {
+    existingSdsDocument = null;
+    existingTdsDocument = null;
+
+    renderDocumentPreview("SDS");
+    renderDocumentPreview("TDS");
+
+    showToast(
+      error.message || "Failed to load documents.",
+      "error"
+    );
+  }
+}
+
+function renderDocumentPreview(type) {
+  const isSds = type === "SDS";
+
+  const file = isSds
+    ? selectedSdsFile
+    : selectedTdsFile;
+
+  const existingDocument = isSds
+    ? existingSdsDocument
+    : existingTdsDocument;
+
+  const box = document.getElementById(
+    isSds
+      ? "sdsDocPreview"
+      : "tdsDocPreview"
+  );
+
+  if (!box) return;
+
+  if (file) {
+    box.innerHTML = `
+      <div class="document-preview-card">
+        <div class="document-preview-icon">
+          PDF
+        </div>
+
+        <div class="document-preview-main">
+          <div class="document-preview-name">
+            ${escapeHtml(file.name)}
+          </div>
+
+          <div class="document-preview-meta">
+            ${type} · ${formatFileSize(file.size)} · ready to upload
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="document-remove"
+          onclick="removeSelectedDocument('${type}')"
+          aria-label="Remove selected ${type}"
+          title="Remove selected file"
+        >
+          &times;
+        </button>
+      </div>
+    `;
+
+    return;
+  }
+
+  if (existingDocument) {
+    box.innerHTML = `
+      <div class="document-preview-card">
+        <div class="document-preview-icon">
+          PDF
+        </div>
+
+        <div class="document-preview-main">
+          <div class="document-preview-name">
+            ${escapeHtml(
+              existingDocument.original_name ||
+              existingDocument.file_path.split("/").pop()
+            )}
+          </div>
+
+          <div class="document-preview-meta">
+            ${type} · ${formatFileSize(
+              Number(existingDocument.file_size || 0)
+            )} · uploaded
+          </div>
+        </div>
+
+        <a
+          href="${escapeAttr(existingDocument.file_path)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="document-view-link"
+          title="View ${type}"
+        >
+          View
+        </a>
+
+        <button
+          type="button"
+          class="document-remove"
+          onclick="deleteSavedDocument('${type}')"
+          aria-label="Delete uploaded ${type}"
+          title="Delete document"
+        >
+          &times;
+        </button>
+      </div>
+    `;
+
+    return;
+  }
+
+  box.innerHTML =
+    `<span>No ${type} document selected</span>`;
+}
+
+function removeSelectedDocument(type) {
+  if (type === "SDS") {
+    selectedSdsFile = null;
+    const input = document.getElementById("fieldSdsFile");
+    if (input) input.value = "";
+  } else {
+    selectedTdsFile = null;
+    const input = document.getElementById("fieldTdsFile");
+    if (input) input.value = "";
+  }
+
+  renderDocumentPreview(type);
+}
+
+async function deleteSavedDocument(type) {
+  const isSds = type === "SDS";
+
+  const existingDocument = isSds
+    ? existingSdsDocument
+    : existingTdsDocument;
+
+  if (!existingDocument || !existingDocument.id) {
+    showToast("Document record not found.", "error");
+    return;
+  }
+
+  const confirmed = confirm(
+    `Delete the uploaded ${type} document?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/delete_product_document.php?id=${encodeURIComponent(existingDocument.id)}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        }
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || `Failed to delete ${type}.`
+      );
+    }
+
+    if (isSds) {
+      existingSdsDocument = null;
+      document.getElementById("fieldSdsUrl").value = "";
+    } else {
+      existingTdsDocument = null;
+      document.getElementById("fieldTdsUrl").value = "";
+    }
+
+    renderDocumentPreview(type);
+
+    showToast(
+      `${type} document deleted`,
+      "success"
+    );
+  } catch (error) {
+    showToast(
+      error.message || `Failed to delete ${type}.`,
+      "error"
+    );
+  }
+}
+
+async function uploadProductImages(productId) {
+  const hasMain = !!selectedMainImageFile;
+  const hasExtra = selectedExtraImageFiles.length > 0;
+
+  if (!hasMain && !hasExtra) {
+    return {
+      main_image: null,
+      extra_images: []
+    };
+  }
+
+  const formData = new FormData();
+  formData.append("product_id", productId);
+
+  if (hasMain) {
+    formData.append("main_image", selectedMainImageFile);
+  }
+
+  selectedExtraImageFiles.forEach(file => {
+    formData.append("extra_images[]", file);
+  });
+
+  const res = await fetch(`${API_BASE_URL}/api/upload-product-images.php`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getToken()}`
+    },
+    body: formData
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || "Image upload failed.");
+  }
+
+  return data;
+}
+
+async function uploadProductDocument(
+  productId,
+  documentType,
+  file
+) {
+  if (!file) {
+    return null;
+  }
+
+  const formData = new FormData();
+
+  formData.append(
+    "product_id",
+    productId
+  );
+
+  formData.append(
+    "document_type",
+    documentType
+  );
+
+  formData.append(
+    "document_file",
+    file
+  );
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/upload_product_document.php`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      },
+      body: formData
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    throw new Error(
+      data.message ||
+      `${documentType} upload failed.`
+    );
+  }
+
+  return data.document || null;
+}
+
+function buildFinalImagesArray(mainImageUrl, extraUrls) {
+  const images = [];
+
+  if (mainImageUrl) {
+    images.push(mainImageUrl);
+  }
+
+  extraUrls.forEach(url => {
+    if (url && !images.includes(url)) {
+      images.push(url);
+    }
+  });
+
+  return images;
+}
+
+function capitaliseFirst(value) {
+  const text = String(value || "").trim();
+
+  if (!text) return "";
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function capitaliseListItem(value) {
+  const text = String(value || "").trim();
+
+  if (!text) return "";
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function splitList(value) {
-  return value
+  return String(value || "")
     .split(/[,\n]/)
-    .map(item => item.trim())
+    .map(item => capitaliseListItem(item))
     .filter(Boolean);
 }
 
@@ -616,17 +1233,35 @@ async function saveProduct() {
   const btn     = document.getElementById("saveBtn");
   const errorEl = document.getElementById("modalError");
 
+  const manualMainImageUrl = document.getElementById("fieldImageUrl").value.trim();
+  const manualExtraUrls = splitList(document.getElementById("fieldImages").value);
+
   const payload = {
-    name:             document.getElementById("fieldName").value.trim(),
-    brand:            document.getElementById("fieldBrand").value,
-    category:         document.getElementById("fieldCategory").value,
-    shortDescription: document.getElementById("fieldShortDesc").value.trim(),
-    fullDescription:  document.getElementById("fieldFullDesc").value.trim(),
-    usage:            document.getElementById("fieldUsage").value.trim(),
-    imageUrl:         document.getElementById("fieldImageUrl").value.trim(),
-    images:           splitList(document.getElementById("fieldImages").value),
-    sdsUrl:           document.getElementById("fieldSdsUrl").value.trim(),
-    tdsUrl:           document.getElementById("fieldTdsUrl").value.trim(),
+    name: capitaliseFirst(
+  document.getElementById("fieldName").value
+),
+
+brand: document.getElementById("fieldBrand").value,
+
+category: capitaliseFirst(
+  document.getElementById("fieldCategory").value
+),
+
+shortDescription: capitaliseFirst(
+  document.getElementById("fieldShortDesc").value
+),
+
+fullDescription: capitaliseFirst(
+  document.getElementById("fieldFullDesc").value
+),
+
+usage: capitaliseFirst(
+  document.getElementById("fieldUsage").value
+),
+    imageUrl:         manualMainImageUrl,
+    images:           buildFinalImagesArray(manualMainImageUrl, manualExtraUrls),
+    sdsUrl: "",
+tdsUrl: "",
     industries:       splitList(document.getElementById("fieldIndustries").value),
     surfaces:         splitList(document.getElementById("fieldSurfaces").value),
     features:         splitList(document.getElementById("fieldFeatures").value),
@@ -644,21 +1279,108 @@ async function saveProduct() {
   errorEl.style.display = "none";
 
   try {
-    const res = await fetch(
+    let productId = id;
+
+    const firstSaveRes = await fetch(
       id ? `${API_BASE_URL}/api/products.php?id=${id}` : `${API_BASE_URL}/api/products.php`,
       {
         method: id ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
         body: JSON.stringify(payload)
       }
     );
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.message || "Failed to save product.");
+
+    const firstSaveData = await firstSaveRes.json();
+
+    if (!firstSaveRes.ok) {
+      throw new Error(firstSaveData.message || "Failed to save product.");
     }
+
+    productId = firstSaveData.id || firstSaveData._id || productId;
+
+    const uploaded = await uploadProductImages(productId);
+
+const uploadedSdsDocument = await uploadProductDocument(
+  productId,
+  "SDS",
+  selectedSdsFile
+);
+
+const uploadedTdsDocument = await uploadProductDocument(
+  productId,
+  "TDS",
+  selectedTdsFile
+);
+
+if (uploadedSdsDocument) {
+  existingSdsDocument = uploadedSdsDocument;
+  selectedSdsFile = null;
+
+  const sdsInput = document.getElementById("fieldSdsFile");
+
+  if (sdsInput) {
+    sdsInput.value = "";
+  }
+}
+
+if (uploadedTdsDocument) {
+  existingTdsDocument = uploadedTdsDocument;
+  selectedTdsFile = null;
+
+  const tdsInput = document.getElementById("fieldTdsFile");
+
+  if (tdsInput) {
+    tdsInput.value = "";
+  }
+}
+
+const finalMainImage =
+  uploaded.main_image || payload.imageUrl;
+
+const finalExtraImages = [
+  ...manualExtraUrls,
+  ...uploaded.extra_images
+];
+
+const finalPayload = {
+  ...payload,
+  imageUrl: finalMainImage,
+  images: buildFinalImagesArray(
+    finalMainImage,
+    finalExtraImages
+  ),
+  sdsUrl: "",
+  tdsUrl: ""
+};
+
+const needsFinalSave =
+  uploaded.main_image ||
+  uploaded.extra_images.length;
+
+    if (needsFinalSave) {
+      const finalSaveRes = await fetch(`${API_BASE_URL}/api/products.php?id=${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(finalPayload)
+      });
+
+      const finalSaveData = await finalSaveRes.json();
+
+      if (!finalSaveRes.ok) {
+        throw new Error(finalSaveData.message || "Files uploaded but product paths failed to save.");
+      }
+    }
+
     closeModal();
     showToast(id ? "Product updated" : "Product added", "success");
     loadProducts();
+
   } catch (err) {
     errorEl.textContent   = err.message;
     errorEl.style.display = "block";
