@@ -86,7 +86,9 @@ function renderBasket() {
   if (grid) grid.classList.remove("is-empty");
   if (colHead) colHead.style.display = "flex";
   if (totalBand) totalBand.style.display = "flex";
-  if (totalCount) totalCount.textContent = `${products.length} item${products.length !== 1 ? "s" : ""}`;
+  // Emphasised number + quiet unit (target treatment). products.length is a
+  // number, so this innerHTML carries no untrusted text.
+  if (totalCount) totalCount.innerHTML = `<b>${products.length}</b> item${products.length !== 1 ? "s" : ""}`;
 
   const subtype = p => (typeof productSubtype === "function") ? productSubtype(p) : (p.category || "");
 

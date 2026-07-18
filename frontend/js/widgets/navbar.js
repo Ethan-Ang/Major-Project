@@ -48,7 +48,9 @@
     }
     .nav-links {
       display: flex;
-      gap: 1.5rem;
+      /* Professional B2B spacing: ~40-44px between links at 1440, easing down to
+         ~30px at 1024. Fluid, so the centred group never crowds or over-spreads. */
+      gap: clamp(1.75rem, 3vw, 2.75rem);
       list-style: none;
       margin: 0;
       padding: 0;

@@ -277,7 +277,7 @@ function renderSummary(product) {
           <span class="avail-dot" aria-hidden="true"></span>${ylEscapeHtml(product.status)}
         </span>
         <span class="detail-avail-sep" aria-hidden="true"></span>
-        <span class="detail-avail-note">Our team will advise on suitability, pricing &amp; lead time</span>
+        <span class="detail-avail-note">Our team will advise on suitability, pricing and lead time</span>
       </div>
     </div>
     <div class="sidebar-actions">
@@ -307,7 +307,7 @@ function renderSummary(product) {
     <div class="sidebar-foot">
       <p class="sidebar-note">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        If this product is out of stock, you can still submit an enquiry and we&rsquo;ll advise on availability.
+        Prefer to check first? Submit an enquiry and our team will advise on availability and lead time.
       </p>
     </div>`;
 }
@@ -601,93 +601,63 @@ function isMeaningfulText(text) {
 }
 
 // ─── Application & Suitable Uses tab ──────────────────────────────
-// Built ONLY from the real usage field. Seed format:
-//   "Apply by brush or roll. Suitable for: Leather product bonding; Shoe
-//   in-soles; General purpose."
-// Older / free-form records with no "Suitable for:" segment (e.g. numbered
-// step instructions) render their whole usage text as the method column
-// rather than being force-fit into a "suitable uses" list that isn't there.
-// Real data only, never invented structure.
+// ONE consistent component system, real data only. Builds up to three
+// structured sections in a single design family — Application Method / How to
+// Use, Suitable Uses, Key Benefits — from the recorded `usage` and `features`
+// fields. The old "simple label/value" branch is gone: a single-sentence
+// method renders as one designed statement row (not a bare sentence), a
+// delimited uses list renders as designed icon rows, and an un-delimited uses
+// value renders as clean designed prose (never a risky auto-split that would
+// fabricate items — see splitSuitableUses). Section COUNT varies with real
+// content (1/2/3 columns); the design generation never does. Nothing invented.
 function renderApplication(product) {
   const el = document.getElementById("detailApply");
   if (!el) return;
+
   const usage = String(product.usage || "").trim();
-  // isMeaningfulText filters out placeholder junk ("x", "-", "n/a", etc, same
-  // guard used for the summary description) so a placeholder usage value
-  // falls to the honest empty state instead of rendering the placeholder text.
-  if (!isMeaningfulText(usage)) {
-    el.innerHTML = `
-      <div class="apply-empty">
-        <p>Application guidance for this product is available from our team.</p>
-        <p><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> for advice on your surface and application.</p>
-      </div>`;
-    return;
+  const hasUsage = isMeaningfulText(usage); // filters "x", "-", "n/a" placeholders
+
+  // Split usage into the method text (before "Suitable for:") and the uses
+  // list (after). The colon-anchored "Suitable for:" is the real delimiter;
+  // free-form / numbered records with no such segment are all method text.
+  let method = "", uses = [];
+  if (hasUsage) {
+    const m = usage.match(/suitable for\s*:\s*/i);
+    method = m ? usage.slice(0, m.index).trim() : usage;
+    if (m) uses = splitSuitableUses(usage.slice(m.index + m[0].length));
   }
-  // The colon is required: "Suitable for:" is the real delimiter the seed data
-  // uses. Free-form / numbered records (no such segment at all) fall straight
-  // to the "How to Use" method-only branch below rather than being matched on
-  // a loose, unanchored "suitable for" substring.
-  const m = usage.match(/suitable for\s*:\s*/i);
-  const method = m ? usage.slice(0, m.index).trim() : usage;
-  const uses = m ? usage.slice(m.index + m[0].length).split(/;|•/).map(s => s.trim().replace(/\.$/, "")).filter(Boolean) : [];
-  // The live DB's "suitable for" text is un-delimited today (no "; " or "*"
-  // separators), so splitting it yields exactly one "item" that is really the
-  // whole sentence. Rendering that as a one-line bulleted <ul> would fake a
-  // list structure the data doesn't have, so fewer than 2 items render as a
-  // plain paragraph instead (matches how a genuinely delimited value with 2+
-  // items still gets the real bulleted list).
-  const usesList = uses.length >= 2 ? uses : [];
-  const usesSingle = uses.length === 1 ? uses[0] : "";
-  // With no "Suitable for:" segment at all, the whole usage string is
-  // free-form / numbered instructions (e.g. PVC pipe cement), not a short
-  // method label, so it reads as "How to Use" rather than "Application
-  // Method" (which implies a short method name beside a Suitable Uses list).
-  const methodHeading = m ? "Application Method" : "How to Use";
-
-  // Numbered steps ONLY from genuinely sequential real instructions: the
-  // method text's own sentences, verbatim. A single-sentence method ("Apply
-  // by brush or roll.") stays a single statement — no invented steps.
-  const sentences = method
-    .split(/(?<=\.)\s+(?=[A-Z0-9])/)
-    .map(s => s.trim())
-    .filter(s => s.length > 2);
-  const steps = sentences.length >= 2 ? sentences : [];
-
-  // Key Benefits: recorded claim strings only, verbatim. The rows already
-  // parsed into the Specifications table (Application:, Available in, the
-  // solvent/water base) and the physical-form characteristics line are
-  // excluded; what remains are the genuine recorded claims (e.g. "Low VOC
-  // (as stated by Yee Lim)"). Nothing is invented — no claims, no column.
-  const claims = (product.features || [])
-    .map(f => String(f).trim())
-    .filter(f => f &&
-      !/^application\s*:/i.test(f) &&
-      !/^available in\s+/i.test(f) &&
-      !/^(solvent|water)[\s-]*based$/i.test(f) &&
-      !/^(liquid|paste|gel|aerosol|semi[-\s]?solid|solid)\b/i.test(f));
+  const methodHeading = uses.length ? "Application Method" : "How to Use";
+  const steps = method ? deriveApplicationSteps(method) : [];
+  const claims = deriveKeyBenefits(product.features);
 
   const cols = [];
 
+  // 1) Application Method / How to Use — numbered steps for genuinely
+  //    sequential instructions, otherwise one designed statement row.
   if (method) {
     cols.push(`
       <div class="apply-col">
         <h3 class="apply-heading">${applyIcon("method")}${methodHeading}</h3>
         ${steps.length
           ? `<ol class="apply-steps">${steps.map(s => `<li><span class="apply-step-n" aria-hidden="true"></span><span class="apply-step-text">${ylEscapeHtml(s)}</span></li>`).join("")}</ol>`
-          : `<p class="apply-method">${ylEscapeHtml(method)}</p>`}
+          : `<ul class="apply-statement"><li><span class="apply-statement-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span><span>${ylEscapeHtml(method)}</span></li></ul>`}
       </div>`);
   }
 
-  if (usesList.length || usesSingle) {
+  // 2) Suitable Uses — designed icon rows when the list is genuinely
+  //    delimited; clean designed prose when it is a single un-delimited value
+  //    (never fabricate list items from ambiguous text).
+  if (uses.length) {
     cols.push(`
       <div class="apply-col">
         <h3 class="apply-heading">${applyIcon("uses")}Suitable Uses</h3>
-        ${usesList.length
-          ? `<ul class="apply-uses">${usesList.map(u => `<li>${ylEscapeHtml(u)}</li>`).join("")}</ul>`
-          : `<p class="apply-suitable-single">${ylEscapeHtml(usesSingle)}</p>`}
+        ${uses.length >= 2
+          ? `<ul class="apply-uses">${uses.map(u => `<li>${ylEscapeHtml(u)}</li>`).join("")}</ul>`
+          : `<p class="apply-prose">${ylEscapeHtml(uses[0])}</p>`}
       </div>`);
   }
 
+  // 3) Key Benefits — recorded claim strings only, verbatim.
   if (claims.length) {
     cols.push(`
       <div class="apply-col">
@@ -698,17 +668,77 @@ function renderApplication(product) {
       </div>`);
   }
 
+  // Honest empty state only when NO section has real content.
+  if (!cols.length) {
+    el.innerHTML = `
+      <div class="apply-empty">
+        <p>Application guidance for this product is available from our team.</p>
+        <p><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> for advice on your surface and application.</p>
+      </div>`;
+    return;
+  }
+
   el.innerHTML = `<div class="apply-grid apply-cols-${cols.length}">${cols.join("")}</div>`;
 }
 
-// Restrained red heading icons for the Application tab columns.
+// Split a "Suitable for:" value into individual uses SAFELY. Only strong,
+// unambiguous delimiters are trusted: explicit separators (; • · |, newlines)
+// or a clean comma list. Un-delimited space-separated Title-Case text (the
+// current live-DB shape, e.g. "Leather product bonding Shoe in-soles General
+// purpose") is NOT auto-split — a capitalisation heuristic over-splits real
+// multi-word items ("Pressure Sensitive Adhesive" -> 3), which would fabricate
+// data. Such values return as a single item and render as clean prose instead.
+function splitSuitableUses(raw) {
+  const text = String(raw || "").trim().replace(/[.\s]+$/, "");
+  if (!text) return [];
+  let parts = text.split(/\s*[;•·|\n]+\s*/).map(s => s.trim().replace(/\.$/, "")).filter(Boolean);
+  if (parts.length >= 2) return parts;
+  // A clean comma list: 2+ commas and every segment short (a real item list,
+  // not prose that happens to contain a comma like "Foam, Styrofoam ...").
+  if ((text.match(/,/g) || []).length >= 2) {
+    const cs = text.split(/\s*,\s*/).map(s => s.trim()).filter(Boolean);
+    if (cs.length >= 2 && cs.every(s => s.length <= 34)) return cs;
+  }
+  return [text];
+}
+
+// Numbered steps ONLY from genuinely sequential real instructions. Explicit
+// "1. ... 2. ..." enumerations split on their markers; otherwise the method's
+// own sentences. A single instruction returns [] so it renders as one designed
+// statement row rather than a misleading lone "step 1".
+function deriveApplicationSteps(method) {
+  const t = String(method || "").trim();
+  if ((t.match(/(?:^|\s)\d+\.\s/g) || []).length >= 2) {
+    return t.split(/\s*(?:^|\s)\d+\.\s+/).map(s => s.trim()).filter(s => s.length > 1);
+  }
+  const sentences = t.split(/(?<=\.)\s+(?=[A-Z0-9])/).map(s => s.trim()).filter(s => s.length > 2);
+  return sentences.length >= 2 ? sentences : [];
+}
+
+// Key Benefits are recorded claim strings only. Everything already carried by
+// the Specifications table is excluded: the Application: method, Available in
+// sizes, the solvent/water base, and the physical-form + colour characteristic
+// line (Liquid/Paste/Gel/Aerosol/Powder/Cream/Solid, ...). What remains are
+// genuine claims ("Low VOC (as stated by Yee Lim)") and accessory specs
+// (spray-gun nozzle/controls). Nothing is invented.
+function deriveKeyBenefits(features) {
+  return (features || [])
+    .map(f => String(f).trim())
+    .filter(f => f &&
+      !/^application\s*:/i.test(f) &&
+      !/^available in\s+/i.test(f) &&
+      !/^(solvent|water)[\s-]*based$/i.test(f) &&
+      !/^(liquid|paste|gel|aerosol|powder|cream|semi[-\s]?solid|solid)\b/i.test(f));
+}
+
+// Restrained red heading icons for the Application tab sections.
 function applyIcon(kind) {
   const paths = {
     method:   '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>',
     uses:     '<polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/>',
     benefits: '<path d="M20 6 9 17l-5-5"/>',
   }[kind] || "";
-  return `<span class="apply-heading-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${paths}</svg></span>`;
+  return `<span class="apply-heading-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${paths}</svg></span>`;
 }
 
 // ─── Tab switcher (Specifications / Application / Downloads) ──────
