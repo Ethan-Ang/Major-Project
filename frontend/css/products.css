@@ -652,6 +652,11 @@ h1, h2, h3,
   border-color: var(--line-2);
 }
 
+/* Desktop: a no-op wrapper, so the card stays the SAME head/image/body/actions
+   flex column it always was. At <=640px it becomes the compact two-column
+   (image + info) grid — see the phones block. */
+.pcard-main { display: contents; }
+
 /* Head row: official brand mark left, Compare checkbox right. */
 .pcard-head {
   display: flex;
@@ -777,7 +782,7 @@ h1, h2, h3,
 }
 
 .product-card-body {
-  padding: 1.05rem 1.1rem 1.15rem;
+  padding: 1.05rem 1.1rem 0; /* bottom padding now lives on the moved-out actions row */
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -891,6 +896,7 @@ h1, h2, h3,
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: auto;
+  padding: 0 1.1rem 1.15rem; /* the card's side + bottom padding (actions is now a card child) */
   container-type: inline-size;
 }
 
@@ -3276,33 +3282,115 @@ body.detail-has-cta .toast {
   .compare-tray-inner { gap: 0.75rem; }
 }
 
-/* Mobile: the panel stacks into rows — head, then the selected slots
-   scrolling horizontally, then Clear all / Compare now as a two-up button
-   row. Bottom safe-area padding for notched phones. */
+/* ── Mobile compare: Canyon-inspired side tab + bottom sheet ──────────
+   Collapsed, the tray is a slim VERTICAL side tab pinned to the LEFT edge and
+   vertically centred (it no longer sits as a bar over the card actions). Tapping
+   it opens a bottom SHEET (dimmed backdrop, injected close control, focus trap in
+   compare.js). Desktop (>640px) keeps the centred bottom trigger + drawer,
+   untouched. */
 @media (max-width: 640px) {
+  /* COLLAPSED — left-edge vertical side tab. The tray repositions to the left
+     centre and slides in from the left edge. */
+  .compare-tray:not(.is-expanded) {
+    top: 50%;
+    bottom: auto;
+    left: 0;
+    right: auto;
+    width: auto;
+    align-items: flex-start;
+    transform: translate(-110%, -50%);
+    transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 0.32s;
+  }
+  .compare-tray.visible:not(.is-expanded) {
+    transform: translate(0, -50%);
+    transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s;
+  }
+  .compare-tray:not(.is-expanded) .compare-tray-trigger {
+    writing-mode: vertical-rl;               /* legible vertical "Compare (N)" */
+    gap: 0.55rem;
+    padding: 0.95rem 0.5rem;
+    border-left: none;
+    border-radius: 0 12px 12px 0;            /* rounded on the exposed edge only */
+    box-shadow: 3px 3px 16px -6px rgba(32, 30, 24, 0.3);
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    min-height: 44px;
+  }
+  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-ic { writing-mode: horizontal-tb; }
+  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-chev { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .compare-tray:not(.is-expanded),
+    .compare-tray.visible:not(.is-expanded) { transition: none; }
+  }
+
+  /* EXPANDED — bottom sheet, raised above the product-detail sticky CTA (900). */
+  .compare-tray.is-expanded {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    transform: none;
+    z-index: 950;
+  }
+  .compare-tray.is-expanded .compare-tray-trigger { display: none; }
+  .compare-tray.is-expanded .compare-tray-panel {
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -14px 34px -14px rgba(32, 30, 24, 0.34);
+    animation: cmpSheetUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes cmpSheetUp { from { transform: translateY(22px); } to { transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .compare-tray.is-expanded .compare-tray-panel { animation: none; } }
+
   .compare-tray-inner {
     flex-wrap: wrap;
-    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.6rem 1rem calc(0.95rem + env(safe-area-inset-bottom, 0px));
     gap: 0.65rem;
   }
   .compare-tray-head { flex: 1 1 auto; min-width: 0; }
   .compare-tray-slots { order: 3; flex-basis: 100%; }
   .compare-tray-actions { order: 4; flex-basis: 100%; gap: 0.6rem; }
   .compare-tray-clear,
-  .compare-tray-btn { flex: 1 1 50%; justify-content: center; }
+  .compare-tray-btn { flex: 1 1 50%; justify-content: center; min-height: 44px; }
 
-  /* Stack, don't overlap: product-detail.html also shows a fixed mobile
-     sticky action bar (.sticky-cta) at the very bottom. Without this, the
-     compare drawer's actions row (or its head row when collapsed) would be
-     painted under that bar and become unclickable. Offset the tray up by
-     the sticky bar's live measured height, exposed as --sticky-cta-height
-     by syncStickyCtaReserve in product-detail.js. The calc() fallback
-     matches the sticky bar's own CSS baseline (4.9rem + safe area) for the
-     brief window before that JS has run. */
-  body.detail-has-cta .compare-tray {
-    bottom: var(--sticky-cta-height, calc(4.9rem + env(safe-area-inset-bottom, 0px)));
+  /* Close control (injected by compare.js), top-right of the sheet header. */
+  .compare-tray.is-expanded .cmp-sheet-close {
+    display: inline-flex;
+    order: 1;
+    flex: 0 0 auto;
+    margin-left: auto;
+    align-self: flex-start;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
   }
+  .compare-tray.is-expanded .cmp-sheet-close:hover { color: var(--text); border-color: var(--line-2); }
+  .compare-tray.is-expanded .cmp-sheet-close:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+  /* Dimmed backdrop behind the sheet (injected by compare.js). */
+  .cmp-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 14, 10, 0.45);
+    z-index: 949;
+  }
+  /* While the sheet is open the product-detail sticky CTA must not poke through. */
+  body.cmp-sheet-open .sticky-cta { visibility: hidden; }
+
+  /* No bottom-space reservation on mobile: the side tab floats on the edge and
+     the sheet is a modal over a backdrop. */
+  body.compare-open .site-footer { padding-bottom: 0; }
 }
+
+/* The injected close control is hidden everywhere except the mobile expanded
+   sheet (rule above). */
+.cmp-sheet-close { display: none; }
 
 /* ─── Compare picker (dedicated add-product flow) ─────────────────
    Slide-in side panel opened from the compare tray's / compare page's
@@ -4895,6 +4983,58 @@ body:has(.compare-tray.visible) .toast {
   /* Comfortable 44px touch targets on the card actions */
   .product-card-actions .btn { min-height: 44px; }
   .pcard-cmp { min-height: 44px; }
+
+  /* ── Compact catalogue card (mobile target direction) ─────────────────
+     Header (brand + Compare) spans the top; below it a two-column band puts the
+     product image on the left (~42%) and the details on the right; the paired
+     actions run full width at the bottom. Materially more products per viewport
+     than the old full-width stacked image, with no cropping. Shared with Home's
+     featured cards (same renderer). */
+  .pcard-head { padding: 0.7rem 0.85rem 0.5rem; }
+  .pcard-main {
+    display: grid;
+    grid-template-columns: 42% 1fr;
+    gap: 0.85rem;
+    align-items: start;
+    padding: 0 0.85rem;
+  }
+  .product-card-image {
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--panel-2);
+  }
+  .product-card-image img { padding: 0.5rem; }
+  .product-card-body { padding: 0; min-width: 0; }
+  .product-card-body h3 {
+    font-size: 1rem;
+    min-height: 0;            /* no desktop two-line reservation needed in the flow */
+    margin-bottom: 0.2rem;
+  }
+  .pcard-subtype { font-size: 0.8rem; margin-bottom: 0.55rem; }
+  .pcard-rows { margin-bottom: 0; }
+  /* Label above value in the narrow column so neither is squeezed or truncated
+     to a couple of characters. */
+  .pcard-main .card-application {
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+    font-size: 0.78rem;
+  }
+  .pcard-main .card-application-val {
+    flex-basis: 100%;
+    margin-left: 0;
+    text-align: left;
+    white-space: normal;
+    padding-left: calc(14px + 0.5rem);   /* align under the label text, past the icon */
+    color: var(--muted);
+  }
+  .card-workson-spacer { display: none; }  /* alignment spacer not needed in two-col */
+  .product-card-actions {
+    padding: 0.8rem 0.85rem 0.85rem;
+    margin-top: 0.85rem;
+    border-top: 1px solid var(--line);
+    flex-wrap: nowrap;
+  }
 
   /* Catalogue layout padding */
   .catalogue-layout { padding: 0 0.75rem; margin-top: 0.75rem; }

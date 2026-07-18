@@ -93,6 +93,9 @@ function renderCompareTray() {
     const toggle = document.getElementById("compareTrayToggle");
     if (toggle) toggle.setAttribute("aria-expanded", "false");
     document.body.classList.remove("compare-open");
+    // Tear down an open mobile sheet (e.g. Clear all emptied the list while the
+    // sheet was showing) so no backdrop/scroll-lock is left behind.
+    ylCloseCompareSheet();
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
@@ -133,6 +136,7 @@ function renderCompareTray() {
   // Reserve space so the fixed tray never sits over the last products or the
   // bottom filter rows: expose its real height as a CSS var and flag the body.
   document.body.classList.add("compare-open");
+  ylEnsureSheetCloseBtn();
   requestAnimationFrame(updateCompareTrayHeight);
 
   const slotHTML = list.map(p => {
@@ -185,23 +189,96 @@ function ylCompareAddMore() {
 function updateCompareTrayHeight() {
   const tray = document.getElementById("compareTray");
   if (!tray || !tray.classList.contains("visible")) return;
+  // Mobile (<=640px): the collapsed side tab floats on the left edge and the
+  // expanded sheet is a modal over a backdrop — neither reserves bottom page
+  // space, so the footer/filters keep their natural height.
+  if (window.matchMedia("(max-width: 640px)").matches) {
+    document.documentElement.style.setProperty("--compare-tray-height", "0px");
+    if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
+    return;
+  }
   const h = tray.offsetHeight || 56;
   document.documentElement.style.setProperty("--compare-tray-height", h + "px");
   if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
 }
 
-// Collapsed by default: the centred trigger expands the slots/actions panel
-// and collapses it again without losing the selection. Re-measures so the
-// reserved bottom space follows the tray's new height. Esc collapses an
-// expanded tray while focus is inside it (registered once, lifetime-safe).
+// Collapsed by default. Desktop: the centred trigger expands the slots/actions
+// drawer in place. Mobile (<=640px): the collapsed side tab opens a bottom SHEET
+// with a dimmed backdrop, focus trap and scroll lock (Canyon-inspired). Esc /
+// backdrop / close-button all collapse it. Re-measures so any reserved space
+// follows the tray's new state.
 function toggleCompareTray() {
   const tray = document.getElementById("compareTray");
   if (!tray) return;
-  const expanded = tray.classList.toggle("is-expanded");
+  const willExpand = !tray.classList.contains("is-expanded");
+  tray.classList.toggle("is-expanded", willExpand);
   const toggle = document.getElementById("compareTrayToggle");
-  if (toggle) toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  if (toggle) toggle.setAttribute("aria-expanded", willExpand ? "true" : "false");
+
+  if (window.matchMedia("(max-width: 640px)").matches) {
+    if (willExpand) ylOpenCompareSheet(); else ylCloseCompareSheet();
+  }
   requestAnimationFrame(updateCompareTrayHeight);
 }
+
+// Inject the mobile sheet's close control into the panel once. Hidden by CSS on
+// desktop and while collapsed; shown only in the mobile expanded sheet. Done in
+// JS so it exists on every page that carries the tray without editing each page
+// (incl. the protected Home markup).
+function ylEnsureSheetCloseBtn() {
+  const inner = document.querySelector("#compareTrayPanel .compare-tray-inner");
+  if (!inner || inner.querySelector(".cmp-sheet-close")) return;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "cmp-sheet-close";
+  btn.setAttribute("aria-label", "Close comparison");
+  btn.onclick = toggleCompareTray;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  inner.insertBefore(btn, inner.firstChild);
+}
+
+// Mobile bottom-sheet open: dim backdrop (tap to close), page scroll lock, and a
+// focus trap inside the panel. Idempotent.
+let _cmpSheetRelease = null;
+function ylOpenCompareSheet() {
+  if (document.getElementById("cmpSheetBackdrop")) return;
+  const backdrop = document.createElement("div");
+  backdrop.className = "cmp-sheet-backdrop";
+  backdrop.id = "cmpSheetBackdrop";
+  backdrop.addEventListener("click", () => toggleCompareTray());
+  document.body.appendChild(backdrop);
+  document.body.classList.add("cmp-sheet-open");
+  document.body.style.overflow = "hidden";
+  const panel = document.getElementById("compareTrayPanel");
+  if (typeof ylFocusTrap === "function" && panel) {
+    // No onEscape here: the lifetime Esc listener below already collapses the
+    // tray, so passing one would double-toggle.
+    _cmpSheetRelease = ylFocusTrap(panel, {});
+  }
+}
+
+// Tear the sheet down and return focus to the (now visible again) side tab.
+function ylCloseCompareSheet() {
+  const backdrop = document.getElementById("cmpSheetBackdrop");
+  if (backdrop) backdrop.remove();
+  const wasOpen = document.body.classList.contains("cmp-sheet-open");
+  document.body.classList.remove("cmp-sheet-open");
+  document.body.style.overflow = "";
+  if (_cmpSheetRelease) { _cmpSheetRelease(false); _cmpSheetRelease = null; }
+  if (wasOpen) {
+    const toggle = document.getElementById("compareTrayToggle");
+    if (toggle && toggle.offsetParent !== null) toggle.focus();
+  }
+}
+
+// If the viewport crosses from a mobile expanded sheet up to desktop, drop the
+// modal scaffolding so the desktop drawer behaves normally.
+window.addEventListener("resize", () => {
+  if (document.body.classList.contains("cmp-sheet-open") &&
+      !window.matchMedia("(max-width: 640px)").matches) {
+    ylCloseCompareSheet();
+  }
+});
 
 if (typeof ylOnce === "function") {
   ylOnce("compareTray:esc", () => {

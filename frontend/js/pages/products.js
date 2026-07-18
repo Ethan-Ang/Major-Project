@@ -650,6 +650,12 @@ function productCardHTML(p) {
     ? "Comparison full: remove one to add another"
     : inCompare ? "Remove from comparison" : "Add to compare";
 
+  // Structure note: .pcard-main wraps the image + info. On desktop it is
+  // display:contents (a no-op, so the card is the SAME head/image/body/actions
+  // flex column as before); at <=640px it becomes a two-column grid (image left,
+  // info right) and the actions row spans full width below it. The actions live
+  // OUTSIDE .product-card-body so that full-width bottom row is possible on
+  // mobile. Shared with Home's featured cards (home.js reuses this renderer).
   return `
     <article class="product-card${p.status === "Unavailable" ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
       <div class="pcard-head">
@@ -667,38 +673,40 @@ function productCardHTML(p) {
           Compare
         </button>
       </div>
-      <div class="${imageClass}">
-        <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
-      </div>
-      <div class="product-card-body">
-        <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
-        <p class="pcard-subtype">${escapeHTML(subtype)}</p>
-        <div class="pcard-rows">
-          <div class="card-application">
-            <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
-            <span class="card-application-label">Best for</span>
-            <span class="card-application-val">${primaryApps}</span>
+      <div class="pcard-main">
+        <div class="${imageClass}">
+          <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
+        </div>
+        <div class="product-card-body">
+          <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
+          <p class="pcard-subtype">${escapeHTML(subtype)}</p>
+          <div class="pcard-rows">
+            <div class="card-application">
+              <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+              <span class="card-application-label">Best for</span>
+              <span class="card-application-val">${primaryApps}</span>
+            </div>
+            ${worksOn ? `
+            <div class="card-application card-workson">
+              <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/></svg></span>
+              <span class="card-application-label">Works on</span>
+              <span class="card-application-val">${worksOn}</span>
+            </div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
           </div>
-          ${worksOn ? `
-          <div class="card-application card-workson">
-            <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/></svg></span>
-            <span class="card-application-label">Works on</span>
-            <span class="card-application-val">${worksOn}</span>
-          </div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
         </div>
-        <div class="product-card-actions">
-          <button
-            class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
-            data-product-id="${p.id}"
-            aria-pressed="${inBasket ? "true" : "false"}"
-            onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')"
-            aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
-            ${inBasket ? PCARD_ENQ_ADDED_HTML : PCARD_ENQ_ADD_HTML}
-          </button>
-          <a href="${detailHref}" class="btn btn-outline pcard-view">View details
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        </div>
+      </div>
+      <div class="product-card-actions">
+        <button
+          class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
+          data-product-id="${p.id}"
+          aria-pressed="${inBasket ? "true" : "false"}"
+          onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')"
+          aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
+          ${inBasket ? PCARD_ENQ_ADDED_HTML : PCARD_ENQ_ADD_HTML}
+        </button>
+        <a href="${detailHref}" class="btn btn-outline pcard-view">View details
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
       </div>
     </article>`;
 }
