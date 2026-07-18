@@ -75,6 +75,10 @@ function toggleCompare(productId) {
 }
 
 // ─── Tray ───────────────────────────────────────────────────────
+// Collapsed-first model (Canyon-style interaction hierarchy): with products
+// selected, only a small centred bottom trigger shows — icon, "Compare (N)",
+// chevron. The full slots/actions panel reveals only after a deliberate
+// expand, and collapses back to the quiet trigger.
 function renderCompareTray() {
   const tray = document.getElementById("compareTray");
   if (!tray) return;
@@ -83,14 +87,11 @@ function renderCompareTray() {
 
   if (rawList.length === 0) {
     tray.classList.remove("visible");
-    // Reset to the expanded (default) state so the drawer reappears in full
-    // next time something is added, instead of staying slim-collapsed.
-    tray.classList.remove("is-collapsed");
+    // Reset to the collapsed (default) state so the tray reappears as the
+    // quiet trigger next time something is added.
+    tray.classList.remove("is-expanded");
     const toggle = document.getElementById("compareTrayToggle");
-    if (toggle) {
-      toggle.setAttribute("aria-expanded", "true");
-      toggle.setAttribute("aria-label", "Collapse comparison tray");
-    }
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
     document.body.classList.remove("compare-open");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
@@ -124,8 +125,11 @@ function renderCompareTray() {
   const list = products; // resolved products only, from here on
 
   tray.classList.add("visible");
+  // Trigger shows the simple count; the expanded head shows the (n/3) cap.
   const countEl = document.getElementById("compareTrayCount");
-  if (countEl) countEl.textContent = `(${list.length}/${COMPARE_MAX})`;
+  if (countEl) countEl.textContent = `(${list.length})`;
+  const fullEl = document.getElementById("compareTrayFull");
+  if (fullEl) fullEl.textContent = `(${list.length}/${COMPARE_MAX})`;
   // Reserve space so the fixed tray never sits over the last products or the
   // bottom filter rows: expose its real height as a CSS var and flag the body.
   document.body.classList.add("compare-open");
@@ -186,20 +190,31 @@ function updateCompareTrayHeight() {
   if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
 }
 
-// Full-width drawer, open by default: the collapse chevron slims it down to
-// just the head row (title + count) so it stays out of the way while
-// browsing, without losing the selection. Re-measures so the reserved
-// bottom space follows the tray's new height.
+// Collapsed by default: the centred trigger expands the slots/actions panel
+// and collapses it again without losing the selection. Re-measures so the
+// reserved bottom space follows the tray's new height. Esc collapses an
+// expanded tray while focus is inside it (registered once, lifetime-safe).
 function toggleCompareTray() {
   const tray = document.getElementById("compareTray");
   if (!tray) return;
-  const collapsed = tray.classList.toggle("is-collapsed");
+  const expanded = tray.classList.toggle("is-expanded");
   const toggle = document.getElementById("compareTrayToggle");
-  if (toggle) {
-    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
-    toggle.setAttribute("aria-label", collapsed ? "Expand comparison tray" : "Collapse comparison tray");
-  }
+  if (toggle) toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
   requestAnimationFrame(updateCompareTrayHeight);
+}
+
+if (typeof ylOnce === "function") {
+  ylOnce("compareTray:esc", () => {
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      const tray = document.getElementById("compareTray");
+      if (!tray || !tray.classList.contains("is-expanded")) return;
+      if (!tray.contains(document.activeElement)) return;
+      toggleCompareTray();
+      const toggle = document.getElementById("compareTrayToggle");
+      if (toggle) toggle.focus();
+    });
+  });
 }
 
 // Keep the reserved tray height in sync when the tray wraps at narrow widths.
@@ -317,6 +332,38 @@ function ylCmpPickerAdd(productId) {
   }
 }
 
+// Search normalisation for the picker: the shared ylSearchNorm treatment
+// (lowercase, ™/® stripped, hyphens folded) plus remaining punctuation folded
+// to spaces, so "232-FG", "232 FG" and "232fg." all resolve consistently.
+function cmpNorm(s) {
+  const base = (typeof ylSearchNorm === "function")
+    ? ylSearchNorm(s)
+    : String(s || "").toLowerCase().replace(/[™®]/g, "").replace(/[-‐-―]/g, " ");
+  return base.replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+}
+
+// Relevance score (lower = better): exact name/code, then name/code prefix,
+// then BRAND prefix (typing "p" must surface Premier™ products at the top),
+// then name/brand substrings, then type/category, then industry/surface
+// keywords, then description. Ties keep catalogue order (stable sort).
+function cmpScoreProduct(p, q) {
+  const name  = cmpNorm(p.name);
+  const brand = cmpNorm(typeof brandDisplay === "function" ? brandDisplay(p.brand) : p.brand);
+  const raw   = cmpNorm(p.brand || "");
+  const code  = cmpNorm(typeof productCodeFromName === "function" ? productCodeFromName(p) : "");
+  const type  = cmpNorm(typeof productType === "function" ? productType(p) : (p.category || ""));
+  if (name === q || (code && code === q)) return 0;
+  if (name.startsWith(q) || (code && code.startsWith(q))) return 1;
+  if (brand.startsWith(q) || raw.startsWith(q)) return 2;
+  if (name.includes(q)) return 3;
+  if (brand.includes(q) || raw.includes(q)) return 4;
+  if (type.includes(q) || cmpNorm(p.category).includes(q)) return 5;
+  if ((p.industries || []).some(i => cmpNorm(i).includes(q))) return 6;
+  if ((p.surfaces || []).some(s => cmpNorm(s).includes(q))) return 7;
+  if (cmpNorm(p.shortDescription).includes(q)) return 8;
+  return Infinity;
+}
+
 function renderComparePickerList() {
   const panel = document.getElementById("ylCmpPicker");
   if (!panel || !_pickerState) return;
@@ -328,42 +375,48 @@ function renderComparePickerList() {
 
   if (countEl) countEl.textContent = `${compare.length} of ${COMPARE_MAX} selected`;
 
-  // Tab states (Recently viewed disabled when nothing was viewed yet).
+  // Both segments stay clickable at all times; an empty Recently viewed shows
+  // a designed empty state below instead of a disabled control + tooltip.
   const recents = ylGetRecentlyViewed();
   const tabR = panel.querySelector("#ylCmpTabRecent");
   const tabA = panel.querySelector("#ylCmpTabAll");
-  if (!recents.length && _pickerState.tab === "recent") _pickerState.tab = "all";
-  if (tabR) {
-    tabR.setAttribute("aria-selected", _pickerState.tab === "recent" ? "true" : "false");
-    tabR.disabled = !recents.length;
-    tabR.title = recents.length ? "" : "No recently viewed products yet";
-  }
+  if (tabR) tabR.setAttribute("aria-selected", _pickerState.tab === "recent" ? "true" : "false");
   if (tabA) tabA.setAttribute("aria-selected", _pickerState.tab === "all" ? "true" : "false");
+
+  if (!listEl) return;
+
+  // Recently viewed with no history: honest empty state + a real route on.
+  if (_pickerState.tab === "recent" && !recents.length) {
+    listEl.innerHTML = `
+      <div class="cmp-picker-empty cmp-picker-empty-recent">
+        <span class="cmp-picker-empty-ic" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <h3>No recently viewed products</h3>
+        <p>Products you open will appear here for quick comparison.</p>
+        <button class="cmp-picker-browse" type="button" onclick="ylCmpPickerTab('all')">Browse all products</button>
+      </div>`;
+    return;
+  }
 
   // Source rows: recents keep their view order; All keeps catalogue order.
   let rows = _pickerState.tab === "recent"
     ? recents.map(id => products.find(p => String(p.id) === id)).filter(Boolean)
     : products.slice();
 
-  // Live search across the same normalised fields the catalogue search uses.
-  const norm = (typeof ylSearchNorm === "function")
-    ? ylSearchNorm
-    : (s) => String(s || "").toLowerCase().trim();
-  const q = norm(_pickerState.query);
+  // Ranked live search (real data only — no faked matches).
+  const q = cmpNorm(_pickerState.query);
   if (q) {
-    rows = rows.filter(p =>
-      norm(p.name).includes(q) ||
-      norm(p.brand).includes(q) ||
-      norm(typeof brandDisplay === "function" ? brandDisplay(p.brand) : p.brand).includes(q) ||
-      (p.industries || []).some(i => norm(i).includes(q)) ||
-      (p.surfaces || []).some(s => norm(s).includes(q)));
+    rows = rows
+      .map((p, i) => ({ p, s: cmpScoreProduct(p, q), i }))
+      .filter(x => x.s !== Infinity)
+      .sort((a, b) => a.s - b.s || a.i - b.i)
+      .map(x => x.p);
   }
 
-  if (!listEl) return;
   if (!rows.length) {
     listEl.innerHTML = `<div class="cmp-picker-empty">${
-      q ? "No products match your search." :
-      (_pickerState.tab === "recent" ? "No recently viewed products yet." : "No products available.")
+      q ? "No products match your search." : "No products available."
     }</div>`;
     return;
   }

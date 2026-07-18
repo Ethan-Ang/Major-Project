@@ -83,9 +83,10 @@ async function initProductsPage() {
   ylOnce("products:windowListeners", () => {
     window.addEventListener("resize", updateFilterScrollFade);
     window.addEventListener("compareUpdated", syncCompareButtons);
-    window.addEventListener("basketUpdated", () => {
-      if (document.getElementById("productGrid")) applyFilters({ skipUrlWrite: true });
-    });
+    // Update the affected buttons in place — never re-render the whole grid
+    // for a basket change (the full re-render re-ran every card's entrance
+    // animation, which read as a page reload and could drop images briefly).
+    window.addEventListener("basketUpdated", syncEnquiryButtons);
     // Back/forward across pushed filter states (A10). Swup skips popstate for
     // non-swup entries, so these are ours to restore. If a filter entry is
     // reached while another page's DOM is showing (Back from a swup-visited
@@ -643,7 +644,6 @@ function productCardHTML(p) {
     ? `<span class="pcard-brand-ic"><img src="${logo}" alt="" loading="lazy"></span><span class="pcard-brand-name">${brandLabel}</span>`
     : `<span class="pcard-brand-text">${isAccessory ? "ACCESSORY" : brandLabel}</span>`;
 
-  const code = productCodeFromName(p);
   const subtype = productSubtype(p);
 
   const compareTitle = compareDisabled
@@ -671,7 +671,6 @@ function productCardHTML(p) {
         <a class="product-card-image-link" href="${detailHref}" tabindex="-1" aria-hidden="true">${imageContent}</a>
       </div>
       <div class="product-card-body">
-        ${code ? `<span class="pcard-code">${escapeHTML(code)}</span>` : ""}
         <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
         <p class="pcard-subtype">${escapeHTML(subtype)}</p>
         <div class="pcard-rows">
@@ -690,12 +689,11 @@ function productCardHTML(p) {
         <div class="product-card-actions">
           <button
             class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
+            data-product-id="${p.id}"
             aria-pressed="${inBasket ? "true" : "false"}"
             onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')"
             aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
-            ${inBasket
-              ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>In Enquiry</span>`
-              : `Add to Enquiry <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`}
+            ${inBasket ? PCARD_ENQ_ADDED_HTML : PCARD_ENQ_ADD_HTML}
           </button>
           <a href="${detailHref}" class="btn btn-outline pcard-view">View details
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
@@ -707,6 +705,27 @@ function productCardHTML(p) {
 
 function brandSlug(brand) {
   return brand.replace(/[^a-z]/gi, "").toLowerCase();
+}
+
+// Shared enquiry-button contents (default / added), used by the card render
+// AND the in-place state sync so the two can never drift apart.
+const PCARD_ENQ_ADD_HTML = `Add to Enquiry <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`;
+const PCARD_ENQ_ADDED_HTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>In Enquiry</span>`;
+
+// ─── Sync enquiry button states without rebuilding the grid ────────
+// Add/remove flips only the affected buttons (state, label, aria) in place:
+// no grid re-render, no re-run entrance animations, no scroll jump.
+function syncEnquiryButtons() {
+  const basket = getBasket().map(String);
+  document.querySelectorAll(".pcard-enq[data-product-id]").forEach(btn => {
+    const on = basket.includes(String(btn.dataset.productId));
+    const was = btn.getAttribute("aria-pressed") === "true";
+    if (on === was) return;
+    btn.classList.toggle("btn-added", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    btn.setAttribute("aria-label", on ? "Remove from Product Enquiry" : "Add to Product Enquiry");
+    btn.innerHTML = on ? PCARD_ENQ_ADDED_HTML : PCARD_ENQ_ADD_HTML;
+  });
 }
 
 // ─── Sync compare checkbox states without rebuilding the grid ──────
