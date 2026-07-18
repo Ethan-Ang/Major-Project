@@ -95,16 +95,21 @@
     .nav-basket {
       display: inline-flex;
       align-items: center;
-      gap: 0.55rem;
+      gap: 0.5rem;
       color: #fff;
       text-decoration: none;
       font-size: 0.85rem;
       font-weight: 600;
       letter-spacing: 0.01em;
+      /* line-height 1: the label's box hugs the glyphs, so flex centring puts
+         icon, label and badge on one true vertical axis (the default 1.5 box
+         made the badge read slightly low against the text). */
+      line-height: 1;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.30);
-      padding: 0.5rem 0.95rem;
+      height: 36px;
+      padding: 0 0.95rem;
       border-radius: 5px;
       transition: border-color 0.2s, background 0.2s;
       white-space: nowrap;
@@ -115,14 +120,18 @@
       background: rgba(255, 255, 255, 0.08);
     }
     .nav-basket:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-    .nav-basket svg { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.95; }
+    /* Icon nudged 0.5px down: the envelope's visual mass sits high in its
+       viewBox, so pure mathematical centring reads a hair proud of the label. */
+    .nav-basket svg { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.95; transform: translateY(0.5px); }
+    .nav-basket-label { transform: translateY(0.5px); } /* cap-height vs x-height optical balance */
     .nav-basket-label-short { display: none; }
     .nav-basket-count {
       background: #CC2929;
       color: #fff;
-      font-size: 0.72rem;
-      font-weight: 800;
+      font-size: 0.7rem;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
       border-radius: 999px;
       min-width: 18px;
       height: 18px;
@@ -131,6 +140,7 @@
       align-items: center;
       justify-content: center;
       line-height: 1;
+      box-sizing: border-box;
     }
     .nav-basket-count.is-empty { display: none; }
 
@@ -140,18 +150,20 @@
       margin-left: 0.5rem;
       background: #CC2929;
       color: #fff;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       border-radius: 999px;
       min-width: 18px;
       height: 18px;
       padding: 0 5px;
+      box-sizing: border-box;
       vertical-align: middle;
-      text-align: center;
-      line-height: 18px;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
     }
-    .nav-drawer-count.has-items { display: inline-block; }
+    .nav-drawer-count.has-items { display: inline-flex; }
     .nav-compare,
     .nav-compare-count { display: none !important; }
     .nav-hamburger {
@@ -228,7 +240,9 @@
       .nav { padding: 0 1rem; gap: 0.4rem; }
       .nav-logo-img { height: 32px; }
       .nav-right { gap: 0.45rem; }
-      .nav-basket { font-size: 0.78rem; padding: 0.38rem 0.6rem; gap: 0.4rem; }
+      .nav-basket { font-size: 0.78rem; height: 32px; padding: 0 0.6rem; gap: 0.4rem; }
+      .nav-basket svg { width: 14px; height: 14px; }
+      .nav-basket-count { min-width: 16px; height: 16px; font-size: 0.66rem; padding: 0 4px; }
       .nav-hamburger { min-width: 40px; padding: 0.4rem 0.4rem; }
     }
   `;
@@ -271,7 +285,7 @@
     </ul>
     <div class="nav-right">
       <a href="/enquiry" class="nav-basket">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
         <span class="nav-basket-label nav-basket-label-full">Product Enquiry</span>
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>

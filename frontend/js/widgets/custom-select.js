@@ -89,6 +89,9 @@
     function syncFromSelect() {
       const opt = select.options[select.selectedIndex];
       labelSpan.textContent = opt ? opt.textContent : "";
+      // A selected empty-value option is a placeholder ("Select enquiry
+      // subject"): style the trigger label muted like input placeholders.
+      trigger.classList.toggle("is-placeholder", !!opt && opt.value === "");
       optionEls.forEach((li, i) => {
         li.setAttribute("aria-selected", i === select.selectedIndex ? "true" : "false");
       });

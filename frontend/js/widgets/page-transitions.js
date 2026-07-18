@@ -13,8 +13,10 @@
 
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Pages that take part in the SPA. Anything else navigates normally.
-  var PARTICIPATING = ["/products", "/product-detail", "/compare", "/enquiry", "/contact"];
+  // Pages that take part in the SPA. Anything else (about, admin, external)
+  // navigates normally. "/" and "/index" both resolve to the home page, which
+  // now runs the same unified bundle as the other public pages.
+  var PARTICIPATING = ["/", "/index", "/products", "/product-detail", "/compare", "/enquiry", "/contact"];
   function pathOf(url) {
     try { return new URL(url, location.origin).pathname.replace(/\.html$/, "") || "/"; }
     catch (e) { return "/"; }

@@ -8,71 +8,45 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.875rem;
       line-height: 1.6;
-      border-top: 3px solid #CC2929;
+      border-top: 2px solid #CC2929;
     }
     .site-footer-inner {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 3.4rem 1.5rem 2.4rem;
+      padding: 3.75rem 1.5rem 3rem;
       display: grid;
-      grid-template-columns: 1.7fr 1fr 1fr 1.3fr;
-      gap: 3rem;
+      grid-template-columns: 1.55fr 0.85fr 1fr 1.15fr;
+      gap: 2.5rem 3.25rem;
     }
+    /* Mono-caps column eyebrows: the same industrial label language the pages
+       use, quieter than the old Space Grotesk headings. */
     .site-footer-col-title {
       color: #fff;
-      font-family: 'Space Grotesk', 'Inter', sans-serif;
-      font-size: 0.8rem;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.7rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin: 0 0 1.2rem;
+      letter-spacing: 0.12em;
+      margin: 0 0 1.15rem;
     }
     .site-footer-brand {
       display: inline-flex;
       align-items: center;
       gap: 0.6rem;
-      margin-bottom: 0.9rem;
+      margin-bottom: 1.05rem;
       text-decoration: none;
     }
     .site-footer-logo {
-      height: 52px;
+      height: 44px;
       width: auto;
       display: block;
     }
-    .site-footer-mark {
-      width: 34px;
-      height: 34px;
-      background: #CC2929;
-      color: #fff;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Space Grotesk', 'Inter', sans-serif;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      flex-shrink: 0;
-    }
-    .site-footer-name {
-      color: #fff;
-      font-family: 'Space Grotesk', 'Inter', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      line-height: 1.15;
-    }
-    .site-footer-tagline {
-      color: #e79a9a;
-      font-size: 0.8rem;
-      font-style: italic;
-      font-weight: 500;
-      letter-spacing: 0.2px;
-    }
     .site-footer-blurb {
-      margin: 0 0 1.1rem;
-      max-width: 38ch;
-      color: #b9b3a6;
+      margin: 0 0 1.3rem;
+      max-width: 36ch;
+      font-size: 0.86rem;
+      line-height: 1.7;
+      color: #a8a294;
     }
     .site-footer-certs {
       display: flex;
@@ -80,14 +54,16 @@
       gap: 0.4rem;
     }
     .site-footer-cert {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.4px;
-      color: #cdc7b9;
-      background: none;
-      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.62rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #b9b3a6;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 3px;
-      padding: 0.26rem 0.6rem;
+      padding: 0.3rem 0.6rem;
       white-space: nowrap;
     }
     .site-footer-links {
@@ -95,7 +71,8 @@
       margin: 0;
       padding: 0;
       display: grid;
-      gap: 0.7rem;
+      gap: 0.75rem;
+      font-size: 0.86rem;
     }
     .site-footer-links a,
     .site-footer-contact a {
@@ -104,7 +81,12 @@
       transition: color 0.18s;
     }
     .site-footer-links a:hover,
-    .site-footer-contact a:hover { color: #fff; }
+    .site-footer-contact a:hover {
+      color: #fff;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-color: rgba(255, 255, 255, 0.4);
+    }
     .site-footer-links a:focus-visible,
     .site-footer-contact a:focus-visible,
     .site-footer-cta:focus-visible {
@@ -114,40 +96,50 @@
     }
     .site-footer-contact {
       display: grid;
-      gap: 0.85rem;
-      margin: 0 0 1.25rem;
+      gap: 0.9rem;
+      margin: 0 0 1.4rem;
     }
     .site-footer-contact dt {
-      color: #8a93a0;
-      font-size: 0.68rem;
-      font-weight: 700;
+      color: #7d776c;
+      font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.62rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      margin-bottom: 0.15rem;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.2rem;
     }
     .site-footer-contact dd {
       margin: 0;
+      font-size: 0.86rem;
+      line-height: 1.55;
       color: #cdc7b9;
+      overflow-wrap: anywhere;
     }
     .site-footer-cta {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.45rem;
       background: #CC2929;
       color: #fff;
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 600;
-      padding: 0.65rem 1.15rem;
-      border-radius: 5px;
+      line-height: 1;
+      padding: 0.72rem 1.25rem;
+      border-radius: 4px;
       transition: background 0.18s;
     }
     .site-footer-cta:hover {
       background: #a82020;
       color: #fff;
     }
-    .site-footer-bottom {
+    /* Full-bleed hairline above the legal row; the row itself stays on the
+       shared 1280px container so the two lines of small print align with the
+       columns above at every viewport. */
+    .site-footer-bottom-wrap {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .site-footer-bottom {
       max-width: 1280px;
       margin: 0 auto;
       padding: 1.2rem 1.5rem;
@@ -156,8 +148,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.5rem;
-      font-size: 0.78rem;
-      color: #8a93a0;
+      font-size: 0.76rem;
+      color: #8a847a;
     }
     .site-footer-bottom strong { color: #cdc7b9; font-weight: 600; }
     /* CLIENT-007: the public Admin Login link was removed at the client's
@@ -199,7 +191,7 @@
     .site-footer-mobile { display: none; }
     @media (max-width: 640px) {
       .site-footer-inner,
-      .site-footer-bottom { display: none; }
+      .site-footer-bottom-wrap { display: none; }
       .site-footer-mobile {
         display: block;
         padding: 1.9rem 1.25rem calc(1.15rem + env(safe-area-inset-bottom, 0px));
@@ -330,14 +322,24 @@
             <dt>Address</dt>
             <dd>1 Ang Mo Kio Street 65,<br>#03-17, Singapore 569063</dd>
           </div>
+          <div>
+            <dt>Email</dt>
+            <dd><a href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a></dd>
+          </div>
+          <div>
+            <dt>WhatsApp</dt>
+            <dd><a href="https://wa.me/6588755786" target="_blank" rel="noopener noreferrer">+65 8875 5786</a></dd>
+          </div>
         </dl>
         <a class="site-footer-cta" href="https://wa.me/6588755786?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer">Speak to Yee Lim &rarr;</a>
       </div>
     </div>
 
-    <div class="site-footer-bottom">
-      <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
-      <span>Commercial &amp; Industrial Adhesive Solutions · Singapore</span>
+    <div class="site-footer-bottom-wrap">
+      <div class="site-footer-bottom">
+        <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
+        <span>Commercial &amp; Industrial Adhesive Solutions · Singapore</span>
+      </div>
     </div>
 
     <!-- Compact mobile footer (≤640px) — matches the mobile prototype: a small

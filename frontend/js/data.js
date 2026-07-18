@@ -94,7 +94,18 @@ let PRODUCTS = [];
 
 function normaliseProduct(product) {
   const id = String(product._id || product.id || "");
-  const images = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
+  // The gallery is exactly the recorded images field (the admin uploader's
+  // product-image list). Dedupe by normalised URL identity so the same file
+  // stored twice (e.g. imageUrl repeated inside images[]) can never render a
+  // duplicate thumbnail; nothing outside images[]/imageUrl is ever invented
+  // into the gallery.
+  const seen = new Set();
+  const images = (Array.isArray(product.images) ? product.images.filter(Boolean) : []).filter(src => {
+    const key = String(src).trim().toLowerCase().split(/[?#]/)[0];
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   return {
     ...product,

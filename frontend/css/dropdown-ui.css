@@ -137,6 +137,34 @@
   opacity: 1;
 }
 
+/* ─── Custom select inside form groups (e.g. enquiry Subject) ────
+   Full-width field treatment matching the neighbouring inputs, replacing
+   the native browser option list with the shared premium panel. */
+.form-group .custom-select-wrap { display: block; width: 100%; }
+.form-group .custom-select-trigger {
+  width: 100%;
+  min-width: 0;
+  padding: 0.66rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+  border-color: #ded9cd;
+  border-radius: 5px;
+}
+@media (hover: hover) {
+  .form-group .custom-select-trigger:hover { border-color: #c4bdac; }
+}
+.form-group .custom-select-trigger:focus-visible,
+.form-group .custom-select-trigger[aria-expanded="true"] {
+  border-color: var(--red, #CC2929);
+  box-shadow: 0 0 0 1px var(--red, #CC2929);
+}
+.form-group .custom-select-listbox { left: 0; right: 0; }
+.form-group .custom-select-option { white-space: normal; }
+
+/* Unchosen placeholder option ("Select enquiry subject") reads muted, like
+   the sibling inputs' placeholder text. */
+.custom-select-trigger.is-placeholder .custom-select-trigger-label { color: #9a938a; }
+
 @media (max-width: 480px) {
   .custom-select-trigger { min-width: 0; }
   .custom-select-listbox { left: 0; right: 0; min-width: 0; }

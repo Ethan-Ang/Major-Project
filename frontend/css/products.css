@@ -593,18 +593,18 @@ h1, h2, h3,
   flex: 1;
 }
 
-/* Flat editorial results row (locked ReBond direction): no box, no pill —
-   the count reads as a page caption, the sort control is the only chrome. */
+/* Flat editorial results row (locked ReBond direction): no box, no pill, no
+   divider — the count reads as a page caption, the sort control is the only
+   chrome, and spacing alone separates it from the grid. */
 .grid-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.15rem;
-  padding: 0.15rem 0.1rem 0.35rem;
+  margin-bottom: 1.3rem;
+  padding: 0.15rem 0.1rem;
   font-size: 0.875rem;
   color: var(--muted);
-  border-bottom: 1px solid var(--line);
 }
 
 .grid-sort {
@@ -777,31 +777,24 @@ h1, h2, h3,
 }
 
 .product-card-body {
-  padding: 1rem;
+  padding: 1.05rem 1.1rem 1.15rem;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* Product number above the name (real short code only, never invented). */
-.pcard-code {
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  color: var(--muted-2);
-  letter-spacing: 0.03em;
-  margin-bottom: 0.15rem;
-  white-space: nowrap;
-}
-
+/* One consistent internal card grid (no standalone product-number line — the
+   number already lives inside the real product name): a controlled two-line
+   title area, then the subtype, rows and actions all start on the same
+   baselines across a row regardless of title length. */
 .product-card-body h3 {
   font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.3rem;
   color: var(--text);
   line-height: 1.3;
-  /* Reserve two lines so long and short product names all occupy the same
-     height — this keeps every card in a row equal-height and removes the
-     variable gap that otherwise appears above the bottom-aligned actions. */
+  /* Reserve exactly two lines: long names clamp, short names keep the same
+     title-area height, so the type line begins at one shared baseline. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -813,7 +806,7 @@ h1, h2, h3,
 .pcard-subtype {
   font-size: 0.82rem;
   color: var(--muted);
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Clickable product title -> product detail. */
@@ -888,11 +881,36 @@ h1, h2, h3,
   color: var(--red-dark);
 }
 
+/* Premium shared action row (Home + catalogue + any page using the card):
+   comfortable spacing, balanced equal widths, icons only where the card is
+   wide enough for them to sit cleanly. The row is its own inline-size
+   container so the icon/stacking decisions follow the CARD's real width,
+   not the viewport. */
 .product-card-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin-top: auto;
+  container-type: inline-size;
+}
+
+.product-card-actions .btn {
+  padding: 0.66rem 0.8rem;
+  gap: 0.45rem;
+}
+
+/* Narrow cards: drop the decorative icons before anything can crowd. */
+@container (max-width: 264px) {
+  .product-card-actions .pcard-enq svg,
+  .product-card-actions .pcard-view svg { display: none; }
+}
+
+/* Very narrow cards: stack the two actions full-width (deliberate, calm)
+   instead of letting labels shrink or wrap awkwardly side by side. */
+@container (max-width: 236px) {
+  .product-card-actions { flex-direction: column; }
+  .product-card-actions .pcard-enq,
+  .product-card-actions .pcard-view { flex: 1 1 auto; width: 100%; }
 }
 
 .btn {
@@ -1070,41 +1088,95 @@ body.detail-has-cta .toast {
 .related-section { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
 
 /* ─── Application & Suitable Uses tab content ────────────────────
-   Replaces the old .usage-box/.usage-chip family (that markup is no longer
-   rendered, the tab panel itself already provides the surface/padding). */
+   Richer structured layout (follow-up reference, real data only): up to
+   three columns — Application Method (numbered steps only when the real
+   instructions have genuine sequential sentences), Suitable Uses, and Key
+   Benefits (recorded claim strings). Hairline vertical separators between
+   columns on desktop; clean stack with horizontal rules on phones. Sparse
+   products naturally render fewer columns — never fake filler. */
 .apply-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1.9rem;
+  padding: 0.25rem 0.1rem 0.2rem;
 }
+.apply-cols-1 { grid-template-columns: 1fr; }
+.apply-cols-2 { grid-template-columns: 1fr 1fr; }
+.apply-cols-3 { grid-template-columns: 1.08fr 1fr 0.98fr; }
 
 .apply-col { min-width: 0; }
+.apply-grid .apply-col + .apply-col {
+  border-left: 1px solid var(--line);
+  padding-left: 1.9rem;
+}
 
 .apply-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   font-family: var(--mono);
   font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted-2);
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.75rem;
 }
+.apply-heading-ic { display: inline-flex; color: var(--red); flex-shrink: 0; }
 
 .apply-method,
 .apply-suitable-single {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
   overflow-wrap: anywhere;
 }
 
 /* Normal weight always: this also carries the free-form "How to Use" body
-   text (id=8/9-style numbered instructions), which reads as a wall of bold
-   text at the longer lengths those records run to. The heading (not the
-   body) carries the visual emphasis. */
+   text, which reads as a wall of bold text at the longer lengths those
+   records run to. The heading (not the body) carries the visual emphasis. */
 .apply-method { font-weight: 400; }
 .apply-suitable-single { font-weight: 600; }
+
+/* Numbered steps: real sequential sentences from the recorded instructions,
+   verbatim, with quiet red counters. */
+.apply-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  counter-reset: applystep;
+}
+.apply-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  counter-increment: applystep;
+}
+.apply-step-n {
+  flex-shrink: 0;
+  width: 21px;
+  height: 21px;
+  border: 1.5px solid var(--red);
+  border-radius: 50%;
+  color: var(--red);
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.apply-step-n::before { content: counter(applystep); }
+.apply-step-text {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
 
 .apply-uses {
   margin: 0;
@@ -1112,7 +1184,7 @@ body.detail-has-cta .toast {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
 .apply-uses li {
@@ -1136,6 +1208,27 @@ body.detail-has-cta .toast {
   background: var(--red);
 }
 
+/* Key Benefits: recorded claim strings with quiet red check circles. */
+.apply-claims {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.apply-claims li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.apply-claim-ic { display: inline-flex; flex-shrink: 0; color: var(--red); margin-top: 2px; }
+
 .apply-empty {
   color: var(--muted);
   font-size: 0.9rem;
@@ -1145,8 +1238,25 @@ body.detail-has-cta .toast {
 .apply-empty a:hover { color: var(--red); }
 .apply-empty a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
+@media (max-width: 860px) {
+  .apply-cols-3 { grid-template-columns: 1fr 1fr; }
+  .apply-cols-3 .apply-col:nth-child(3) {
+    grid-column: 1 / -1;
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+  }
+}
 @media (max-width: 640px) {
   .apply-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+  .apply-grid .apply-col + .apply-col {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+  }
+  .apply-cols-3 .apply-col:nth-child(3) { grid-column: auto; }
 }
 
 /* Product Documents (SDS / TDS downloads) on the product detail page. */
@@ -1180,27 +1290,28 @@ body.detail-has-cta .toast {
   transform: translateY(-2px);
 }
 
-/* Honest COMPACT empty state (locked ReBond reference): small document icon,
-   one concise line, quiet sub, Talk to Yee Lim — the panel ends just after.
-   Never a giant white rectangle. */
+/* Honest COMPACT empty state (follow-up reference): a larger document/
+   download icon, one concise line, plain quiet support text (no competing
+   text link), Talk to Yee Lim as the single action — the panel ends just
+   after. Never a giant white rectangle. */
 .doc-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.45rem;
-  padding: 0.5rem 1rem 0;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem 0;
 }
 .doc-empty-icon {
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--red);
 }
-.doc-empty-icon svg { width: 24px; height: 24px; }
+.doc-empty-icon svg { width: 38px; height: 38px; }
 .doc-empty-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .doc-empty-main { font-size: 0.94rem; font-weight: 700; color: var(--text); line-height: 1.4; }
 .doc-empty-sub  { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
@@ -1627,12 +1738,16 @@ body.detail-has-cta .toast {
 .enquiry-clear-all:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
 .enquiry-clear-all:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
 
-/* White basket card wrapping the head + item rows (locked design). */
+/* White basket card wrapping the head + item rows (locked design). The
+   Total Products summary band below fuses onto this card's bottom edge
+   (radius squared off here, rounded there) so basket + summary read as ONE
+   component with an internal divider, not two floating cards. */
 .enquiry-basket-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 20px;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding: 20px 20px 12px;
   box-shadow: var(--shadow);
 }
 /* The empty state renders its own full panel inside the card shell. */
@@ -1754,17 +1869,20 @@ body.detail-has-cta .toast {
 
 .basket-remove:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
-/* Total-products band under the basket card, with the Product Advice path. */
+/* Total-products summary: the bottom section of the SAME basket card — soft
+   panel fill, internal top divider, shared outer border and radius. */
 .enquiry-total-band {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
-  background: var(--card);
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 14px 18px;
-  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 6px 6px;
+  padding: 14px 20px;
+  margin-top: 0;
+  box-shadow: var(--shadow);
 }
 .enquiry-total-ic {
   display: inline-flex;
@@ -1772,7 +1890,7 @@ body.detail-has-cta .toast {
   justify-content: center;
   width: 38px;
   height: 38px;
-  border-radius: 50%;
+  border-radius: 8px;
   background: var(--red-tint);
   color: var(--red);
   flex-shrink: 0;
@@ -1873,7 +1991,12 @@ body.detail-has-cta .toast {
   box-shadow: var(--shadow);
 }
 
-.enquiry-form-body { padding: 22px; }
+.enquiry-form-body { padding: 24px; }
+
+/* One deliberate spacing scale for the whole form: 0.45rem label-to-control,
+   1.15rem between control groups, 1.4rem before the consent/action region —
+   no one-off margins, no cramped Subject/Message/Notes stack. */
+.enquiry-form-body > .form-group { margin-bottom: 1.15rem; }
 
 .enquiry-form-head {
   display: flex;
@@ -1886,7 +2009,7 @@ body.detail-has-cta .toast {
 .enquiry-form-sub {
   font-size: 0.82rem;
   color: var(--muted);
-  margin: 0.25rem 0 1.1rem;
+  margin: 0.25rem 0 1.35rem;
 }
 
 /* Security note under the form card. */
@@ -1917,7 +2040,7 @@ body.detail-has-cta .toast {
   display: flex;
   align-items: flex-start;
   gap: 0.55rem;
-  margin: 1.1rem 0 0;
+  margin: 1.4rem 0 0;
   font-size: 0.8rem;
   color: var(--body);
   line-height: 1.5;
@@ -1941,7 +2064,7 @@ body.detail-has-cta .toast {
   font-size: 0.7rem;
   font-variant-numeric: tabular-nums;
   color: var(--muted-2);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .enquiry-reassurance {
@@ -1955,14 +2078,14 @@ body.detail-has-cta .toast {
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.05rem;
+  margin-bottom: 1.15rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.45rem;
 }
 
 .form-group label {
@@ -2004,8 +2127,10 @@ body.detail-has-cta .toast {
 }
 
 .form-group textarea { resize: vertical; min-height: 100px; }
+/* Deliberate textarea hierarchy: the primary Message field is tallest. */
+#eMessage { min-height: 120px; }
 
-.form-submit { margin-top: 1.25rem; }
+.form-submit { margin-top: 1.5rem; }
 
 .confirmation {
   text-align: center;
@@ -2308,6 +2433,10 @@ body.detail-has-cta .toast {
 }
 
 /* ─── Detail Page: Gallery + Summary Row ────────────────────── */
+/* Desktop: gallery and summary share ONE stretched grid row — both start at
+   the same Y and end on the same baseline (the white gallery surface fills
+   the full row height; the image inside stays contained and centred at its
+   controlled scale). Mobile returns to natural stacked heights. */
 .detail-top {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
@@ -2315,12 +2444,43 @@ body.detail-has-cta .toast {
   max-width: 1180px;
   margin: 0.9rem auto 0;
   padding: 0 40px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .detail-summary {
   display: flex;
   flex-direction: column;
+}
+
+@media (min-width: 769px) {
+  #detailGallery { display: flex; flex-direction: column; }
+  .gallery-wrap { flex: 1; height: 100%; }
+  .gallery-wrap:not(.has-rail) { display: flex; }
+  .gallery-wrap:not(.has-rail) .gallery-main {
+    flex: 1;
+    height: auto;
+    aspect-ratio: auto;
+    min-height: 340px; /* guard for unusually short summaries */
+  }
+  .gallery-wrap.has-rail { align-items: stretch; }
+  .gallery-wrap.has-rail .gallery-main {
+    height: 100%;
+    aspect-ratio: auto;
+    min-height: 340px;
+  }
+  .gallery-wrap.has-rail .gallery-rail { max-height: 100%; }
+  /* The photo must never drive the row height (that would push the white
+     surface past the summary): absolutely centred inside the stage, it keeps
+     its contained scale caps while the SUMMARY column defines the shared
+     bottom baseline. */
+  .detail-top .gallery-stage { position: relative; }
+  .detail-top .gallery-main img {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    max-width: 78%;
+    max-height: 86%;
+  }
 }
 
 /* ─── Three-tab container (Specifications / Application / Downloads) ──
@@ -2722,25 +2882,14 @@ body.detail-has-cta .toast {
   gap: 0.45rem;
 }
 
+/* Foot: just the honest availability note, sitting cleanly below the action
+   row (the redundant "View Product Enquiry" link is gone — the navbar count
+   already carries that path). */
 .sidebar-foot {
-  padding-top: 0.8rem;
-  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  margin-top: 0.7rem;
   border-top: 1px solid var(--line);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.4rem;
 }
-
-.sidebar-enquiry-link {
-  font-size: 0.82rem;
-  color: var(--muted);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s;
-}
-
-.sidebar-enquiry-link:hover { color: var(--red); }
 
 /* Quiet info note under the actions (dot icon + honest availability copy). */
 .sidebar-note {
@@ -2818,39 +2967,85 @@ body.detail-has-cta .toast {
   .btn-whatsapp-sidebar { width: 100%; min-height: 46px; font-size: 0.88rem; }
 }
 
-/* ─── Compare Tray (full-width bottom drawer) ────────────────────
-   A persistent full-width bar pinned to the viewport bottom once at least
-   one product is selected. Open by default; the collapse chevron slims it
-   to just the head row (title + count) without losing the selection. One
-   responsive layout covers desktop, tablet and phone (≤640px) rather than
-   swapping in a separate mobile widget. body.compare-open reserves the
-   tray's live measured height (see updateCompareTrayHeight in compare.js). */
+/* ─── Compare Tray (subtle bottom trigger + on-demand panel) ─────
+   Canyon-style interaction hierarchy in the Yee Lim language: with products
+   selected, only a small centred white tab shows at the bottom edge —
+   compare icon, "Compare (N)", chevron. The full-width slots/actions panel
+   reveals only when the tab is deliberately expanded, and collapses back to
+   the quiet tab. body.compare-open reserves the tray's live measured height
+   (see updateCompareTrayHeight in compare.js). */
 .compare-tray {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: var(--z-compare-tray);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  pointer-events: none; /* the trigger/panel re-enable their own hit areas */
+  transform: translateY(110%);
+  visibility: hidden; /* fully out of paint once the slide-out ends */
+  transition: transform 0.34s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 0.34s;
+}
+.compare-tray.visible {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform 0.34s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) { .compare-tray { transition: none; } }
+
+/* The collapsed trigger tab: restrained white surface, hairline border,
+   soft lift. Sits flush on the viewport bottom edge. */
+.compare-tray-trigger {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding: 0.55rem 1.1rem calc(0.55rem + env(safe-area-inset-bottom, 0px) / 2);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 -6px 20px -6px rgba(32, 30, 24, 0.22);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.compare-tray-trigger:hover { background: var(--panel); }
+.compare-tray-trigger:focus-visible { outline: 2px solid var(--red); outline-offset: -3px; }
+.compare-tray-trigger svg { flex-shrink: 0; }
+.compare-tray-trigger .ctt-ic { color: var(--red); }
+.compare-tray-trigger #compareTrayCount { color: var(--muted); font-variant-numeric: tabular-nums; }
+.compare-tray-trigger .ctt-chev { color: var(--muted); transition: transform 0.28s var(--ease); }
+.compare-tray.is-expanded .compare-tray-trigger .ctt-chev { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .compare-tray-trigger .ctt-chev { transition: none; } }
+
+/* Expanded panel: the familiar full-width drawer, revealed on demand. */
+.compare-tray-panel {
+  pointer-events: auto;
+  width: 100%;
   background: var(--card);
   border-top: 1px solid var(--border);
-  box-shadow: 0 -4px 16px rgba(32,30,24,0.06);
-  transform: translateY(100%);
-  transition: transform 0.34s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 -4px 16px rgba(32, 30, 24, 0.06);
+  display: none;
 }
-.compare-tray.visible { transform: translateY(0); }
+.compare-tray.is-expanded .compare-tray-panel { display: block; }
 
 .compare-tray-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0.85rem 1.5rem;
+  padding: 0.85rem 1.5rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-/* Collapsed: only the head row remains, as a slim bar. */
-.compare-tray.is-collapsed .compare-tray-inner { padding-top: 0.65rem; padding-bottom: 0.65rem; }
-.compare-tray.is-collapsed .compare-tray-slots,
-.compare-tray.is-collapsed .compare-tray-actions { display: none; }
 
 .compare-tray-head {
   display: flex;
@@ -2867,7 +3062,7 @@ body.detail-has-cta .toast {
   letter-spacing: -0.005em;
   white-space: nowrap;
 }
-.compare-tray-title #compareTrayCount { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.compare-tray-title #compareTrayFull { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
 .compare-tray-sub { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
 
 .compare-tray-slots {
@@ -3013,24 +3208,6 @@ body.detail-has-cta .toast {
 .compare-tray-btn:not(:disabled):hover { background: var(--red-dark); }
 .compare-tray-btn:not(:disabled):active { transform: scale(0.97); }
 
-.compare-tray-collapse {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.15s;
-}
-.compare-tray-collapse:hover { color: var(--text); }
-.compare-tray-collapse svg { transition: transform 0.28s var(--ease); }
-.compare-tray.is-collapsed .compare-tray-collapse svg { transform: rotate(180deg); }
-
 /* Tablet band (641-860px): keep the slot row single-line by scrolling it
    horizontally rather than wrapping, so the head and actions stay pinned
    and the tray height is constant. Phones (<=640px) use the stacked
@@ -3039,18 +3216,16 @@ body.detail-has-cta .toast {
   .compare-tray-inner { gap: 0.75rem; }
 }
 
-/* Mobile: stack into rows — head (title + collapse chevron), then the
-   selected slots scrolling horizontally, then Clear all / Compare now as a
-   two-up button row. Bottom safe-area padding for notched phones. */
+/* Mobile: the panel stacks into rows — head, then the selected slots
+   scrolling horizontally, then Clear all / Compare now as a two-up button
+   row. Bottom safe-area padding for notched phones. */
 @media (max-width: 640px) {
   .compare-tray-inner {
     flex-wrap: wrap;
     padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
     gap: 0.65rem;
   }
-  .compare-tray.is-collapsed .compare-tray-inner { padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px)); }
   .compare-tray-head { flex: 1 1 auto; min-width: 0; }
-  .compare-tray-collapse { order: 2; }
   .compare-tray-slots { order: 3; flex-basis: 100%; }
   .compare-tray-actions { order: 4; flex-basis: 100%; gap: 0.6rem; }
   .compare-tray-clear,
@@ -3104,7 +3279,7 @@ body.detail-has-cta .toast {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 1.15rem 1.25rem 0.85rem;
+  padding: 1.05rem 1.25rem 0.8rem;
   border-bottom: 1px solid var(--line);
 }
 .cmp-picker-eyebrow {
@@ -3119,7 +3294,7 @@ body.detail-has-cta .toast {
 }
 .cmp-picker-title {
   font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 1.12rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text);
@@ -3133,14 +3308,14 @@ body.detail-has-cta .toast {
 }
 .cmp-picker-x {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: 1px solid var(--line-2);
-  border-radius: 5px;
+  border-radius: 4px;
   color: var(--muted);
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
@@ -3148,27 +3323,40 @@ body.detail-has-cta .toast {
 .cmp-picker-x:hover { color: var(--text); border-color: var(--muted); }
 .cmp-picker-x:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
-.cmp-picker-tools { padding: 0.9rem 1.25rem 0.75rem; border-bottom: 1px solid var(--line); }
+.cmp-picker-tools { padding: 0.85rem 1.25rem 0.75rem; border-bottom: 1px solid var(--line); }
+/* Quiet segmented control: a soft inset track with a white raised chip for
+   the selected segment — clear, but integrated (never an oversized dark
+   pill competing with the actual actions). */
 .cmp-picker-tabs {
-  display: inline-flex;
-  border: 1px solid var(--line-2);
+  display: flex;
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
   border-radius: 5px;
-  overflow: hidden;
+  padding: 3px;
+  gap: 3px;
   margin-bottom: 0.8rem;
 }
 .cmp-picker-tab {
-  background: #fff;
+  flex: 1;
+  background: transparent;
   border: none;
-  padding: 0.45rem 0.9rem;
+  border-radius: 3px;
+  padding: 0.42rem 0.75rem;
   font-family: inherit;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
-.cmp-picker-tab + .cmp-picker-tab { border-left: 1px solid var(--line-2); }
-.cmp-picker-tab[aria-selected="true"] { background: var(--ink); color: #fff; }
+.cmp-picker-tab:hover { color: var(--text); }
+.cmp-picker-tab[aria-selected="true"] {
+  background: #fff;
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(32, 30, 24, 0.12), inset 0 0 0 1px var(--line-2);
+}
 .cmp-picker-tab:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }
 
 .cmp-picker-search {
@@ -3256,6 +3444,58 @@ body.detail-has-cta .toast {
 .cmp-picker-add:disabled { border-color: var(--line-2); color: var(--muted-2); background: #fff; cursor: not-allowed; }
 .cmp-picker-add:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .cmp-picker-empty { padding: 1.5rem 1rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+
+/* Designed Recently-viewed empty state: the segment stays clickable and this
+   explains it, with a real route on to All products. */
+.cmp-picker-empty-recent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.4rem 1.5rem;
+}
+.cmp-picker-empty-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--panel-2);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+}
+.cmp-picker-empty-recent h3 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0 0 0.3rem;
+}
+.cmp-picker-empty-recent p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 1.1rem;
+  max-width: 30ch;
+}
+.cmp-picker-browse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #fff;
+  border: 1px solid var(--red);
+  border-radius: 4px;
+  color: var(--red);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cmp-picker-browse:hover { background: var(--red); color: #fff; }
+.cmp-picker-browse:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
 @media (max-width: 560px) {
   .cmp-picker { width: 100%; border-left: none; }
@@ -3358,15 +3598,17 @@ body.detail-has-cta .toast {
   background: #fff;
 }
 
-/* Attribute (label) column: clearly its own rail — soft panel fill, a stronger
-   right rule, sentence-case bold labels (locked ReBond reference). */
+/* Attribute (label) column: WHITE like the product columns so the whole
+   table reads as one integrated surface (locked full-design reference). The
+   rail is distinguished by typography, its red icons and a subtle stronger
+   right rule — never a separate beige block. */
 .compare-row-label {
   padding: 0.875rem 1rem 0.875rem 1.25rem;
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: -0.005em;
   color: var(--text);
-  background: var(--panel);
+  background: var(--card);
   border-top: 1px solid var(--line);
   border-right: 1px solid var(--line-2);
   white-space: normal;
@@ -4019,22 +4261,24 @@ body:has(.compare-tray.visible) .toast {
    ════════════════════════════════════════════════════════════════ */
 
 
-/* ─── 404 Page (standalone recovery, locked ReBond design) ─────
+/* ─── 404 Page (standalone one-screen recovery) ─────────────────
    Focused recovery page: minimal branded top bar (no full site nav), warm
-   hero with the back CTA + product search, "Helpful places to go" cards,
-   and a slim one-line footer (no full site footer). */
-/* The standalone page fills the viewport so the slim footer sits at the
-   bottom edge and the dark html fallback never shows as a band below it. */
+   hero with the back CTA + product search, and the "Helpful places to go"
+   cards. No footer/copyright row and fluid vertical spacing, so the whole
+   page fits within 100dvh at desktop sizes (1024×768 up) without a
+   scrollbar. Phones/short viewports scroll naturally — nothing is clipped. */
 .nf-body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  background: var(--bg); /* fill the viewport so the dark html fallback never shows */
 }
 .nf-body main { flex: 1; }
 
 .nf-topbar {
   background: var(--dark);
   height: 56px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   padding: 0 2rem;
@@ -4043,37 +4287,35 @@ body:has(.compare-tray.visible) .toast {
 .nf-topbar img { height: 34px; width: auto; display: block; }
 .nf-topbar a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
-.nf-footer {
-  border-top: 1px solid var(--line);
-  padding: 1.1rem 1.5rem calc(1.1rem + env(safe-area-inset-bottom, 0px));
-  text-align: center;
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-.nf-footer strong { color: var(--body); font-weight: 600; }
-
 .nf-hero .hero-eyebrow { color: var(--red); }
 .nf-hero h1 { max-width: 20ch; }
+/* Fluid hero padding: compresses on shorter desktop viewports (768-800px
+   tall) instead of pushing the page past one screen. */
+.nf-hero .page-hero-inner {
+  padding-top: clamp(1.4rem, 4vh, 2.4rem);
+  padding-bottom: clamp(1.3rem, 3.8vh, 2.3rem);
+}
 
 .nf-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  margin-top: clamp(0.9rem, 2.4vh, 1.5rem);
 }
-.nf-actions .btn { padding: 0.75rem 1.4rem; font-size: 0.92rem; }
+.nf-actions .btn { padding: 0.72rem 1.4rem; font-size: 0.92rem; }
 
-.nf-search { margin-top: 1rem; max-width: 560px; }
+.nf-search { margin-top: clamp(0.7rem, 1.8vh, 1rem); max-width: 560px; }
 
 .nf-help {
+  width: 100%;
   max-width: 1400px;
-  margin: 2.25rem auto 3rem;
+  margin: clamp(1.2rem, 3vh, 2.25rem) auto clamp(1.2rem, 3.6vh, 2.75rem);
   padding: 0 2rem;
 }
 
 .nf-help h2 {
   font-size: 1.25rem;
-  margin-bottom: 1.1rem;
+  margin-bottom: clamp(0.7rem, 1.8vh, 1.1rem);
 }
 
 .nf-help-grid {
@@ -4121,18 +4363,25 @@ body:has(.compare-tray.visible) .toast {
   .nf-actions .btn { flex: 1 1 100%; justify-content: center; min-height: 46px; }
 }
 
-/* ─── Contact Page (locked design) ─────────────────────────────
+/* ─── Contact Page (locked design + follow-up corrections) ─────
    White info card left (circular red icon chips, hairline rows, real data
-   only), white form card right with Send Message + Clear Form. */
+   only), white form card right. Desktop: both cards share one stretched
+   grid row so they end on the same baseline — the WhatsApp CTA anchors the
+   bottom of the left card. Mobile stacks at natural heights. */
+
+/* Softer hero-to-content transition on Contact only: the hero already fades
+   into the page canvas, so the full-width rule under it is dropped and the
+   cards sit closer to the hero. */
+.page-hero.contact-hero { border-bottom: none; }
 
 .contact-page {
   max-width: 1400px;
-  margin: 2.5rem auto 3rem;
+  margin: 1.9rem auto 3rem;
   padding: 0 2rem;
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
   gap: 2rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 .contact-card {
@@ -4142,6 +4391,15 @@ body:has(.compare-tray.visible) .toast {
   box-shadow: var(--shadow);
   padding: 1.75rem;
 }
+
+/* Left card: vertical flex — rows keep their natural compact spacing, any
+   leftover row height collects above the bottom-anchored WhatsApp CTA. */
+.contact-info-card {
+  display: flex;
+  flex-direction: column;
+}
+.contact-info-card .contact-whatsapp { margin-top: auto; }
+.contact-info-card .contact-detail-list { margin-bottom: 1.1rem; }
 
 .contact-form-card { padding: 1.9rem 2rem; }
 
@@ -4219,7 +4477,7 @@ body:has(.compare-tray.visible) .toast {
   align-items: center;
   gap: 0.55rem;
   width: 100%;
-  margin-top: 1.1rem;
+  margin-top: 0;
   padding: 0.85rem 1rem;
   background: #fff;
   border: 1px solid var(--border);
@@ -4244,20 +4502,23 @@ body:has(.compare-tray.visible) .toast {
   min-height: 140px;
 }
 
+/* Compact bottom composition (follow-up reference): the security note sits
+   directly under the final textarea, with the primary Send action right
+   after it — no floating note in an empty region, no isolated Clear Form. */
 .contact-security-note {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.78rem;
   color: var(--muted);
-  margin: 0 0 1rem;
+  margin: 0 0 0.9rem;
 }
 .contact-security-note svg { flex-shrink: 0; opacity: 0.75; }
 
 .contact-form-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -4268,27 +4529,14 @@ body:has(.compare-tray.visible) .toast {
   font-weight: 700;
 }
 
-.contact-clear-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: none;
-  border: none;
-  padding: 0.5rem 0.25rem;
-  font-family: inherit;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-}
-.contact-clear-btn:hover { color: var(--red); }
-.contact-clear-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
-
+/* Status line only takes space when it has something to say. Kept in the
+   accessibility tree at all times (role="status") — an empty <p> is already
+   zero-height, so only its margin needs collapsing. */
 .contact-form-status {
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.75rem;
   font-size: 0.9rem;
-  min-height: 1.35rem;
 }
+.contact-form-status:empty { margin: 0; }
 
 .contact-form-status.success {
   color: #16803a;
@@ -4321,6 +4569,147 @@ body:has(.compare-tray.visible) .toast {
   .contact-card h2 {
     font-size: 1.3rem;
   }
+}
+
+/* ─── Home Page (ReBond) ────────────────────────────────────────
+   Assembled entirely from the shared system: the warm hero pattern, the
+   four real brand ranges, featured catalogue cards (the same shared
+   product card + actions as the catalogue), the shared advice band and
+   the shared footer. Real data only. */
+.home-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.home-hero-cta .btn { padding: 0.75rem 1.4rem; font-size: 0.92rem; }
+
+.home-brands {
+  max-width: 1400px;
+  margin: 2rem auto 0;
+  padding: 0 2rem;
+}
+.home-brand-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+.home-brand-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.home-brand-card:hover { box-shadow: var(--shadow-md); border-color: var(--line-2); }
+.home-brand-card:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+/* Same fixed-window crop as the card brand marks: the official pictograms sit
+   on large padded canvases; the window shows just the mark. */
+.home-brand-ic {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.home-brand-ic img {
+  position: absolute;
+  width: 240%;
+  height: 240%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+.home-brand-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.home-brand-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-brand-count { font-size: 0.74rem; color: var(--muted); }
+.home-brand-go { margin-left: auto; flex-shrink: 0; color: var(--muted); transition: color 0.15s; }
+.home-brand-card:hover .home-brand-go { color: var(--red); }
+
+.home-featured {
+  max-width: 1400px;
+  margin: 2.75rem auto 3rem;
+  padding: 0 2rem;
+}
+.home-sec-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+.home-sec-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--red);
+  margin-bottom: 0.4rem;
+}
+.home-sec-head h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  margin: 0;
+}
+.home-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--red);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+  padding-bottom: 0.15rem;
+}
+.home-view-all:hover { text-decoration: underline; text-underline-offset: 3px; }
+.home-view-all:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
+
+.home-featured-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.home-advice {
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+  padding: 0 2rem;
+}
+
+@media (max-width: 1023px) {
+  .home-featured-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .home-brand-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+  .home-brands, .home-featured, .home-advice { padding: 0 1.25rem; }
+}
+@media (max-width: 640px) {
+  .home-featured-grid { grid-template-columns: 1fr; gap: 0.9rem; }
+  .home-sec-head { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+  .home-hero-cta .btn { flex: 1 1 100%; justify-content: center; min-height: 46px; }
+}
+@media (max-width: 420px) {
+  .home-brand-grid { grid-template-columns: 1fr; }
 }
 
 /* ════════════════════════════════════════════════════════════════

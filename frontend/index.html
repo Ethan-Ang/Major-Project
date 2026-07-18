@@ -1,103 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yee Lim Adhesives | Coming Soon</title>
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #f7f7f7, #e9eef5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      color: #1f2d3d;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 650px;
-      background: #ffffff;
-      padding: 50px 35px;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    }
-
-    .logo-text {
-      font-size: 1rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #666;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 18px;
-      color: #143d66;
-    }
-
-    p {
-      font-size: 1.15rem;
-      line-height: 1.7;
-      color: #555;
-      margin-bottom: 10px;
-    }
-
-    .highlight {
-      color: #d35400;
-      font-weight: bold;
-    }
-
-    .footer {
-      margin-top: 28px;
-      font-size: 0.9rem;
-      color: #888;
-    }
-
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 2rem;
-      }
-
-      .container {
-        padding: 40px 25px;
-      }
-
-      p {
-        font-size: 1rem;
-      }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yee Lim Adhesives Industries | Commercial &amp; Industrial Adhesives Singapore</title>
+  <meta name="description" content="Yee Lim Adhesives Industries has formulated commercial and industrial adhesives in Singapore for over 50 years. Browse the Deer™, Horsemen™, Premier™ and Rhino™ ranges or submit a product enquiry.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/products.css?v=78">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
+  <script src="/js/widgets/navbar.js?v=15"></script>
+  <script src="/js/widgets/footer.js?v=19"></script>
 </head>
-
 <body>
-  <div class="container">
-    <div class="logo-text">Yee Lim Adhesives</div>
 
-    <h1>Stay tuned, we’re getting things glued.</h1>
-
-    <p>
-      Our website is currently under construction as we put everything together.
-    </p>
-
-    <p>
-      We’ll be back soon with stronger updates, smoother browsing, and all things
-      <span class="highlight">adhesive</span>.
-    </p>
-
-    <div class="footer">
-      Thank you for your patience.
+<div id="swup" class="transition-fade">
+<main id="mainContent">
+<!-- Home hero: the shared warm cream band + industrial photo treatment.
+     Copy is the company's own recorded positioning (footer blurb). -->
+<section class="page-hero home-hero" aria-labelledby="homeHeading">
+  <div class="page-hero-img" aria-hidden="true"></div>
+  <div class="page-hero-inner">
+    <span class="hero-eyebrow">Commercial &amp; Industrial Adhesives</span>
+    <h1 id="homeHeading">Adhesive solutions engineered to the job, not off the shelf</h1>
+    <p class="hero-lead">One of Singapore&rsquo;s earliest and largest adhesive manufacturers &mdash; formulating commercial and industrial adhesives for over 50 years.</p>
+    <div class="home-hero-cta">
+      <a href="/products" class="btn btn-primary">Browse Products
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <a href="/enquiry" class="btn btn-outline">Submit an Enquiry</a>
     </div>
   </div>
+</section>
+
+<!-- The four real Yee Lim ranges, deep-linking into the filtered catalogue -->
+<section class="home-brands" aria-labelledby="homeBrandsHeading">
+  <div class="home-sec-head">
+    <div>
+      <span class="home-sec-eyebrow">Our Ranges</span>
+      <h2 id="homeBrandsHeading">Four brands, one manufacturer</h2>
+    </div>
+  </div>
+  <div class="home-brand-grid" id="homeBrandGrid"></div>
+</section>
+
+<!-- Featured catalogue products: the shared product card + actions -->
+<section class="home-featured" aria-labelledby="homeFeaturedHeading">
+  <div class="home-sec-head">
+    <div>
+      <span class="home-sec-eyebrow">Product Catalogue</span>
+      <h2 id="homeFeaturedHeading">Explore the range</h2>
+    </div>
+    <a class="home-view-all" href="/products"><span id="homeCatalogueCount">View all products</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+  <div class="home-featured-grid" id="homeFeaturedGrid"></div>
+</section>
+
+<!-- Shared advice band (same component as the product detail page) -->
+<div class="home-advice">
+  <div class="enquiry-guidance">
+    <span class="enquiry-guidance-ic" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 0 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
+    </span>
+    <div class="enquiry-guidance-copy">
+      <h2 class="enquiry-guidance-title">Need help choosing the right adhesive?</h2>
+      <p>Tell us your surfaces, application and quantity. Our team will recommend the most suitable option.</p>
+    </div>
+    <button type="button" class="enquiry-guidance-link"
+      onclick="if(window.openProductAdvisor){openProductAdvisor()}else{window.location.href='/contact'}">
+      Get Product Advice
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Compare tray: quiet centred trigger tab; the full panel expands on demand -->
+<div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
+  <button class="compare-tray-trigger" id="compareTrayToggle" type="button" onclick="toggleCompareTray()" aria-expanded="false" aria-controls="compareTrayPanel">
+    <svg class="ctt-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
+    Compare <span id="compareTrayCount">(0)</span>
+    <svg class="ctt-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+  <div class="compare-tray-panel" id="compareTrayPanel">
+    <div class="compare-tray-inner">
+      <div class="compare-tray-head">
+        <span class="compare-tray-title">Compare <span id="compareTrayFull">(0/3)</span></span>
+        <span class="compare-tray-sub">Add up to 3 products</span>
+      </div>
+      <div class="compare-tray-slots" id="compareTraySlots"></div>
+      <div class="compare-tray-actions" id="compareTrayActions">
+        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison">Clear all</button>
+        <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view">Compare now
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+</main>
+</div>
+
+<!-- Footer injected by js/widgets/footer.js -->
+
+<script src="/js/vendor/swup.umd.js?v=1"></script>
+<script src="/js/data.js?v=8"></script>
+<script src="/js/core/app.js?v=3"></script>
+<script src="/js/widgets/compare.js?v=13"></script>
+<script src="/js/widgets/custom-select.js?v=5"></script>
+<script src="/js/pages/products.js?v=40"></script>
+<script src="/js/pages/home.js?v=1"></script>
+<script src="/js/pages/product-detail.js?v=27"></script>
+<script src="/js/pages/compare-page.js?v=14"></script>
+<script src="/js/pages/enquiry.js?v=5"></script>
+<script src="/js/pages/contact.js?v=3"></script>
+<script src="/js/widgets/chatbot.js?v=18"></script>
+<script src="/js/widgets/page-transitions.js?v=4"></script>
 </body>
 </html>
