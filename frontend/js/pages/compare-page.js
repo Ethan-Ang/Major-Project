@@ -17,6 +17,8 @@ if (typeof window !== "undefined" && typeof window.ylEscapeHtml !== "function") 
 function renderCompareSkeleton() {
   const content = document.getElementById("comparePageContent");
   if (!content) return;
+  content.classList.add("is-loading");
+  renderCompareSelectSkeleton();
   const col = '<div aria-hidden="true">' +
     '<div class="skeleton-img" style="border-radius:8px;aspect-ratio:1/1"></div>' +
     '<div class="skeleton-line skeleton-line-title" style="margin-top:0.75rem"></div>' +
@@ -25,6 +27,34 @@ function renderCompareSkeleton() {
   content.innerHTML =
     '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5rem;max-width:640px">' +
     col + col + '</div>';
+}
+
+// Reserve the real selection panel's responsive geometry before catalogue data
+// arrives. The count is the visitor's actual local selection; neutral shimmer
+// blocks stand in for product content and controls without inventing data.
+function renderCompareSelectSkeleton() {
+  const el = document.getElementById("compareSelectPanel");
+  if (!el) return;
+  const count = Math.min(COMPARE_MAX, getCompareList().length);
+  if (!count) { el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false;
+  const slotCount = count + (count < COMPARE_MAX ? 1 : 0);
+  const slots = Array.from({ length: slotCount }, () => `
+    <div class="csel-card csel-skeleton" aria-hidden="true">
+      <span class="csel-img skeleton-line"></span>
+      <span class="csel-text">
+        <span class="skeleton-line skeleton-line-short"></span>
+        <span class="skeleton-line skeleton-line-title"></span>
+      </span>
+    </div>`).join("");
+  el.innerHTML = `
+    <div class="csel-head">Products to compare (${count}/${COMPARE_MAX})</div>
+    <div class="csel-body">
+      <div class="csel-row">${slots}</div>
+      <div class="csel-actions csel-skeleton-actions" aria-hidden="true">
+        <span class="skeleton-line"></span><span class="skeleton-line"></span>
+      </div>
+    </div>`;
 }
 
 // Re-runnable across Swup swaps: registered via ylReady, self-selecting on the
@@ -114,6 +144,7 @@ function renderComparePage() {
   const products = list.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
   const content  = document.getElementById("comparePageContent");
   if (!content) return;
+  content.classList.remove("is-loading");
 
   // The selection panel tracks the raw compare list (0-3 products); it is
   // independent of the "need 2+ to compare" gate below.

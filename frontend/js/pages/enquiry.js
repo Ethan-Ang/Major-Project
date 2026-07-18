@@ -6,13 +6,28 @@
 function renderBasketSkeleton() {
   const list = document.getElementById("basketList");
   if (!list) return;
+  const count = getBasket().length;
+  const grid = document.querySelector(".enquiry-grid");
+  const formSection = document.getElementById("enquiryFormSection");
+  const colHead = document.getElementById("enquiryColHead");
+  const totalBand = document.getElementById("enquiryTotalBand");
+  const totalCount = document.getElementById("enquiryTotalCount");
+  if (!count) {
+    renderBasket();
+    return;
+  }
+  if (grid) grid.classList.remove("is-empty");
+  if (formSection) formSection.style.display = "block";
+  if (colHead) colHead.style.display = "flex";
+  if (totalBand) totalBand.style.display = "flex";
+  if (totalCount) totalCount.innerHTML = `<b>${count}</b> item${count !== 1 ? "s" : ""}`;
   const row = '<div class="basket-item" aria-hidden="true" style="align-items:center">' +
     '<div class="skeleton-img" style="width:64px;height:64px;aspect-ratio:auto;border-radius:6px;flex:none"></div>' +
     '<div style="flex:1">' +
     '<div class="skeleton-line skeleton-line-short"></div>' +
     '<div class="skeleton-line skeleton-line-title"></div>' +
     '<div class="skeleton-line skeleton-line-mid"></div></div></div>';
-  list.innerHTML = row + row;
+  list.innerHTML = row.repeat(count);
 }
 
 // Re-runnable init (initial load + every Swup swap). Bails on non-enquiry pages.

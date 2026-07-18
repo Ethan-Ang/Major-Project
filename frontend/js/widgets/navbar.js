@@ -30,6 +30,10 @@
        out of its sticky context, so it drops to the document top (off-screen)
        and leaves a 60px gap above the drawer where the page shows through. Pin
        the bar explicitly for that state so it stays glued to the viewport top. */
+    /* Other widgets render asynchronously and may clear body.style.overflow as
+       they tear down their own sheets. Keep the nav's scroll lock authoritative
+       for exactly as long as its body state class is present. */
+    body.nav-drawer-open { overflow: hidden !important; }
     body.nav-drawer-open .nav { position: fixed; top: 0; left: 0; right: 0; }
     @media (prefers-reduced-motion: reduce) { .nav { transition: none; } }
     .nav-logo {
@@ -145,27 +149,6 @@
       box-sizing: border-box;
     }
     .nav-basket-count.is-empty { display: none; }
-
-    /* Count chip on the drawer "Product Enquiry" link. */
-    .nav-drawer-count {
-      display: none;
-      margin-left: 0.5rem;
-      background: #CC2929;
-      color: #fff;
-      font-size: 0.7rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      border-radius: 999px;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 5px;
-      box-sizing: border-box;
-      vertical-align: middle;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-    }
-    .nav-drawer-count.has-items { display: inline-flex; }
     .nav-compare,
     .nav-compare-count { display: none !important; }
     .nav-hamburger {
@@ -197,6 +180,7 @@
       right: 0;
       max-height: calc(100dvh - 60px);
       overflow-y: auto;
+      overscroll-behavior: contain;
       z-index: 99;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
@@ -233,6 +217,7 @@
       .nav { grid-template-columns: 1fr auto; }
       .nav-links { display: none; }
       .nav-compare { display: none !important; }
+      .nav-basket { height: 44px; }
       .nav-hamburger { display: inline-flex; }
     }
     @media (max-width: 480px) {
@@ -242,10 +227,21 @@
       .nav { padding: 0 1rem; gap: 0.4rem; }
       .nav-logo-img { height: 32px; }
       .nav-right { gap: 0.45rem; }
-      .nav-basket { font-size: 0.78rem; height: 32px; padding: 0 0.6rem; gap: 0.4rem; }
+      .nav-basket { font-size: 0.78rem; height: 44px; padding: 0 0.6rem; gap: 0.4rem; }
       .nav-basket svg { width: 14px; height: 14px; }
       .nav-basket-count { min-width: 16px; height: 16px; font-size: 0.66rem; padding: 0 4px; }
-      .nav-hamburger { min-width: 40px; padding: 0.4rem 0.4rem; }
+      .nav-hamburger { min-width: 44px; min-height: 44px; padding: 0.4rem; }
+    }
+    @media (max-width: 380px) {
+      /* Keep all three header actions available on very narrow devices, but
+         shorten only the visible enquiry label instead of moving or duplicating
+         the action inside the drawer. Its accessible name remains unchanged. */
+      .nav { padding: 0 0.625rem; gap: 0.25rem; }
+      .nav-logo-img { height: 30px; }
+      .nav-right { gap: 0.25rem; }
+      .nav-basket { padding: 0 0.5rem; gap: 0.3rem; }
+      .nav-basket-label-full { display: none; }
+      .nav-basket-label-short { display: inline; }
     }
   `;
   document.head.appendChild(style);
@@ -286,18 +282,24 @@
       `).join("")}
     </ul>
     <div class="nav-right">
-      <a href="/enquiry" class="nav-basket">
+      <a href="/enquiry" class="nav-basket" aria-label="Product Enquiry">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
         <span class="nav-basket-label nav-basket-label-full">Product Enquiry</span>
+        <span class="nav-basket-label nav-basket-label-short" aria-hidden="true">Enquiry</span>
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
-      <button class="nav-hamburger" id="_navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="_navDrawer">&#9776;</button>
+      <button type="button" class="nav-hamburger" id="_navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="_navDrawer" aria-haspopup="dialog">&#9776;</button>
     </div>
   `;
 
   const drawerEl = document.createElement("div");
   drawerEl.className = "nav-mobile-drawer";
   drawerEl.id = "_navDrawer";
+  drawerEl.setAttribute("role", "dialog");
+  drawerEl.setAttribute("aria-modal", "true");
+  drawerEl.setAttribute("aria-label", "Site navigation");
+  drawerEl.setAttribute("aria-hidden", "true");
+  drawerEl.tabIndex = -1;
   drawerEl.innerHTML = `
     ${links.map(l => `<a href="${l.href}">${l.label}</a>`).join("")}
   `;
@@ -305,6 +307,7 @@
   const backdropEl = document.createElement("div");
   backdropEl.className = "nav-mobile-backdrop";
   backdropEl.id = "_navBackdrop";
+  backdropEl.setAttribute("aria-hidden", "true");
 
   // ─── Insert at top of body ────────────────────────────────────
   function insert() {
@@ -313,22 +316,134 @@
     document.body.insertBefore(navEl, document.body.firstChild);
 
     const hamburger = document.getElementById("_navHamburger");
+    const firstDrawerLink = drawerEl.querySelector("a[href]");
+    const mobileNavQuery = window.matchMedia("(max-width: 768px)");
+    let drawerRelease = null;
+    let bodyOverflowBeforeDrawer = "";
+
+    function focusSafely(element) {
+      if (!element || !element.isConnected || typeof element.focus !== "function") return;
+      try { element.focus({ preventScroll: true }); }
+      catch (e) { try { element.focus(); } catch (ignored) {} }
+    }
+
+    // Use the site's shared trap when it has loaded. The fallback mirrors its
+    // Tab/Escape behaviour, but is installed only when that helper is absent so
+    // one key press can never run two close handlers.
+    function fallbackFocusTrap(initialFocus) {
+      const selector = 'a[href], button:not([disabled]), input:not([disabled]),' +
+                       ' select:not([disabled]), textarea:not([disabled]),' +
+                       ' [tabindex]:not([tabindex="-1"])';
+
+      function focusables() {
+        return Array.from(drawerEl.querySelectorAll(selector)).filter(element =>
+          element.offsetParent !== null || element === document.activeElement
+        );
+      }
+
+      function onKeydown(event) {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeDrawer();
+          return;
+        }
+        if (event.key !== "Tab") return;
+        const items = focusables();
+        if (!items.length) { event.preventDefault(); focusSafely(drawerEl); return; }
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && (active === first || !drawerEl.contains(active))) {
+          event.preventDefault();
+          focusSafely(last);
+        } else if (!event.shiftKey && (active === last || !drawerEl.contains(active))) {
+          event.preventDefault();
+          focusSafely(first);
+        }
+      }
+
+      document.addEventListener("keydown", onKeydown, true);
+      setTimeout(() => {
+        if (drawerEl.classList.contains("open")) focusSafely(initialFocus || drawerEl);
+      }, 0);
+      return function release() {
+        document.removeEventListener("keydown", onKeydown, true);
+      };
+    }
+
+    function releaseDrawerTrap() {
+      if (!drawerRelease) return;
+      const release = drawerRelease;
+      drawerRelease = null;
+      // Focus is restored explicitly to the hamburger below, so prevent the
+      // shared helper from also restoring its captured element.
+      try { release(false); } catch (e) {}
+    }
+
+    function acquireDrawerTrap() {
+      releaseDrawerTrap();
+      if (typeof ylFocusTrap === "function") {
+        drawerRelease = ylFocusTrap(drawerEl, {
+          initialFocus: firstDrawerLink || drawerEl,
+          onEscape: closeDrawer
+        });
+      } else {
+        drawerRelease = fallbackFocusTrap(firstDrawerLink || drawerEl);
+      }
+    }
+
+    // The products filter, mobile compare sheet and compare picker are modal
+    // layers too. Close any one that is already active before the nav acquires
+    // focus and scroll ownership.
+    function closeCompetingLayers() {
+      if (document.body.classList.contains("filter-drawer-open") &&
+          typeof closeFilterDrawer === "function") {
+        closeFilterDrawer(false);
+      }
+      if (document.getElementById("ylCmpPicker") &&
+          typeof closeComparePicker === "function") {
+        closeComparePicker(false);
+      }
+      if (document.body.classList.contains("cmp-sheet-open") &&
+          typeof toggleCompareTray === "function") {
+        toggleCompareTray();
+      }
+      // A competing close may move focus back to its own trigger. The nav is
+      // the newly requested layer, so make its trigger the deterministic return
+      // target before the focus trap captures state.
+      focusSafely(hamburger);
+    }
 
     function openDrawer() {
+      if (drawerEl.classList.contains("open")) return;
+      closeCompetingLayers();
+      bodyOverflowBeforeDrawer = document.body.style.overflow;
       drawerEl.classList.add("open");
+      drawerEl.setAttribute("aria-hidden", "false");
       backdropEl.classList.add("open");
       document.body.classList.add("nav-drawer-open"); // pins the sticky bar (see CSS)
       document.body.style.overflow = "hidden"; // lock page scroll behind the overlay
       hamburger.setAttribute("aria-expanded", "true");
       hamburger.setAttribute("aria-label", "Close navigation menu");
+      acquireDrawerTrap();
     }
-    function closeDrawer() {
+
+    function closeDrawer(restoreFocus = true) {
+      const hadDrawerState = drawerEl.classList.contains("open") || drawerRelease;
+      if (!hadDrawerState) return;
       drawerEl.classList.remove("open");
+      drawerEl.setAttribute("aria-hidden", "true");
       backdropEl.classList.remove("open");
       document.body.classList.remove("nav-drawer-open");
-      document.body.style.overflow = "";
+      releaseDrawerTrap();
+      const anotherModalOwnsScroll =
+        document.body.classList.contains("filter-drawer-open") ||
+        document.body.classList.contains("cmp-sheet-open") ||
+        Boolean(document.getElementById("ylCmpPicker"));
+      document.body.style.overflow = anotherModalOwnsScroll ? "hidden" : bodyOverflowBeforeDrawer;
       hamburger.setAttribute("aria-expanded", "false");
       hamburger.setAttribute("aria-label", "Open navigation menu");
+      if (restoreFocus && mobileNavQuery.matches) focusSafely(hamburger);
     }
 
     hamburger.addEventListener("click", () => {
@@ -337,9 +452,16 @@
     backdropEl.addEventListener("click", closeDrawer);
     // Close when a drawer link is tapped (before the navigation happens).
     drawerEl.addEventListener("click", (e) => { if (e.target.closest("a")) closeDrawer(); });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && drawerEl.classList.contains("open")) closeDrawer();
-    });
+    // Swup can begin a visit from history or code rather than a drawer click;
+    // release modal state before its content swap in all cases.
+    document.addEventListener("swup:visit:start", () => closeDrawer(false));
+    const onMobileNavChange = (event) => { if (!event.matches) closeDrawer(false); };
+    if (typeof mobileNavQuery.addEventListener === "function") {
+      mobileNavQuery.addEventListener("change", onMobileNavChange);
+    } else {
+      mobileNavQuery.addListener(onMobileNavChange);
+    }
+    window.addEventListener("pagehide", () => closeDrawer(false));
 
     // Elevate the bar with a soft shadow once the page scrolls off the top.
     let ticking = false;
@@ -368,11 +490,11 @@
       basketEl.classList.toggle("is-empty", n === 0);
     }
 
-    // Drawer "Product Enquiry" count.
-    const drawerCountEl = document.getElementById("navDrawerCount");
-    if (drawerCountEl) {
-      drawerCountEl.textContent = n;
-      drawerCountEl.classList.toggle("has-items", n > 0);
+    const basketLinkEl = document.querySelector(".nav-basket");
+    if (basketLinkEl) {
+      basketLinkEl.setAttribute("aria-label", n > 0
+        ? `Product Enquiry, ${n} ${n === 1 ? "item" : "items"}`
+        : "Product Enquiry");
     }
 
     const compareCountEl = document.getElementById("navCompareCount");

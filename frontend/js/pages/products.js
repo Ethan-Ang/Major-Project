@@ -42,8 +42,8 @@ async function initProductsPage() {
     enhanceCustomSelect(document.getElementById("mobileSortSelect"));
   }
   buildFilterCheckboxes();
-  applyFilterGroupDefaults();
   applyStateToCheckboxes();
+  applyFilterGroupDefaults();
   syncShowMore(); // URL-restored checks must not hide behind "Show more"
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
@@ -433,8 +433,6 @@ function updateClearVisibility() {
   const any = activeFilters.productTypes.length || activeFilters.brands.length ||
               activeFilters.industries.length || activeFilters.surfaces.length ||
               document.getElementById("searchInput").value.trim();
-  const btn = document.querySelector(".filter-clear");
-  if (btn) btn.style.display = any ? "block" : "none";
   // Mobile count-row "Clear all" mirrors the same active state.
   const gca = document.getElementById("gridClearAll");
   if (gca) gca.hidden = !any;
@@ -563,7 +561,7 @@ function renderGrid(products) {
   }
 
   const applyBtn = document.getElementById("drawerApplyBtn");
-  if (applyBtn) applyBtn.textContent = `Show ${products.length} result${products.length !== 1 ? "s" : ""}`;
+  if (applyBtn) applyBtn.textContent = `Show ${products.length} product${products.length !== 1 ? "s" : ""}`;
 
   if (products.length === 0) {
     grid.innerHTML = `
@@ -666,12 +664,14 @@ function productCardHTML(p) {
     ? "Comparison full: remove one to add another"
     : inCompare ? "Remove from comparison" : "Add to compare";
 
-  // Structure note: .pcard-main wraps the image + info. On desktop it is
+  // Structure note: .pcard-main wraps the image, title and technical rows. On
+  // desktop it is
   // display:contents (a no-op, so the card is the SAME head/image/body/actions
   // flex column as before); at <=640px it becomes a two-column grid (image left,
-  // info right) and the actions row spans full width below it. The actions live
-  // OUTSIDE .product-card-body so that full-width bottom row is possible on
-  // mobile. Shared with Home's featured cards (home.js reuses this renderer).
+  // title right) with the technical rows spanning the full width beneath. This
+  // keeps real values readable instead of squeezing them into half a card. The
+  // actions live outside .product-card-body so their bottom row can also span
+  // full width. Shared with Home's featured cards (home.js reuses this renderer).
   return `
     <article class="product-card${p.status === "Unavailable" ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
       <div class="pcard-head">
@@ -696,19 +696,19 @@ function productCardHTML(p) {
         <div class="product-card-body">
           <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
           <p class="pcard-subtype">${escapeHTML(subtype)}</p>
-          <div class="pcard-rows">
-            <div class="card-application">
-              <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
-              <span class="card-application-label">Best for</span>
-              <span class="card-application-val">${primaryApps}</span>
-            </div>
-            ${worksOn ? `
-            <div class="card-application card-workson">
-              <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/></svg></span>
-              <span class="card-application-label">Works on</span>
-              <span class="card-application-val">${worksOn}</span>
-            </div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
+        </div>
+        <div class="pcard-rows">
+          <div class="card-application">
+            <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+            <span class="card-application-label">Best for</span>
+            <span class="card-application-val">${primaryApps}</span>
           </div>
+          ${worksOn ? `
+          <div class="card-application card-workson">
+            <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/></svg></span>
+            <span class="card-application-label">Works on</span>
+            <span class="card-application-val">${worksOn}</span>
+          </div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
         </div>
       </div>
       <div class="product-card-actions">
@@ -926,14 +926,16 @@ function updateFilterEdgeState(el) {
   el.classList.toggle("at-bottom", el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
 }
 
-// Default filter-group state: expanded on desktop, collapsed inside the ≤900
-// drawer (so the drawer opens short and each section is tapped open as needed).
+// Default filter-group state: expanded on desktop. In the compact filter UI,
+// keep the two most-used sections and any URL-restored selections open so the sheet has
+// an obvious starting point without turning into one unbroken desktop list.
 function applyFilterGroupDefaults() {
   const drawer = window.innerWidth <= 900;
-  document.querySelectorAll(".filter-sidebar .filter-group").forEach(group => {
-    group.classList.toggle("open", !drawer);
+  document.querySelectorAll(".filter-sidebar .filter-group").forEach((group, index) => {
+    const open = !drawer || index < 2 || !!group.querySelector("input[type=checkbox]:checked");
+    group.classList.toggle("open", open);
     const bar = group.querySelector(".filter-group-bar");
-    if (bar) bar.setAttribute("aria-expanded", (!drawer).toString());
+    if (bar) bar.setAttribute("aria-expanded", open.toString());
   });
   updateFilterGroupBadges();
 }

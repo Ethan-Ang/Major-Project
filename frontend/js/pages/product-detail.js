@@ -18,10 +18,10 @@ if (typeof window !== "undefined" && typeof window.ylEscapeHtml !== "function") 
 // data is fetched, so a slow connection sees feedback instead of a blank area.
 function renderDetailSkeleton() {
   const g = document.getElementById("detailGallery");
-  if (g) g.innerHTML = '<div class="skeleton-img" aria-hidden="true" style="border-radius:8px;aspect-ratio:1/1"></div>';
+  if (g) g.innerHTML = '<div class="skeleton-img detail-gallery-skeleton" aria-hidden="true"></div>';
   const h = document.getElementById("detailSummary");
   if (h) h.innerHTML =
-    '<div aria-hidden="true" style="max-width:520px">' +
+    '<div class="detail-skeleton-summary" aria-hidden="true">' +
     '<div class="skeleton-line skeleton-line-short"></div>' +
     '<div class="skeleton-line skeleton-line-title"></div>' +
     '<div class="skeleton-line"></div>' +
@@ -34,6 +34,7 @@ function renderDetailSkeleton() {
 // always act on the product currently shown (they must not close over a stale
 // product across Swup swaps between detail pages).
 let detailProduct = null;
+let stickyCtaObserver = null;
 
 // Re-runnable across swaps: registered via ylReady, self-selecting on the
 // gallery anchor. The catalogue fetch is reused for the session.
@@ -59,6 +60,7 @@ async function initDetailPage() {
   // (it lives on <body>, outside the swapped container).
   const oldCta = document.getElementById("stickyCta");
   if (oldCta) oldCta.remove();
+  if (stickyCtaObserver) { stickyCtaObserver.disconnect(); stickyCtaObserver = null; }
   document.body.classList.remove("detail-has-cta");
   document.body.style.paddingBottom = ""; // drop any measured reservation
 
@@ -122,6 +124,8 @@ async function initDetailPage() {
     // browser-chrome show/hide, breakpoint crossing).
     window.addEventListener("resize", syncStickyCtaReserve);
     window.addEventListener("orientationchange", syncStickyCtaReserve);
+    window.addEventListener("resize", syncStickyCtaVisibility);
+    window.addEventListener("orientationchange", syncStickyCtaVisibility);
 
     // Arrow-key navigation between the three detail tabs. Delegated on
     // document (not bound to the tab buttons directly) so it keeps working
@@ -566,8 +570,38 @@ function renderStickyCta(product) {
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.29-.15-1.7-.84-1.96-.93-.26-.1-.45-.15-.64.14-.19.29-.74.93-.9 1.12-.17.19-.33.21-.62.07-.29-.15-1.22-.45-2.32-1.43-.86-.77-1.44-1.72-1.6-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.44-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.64-1.55-.88-2.12-.23-.55-.47-.48-.64-.49h-.55c-.19 0-.51.07-.77.36-.26.29-1.01.99-1.01 2.41 0 1.42 1.04 2.8 1.18 2.99.15.19 2.04 3.12 4.95 4.38.69.3 1.23.48 1.65.61.69.22 1.33.19 1.83.12.56-.08 1.7-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.34zM12.04 21.5a9.45 9.45 0 0 1-4.83-1.32l-.35-.21-3.58.94.96-3.49-.23-.36a9.42 9.42 0 0 1-1.45-5.03c0-5.21 4.24-9.45 9.46-9.45 2.53 0 4.9.99 6.68 2.78a9.4 9.4 0 0 1 2.77 6.68c-.01 5.21-4.25 9.45-9.46 9.45z"/></svg>
     </a>`;
   document.body.appendChild(bar);
-  document.body.classList.add("detail-has-cta");
-  requestAnimationFrame(syncStickyCtaReserve);
+  observeStickyCta();
+}
+
+// Keep the fixed action bar out of the way while the complete in-flow action
+// group is visible. It appears only after that group has passed above the
+// viewport, never merely because it starts below a short phone viewport.
+function observeStickyCta() {
+  if (stickyCtaObserver) stickyCtaObserver.disconnect();
+  const actions = document.querySelector(".detail-summary .sidebar-actions");
+  if (!actions || !("IntersectionObserver" in window)) {
+    syncStickyCtaVisibility();
+    return;
+  }
+  stickyCtaObserver = new IntersectionObserver(
+    () => syncStickyCtaVisibility(),
+    { threshold: [0, 0.01], rootMargin: "-60px 0px 0px 0px" }
+  );
+  stickyCtaObserver.observe(actions);
+  requestAnimationFrame(syncStickyCtaVisibility);
+}
+
+function syncStickyCtaVisibility() {
+  const cta = document.getElementById("stickyCta");
+  const actions = document.querySelector(".detail-summary .sidebar-actions");
+  if (!cta || !actions) return;
+  const visible = window.innerWidth <= 640 && actions.getBoundingClientRect().bottom <= 60;
+  cta.classList.toggle("is-visible", visible);
+  document.body.classList.toggle("detail-has-cta", visible);
+  requestAnimationFrame(() => {
+    syncStickyCtaReserve();
+    if (typeof scheduleCompareTrayHeight === "function") scheduleCompareTrayHeight();
+  });
 }
 
 // Reserve exactly the sticky bar's rendered height as body padding, so the page
@@ -577,7 +611,7 @@ function renderStickyCta(product) {
 // bar. No-op (and cleared) on desktop or when the bar is absent.
 function syncStickyCtaReserve() {
   const cta = document.getElementById("stickyCta");
-  if (!cta || window.innerWidth > 640) {
+  if (!cta || window.innerWidth > 640 || !cta.classList.contains("is-visible")) {
     document.body.style.paddingBottom = "";
     // Also clear the exposed height so the compare drawer (compare.js) does
     // not stack itself above a sticky bar that is not actually shown.

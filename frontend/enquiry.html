@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=82">
+  <link rel="stylesheet" href="/css/products.css?v=83">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
-  <script src="/js/widgets/navbar.js?v=16"></script>
+  <script src="/js/widgets/navbar.js?v=17"></script>
   <script src="/js/widgets/footer.js?v=19"></script>
 </head>
 <body>
@@ -50,20 +50,22 @@
         <!-- Basket list -->
         <div class="basket-list" id="basketList"></div>
 
-        <!-- Total + Product Advice summary: compact connected footer inside the
-             SAME basket card — same white surface as the card, one hairline top
-             divider, a small rounded-square red icon holder. Not a tinted band. -->
+        <!-- Total + Product Advice summary: two explicit groups preserve the
+             desktop split and provide a clean mobile stack. The complete advisor
+             group is one accessible action, with no nested interactive control. -->
         <div class="enquiry-total-band" id="enquiryTotalBand" style="display:none">
-          <span class="enquiry-total-ic" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
-          </span>
-          <span class="enquiry-total-text"><strong>Total Products</strong><span id="enquiryTotalCount"></span></span>
-          <span class="enquiry-total-advice">
-            <span>Need help finding the right product?</span>
-            <button type="button" class="enquiry-advice-link" onclick="if(window.openProductAdvisor){openProductAdvisor()}else{window.location.href='/contact'}">Get Product Advice
+          <div class="enquiry-total-count-group">
+            <span class="enquiry-total-ic" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+            </span>
+            <span class="enquiry-total-text"><strong>Total Products</strong><span id="enquiryTotalCount"></span></span>
+          </div>
+          <button type="button" class="enquiry-total-advice" aria-haspopup="dialog" onclick="if(window.openProductAdvisor){window.openProductAdvisor()}else{window.location.href='/contact'}">
+            <span class="enquiry-advice-helper">Need help finding the right product?</span>
+            <span class="enquiry-advice-link">Get Product Advice
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </button>
-          </span>
+            </span>
+          </button>
         </div>
       </div>
     </section>
@@ -110,7 +112,7 @@
           </div>
           <div class="form-group">
             <label for="eSubject">Subject</label>
-            <select id="eSubject">
+            <select id="eSubject" aria-label="Enquiry subject">
               <option value="" selected>Select enquiry subject</option>
               <option>General product enquiry</option>
               <option>Request a quotation</option>
@@ -172,13 +174,13 @@
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=8"></script>
 <script src="/js/core/app.js?v=3"></script>
-<script src="/js/widgets/compare.js?v=16"></script>
+<script src="/js/widgets/compare.js?v=17"></script>
 <script src="/js/widgets/custom-select.js?v=5"></script>
-<script src="/js/pages/products.js?v=42"></script>
+<script src="/js/pages/products.js?v=43"></script>
 <script src="/js/pages/home.js?v=1"></script>
-<script src="/js/pages/product-detail.js?v=28"></script>
-<script src="/js/pages/compare-page.js?v=15"></script>
-<script src="/js/pages/enquiry.js?v=6"></script>
+<script src="/js/pages/product-detail.js?v=29"></script>
+<script src="/js/pages/compare-page.js?v=16"></script>
+<script src="/js/pages/enquiry.js?v=7"></script>
 <script src="/js/pages/contact.js?v=3"></script>
 <script src="/js/widgets/chatbot.js?v=18"></script>
 <script src="/js/widgets/page-transitions.js?v=4"></script>

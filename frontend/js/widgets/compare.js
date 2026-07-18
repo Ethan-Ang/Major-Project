@@ -60,6 +60,7 @@ function addToCompare(productId) {
   list.push(id);
   saveCompareList(list);
   cmpAnnounce(id, "added to compare.");
+  ylKeepCompareSourceClear(id);
 }
 
 function removeFromCompare(productId) {
@@ -153,9 +154,9 @@ function renderCompareTray() {
   const list = products; // resolved products only, from here on
 
   tray.classList.add("visible");
-  // Trigger shows the simple count; the expanded head shows the (n/3) cap.
+  // Both surfaces show the capacity so the compact trigger remains explicit.
   const countEl = document.getElementById("compareTrayCount");
-  if (countEl) countEl.textContent = `(${list.length})`;
+  if (countEl) countEl.textContent = `(${list.length}/${COMPARE_MAX})`;
   const fullEl = document.getElementById("compareTrayFull");
   if (fullEl) fullEl.textContent = `(${list.length}/${COMPARE_MAX})`;
   // Reserve space so the fixed tray never sits over the last products or the
@@ -202,6 +203,31 @@ function renderCompareTray() {
   scheduleCompareTrayHeight();
 }
 
+// A newly revealed fixed bar must not land on top of the card action that just
+// created it. Nudge only when that source action is actually intersected; no
+// movement occurs for detail/sidebar controls or cards already clear of it.
+function ylKeepCompareSourceClear(productId) {
+  if (!CMP_MOBILE_QUERY.matches) return;
+  const keepClear = () => {
+    const source = Array.from(document.querySelectorAll(".product-card .pcard-cmp[data-product-id]"))
+      .find(button => String(button.dataset.productId) === String(productId));
+    const actions = source && source.closest(".product-card")
+      ? source.closest(".product-card").querySelector(".product-card-actions")
+      : null;
+    const tray = document.getElementById("compareTray");
+    if (!actions || !tray || !tray.classList.contains("visible") || tray.classList.contains("is-expanded")) return;
+    const actionRect = actions.getBoundingClientRect();
+    const trayRect = tray.getBoundingClientRect();
+    const overlap = actionRect.bottom - trayRect.top;
+    if (overlap > 0 && actionRect.top < window.innerHeight) {
+      window.scrollBy({ top: Math.ceil(overlap + 12), left: 0, behavior: "auto" });
+    }
+  };
+  // Measure after the bar's entrance transition reaches its final position.
+  // Reduced-motion users simply get the same single delayed clearance check.
+  setTimeout(keepClear, 340);
+}
+
 // Add-a-product slot: opens the dedicated compare picker (side panel with
 // search + Recently viewed / All products). Falls back to the catalogue if
 // the picker cannot be built for any reason.
@@ -246,9 +272,9 @@ function scheduleCompareTrayHeight() {
   });
 }
 
-// Measure the (collapsed or expanded) tray and reserve exactly its visible
-// desktop height so the last products, footer and bottom filter rows remain
-// reachable above it. Mobile uses a side tab / modal sheet and reserves zero.
+// Measure the tray and reserve exactly the visible collapsed control. On mobile
+// the expanded sheet is modal and reserves zero; the collapsed bottom bar must
+// reserve its full safe-area-aware footprint so it never covers page actions.
 function updateCompareTrayHeight() {
   const tray = document.getElementById("compareTray");
   if (!tray || !tray.classList.contains("visible")) {
@@ -257,11 +283,12 @@ function updateCompareTrayHeight() {
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
-  // Mobile (<=640px): the collapsed side tab floats on the left edge and the
-  // expanded sheet is a modal over a backdrop — neither reserves bottom page
-  // space, so the footer/filters keep their natural height.
   if (CMP_MOBILE_QUERY.matches) {
-    document.documentElement.style.setProperty("--compare-tray-height", "0px");
+    const expanded = tray.classList.contains("is-expanded");
+    const trigger = document.getElementById("compareTrayToggle");
+    const bottomOffset = parseFloat(getComputedStyle(tray).bottom) || 0;
+    const h = expanded ? 0 : Math.max(0, Math.ceil((trigger ? trigger.offsetHeight : 0) + bottomOffset));
+    document.documentElement.style.setProperty("--compare-tray-height", h + "px");
     document.documentElement.style.removeProperty("--compare-filter-max-height");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
@@ -361,8 +388,47 @@ function ylEnsureSheetCloseBtn() {
 // Mobile bottom-sheet open: dim backdrop (tap to close), page scroll lock, and a
 // focus trap inside the panel. Idempotent.
 let _cmpSheetRelease = null;
+let _cmpSheetScrollY = 0;
+let _cmpSheetBodyStyle = null;
+
+function ylLockCompareScroll() {
+  if (_cmpSheetBodyStyle) return;
+  _cmpSheetScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  _cmpSheetBodyStyle = {
+    position: document.body.style.position,
+    top: document.body.style.top,
+    left: document.body.style.left,
+    right: document.body.style.right,
+    width: document.body.style.width,
+    overflow: document.body.style.overflow
+  };
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${_cmpSheetScrollY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+  document.body.style.overflow = "hidden";
+}
+
+function ylUnlockCompareScroll() {
+  if (!_cmpSheetBodyStyle) return;
+  const previous = _cmpSheetBodyStyle;
+  _cmpSheetBodyStyle = null;
+  document.body.style.position = previous.position;
+  document.body.style.top = previous.top;
+  document.body.style.left = previous.left;
+  document.body.style.right = previous.right;
+  document.body.style.width = previous.width;
+  document.body.style.overflow = previous.overflow;
+  window.scrollTo(0, _cmpSheetScrollY);
+}
+
 function ylOpenCompareSheet() {
   if (document.getElementById("cmpSheetBackdrop")) return;
+  if (document.body.classList.contains("filter-drawer-open") &&
+      typeof closeFilterDrawer === "function") {
+    closeFilterDrawer(false);
+  }
   const backdrop = document.createElement("div");
   backdrop.className = "cmp-sheet-backdrop";
   backdrop.id = "cmpSheetBackdrop";
@@ -372,7 +438,7 @@ function ylOpenCompareSheet() {
   // otherwise paint over (and intercept) the numerically higher sheet controls.
   (document.getElementById("swup") || document.body).appendChild(backdrop);
   document.body.classList.add("cmp-sheet-open");
-  document.body.style.overflow = "hidden";
+  ylLockCompareScroll();
   const panel = document.getElementById("compareTrayPanel");
   if (panel) {
     panel.setAttribute("role", "dialog");
@@ -392,7 +458,7 @@ function ylCloseCompareSheet(restoreFocus = true) {
   if (backdrop) backdrop.remove();
   const wasOpen = document.body.classList.contains("cmp-sheet-open");
   document.body.classList.remove("cmp-sheet-open");
-  document.body.style.overflow = "";
+  ylUnlockCompareScroll();
   const panel = document.getElementById("compareTrayPanel");
   if (panel) {
     panel.removeAttribute("role");
