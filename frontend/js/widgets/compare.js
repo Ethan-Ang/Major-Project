@@ -342,25 +342,44 @@ function cmpNorm(s) {
   return base.replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
 }
 
-// Relevance score (lower = better): exact name/code, then name/code prefix,
-// then BRAND prefix (typing "p" must surface Premier™ products at the top),
-// then name/brand substrings, then type/category, then industry/surface
-// keywords, then description. Ties keep catalogue order (stable sort).
+function cmpTokens(s) { return cmpNorm(s).split(" ").filter(Boolean); }
+
+// Deterministic relevance score (lower = better). Tiers, strongest first:
+//   0  exact whole-name or code match
+//   1  exact token match (a whole word of the name/brand, or the code)
+//   2  token-prefix match (a name/brand token, or the code, starts with q)
+//   3  brand prefix
+//   4  whole-name prefix
+//   5  name substring   6  brand substring   7  type/subtype/category
+//   8  industry / surface keyword            9  description
+// Tier 2 is why a single "p" surfaces Deer™ PVA (its "pva" token) AND every
+// Premier™ product (their "premier" token) — both are token-prefix matches —
+// while nothing else appears. Short queries are deliberately restricted to the
+// strong prefix/token tiers so one or two characters can never dump the whole
+// catalogue through a stray letter in a long description or an industry name
+// (e.g. the "p" in "Upholstery" / "purpose"). Ties keep catalogue order.
 function cmpScoreProduct(p, q) {
-  const name  = cmpNorm(p.name);
-  const brand = cmpNorm(typeof brandDisplay === "function" ? brandDisplay(p.brand) : p.brand);
-  const raw   = cmpNorm(p.brand || "");
-  const code  = cmpNorm(typeof productCodeFromName === "function" ? productCodeFromName(p) : "");
-  const type  = cmpNorm(typeof productType === "function" ? productType(p) : (p.category || ""));
+  const name   = cmpNorm(p.name);
+  const brand  = cmpNorm(typeof brandDisplay === "function" ? brandDisplay(p.brand) : p.brand);
+  const raw    = cmpNorm(p.brand || "");
+  const code   = cmpNorm(typeof productCodeFromName === "function" ? productCodeFromName(p) : "");
+  const type   = cmpNorm(typeof productType === "function" ? productType(p) : (p.category || ""));
+  const sub    = cmpNorm(typeof productSubtype === "function" ? productSubtype(p) : "");
+  const tokens = [...cmpTokens(name), ...cmpTokens(brand), ...cmpTokens(raw)];
+  const weak    = q.length >= 2; // substring tiers off for 1-char queries
+  const keyword = q.length >= 3; // industry / surface / description off below 3 chars
+
   if (name === q || (code && code === q)) return 0;
-  if (name.startsWith(q) || (code && code.startsWith(q))) return 1;
-  if (brand.startsWith(q) || raw.startsWith(q)) return 2;
-  if (name.includes(q)) return 3;
-  if (brand.includes(q) || raw.includes(q)) return 4;
-  if (type.includes(q) || cmpNorm(p.category).includes(q)) return 5;
-  if ((p.industries || []).some(i => cmpNorm(i).includes(q))) return 6;
-  if ((p.surfaces || []).some(s => cmpNorm(s).includes(q))) return 7;
-  if (cmpNorm(p.shortDescription).includes(q)) return 8;
+  if (tokens.includes(q) || brand === q || raw === q) return 1;
+  if (tokens.some(t => t.startsWith(q)) || (code && code.startsWith(q))) return 2;
+  if (brand.startsWith(q) || raw.startsWith(q)) return 3;
+  if (name.startsWith(q)) return 4;
+  if (weak && name.includes(q)) return 5;
+  if (weak && (brand.includes(q) || raw.includes(q))) return 6;
+  if (weak && (type.includes(q) || sub.includes(q) || cmpNorm(p.category).includes(q))) return 7;
+  if (keyword && (p.industries || []).some(i => cmpNorm(i).includes(q))) return 8;
+  if (keyword && (p.surfaces || []).some(s => cmpNorm(s).includes(q))) return 8;
+  if (keyword && cmpNorm(p.shortDescription).includes(q)) return 9;
   return Infinity;
 }
 
@@ -404,14 +423,17 @@ function renderComparePickerList() {
     ? recents.map(id => products.find(p => String(p.id) === id)).filter(Boolean)
     : products.slice();
 
-  // Ranked live search (real data only — no faked matches).
+  // Ranked live search (real data only — no faked matches). Capped so a broad
+  // query stays a tidy, scannable list rather than an endless scroll; short
+  // queries are already narrowed to strong prefix/token matches by the scorer.
   const q = cmpNorm(_pickerState.query);
   if (q) {
     rows = rows
       .map((p, i) => ({ p, s: cmpScoreProduct(p, q), i }))
       .filter(x => x.s !== Infinity)
       .sort((a, b) => a.s - b.s || a.i - b.i)
-      .map(x => x.p);
+      .map(x => x.p)
+      .slice(0, 24);
   }
 
   if (!rows.length) {

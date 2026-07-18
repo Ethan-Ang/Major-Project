@@ -1745,10 +1745,10 @@ body.detail-has-cta .toast {
 .enquiry-basket-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: 6px 6px 0 0;
+  border-radius: 6px;
   padding: 20px 20px 12px;
   box-shadow: var(--shadow);
+  overflow: hidden; /* clip the full-bleed summary footer to the card's radius */
 }
 /* The empty state renders its own full panel inside the card shell. */
 .enquiry-grid.is-empty .enquiry-basket-card {
@@ -1869,28 +1869,29 @@ body.detail-has-cta .toast {
 
 .basket-remove:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
-/* Total-products summary: the bottom section of the SAME basket card — soft
-   panel fill, internal top divider, shared outer border and radius. */
+/* Total-products summary: a connected footer INSIDE the same basket card, not a
+   detached band. Full-bleeds to the card edges (the card clips it to its radius
+   via overflow:hidden), separated only by one hairline top divider over a
+   lighter wash. Compact: one low row, a small circular soft-red icon, a quiet
+   label + emphasised count on the left, support copy + restrained red link on
+   the right. No own border, shadow or radius. */
 .enquiry-total-band {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.75rem 1rem;
+  gap: 0.5rem 0.7rem;            /* tight icon→label; advice is pushed right by auto margin */
+  margin: 12px -20px -12px;      /* reach the card's side + bottom padding edges */
+  padding: 11px 20px;
   background: var(--panel);
-  border: 1px solid var(--border);
   border-top: 1px solid var(--line);
-  border-radius: 0 0 6px 6px;
-  padding: 14px 20px;
-  margin-top: 0;
-  box-shadow: var(--shadow);
 }
 .enquiry-total-ic {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   background: var(--red-tint);
   color: var(--red);
   flex-shrink: 0;
@@ -1898,18 +1899,28 @@ body.detail-has-cta .toast {
 .enquiry-total-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  font-size: 0.82rem;
-  color: var(--muted);
+  gap: 0;
+  line-height: 1.2;
 }
-.enquiry-total-text strong { font-size: 0.88rem; color: var(--text); }
+.enquiry-total-text strong {   /* quiet label on top */
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.005em;
+}
+.enquiry-total-text span {     /* emphasised item count below */
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
 .enquiry-total-advice {
   margin-left: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
-  font-size: 0.78rem;
+  gap: 1px;
+  font-size: 0.76rem;
   color: var(--muted);
   text-align: right;
 }
@@ -1921,13 +1932,19 @@ body.detail-has-cta .toast {
   border: none;
   padding: 0;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--red);
   cursor: pointer;
 }
 .enquiry-advice-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .enquiry-advice-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 3px; }
+/* Phone: stack the two halves left-aligned so the count and the CTA keep a
+   clear reading order instead of wrapping the support block awkwardly right. */
+@media (max-width: 640px) {
+  .enquiry-total-band { gap: 0.65rem; }
+  .enquiry-total-advice { margin-left: 0; align-items: flex-start; text-align: left; flex-basis: 100%; padding-left: calc(30px + 0.75rem); }
+}
 
 /* Full-width, deliberate empty panel — generous vertical rhythm and a soft warm
    wash so it reads as an intentional state, not a lonely box in a sea of cream. */
@@ -3015,7 +3032,7 @@ body.detail-has-cta .toast {
   line-height: 1;
   color: var(--text);
   cursor: pointer;
-  box-shadow: 0 -6px 20px -6px rgba(32, 30, 24, 0.22);
+  box-shadow: 0 -5px 16px -8px rgba(32, 30, 24, 0.15);
   transition: background 0.15s, box-shadow 0.15s;
 }
 .compare-tray-trigger:hover { background: var(--panel); }
@@ -3027,16 +3044,22 @@ body.detail-has-cta .toast {
 .compare-tray.is-expanded .compare-tray-trigger .ctt-chev { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .compare-tray-trigger .ctt-chev { transition: none; } }
 
-/* Expanded panel: the familiar full-width drawer, revealed on demand. */
+/* Expanded panel: the familiar full-width drawer, revealed on demand.
+   No hard border-top: a full-width hairline there pokes out on both sides of the
+   centred trigger tab and reads as a stray horizontal seam. The panel's top edge
+   is defined by a soft lift shadow instead, so the tab and the drawer read as one
+   continuous white surface with no flanking line. */
 .compare-tray-panel {
   pointer-events: auto;
   width: 100%;
   background: var(--card);
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -4px 16px rgba(32, 30, 24, 0.06);
+  box-shadow: 0 -9px 28px -12px rgba(32, 30, 24, 0.16);
   display: none;
 }
 .compare-tray.is-expanded .compare-tray-panel { display: block; }
+/* Tab merges into the drawer when open — drop its own lift shadow so there is no
+   doubled shadow where the two surfaces meet. */
+.compare-tray.is-expanded .compare-tray-trigger { box-shadow: none; }
 
 .compare-tray-inner {
   max-width: 1280px;
@@ -3394,10 +3417,11 @@ body.detail-has-cta .toast {
   align-items: center;
   gap: 0.7rem;
   width: 100%;
-  padding: 0.5rem;
-  border-radius: 5px;
+  padding: 0.6rem 0.5rem;
   border-bottom: 1px solid var(--line);
+  transition: background 0.12s;
 }
+.cmp-picker-row:hover { background: var(--panel); }
 .cmp-picker-row:last-child { border-bottom: none; }
 .cmp-picker-thumb {
   width: 46px;
@@ -3524,15 +3548,13 @@ body.detail-has-cta .toast {
   height: 100%;
 }
 
+/* No decorative image card: the product photo sits directly on the clean white
+   product column (editorial reference direction) — no border, radius, fill or
+   shadow. Controlled whitespace comes from the aspect box + object-fit:contain. */
 .compare-product-img {
-  position: relative; /* anchor for the corner remove (×) button */
   width: 100%;
   aspect-ratio: 4/3;
   max-height: 200px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
@@ -3545,7 +3567,7 @@ body.detail-has-cta .toast {
   container-type: inline-size;
 }
 
-.compare-product-img img { width: 100%; height: 100%; object-fit: contain; padding: 0.75rem; box-sizing: border-box; }
+.compare-product-img img { width: 100%; height: 100%; object-fit: contain; box-sizing: border-box; }
 
 .compare-product-name {
   font-size: 1rem;
@@ -3566,37 +3588,9 @@ body.detail-has-cta .toast {
   margin-bottom: 0.3rem;
 }
 
-/* Small × in the top-right over the image corner. Muted grey by default, brand
-   red on hover. Secondary to the red "Add to Product Enquiry" CTA. */
-.compare-col-remove {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 2;
-  width: 1.75rem;
-  height: 1.75rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--muted);
-  font-size: 1.15rem;
-  line-height: 1;
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: none;
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
-}
-
-.compare-col-remove:hover {
-  color: var(--red);
-  border-color: var(--red-tint-bdr);
-  background: #fff;
-}
+/* The in-table × remove control was removed: product removal lives in the top
+   selection panel (.csel-x) so the destructive action is not duplicated in the
+   table header. The image now sits cleanly on the white column. */
 
 /* Attribute (label) column: WHITE like the product columns so the whole
    table reads as one integrated surface (locked full-design reference). The
@@ -4036,8 +4030,7 @@ body.detail-has-cta .toast {
 .compare-tray-clear:focus-visible,
 .compare-tray-collapse:focus-visible,
 .cmp-slot-x:focus-visible,
-.cmp-slot-add:focus-visible,
-.compare-col-remove:focus-visible {
+.cmp-slot-add:focus-visible {
   outline: 2px solid var(--red);
   outline-offset: 2px;
 }
@@ -4469,6 +4462,46 @@ body:has(.compare-tray.visible) .toast {
 }
 
 .contact-detail a:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
+
+/* "How we can help" — compact support block that uses the mid-card space
+   intentionally instead of leaving a dead gap above the WhatsApp CTA. The three
+   items are exactly the support types named in the contact hero; no invented
+   services, hours or response promises. The last contact-detail row's own
+   border supplies the divider above, so no border-top here (avoids a doubled
+   rule). */
+.contact-help { margin-top: 0.15rem; }
+.contact-help-title {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 0.55rem;
+}
+.contact-help-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.contact-help-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.62rem 0.15rem;
+}
+.contact-help-item + .contact-help-item { border-top: 1px solid var(--line); }
+.contact-help-ic {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--red-tint);
+  color: var(--red);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.contact-help-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.contact-help-text strong { font-size: 0.9rem; font-weight: 700; color: var(--text); line-height: 1.25; }
+.contact-help-text span { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
 
 /* Outlined WhatsApp row (locked design: quiet functional control, not a
    full-green banner). */

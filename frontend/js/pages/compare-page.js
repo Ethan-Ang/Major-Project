@@ -142,7 +142,6 @@ function renderComparePage() {
       <td class="compare-col-header">
         <div class="compare-col-inner">
           <div class="compare-product-img">
-            <button class="compare-col-remove" aria-label="Remove from comparison" onclick="removeFromCompare('${p.id}')">&times;</button>
             ${imgContent}
           </div>
           <div class="compare-product-brand">${ylEscapeHtml(brandDisplay(p.brand))}</div>
