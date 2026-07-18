@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=81">
+  <link rel="stylesheet" href="/css/products.css?v=82">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
   <script src="/js/widgets/navbar.js?v=16"></script>
   <script src="/js/widgets/footer.js?v=19"></script>
@@ -19,8 +19,22 @@
 <main id="mainContent">
 <!-- Catalogue hero: warm cream band, industrial photo treatment right,
      search + typeahead. Locked final design. -->
-<section class="page-hero" aria-labelledby="catalogueHeading">
-  <div class="page-hero-img" aria-hidden="true"></div>
+<section class="page-hero products-hero" aria-labelledby="catalogueHeading">
+  <picture class="page-hero-img products-hero-media" aria-hidden="true">
+    <source
+      media="(min-width: 641px)"
+      type="image/webp"
+      srcset="/images/hero/precision-bonding-application-960.webp 960w, /images/hero/precision-bonding-application-1600.webp 1600w"
+      sizes="(max-width: 900px) 68vw, (max-width: 1444px) 54vw, 780px">
+    <source
+      media="(min-width: 641px)"
+      type="image/jpeg"
+      srcset="/images/hero/precision-bonding-application-960.jpg 960w, /images/hero/precision-bonding-application-1600.jpg 1600w"
+      sizes="(max-width: 900px) 68vw, (max-width: 1444px) 54vw, 780px">
+    <img
+      src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+      width="1600" height="533" alt="" loading="eager" decoding="async" fetchpriority="high" draggable="false">
+  </picture>
   <div class="page-hero-inner">
     <span class="hero-eyebrow">Product Catalogue</span>
     <h1 id="catalogueHeading">Find the Right Bonding Solution</h1>
@@ -46,7 +60,8 @@
 
   <!-- Mobile filter toggle (768px–641px). Sliders icon (not a hamburger) so it
        reads as "filters" and is not confused with the nav menu hamburger. -->
-  <button class="filter-toggle" id="filterToggle" onclick="toggleFilterSidebar()">
+  <button class="filter-toggle" id="filterToggle" type="button" onclick="toggleFilterSidebar()"
+    aria-controls="filterSidebar" aria-expanded="false">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
     Filters
   </button>
@@ -139,7 +154,8 @@
     <div class="mobile-toolbar">
       <!-- Mobile filter + sort bar (≤640px) -->
       <div class="mobile-filter-bar" id="mobileFilterBar">
-        <button class="mfb-btn" onclick="toggleFilterSidebar()">
+        <button class="mfb-btn" type="button" onclick="toggleFilterSidebar()"
+          aria-controls="filterSidebar" aria-expanded="false">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
           Filters
           <span class="mfb-count" id="mobileFilterCount"></span>
@@ -212,9 +228,9 @@
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=8"></script>
 <script src="/js/core/app.js?v=3"></script>
-<script src="/js/widgets/compare.js?v=15"></script>
+<script src="/js/widgets/compare.js?v=16"></script>
 <script src="/js/widgets/custom-select.js?v=5"></script>
-<script src="/js/pages/products.js?v=41"></script>
+<script src="/js/pages/products.js?v=42"></script>
 <script src="/js/pages/home.js?v=1"></script>
 <script src="/js/pages/product-detail.js?v=28"></script>
 <script src="/js/pages/compare-page.js?v=15"></script>

@@ -16,6 +16,11 @@ if (typeof window !== "undefined" && typeof window.ylEscapeHtml !== "function") 
 // ─── Compare state ──────────────────────────────────────────────
 const COMPARE_KEY  = "compareList";
 const COMPARE_MAX  = 3;
+const CMP_MOBILE_QUERY = window.matchMedia("(max-width: 640px)");
+
+let _compareTrayObserver = null;
+let _compareObservedTray = null;
+let _compareMeasureFrame = 0;
 
 function getCompareList() {
   return JSON.parse(localStorage.getItem(COMPARE_KEY) || "[]");
@@ -58,12 +63,22 @@ function addToCompare(productId) {
 }
 
 function removeFromCompare(productId) {
+  const restoreWithinTray = document.activeElement &&
+    document.activeElement.closest(".cmp-slot-x");
   saveCompareList(getCompareList().map(String).filter(id => id !== String(productId)));
   cmpAnnounce(productId, "removed from compare.");
+  if (restoreWithinTray) requestAnimationFrame(ylFocusNextCompareControl);
 }
 
 function clearCompare() {
+  const hadItems = getCompareList().length > 0;
+  const restoreFromTray = document.activeElement &&
+    document.activeElement.closest(".compare-tray");
   saveCompareList([]);
+  if (hadItems && typeof window.announce === "function") {
+    window.announce("Comparison cleared.");
+  }
+  if (restoreFromTray) requestAnimationFrame(ylFocusCompareFallback);
 }
 
 function toggleCompare(productId) {
@@ -82,6 +97,7 @@ function toggleCompare(productId) {
 function renderCompareTray() {
   const tray = document.getElementById("compareTray");
   if (!tray) return;
+  ylObserveCompareTray(tray);
 
   const rawList = getCompareList();
 
@@ -91,11 +107,20 @@ function renderCompareTray() {
     // quiet trigger next time something is added.
     tray.classList.remove("is-expanded");
     const toggle = document.getElementById("compareTrayToggle");
-    if (toggle) toggle.setAttribute("aria-expanded", "false");
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Compare products; no products selected");
+    }
+    const panel = document.getElementById("compareTrayPanel");
+    if (panel) panel.setAttribute("aria-hidden", "true");
+    const slots = document.getElementById("compareTraySlots");
+    if (slots) slots.replaceChildren();
     document.body.classList.remove("compare-open");
     // Tear down an open mobile sheet (e.g. Clear all emptied the list while the
     // sheet was showing) so no backdrop/scroll-lock is left behind.
-    ylCloseCompareSheet();
+    ylCloseCompareSheet(false);
+    document.documentElement.style.setProperty("--compare-tray-height", "0px");
+    document.documentElement.style.removeProperty("--compare-filter-max-height");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
@@ -137,7 +162,6 @@ function renderCompareTray() {
   // bottom filter rows: expose its real height as a CSS var and flag the body.
   document.body.classList.add("compare-open");
   ylEnsureSheetCloseBtn();
-  requestAnimationFrame(updateCompareTrayHeight);
 
   const slotHTML = list.map(p => {
     const name = ylEscapeHtml(p.name);
@@ -150,14 +174,14 @@ function renderCompareTray() {
       <div class="cmp-slot">
         <span class="cmp-slot-img">${img}</span>
         <span class="cmp-slot-name" title="${name}">${name}</span>
-        <button class="cmp-slot-x" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${name} from comparison">
+        <button type="button" class="cmp-slot-x" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${name} from comparison">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>`;
   }).join("");
 
   const addSlot = list.length < COMPARE_MAX ? `
-    <button class="cmp-slot cmp-slot-add" onclick="ylCompareAddMore()" aria-label="Add a product to compare">
+    <button type="button" class="cmp-slot cmp-slot-add" onclick="ylCompareAddMore()" aria-label="Add a product to compare">
       <span class="cmp-slot-add-icon" aria-hidden="true">+</span>
       <span class="cmp-slot-add-text"><strong>Add a product</strong><small>Search or browse</small></span>
     </button>` : "";
@@ -174,32 +198,130 @@ function renderCompareTray() {
     btn.title = hint;
     btn.setAttribute("aria-label", hint);
   }
+  ylSyncCompareTrayA11y(list.length);
+  scheduleCompareTrayHeight();
 }
 
 // Add-a-product slot: opens the dedicated compare picker (side panel with
 // search + Recently viewed / All products). Falls back to the catalogue if
 // the picker cannot be built for any reason.
 function ylCompareAddMore() {
-  if (typeof openComparePicker === "function") { openComparePicker(); return; }
+  if (typeof openComparePicker === "function") {
+    const tray = document.getElementById("compareTray");
+    const opener = CMP_MOBILE_QUERY.matches
+      ? document.getElementById("compareTrayToggle")
+      : document.activeElement;
+    if (CMP_MOBILE_QUERY.matches && document.body.classList.contains("cmp-sheet-open")) {
+      if (tray) tray.classList.remove("is-expanded");
+      ylSyncCompareTrayA11y(getCompareList().length);
+      ylCloseCompareSheet(false);
+      scheduleCompareTrayHeight();
+      requestAnimationFrame(() => openComparePicker(opener));
+    } else {
+      openComparePicker(opener);
+    }
+    return;
+  }
   location.href = "/products#catalogue";
 }
 
-// Measure the (collapsed or expanded) tray and reserve exactly its height so it
-// never occludes the last products, the footer, or the bottom filter rows.
+// Observe the tray itself rather than guessing from breakpoints or one render.
+// This catches panel motion, item-count changes, wrapping, zoom and responsive
+// mode changes. The observer is rebound when Swup replaces the tray node.
+function ylObserveCompareTray(tray) {
+  if (tray === _compareObservedTray) return;
+  if (_compareTrayObserver) _compareTrayObserver.disconnect();
+  _compareObservedTray = tray;
+  if (typeof ResizeObserver === "function") {
+    _compareTrayObserver = new ResizeObserver(scheduleCompareTrayHeight);
+    _compareTrayObserver.observe(tray);
+  }
+}
+
+function scheduleCompareTrayHeight() {
+  if (_compareMeasureFrame) cancelAnimationFrame(_compareMeasureFrame);
+  _compareMeasureFrame = requestAnimationFrame(() => {
+    _compareMeasureFrame = 0;
+    updateCompareTrayHeight();
+  });
+}
+
+// Measure the (collapsed or expanded) tray and reserve exactly its visible
+// desktop height so the last products, footer and bottom filter rows remain
+// reachable above it. Mobile uses a side tab / modal sheet and reserves zero.
 function updateCompareTrayHeight() {
   const tray = document.getElementById("compareTray");
-  if (!tray || !tray.classList.contains("visible")) return;
-  // Mobile (<=640px): the collapsed side tab floats on the left edge and the
-  // expanded sheet is a modal over a backdrop — neither reserves bottom page
-  // space, so the footer/filters keep their natural height.
-  if (window.matchMedia("(max-width: 640px)").matches) {
+  if (!tray || !tray.classList.contains("visible")) {
     document.documentElement.style.setProperty("--compare-tray-height", "0px");
+    document.documentElement.style.removeProperty("--compare-filter-max-height");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
-  const h = tray.offsetHeight || 56;
+  // Mobile (<=640px): the collapsed side tab floats on the left edge and the
+  // expanded sheet is a modal over a backdrop — neither reserves bottom page
+  // space, so the footer/filters keep their natural height.
+  if (CMP_MOBILE_QUERY.matches) {
+    document.documentElement.style.setProperty("--compare-tray-height", "0px");
+    document.documentElement.style.removeProperty("--compare-filter-max-height");
+    if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
+    return;
+  }
+  const h = Math.ceil(tray.getBoundingClientRect().height || 0);
   document.documentElement.style.setProperty("--compare-tray-height", h + "px");
+  updateCompareFilterMaxHeight(h);
   if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
+}
+
+function updateCompareFilterMaxHeight(trayHeight) {
+  const sidebar = document.getElementById("filterSidebar");
+  if (!sidebar || !document.body.classList.contains("compare-open") || CMP_MOBILE_QUERY.matches) {
+    document.documentElement.style.removeProperty("--compare-filter-max-height");
+    return;
+  }
+  const top = Math.max(0, sidebar.getBoundingClientRect().top);
+  const available = Math.max(160, window.innerHeight - top - trayHeight - 16);
+  document.documentElement.style.setProperty("--compare-filter-max-height", `${Math.floor(available)}px`);
+}
+
+function ylSyncCompareTrayA11y(count) {
+  const tray = document.getElementById("compareTray");
+  const toggle = document.getElementById("compareTrayToggle");
+  const panel = document.getElementById("compareTrayPanel");
+  if (!tray) return;
+  const expanded = tray.classList.contains("is-expanded");
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    toggle.setAttribute(
+      "aria-label",
+      `${expanded ? "Collapse" : "Expand"} comparison tray, ${count} ${count === 1 ? "product" : "products"} selected`
+    );
+  }
+  if (panel) panel.setAttribute("aria-hidden", expanded ? "false" : "true");
+}
+
+function ylSafeFocus(target) {
+  if (!target || typeof target.focus !== "function") return;
+  try { target.focus({ preventScroll: true }); }
+  catch (e) { try { target.focus(); } catch (ignore) {} }
+}
+
+function ylFocusNextCompareControl() {
+  const tray = document.getElementById("compareTray");
+  if (!tray || !tray.classList.contains("visible")) {
+    ylFocusCompareFallback();
+    return;
+  }
+  const next = document.querySelector(
+    "#compareTray .cmp-slot-x, #compareTray .cmp-slot-add, #compareTrayToggle"
+  );
+  ylSafeFocus(next);
+}
+
+function ylFocusCompareFallback() {
+  const target = document.querySelector(
+    ".pcard-cmp:not([disabled]), .btn-compare-sidebar:not([disabled]), #compareTrayToggle"
+  );
+  ylSafeFocus(target);
 }
 
 // Collapsed by default. Desktop: the centred trigger expands the slots/actions
@@ -212,13 +334,12 @@ function toggleCompareTray() {
   if (!tray) return;
   const willExpand = !tray.classList.contains("is-expanded");
   tray.classList.toggle("is-expanded", willExpand);
-  const toggle = document.getElementById("compareTrayToggle");
-  if (toggle) toggle.setAttribute("aria-expanded", willExpand ? "true" : "false");
+  ylSyncCompareTrayA11y(getCompareList().length);
 
-  if (window.matchMedia("(max-width: 640px)").matches) {
+  if (CMP_MOBILE_QUERY.matches) {
     if (willExpand) ylOpenCompareSheet(); else ylCloseCompareSheet();
   }
-  requestAnimationFrame(updateCompareTrayHeight);
+  scheduleCompareTrayHeight();
 }
 
 // Inject the mobile sheet's close control into the panel once. Hidden by CSS on
@@ -246,10 +367,18 @@ function ylOpenCompareSheet() {
   backdrop.className = "cmp-sheet-backdrop";
   backdrop.id = "cmpSheetBackdrop";
   backdrop.addEventListener("click", () => toggleCompareTray());
-  document.body.appendChild(backdrop);
+  // #swup uses will-change:opacity, which forms its own stacking context. Keep
+  // the backdrop in that same context as the tray; a body-level backdrop would
+  // otherwise paint over (and intercept) the numerically higher sheet controls.
+  (document.getElementById("swup") || document.body).appendChild(backdrop);
   document.body.classList.add("cmp-sheet-open");
   document.body.style.overflow = "hidden";
   const panel = document.getElementById("compareTrayPanel");
+  if (panel) {
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-label", "Selected products to compare");
+  }
   if (typeof ylFocusTrap === "function" && panel) {
     // No onEscape here: the lifetime Esc listener below already collapses the
     // tray, so passing one would double-toggle.
@@ -258,27 +387,50 @@ function ylOpenCompareSheet() {
 }
 
 // Tear the sheet down and return focus to the (now visible again) side tab.
-function ylCloseCompareSheet() {
+function ylCloseCompareSheet(restoreFocus = true) {
   const backdrop = document.getElementById("cmpSheetBackdrop");
   if (backdrop) backdrop.remove();
   const wasOpen = document.body.classList.contains("cmp-sheet-open");
   document.body.classList.remove("cmp-sheet-open");
   document.body.style.overflow = "";
+  const panel = document.getElementById("compareTrayPanel");
+  if (panel) {
+    panel.removeAttribute("role");
+    panel.removeAttribute("aria-modal");
+    panel.removeAttribute("aria-label");
+  }
   if (_cmpSheetRelease) { _cmpSheetRelease(false); _cmpSheetRelease = null; }
-  if (wasOpen) {
+  if (wasOpen && restoreFocus) {
     const toggle = document.getElementById("compareTrayToggle");
-    if (toggle && toggle.offsetParent !== null) toggle.focus();
+    if (toggle && toggle.offsetParent !== null) ylSafeFocus(toggle);
   }
 }
 
-// If the viewport crosses from a mobile expanded sheet up to desktop, drop the
-// modal scaffolding so the desktop drawer behaves normally.
-window.addEventListener("resize", () => {
-  if (document.body.classList.contains("cmp-sheet-open") &&
-      !window.matchMedia("(max-width: 640px)").matches) {
-    ylCloseCompareSheet();
+// Reconcile both breakpoint directions. Desktop -> mobile must acquire the
+// sheet's backdrop, dialog semantics, scroll lock and focus trap; mobile ->
+// desktop releases them while leaving the expanded desktop tray intact.
+function ylReconcileCompareMode(event) {
+  const tray = document.getElementById("compareTray");
+  if (!tray || !tray.classList.contains("is-expanded")) {
+    if (!event.matches && document.body.classList.contains("cmp-sheet-open")) {
+      ylCloseCompareSheet(false);
+    }
+    scheduleCompareTrayHeight();
+    return;
   }
-});
+  if (event.matches && !document.body.classList.contains("cmp-sheet-open")) {
+    ylOpenCompareSheet();
+  } else if (!event.matches && document.body.classList.contains("cmp-sheet-open")) {
+    ylCloseCompareSheet(false);
+  }
+  ylSyncCompareTrayA11y(getCompareList().length);
+  scheduleCompareTrayHeight();
+}
+if (typeof CMP_MOBILE_QUERY.addEventListener === "function") {
+  CMP_MOBILE_QUERY.addEventListener("change", ylReconcileCompareMode);
+} else if (typeof CMP_MOBILE_QUERY.addListener === "function") {
+  CMP_MOBILE_QUERY.addListener(ylReconcileCompareMode);
+}
 
 if (typeof ylOnce === "function") {
   ylOnce("compareTray:esc", () => {
@@ -294,11 +446,16 @@ if (typeof ylOnce === "function") {
   });
 }
 
-// Keep the reserved tray height in sync when the tray wraps at narrow widths.
+// ResizeObserver handles element changes; this event is the fallback and also
+// covers viewport zoom/safe-area changes that do not resize the tray immediately.
 window.addEventListener("resize", () => {
   if (!document.body.classList.contains("compare-open")) return;
-  updateCompareTrayHeight();
+  scheduleCompareTrayHeight();
 });
+window.addEventListener("scroll", () => {
+  if (!document.body.classList.contains("compare-open") || CMP_MOBILE_QUERY.matches) return;
+  scheduleCompareTrayHeight();
+}, { passive: true });
 
 // ─── Compare picker (dedicated add-product flow) ─────────────────
 // Slide-in side panel (Canyon-inspired interaction, Yee Lim visual language):
@@ -319,13 +476,17 @@ function ylPushRecentlyViewed(productId) {
   try { localStorage.setItem(YL_RECENT_KEY, JSON.stringify(list.slice(0, 8))); } catch (e) {}
 }
 
-let _pickerState = null; // { tab, query, release }
+let _pickerState = null; // { tab, query, release, opener }
 
-function openComparePicker() {
+function openComparePicker(opener) {
   if (document.getElementById("ylCmpPicker")) return; // already open
 
   const recents = ylGetRecentlyViewed();
-  _pickerState = { tab: recents.length ? "recent" : "all", query: "" };
+  _pickerState = {
+    tab: recents.length ? "recent" : "all",
+    query: "",
+    opener: opener || document.activeElement
+  };
 
   const backdrop = document.createElement("div");
   backdrop.className = "cmp-picker-backdrop";
@@ -349,9 +510,9 @@ function openComparePicker() {
       </button>
     </div>
     <div class="cmp-picker-tools">
-      <div class="cmp-picker-tabs" role="tablist" aria-label="Product source">
-        <button class="cmp-picker-tab" id="ylCmpTabRecent" role="tab" type="button" onclick="ylCmpPickerTab('recent')">Recently viewed</button>
-        <button class="cmp-picker-tab" id="ylCmpTabAll" role="tab" type="button" onclick="ylCmpPickerTab('all')">All products</button>
+      <div class="cmp-picker-tabs" role="group" aria-label="Product source">
+        <button class="cmp-picker-tab" id="ylCmpTabRecent" type="button" aria-pressed="false" onclick="ylCmpPickerTab('recent')">Recently viewed</button>
+        <button class="cmp-picker-tab" id="ylCmpTabAll" type="button" aria-pressed="false" onclick="ylCmpPickerTab('all')">All products</button>
       </div>
       <div class="cmp-picker-search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -385,14 +546,26 @@ function openComparePicker() {
   }
 }
 
-function closeComparePicker() {
+function closeComparePicker(restoreFocus = true) {
+  const state = _pickerState;
   const panel = document.getElementById("ylCmpPicker");
   const backdrop = document.getElementById("ylCmpPickerBackdrop");
   if (panel) panel.remove();
   if (backdrop) backdrop.remove();
   document.body.style.overflow = "";
-  if (_pickerState && typeof _pickerState.release === "function") _pickerState.release();
+  if (state && typeof state.release === "function") state.release(false);
   _pickerState = null;
+  if (!restoreFocus) return;
+  const candidates = [
+    state && state.opener,
+    document.getElementById("compareTrayToggle"),
+    document.querySelector("#compareSelectPanel .csel-add, #compareSelectPanel .csel-remove, #compareSelectPanel .csel-compare, #compareSelectPanel .compare-page-clear"),
+    document.querySelector("#mainContent button:not([disabled]), #mainContent a[href]")
+  ];
+  const target = candidates.find(element =>
+    element && element.isConnected && element.getClientRects().length > 0
+  );
+  ylSafeFocus(target);
 }
 
 function ylCmpPickerTab(tab) {
@@ -406,6 +579,12 @@ function ylCmpPickerAdd(productId) {
   // Slots full: the job is done — close so the tray shows the result.
   if (getCompareList().length >= COMPARE_MAX) {
     setTimeout(closeComparePicker, 350);
+  } else {
+    requestAnimationFrame(() => {
+      const target = Array.from(document.querySelectorAll("#ylCmpPicker .cmp-picker-add"))
+        .find(button => String(button.dataset.productId) === String(productId));
+      ylSafeFocus(target);
+    });
   }
 }
 
@@ -476,8 +655,8 @@ function renderComparePickerList() {
   const recents = ylGetRecentlyViewed();
   const tabR = panel.querySelector("#ylCmpTabRecent");
   const tabA = panel.querySelector("#ylCmpTabAll");
-  if (tabR) tabR.setAttribute("aria-selected", _pickerState.tab === "recent" ? "true" : "false");
-  if (tabA) tabA.setAttribute("aria-selected", _pickerState.tab === "all" ? "true" : "false");
+  if (tabR) tabR.setAttribute("aria-pressed", _pickerState.tab === "recent" ? "true" : "false");
+  if (tabA) tabA.setAttribute("aria-pressed", _pickerState.tab === "all" ? "true" : "false");
 
   if (!listEl) return;
 
@@ -530,9 +709,10 @@ function renderComparePickerList() {
       : `<span class="no-image-mark" aria-hidden="true">${brandLabel}</span>`;
     const inCmp = compare.includes(String(p.id));
     const disabled = !inCmp && full;
+    const dataId = ylEscapeHtml(String(p.id));
     const btn = inCmp
-      ? `<button class="cmp-picker-add is-added" type="button" onclick="ylCmpPickerAdd('${p.id}')" aria-pressed="true" aria-label="Remove ${name} from comparison">&#10003; Added</button>`
-      : `<button class="cmp-picker-add" type="button" onclick="ylCmpPickerAdd('${p.id}')" ${disabled ? "disabled" : ""} aria-pressed="false" aria-label="${disabled ? "Comparison full: remove one to add another" : `Add ${name} to comparison`}">+ Add</button>`;
+      ? `<button class="cmp-picker-add is-added" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd('${p.id}')" aria-pressed="true" aria-label="Remove ${name} from comparison">&#10003; Added</button>`
+      : `<button class="cmp-picker-add" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd('${p.id}')" ${disabled ? "disabled" : ""} aria-pressed="false" aria-label="${disabled ? "Comparison full: remove one to add another" : `Add ${name} to comparison`}">+ Add</button>`;
     return `
       <div class="cmp-picker-row">
         <span class="cmp-picker-thumb" aria-hidden="true">${img}</span>
@@ -550,8 +730,27 @@ window.addEventListener("compareUpdated", () => {
   if (document.getElementById("ylCmpPicker")) renderComparePickerList();
 });
 
+function ylCleanupCompareOverlays() {
+  const tray = document.getElementById("compareTray");
+  if (tray) tray.classList.remove("visible", "is-expanded");
+  if (document.body.classList.contains("cmp-sheet-open") || document.getElementById("cmpSheetBackdrop")) {
+    ylCloseCompareSheet(false);
+  }
+  if (document.getElementById("ylCmpPicker") || document.getElementById("ylCmpPickerBackdrop")) {
+    closeComparePicker(false);
+  }
+  document.body.classList.remove("compare-open");
+  document.documentElement.style.setProperty("--compare-tray-height", "0px");
+  document.documentElement.style.removeProperty("--compare-filter-max-height");
+}
+
 // ─── Init ───────────────────────────────────────────────────────
 // The compareUpdated listener persists for the app's lifetime; the initial and
 // per-swap render is driven by ylReady (runs on load and on every Swup swap).
 window.addEventListener("compareUpdated", renderCompareTray);
+if (typeof ylOnce === "function") {
+  ylOnce("compare:swupCleanup", () => {
+    document.addEventListener("swup:visit:start", ylCleanupCompareOverlays);
+  });
+}
 ylReady(renderCompareTray);

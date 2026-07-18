@@ -82,6 +82,22 @@ async function initProductsPage() {
   // no-ops safely when the products DOM is absent.
   ylOnce("products:windowListeners", () => {
     window.addEventListener("resize", updateFilterScrollFade);
+    const filterMobileQuery = window.matchMedia("(max-width: 640px)");
+    const reconcileFilterMode = (event) => {
+      const sidebar = document.getElementById("filterSidebar");
+      if (event.matches) {
+        if (sidebar && sidebar.classList.contains("open")) openFilterDrawerA11y(sidebar);
+        return;
+      }
+      if (sidebar && sidebar.classList.contains("open")) closeFilterDrawer(false);
+      else document.body.classList.remove("filter-drawer-open");
+    };
+    if (typeof filterMobileQuery.addEventListener === "function") {
+      filterMobileQuery.addEventListener("change", reconcileFilterMode);
+    } else if (typeof filterMobileQuery.addListener === "function") {
+      filterMobileQuery.addListener(reconcileFilterMode);
+    }
+    document.addEventListener("swup:visit:start", ylCleanupFilterDrawer);
     window.addEventListener("compareUpdated", syncCompareButtons);
     // Update the affected buttons in place — never re-render the whole grid
     // for a basket change (the full re-render re-ran every card's entrance
@@ -697,6 +713,7 @@ function productCardHTML(p) {
       </div>
       <div class="product-card-actions">
         <button
+          type="button"
           class="btn btn-primary pcard-enq${inBasket ? " btn-added" : ""}"
           data-product-id="${p.id}"
           aria-pressed="${inBasket ? "true" : "false"}"
@@ -717,7 +734,7 @@ function brandSlug(brand) {
 
 // Shared enquiry-button contents (default / added), used by the card render
 // AND the in-place state sync so the two can never drift apart.
-const PCARD_ENQ_ADD_HTML = `Add to Enquiry <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`;
+const PCARD_ENQ_ADD_HTML = `Add to Enquiry`;
 const PCARD_ENQ_ADDED_HTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>In Enquiry</span>`;
 
 // ─── Sync enquiry button states without rebuilding the grid ────────
@@ -791,19 +808,39 @@ function toggleFilterSidebar() {
   const el = document.getElementById("filterSidebar");
   const willOpen = !el.classList.contains("open");
   el.classList.toggle("open");
+  syncFilterTriggerState(willOpen);
   willOpen ? openFilterDrawerA11y(el) : closeFilterDrawerA11y(el);
+  // At the tablet breakpoint the sidebar changes from display:none to an
+  // in-flow panel. Recalculate its available height against the live compare
+  // tray after that layout change so its last filters never sit underneath it.
+  if (typeof scheduleCompareTrayHeight === "function") {
+    requestAnimationFrame(scheduleCompareTrayHeight);
+  }
 }
 
-function closeFilterDrawer() {
+function closeFilterDrawer(restoreFocus = true) {
   const el = document.getElementById("filterSidebar");
+  if (!el) return;
   el.classList.remove("open");
-  closeFilterDrawerA11y(el);
+  closeFilterDrawerA11y(el, restoreFocus);
+}
+
+function syncFilterTriggerState(open) {
+  document.querySelectorAll("#filterToggle, .mfb-btn").forEach(button => {
+    button.setAttribute("aria-expanded", open ? "true" : "false");
+  });
 }
 
 // Focus handling applies only in drawer mode (mobile). On desktop the sidebar is
 // always visible and is not a modal, so we leave it untouched.
 function openFilterDrawerA11y(el) {
   if (window.innerWidth > 640) return;
+  if (document.body.classList.contains("cmp-sheet-open") &&
+      typeof toggleCompareTray === "function") {
+    toggleCompareTray();
+  }
+  syncFilterTriggerState(true);
+  document.body.classList.add("filter-drawer-open");
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-modal", "true");
   // Show the backdrop and lock the page scroll behind the bottom sheet.
@@ -815,13 +852,27 @@ function openFilterDrawerA11y(el) {
   }
 }
 
-function closeFilterDrawerA11y(el) {
+function closeFilterDrawerA11y(el, restoreFocus = true) {
+  syncFilterTriggerState(false);
+  document.body.classList.remove("filter-drawer-open");
   el.removeAttribute("aria-modal");
   el.removeAttribute("role");
   const bd = document.getElementById("filterBackdrop");
   if (bd) bd.classList.remove("show");
   unlockBodyScroll();
-  if (filterDrawerRelease) { filterDrawerRelease(); filterDrawerRelease = null; }
+  if (filterDrawerRelease) { filterDrawerRelease(restoreFocus); filterDrawerRelease = null; }
+}
+
+function ylCleanupFilterDrawer() {
+  const el = document.getElementById("filterSidebar");
+  if (el) {
+    el.classList.remove("open");
+    closeFilterDrawerA11y(el, false);
+    return;
+  }
+  document.body.classList.remove("filter-drawer-open");
+  unlockBodyScroll();
+  if (filterDrawerRelease) { filterDrawerRelease(false); filterDrawerRelease = null; }
 }
 
 function toggleFilterGroup(btn) {
