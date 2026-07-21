@@ -53,12 +53,12 @@ function ylFocusTrap(container, opts = {}) {
   };
 }
 
-const BRANDS = ["Deer™ Brand", "Horsemen™ Brand", "Premier™ Brand", "Rhino™ Brand", "Others & Accessories"];
+let BRANDS = ["Deer™ Brand", "Horsemen™ Brand", "Premier™ Brand", "Rhino™ Brand", "Others & Accessories"];
 
 // The four real Yee Lim adhesive brands. "Others & Accessories" is a catalogue
 // grouping for non-adhesive items (spray guns), not a brand, so it is excluded
 // from the public Brand filter. Admin keeps the full BRANDS list for assignment.
-const PUBLIC_BRANDS = ["Deer™ Brand", "Horsemen™ Brand", "Premier™ Brand", "Rhino™ Brand"];
+let PUBLIC_BRANDS = ["Deer™ Brand", "Horsemen™ Brand", "Premier™ Brand", "Rhino™ Brand"];
 
 // Display label for a product's brand field. Accessories carry the grouping
 // value "Others & Accessories" in the data, but should never read as a product
@@ -71,20 +71,24 @@ function brandDisplay(brand) {
 // non-adhesive items carry category "Others" / brand "Others & Accessories".
 // This is the clear discovery path for the spray guns now that they no longer
 // appear under Brand.
-const PRODUCT_TYPES = ["Adhesives", "Spray Guns & Accessories"];
+let PRODUCT_TYPES = ["Adhesives", "Spray Guns & Accessories"];
 
 function productType(product) {
+  // Prefer the stored product type (CLIENT-005: admin-assigned). Fall back to
+  // the original derivation for demo data or products created before the field
+  // existed, so the Adhesives / Spray Guns split still works if it is missing.
+  if (product.productType) return product.productType;
   const isAccessory = product.brand === "Others & Accessories" || product.category === "Others";
   return isAccessory ? "Spray Guns & Accessories" : "Adhesives";
 }
 
-const INDUSTRIES = [
+let INDUSTRIES = [
   "Automotive", "Carpentry", "Cooling Process", "Fashion", "Flooring",
   "Insulation", "Lift & Escalator", "Marine", "Packaging",
   "Plumbing & Sanitary", "Upholstery", "Waterproof"
 ];
 
-const SURFACES = [
+let SURFACES = [
   "Carpet", "Fibreglass Wool", "Foam & Sponge", "Labels", "Laminates",
   "Leather", "Metal", "Paper", "Plastics & Acrylics", "Rubber",
   "Stone Ceramics", "Tiles", "Turf", "Wallpaper", "Wood"
@@ -496,5 +500,40 @@ async function loadProductsFromBackend(opts = {}) {
     PRODUCTS = DEMO_PRODUCTS.map(normaliseProduct);
     YL_DEMO_MODE = true;
     return PRODUCTS;
+  }
+}
+
+// ─── Catalogue taxonomies (CLIENT-005) ────────────────────────────
+// The sidebar filter lists (product types, brands, industries, surfaces) are
+// admin-managed in the taxonomy_terms table. Fetch them once and override the
+// bundled arrays above; on any failure the bundled arrays remain as a working
+// fallback so the sidebar always renders. Terms flagged public:false (e.g. the
+// "Others & Accessories" grouping) are excluded from every public list except
+// the full BRANDS list, which still needs them to resolve legacy brand values.
+let TAXONOMIES_LOADED = false;
+async function loadTaxonomiesFromBackend() {
+  if (TAXONOMIES_LOADED) return;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`${API_BASE_URL}/api/taxonomies.php`, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error("Backend responded with status " + res.status);
+
+    const tax = await res.json();
+    if (!tax || typeof tax !== "object") throw new Error("Unexpected taxonomy payload.");
+
+    const all = g => Array.isArray(tax[g]) ? tax[g].map(t => t && t.label).filter(Boolean) : [];
+    const pub = g => Array.isArray(tax[g]) ? tax[g].filter(t => t && t.public !== false).map(t => t.label).filter(Boolean) : [];
+
+    // Only override when the API actually returned values for a group, so an
+    // empty/misconfigured group can never blank out the sidebar.
+    if (pub("product_type").length) PRODUCT_TYPES = pub("product_type");
+    if (all("brand").length)        { BRANDS = all("brand"); PUBLIC_BRANDS = pub("brand"); }
+    if (pub("industry").length)     INDUSTRIES = pub("industry");
+    if (pub("surface").length)      SURFACES = pub("surface");
+    TAXONOMIES_LOADED = true;
+  } catch (err) {
+    console.warn("Yee Lim: taxonomy fetch failed, using bundled filter lists.", err);
   }
 }

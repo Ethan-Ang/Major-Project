@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catalogue Filters | Yee Lim Adhesives Admin</title>
+  <link rel="stylesheet" href="admin.css?v=17">
+  <link rel="stylesheet" href="../css/dropdown-ui.css?v=6">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    /* Catalogue Filters page — only genuinely new element (tabs) is styled
+       here; everything else reuses admin.css tokens + components. */
+    .filter-tabs { display:flex; gap:.15rem; border-bottom:1px solid var(--line); padding:0 .35rem; flex-wrap:wrap; }
+    .filter-tab { appearance:none; background:none; border:none; padding:.75rem 1rem; font:inherit; font-size:.9rem; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+    .filter-tab:hover { color:var(--text); }
+    .filter-tab.active { color:var(--red); border-bottom-color:var(--red); }
+    .tax-tab-hint { color:var(--muted); font-size:.82rem; margin:.85rem .35rem .3rem; max-width:72ch; line-height:1.5; }
+    .tax-badge { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
+    .tax-badge-active { background:#e7f4ec; color:#2f7d4f; }
+    .tax-badge-muted { background:#efece3; color:var(--muted); }
+    .tax-name-cell { display:flex; align-items:center; }
+    .tax-logo-thumb { width:26px; height:26px; object-fit:contain; border-radius:4px; background:var(--bg); border:1px solid var(--line); vertical-align:middle; margin-right:.55rem; }
+    .tax-slug { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8rem; color:var(--muted); }
+    .tax-order-btns { display:inline-flex; gap:.25rem; }
+    .tax-check { display:flex; align-items:center; gap:.55rem; font-size:.88rem; color:var(--text); margin-top:.5rem; text-transform:none; letter-spacing:normal; font-weight:500; }
+    .tax-check input { width:16px; height:16px; accent-color:var(--red); }
+    .tax-modal-hint { color:var(--muted); font-size:.78rem; margin-top:.6rem; line-height:1.5; }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <span class="brand-mark"><img src="/images/logos/ylai-seal.png" alt="Yee Lim Adhesives"></span>
+      <div>
+        <div class="brand-name">Yee Lim</div>
+        <div class="brand-sub">Admin Console</div>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <div class="nav-section-label">Menu</div>
+      <ul>
+        <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i><span>Overview</span></a></li>
+        <li><a href="products.html"><i data-lucide="package"></i><span>Products</span></a></li>
+        <li><a href="enquiries.html"><i data-lucide="mail"></i><span>Enquiries</span> <span class="nav-badge" id="unreadBadge" style="display:none"></span></a></li>
+        <li><a href="downloads.html"><i data-lucide="download"></i><span>Document Downloads</span></a></li>
+        <li><a href="filters.html" class="active"><i data-lucide="sliders-horizontal"></i><span>Catalogue Filters</span></a></li>
+        <li><a href="settings.html"><i data-lucide="settings"></i><span>Site Settings</span></a></li>
+      </ul>
+      <div class="nav-section-label">Shortcuts</div>
+      <ul>
+        <li><a href="/products"><i data-lucide="external-link"></i><span>View Live Site</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">YL</div>
+      <div class="user-meta">
+        <div class="user-name" id="userName">admin</div>
+        <div class="user-role">Administrator</div>
+      </div>
+      <button class="user-logout" onclick="logout()" aria-label="Sign out"><i data-lucide="log-out"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-body">
+
+      <!-- Page header -->
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Catalogue</div>
+          <h1 class="admin-page-title">Catalogue Filters</h1>
+          <p class="admin-page-sub">Add, rename, reorder or retire the values shown in the product filters. Changes flow straight to the website filters and the product form.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="filter-tabs" role="tablist" aria-label="Filter groups">
+          <button class="filter-tab active" type="button" data-group="product_type" role="tab" onclick="switchTab('product_type')">Product Types</button>
+          <button class="filter-tab" type="button" data-group="brand" role="tab" onclick="switchTab('brand')">Brands</button>
+          <button class="filter-tab" type="button" data-group="industry" role="tab" onclick="switchTab('industry')">Industries</button>
+          <button class="filter-tab" type="button" data-group="surface" role="tab" onclick="switchTab('surface')">Surfaces</button>
+        </div>
+
+        <p class="tax-tab-hint" id="tabHint"></p>
+
+        <div class="admin-card-header">
+          <div class="card-header-left">
+            <h2 id="tabTitle">Product Types</h2>
+            <span class="table-count" id="tabCount"></span>
+          </div>
+          <div class="card-header-right">
+            <button class="btn btn-primary" onclick="openTermModal()"><i data-lucide="plus"></i> <span id="addBtnLabel">Add value</span></button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>In use</th>
+                <th>Status</th>
+                <th style="width:96px">Order</th>
+                <th style="width:120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="termTableBody">
+              <tr class="loading-row"><td colspan="6">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Term editor modal (add / edit) -->
+<div class="modal-overlay" id="termModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 id="termModalTitle">Add value</h2>
+      <button class="modal-close" onclick="closeTermModal()" aria-label="Close modal"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" id="termModalError" style="display:none"></div>
+      <input type="hidden" id="termId">
+      <input type="hidden" id="termGroup">
+      <div class="form-group">
+        <label for="termLabel">Name</label>
+        <input type="text" id="termLabel" placeholder="e.g. Flooring" maxlength="120" autocomplete="off">
+      </div>
+      <div id="brandFields" style="display:none">
+        <div class="form-group">
+          <label for="termLogoUrl">Logo URL <span class="form-section-optional">optional</span></label>
+          <input type="text" id="termLogoUrl" placeholder="/images/logos/brand.png" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="termLogoAlt">Logo alt text <span class="form-section-optional">optional</span></label>
+          <input type="text" id="termLogoAlt" placeholder="e.g. Deer Brand logo" autocomplete="off">
+        </div>
+        <label class="tax-check"><input type="checkbox" id="termPublic" checked> Show in the public Brand filter</label>
+      </div>
+      <p class="tax-modal-hint" id="termModalHint"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeTermModal()">Cancel</button>
+      <button class="btn btn-primary" id="termSaveBtn" onclick="saveTerm()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="deleteTermModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Delete value</h2>
+      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close modal"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirm-icon"><i data-lucide="trash-2"></i></div>
+      <p class="delete-confirm-text" id="deleteTermText"></p>
+      <p class="delete-confirm-sub">This cannot be undone. A value that is in use cannot be deleted; archive it instead.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger-solid" id="confirmDeleteBtn" onclick="confirmDeleteTerm()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-toast" id="adminToast"></div>
+
+<script src="../js/data.js?v=8"></script>
+<script src="filters.js?v=1"></script>
+<script src="admin-nav.js?v=3"></script>
+<script>
+  (function () {
+    var n = localStorage.getItem("adminUsername");
+    if (n) {
+      document.getElementById("userName").textContent = n;
+      document.getElementById("userAv").textContent =
+        n.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ""; }).join("").toUpperCase() || "YL";
+    }
+  })();
+  lucide.createIcons();
+</script>
+</body>
+</html>

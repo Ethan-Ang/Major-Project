@@ -27,6 +27,9 @@
         <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i><span>Overview</span></a></li>
         <li><a href="products.html" class="active"><i data-lucide="package"></i><span>Products</span></a></li>
         <li><a href="enquiries.html"><i data-lucide="mail"></i><span>Enquiries</span><span class="nav-badge" style="display:none"></span></a></li>
+        <li><a href="downloads.html"><i data-lucide="download"></i><span>Document Downloads</span></a></li>
+        <li><a href="filters.html"><i data-lucide="sliders-horizontal"></i><span>Catalogue Filters</span></a></li>
+        <li><a href="settings.html"><i data-lucide="settings"></i><span>Site Settings</span></a></li>
       </ul>
       <div class="nav-section-label">Shortcuts</div>
       <ul>
@@ -211,20 +214,28 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="fieldIndustries">Industries</label>
-          <input type="text" id="fieldIndustries" placeholder="Carpentry, Flooring">
+          <label for="fieldProductType">Product Type</label>
+          <select id="fieldProductType">
+            <option value="Adhesives">Adhesives</option>
+            <option value="Spray Guns &amp; Accessories">Spray Guns &amp; Accessories</option>
+          </select>
         </div>
       </div>
 
       <div class="form-row-2">
         <div class="form-group">
+          <label for="fieldIndustries">Industries</label>
+          <input type="text" id="fieldIndustries" placeholder="Carpentry, Flooring">
+        </div>
+        <div class="form-group">
           <label for="fieldSurfaces">Surfaces</label>
           <input type="text" id="fieldSurfaces" placeholder="Wood, Laminates">
         </div>
-        <div class="form-group">
-          <label for="fieldFeatures">Features</label>
-          <input type="text" id="fieldFeatures" placeholder="Fast setting, Heat resistant">
-        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fieldFeatures">Features</label>
+        <input type="text" id="fieldFeatures" placeholder="Fast setting, Heat resistant">
       </div>
 
       <div class="form-group">
@@ -278,14 +289,6 @@
       <div class="extra-image-empty">No additional images selected</div>
     </div>
   </div>
-</div>
-
-<div class="form-group" style="margin-top:1rem">
-  <label for="fieldStatus">Status</label>
-  <select id="fieldStatus">
-    <option value="Available">Available</option>
-    <option value="Unavailable">Unavailable</option>
-  </select>
 </div>
 
       <div class="form-section-label">Product Documents <span class="form-section-optional">optional</span></div>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Settings | Yee Lim Adhesives Admin</title>
+  <link rel="stylesheet" href="admin.css?v=17">
+  <link rel="stylesheet" href="../css/dropdown-ui.css?v=6">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .settings-form { padding: 0 1.25rem 1.25rem; display: grid; gap: 1.1rem; }
+    .field-hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.35rem; line-height: 1.5; }
+    .settings-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.25rem; }
+    .settings-saved { font-size: 0.82rem; color: #2f7d4f; align-self: center; margin-right: auto; opacity: 0; transition: opacity .2s; }
+    .settings-saved.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <span class="brand-mark"><img src="/images/logos/ylai-seal.png" alt="Yee Lim Adhesives"></span>
+      <div>
+        <div class="brand-name">Yee Lim</div>
+        <div class="brand-sub">Admin Console</div>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <div class="nav-section-label">Menu</div>
+      <ul>
+        <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i><span>Overview</span></a></li>
+        <li><a href="products.html"><i data-lucide="package"></i><span>Products</span></a></li>
+        <li><a href="enquiries.html"><i data-lucide="mail"></i><span>Enquiries</span> <span class="nav-badge" id="unreadBadge" style="display:none"></span></a></li>
+        <li><a href="downloads.html"><i data-lucide="download"></i><span>Document Downloads</span></a></li>
+        <li><a href="filters.html"><i data-lucide="sliders-horizontal"></i><span>Catalogue Filters</span></a></li>
+        <li><a href="settings.html" class="active"><i data-lucide="settings"></i><span>Site Settings</span></a></li>
+      </ul>
+      <div class="nav-section-label">Shortcuts</div>
+      <ul>
+        <li><a href="/products"><i data-lucide="external-link"></i><span>View Live Site</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">YL</div>
+      <div class="user-meta">
+        <div class="user-name" id="userName">admin</div>
+        <div class="user-role">Administrator</div>
+      </div>
+      <button class="user-logout" onclick="logout()" aria-label="Sign out"><i data-lucide="log-out"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-body">
+
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Configuration</div>
+          <h1 class="admin-page-title">Site Settings</h1>
+          <p class="admin-page-sub">Update the contact details shown across the website. Changes take effect immediately on the public site.</p>
+        </div>
+      </div>
+
+      <div class="alert alert-error" id="settingsError" style="display:none"></div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="card-header-left"><h2>Contact details</h2></div>
+        </div>
+        <div class="settings-form">
+          <div class="form-group">
+            <label for="setContactEmail">Contact email</label>
+            <input type="email" id="setContactEmail" data-key="contact_email" autocomplete="off">
+            <p class="field-hint">The public email address shown in the footer and on the contact page.</p>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="setWhatsapp">WhatsApp number</label>
+              <input type="text" id="setWhatsapp" data-key="whatsapp_number" inputmode="numeric" placeholder="6588755786" autocomplete="off">
+              <p class="field-hint">Digits only, including the country code (no “+”, no spaces). Powers every WhatsApp link on the site.</p>
+            </div>
+            <div class="form-group">
+              <label for="setPhone">Phone (as displayed)</label>
+              <input type="text" id="setPhone" data-key="phone_display" placeholder="+65 8875 5786" autocomplete="off">
+              <p class="field-hint">How the number is shown to visitors.</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="setAddress">Address</label>
+            <input type="text" id="setAddress" data-key="address_line" autocomplete="off">
+            <p class="field-hint">Shown in the site footer and contact page.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="card-header-left"><h2>Enquiry notifications</h2></div>
+        </div>
+        <div class="settings-form">
+          <div class="form-group">
+            <label for="setEnquiryTo">Enquiry recipient email</label>
+            <input type="email" id="setEnquiryTo" data-key="enquiry_recipient" placeholder="Using the system default" autocomplete="off">
+            <p class="field-hint">Where new website enquiries are emailed. Leave blank to use the default configured on the server. This is never shown publicly.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <span class="settings-saved" id="settingsSaved">Saved</span>
+        <button class="btn btn-primary" id="saveSettingsBtn" onclick="saveSettings()">Save changes</button>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="admin-toast" id="adminToast"></div>
+
+<script src="../js/data.js?v=8"></script>
+<script src="settings.js?v=1"></script>
+<script src="admin-nav.js?v=3"></script>
+<script>
+  (function () {
+    var n = localStorage.getItem("adminUsername");
+    if (n) {
+      document.getElementById("userName").textContent = n;
+      document.getElementById("userAv").textContent =
+        n.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ""; }).join("").toUpperCase() || "YL";
+    }
+  })();
+  lucide.createIcons();
+</script>
+</body>
+</html>

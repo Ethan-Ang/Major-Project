@@ -7,7 +7,7 @@ function decodeJsonField($value) {
     return is_array($decoded) ? $decoded : [];
 }
 
-function formatProduct($row) {
+function formatProduct($row, $flags = []) {
     return [
         "id" => strval($row["id"]),
         "_id" => strval($row["id"]),
@@ -15,6 +15,7 @@ function formatProduct($row) {
         "name" => $row["name"],
         "brand" => $row["brand"],
         "category" => $row["category"],
+        "productType" => $row["product_type"] ?? "",
         "shortDescription" => $row["short_description"],
         "fullDescription" => $row["full_description"],
         "usage" => $row["usage_text"],
@@ -22,6 +23,8 @@ function formatProduct($row) {
         "images" => decodeJsonField($row["images"]),
         "sdsUrl" => $row["sds_url"] ?? "",
         "tdsUrl" => $row["tds_url"] ?? "",
+        "hasSds" => !empty($flags["sds"]),
+        "hasTds" => !empty($flags["tds"]),
         "status" => $row["status"],
         "industries" => decodeJsonField($row["industries"]),
         "surfaces" => decodeJsonField($row["surfaces"]),
@@ -29,6 +32,29 @@ function formatProduct($row) {
         "createdAt" => $row["created_at"],
         "updatedAt" => $row["updated_at"]
     ];
+}
+
+// Which products have an SDS / TDS on file (from product_documents). Used to set
+// the public hasSds/hasTds flags WITHOUT exposing the document URLs. Tolerates
+// the product_documents table being absent.
+function productDocFlagsMap($pdo, $onlyId = null) {
+    $map = [];
+    try {
+        if ($onlyId !== null) {
+            $stmt = $pdo->prepare("SELECT DISTINCT product_id, UPPER(document_type) AS dt FROM product_documents WHERE product_id = ? AND document_type IN ('SDS','TDS')");
+            $stmt->execute([(int) $onlyId]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            $rows = $pdo->query("SELECT DISTINCT product_id, UPPER(document_type) AS dt FROM product_documents WHERE document_type IN ('SDS','TDS')")->fetchAll(PDO::FETCH_ASSOC);
+        }
+        foreach ($rows as $r) {
+            $pid = (int) $r["product_id"];
+            if (!isset($map[$pid])) $map[$pid] = ["sds" => false, "tds" => false];
+            if ($r["dt"] === "SDS") $map[$pid]["sds"] = true;
+            elseif ($r["dt"] === "TDS") $map[$pid]["tds"] = true;
+        }
+    } catch (Throwable $e) { /* table absent -> no flags */ }
+    return $map;
 }
 
 function getJsonInput() {
@@ -50,6 +76,31 @@ function jsonList($value) {
     return json_encode([]);
 }
 
+// Recursively remove a directory and its contents. Used when a product is
+// deleted, to clean up its uploaded images + documents. (Synced from live,
+// where the teammate added product image/document uploads.)
+function deleteDirectoryRecursive($directory) {
+    if (!is_dir($directory)) {
+        return;
+    }
+    $items = scandir($directory);
+    if ($items === false) {
+        return;
+    }
+    foreach ($items as $item) {
+        if ($item === "." || $item === "..") {
+            continue;
+        }
+        $path = $directory . DIRECTORY_SEPARATOR . $item;
+        if (is_dir($path)) {
+            deleteDirectoryRecursive($path);
+        } elseif (is_file($path)) {
+            unlink($path);
+        }
+    }
+    rmdir($directory);
+}
+
 $method = $_SERVER["REQUEST_METHOD"];
 $id = $_GET["id"] ?? null;
 
@@ -69,7 +120,8 @@ try {
                 exit;
             }
 
-            echo json_encode(formatProduct($row));
+            $flags = productDocFlagsMap($pdo, $id)[(int) $id] ?? [];
+            echo json_encode(formatProduct($row, $flags));
             exit;
         }
 
@@ -119,7 +171,11 @@ try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
 
-        $products = array_map("formatProduct", $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $docFlags = productDocFlagsMap($pdo);
+        $products = array_map(
+            fn($r) => formatProduct($r, $docFlags[(int) $r["id"]] ?? []),
+            $stmt->fetchAll(PDO::FETCH_ASSOC)
+        );
 
         echo json_encode($products);
         exit;
@@ -133,6 +189,11 @@ try {
         $name = trim($data["name"] ?? "");
         $brand = $data["brand"] ?? "Deer™ Brand";
         $category = $data["category"] ?? "Industrial";
+        $productType = trim($data["productType"] ?? $data["product_type"] ?? "");
+        if ($productType === "") {
+            $productType = ($brand === "Others & Accessories" || $category === "Others")
+                ? "Spray Guns & Accessories" : "Adhesives";
+        }
         $shortDescription = trim($data["shortDescription"] ?? "");
         $fullDescription = trim($data["fullDescription"] ?? "");
         $usage = trim($data["usage"] ?? "");
@@ -158,16 +219,17 @@ try {
 
         $stmt = $pdo->prepare("
             INSERT INTO products (
-                name, brand, category, short_description, full_description,
+                name, brand, category, product_type, short_description, full_description,
                 usage_text, image_url, images, sds_url, tds_url, status, industries, surfaces, features
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
             $name,
             $brand,
             $category,
+            $productType,
             $shortDescription,
             $fullDescription,
             $usage,
@@ -216,6 +278,8 @@ try {
         $name = trim($data["name"] ?? $existing["name"]);
         $brand = $data["brand"] ?? $existing["brand"];
         $category = $data["category"] ?? $existing["category"];
+        $productType = array_key_exists("productType", $data) ? trim($data["productType"])
+                     : (array_key_exists("product_type", $data) ? trim($data["product_type"]) : $existing["product_type"]);
         $shortDescription = trim($data["shortDescription"] ?? $existing["short_description"]);
         $fullDescription = trim($data["fullDescription"] ?? $existing["full_description"]);
         $usage = trim($data["usage"] ?? $existing["usage_text"]);
@@ -247,6 +311,7 @@ try {
                 name = ?,
                 brand = ?,
                 category = ?,
+                product_type = ?,
                 short_description = ?,
                 full_description = ?,
                 usage_text = ?,
@@ -265,6 +330,7 @@ try {
             $name,
             $brand,
             $category,
+            $productType,
             $shortDescription,
             $fullDescription,
             $usage,
@@ -306,8 +372,16 @@ try {
             exit;
         }
 
+        // Remove the product's uploaded files (images + documents) after the row
+        // is deleted. The product_documents FK cascade removes their DB rows.
+        $productUploadDirectory = dirname(__DIR__) . "/uploads/products/product-" . (int) $id;
+
         $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
         $stmt->execute([$id]);
+
+        if (is_dir($productUploadDirectory)) {
+            deleteDirectoryRecursive($productUploadDirectory);
+        }
 
         echo json_encode(["message" => "Product deleted successfully."]);
         exit;

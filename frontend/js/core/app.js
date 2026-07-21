@@ -134,4 +134,58 @@
   window.ylTxt = function (s) {
     return String(s == null ? "" : s).replace(/[\\'"<>&]/g, " ").replace(/\s+/g, " ").trim();
   };
+
+  // ─── Site settings (CLIENT-006) ───────────────────────────────
+  // Editable contact details (email / WhatsApp / phone / address) served by
+  // api/settings.php. Fetched once, cached, and applied to any element tagged
+  // with a data-yl-* hook below. The bundled HTML already carries the current
+  // values as fallbacks, so pages are correct before the fetch resolves; the
+  // fetch only changes anything after an admin edits a value. ylSetting() lets
+  // code that builds markup at render time (e.g. product-detail wa.me links)
+  // read a value directly.
+  var YL_SETTINGS = null, settingsPromise = null;
+
+  window.ylSetting = function (key, fallback) {
+    return (YL_SETTINGS && YL_SETTINGS[key]) ? YL_SETTINGS[key] : fallback;
+  };
+
+  function applySiteSettings() {
+    if (!YL_SETTINGS) return;
+    var s = YL_SETTINGS, els, i, href, qi;
+    if (s.whatsapp_number) {                       // wa.me links: swap number, keep any ?text=
+      els = document.querySelectorAll("[data-yl-wa]");
+      for (i = 0; i < els.length; i++) {
+        href = els[i].getAttribute("href") || ""; qi = href.indexOf("?");
+        els[i].setAttribute("href", "https://wa.me/" + s.whatsapp_number + (qi >= 0 ? href.slice(qi) : ""));
+      }
+    }
+    if (s.phone_display) {
+      els = document.querySelectorAll("[data-yl-phone]");
+      for (i = 0; i < els.length; i++) els[i].textContent = s.phone_display;
+    }
+    if (s.contact_email) {
+      els = document.querySelectorAll("[data-yl-email]");
+      for (i = 0; i < els.length; i++) {
+        els[i].setAttribute("href", "mailto:" + s.contact_email);
+        if (els[i].getAttribute("data-yl-email") === "text") els[i].textContent = s.contact_email;
+      }
+    }
+    if (s.address_line) {
+      els = document.querySelectorAll("[data-yl-address]");
+      for (i = 0; i < els.length; i++) els[i].textContent = s.address_line;
+    }
+  }
+  window.applySiteSettings = applySiteSettings;
+
+  function loadSiteSettings() {
+    if (settingsPromise) return settingsPromise;
+    settingsPromise = fetch("/api/settings.php")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (s) { if (s && typeof s === "object") { YL_SETTINGS = s; window.YL_SETTINGS = s; applySiteSettings(); } })
+      .catch(function () { /* keep the bundled fallbacks */ });
+    return settingsPromise;
+  }
+
+  window.ylReady(applySiteSettings); // re-apply cached values on each page + swap
+  loadSiteSettings();                // fetch once at startup
 })();

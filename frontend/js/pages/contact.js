@@ -15,7 +15,13 @@ Phone: ${phone || "-"}
 Message:
 ${message}`
   );
-  window.location.href = `mailto:contact@yeelimadhesives.com.sg?subject=${mailSubject}&body=${mailBody}`;
+  const to = ylContactEmail() || "contact@yeelimadhesives.com.sg";
+  window.location.href = `mailto:${to}?subject=${mailSubject}&body=${mailBody}`;
+}
+
+// The contact email, from Site Settings when available, else the built-in value.
+function ylContactEmail() {
+  return (window.ylSetting && window.ylSetting("contact_email", "")) || "";
 }
 
 // Build the contact email at runtime from its parts, so the raw address never
@@ -23,10 +29,11 @@ ${message}`
 // replaced with "[email protected]". Real visitors get the correct, clickable
 // address; runs on load and across Swup swaps (self-selects on the contact page).
 function ylBuildContactEmail() {
+  const setting = ylContactEmail();
   document.querySelectorAll("a.contact-email-link").forEach(a => {
     const u = a.dataset.user, d = a.dataset.domain;
-    if (!u || !d) return;
-    const addr = u + "@" + d;
+    const addr = setting || ((u && d) ? (u + "@" + d) : "");
+    if (!addr) return;
     a.setAttribute("href", "mailto:" + addr);
     a.textContent = addr;
   });
@@ -80,9 +87,10 @@ async function submitContactForm(event) {
     // API unavailable — fall back to the mail client so nothing is lost, and
     // keep the user's input in the form.
     contactMailtoFallback(name, company, email, phone, subject, message);
+    const fallbackEmail = ylContactEmail() || "contact@yeelimadhesives.com.sg";
     status.innerHTML = 'We could not submit your message automatically. Your email app should have opened so you can send it directly. '
       + 'If it did not, email us at '
-      + '<a href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a>.';
+      + '<a href="mailto:' + fallbackEmail + '">' + fallbackEmail + '</a>.';
     status.className = "contact-form-status error";
   } finally {
     if (btn) {

@@ -323,18 +323,18 @@
         <dl class="site-footer-contact">
           <div>
             <dt>Address</dt>
-            <dd>1 Ang Mo Kio Street 65,<br>#03-17, Singapore 569063</dd>
+            <dd data-yl-address>1 Ang Mo Kio Street 65, #03-17, Singapore 569063</dd>
           </div>
           <div>
             <dt>Email</dt>
-            <dd><a href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a></dd>
+            <dd><a data-yl-email="text" href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a></dd>
           </div>
           <div>
             <dt>WhatsApp</dt>
-            <dd><a href="https://wa.me/6588755786" target="_blank" rel="noopener noreferrer">+65 8875 5786</a></dd>
+            <dd><a data-yl-wa data-yl-phone href="https://wa.me/6588755786" target="_blank" rel="noopener noreferrer">+65 8875 5786</a></dd>
           </div>
         </dl>
-        <a class="site-footer-cta" href="https://wa.me/6588755786?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer">Speak to Yee Lim &rarr;</a>
+        <a class="site-footer-cta" data-yl-wa href="https://wa.me/6588755786?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer">Speak to Yee Lim &rarr;</a>
       </div>
     </div>
 
@@ -387,7 +387,7 @@
         </div>
         <a class="sfm-cta-btn" href="/contact">Contact us &rarr;</a>
       </div>
-      <p class="sfm-address">1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
+      <p class="sfm-address" data-yl-address>1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
       <div class="sfm-copyright">&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong> &middot; Singapore</div>
     </div>
   `;

@@ -34,6 +34,11 @@ async function initProductsPage() {
     }
   }
 
+  // CLIENT-005: pull the admin-managed filter lists before parsing the URL or
+  // building the sidebar (both read the taxonomy arrays). Runs once; on failure
+  // the bundled arrays stay in place so the page still works.
+  await loadTaxonomiesFromBackend();
+
   readStateFromURL();
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("sortSelect"));

@@ -85,9 +85,25 @@ function ylSendMail($to, $subject, $body, $replyName = "", $replyEmail = "") {
     return @mail(mailHeaderSafe($to), mailHeaderSafe($subject), $body, $headers, "-f" . $fromAddr);
 }
 
+/* The enquiry-notification recipient: the Site Settings value when an admin has
+   set one, else the ENQUIRY_NOTIFY_TO constant from config.php. Tolerates the
+   site_settings table not existing yet (falls back to the constant). */
+function enquiryRecipient() {
+    global $pdo;
+    $fallback = defined("ENQUIRY_NOTIFY_TO") ? ENQUIRY_NOTIFY_TO : "";
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'enquiry_recipient' LIMIT 1");
+        $stmt->execute();
+        $val = trim((string) $stmt->fetchColumn());
+        return $val !== "" ? $val : $fallback;
+    } catch (Throwable $e) {
+        return $fallback;
+    }
+}
+
 /* Best-effort notification to the sales team. Returns true/false; never throws. */
 function notifySalesTeam($enq, $replyToken, $reference) {
-    $to = defined("ENQUIRY_NOTIFY_TO") ? ENQUIRY_NOTIFY_TO : "";
+    $to = enquiryRecipient();
     if ($to === "") {
         return false; // not configured (e.g. local dev) — silently skip
     }
@@ -136,7 +152,7 @@ function confirmToCustomer($enq, $reference) {
         ? "\n  - " . implode("\n  - ", $enq["products"])
         : " (none specified)";
 
-    $salesInbox = defined("ENQUIRY_NOTIFY_TO") ? ENQUIRY_NOTIFY_TO : "";
+    $salesInbox = enquiryRecipient();
 
     $subject = "We received your enquiry (" . $reference . ") - Yee Lim Adhesives";
     $lines = [

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Downloads | Yee Lim Adhesives Admin</title>
+  <link rel="stylesheet" href="admin.css?v=17">
+  <link rel="stylesheet" href="../css/dropdown-ui.css?v=6">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    .dl-doc-badge { display:inline-block; padding:.12rem .5rem; border-radius:4px; font-size:.72rem; font-weight:700; letter-spacing:.02em; }
+    .dl-doc-sds { background:#fdecec; color:#b62525; }
+    .dl-doc-tds { background:#eef2fb; color:#2f52a0; }
+    .dl-sub { color:var(--muted); font-size:.8rem; }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <span class="brand-mark"><img src="/images/logos/ylai-seal.png" alt="Yee Lim Adhesives"></span>
+      <div>
+        <div class="brand-name">Yee Lim</div>
+        <div class="brand-sub">Admin Console</div>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <div class="nav-section-label">Menu</div>
+      <ul>
+        <li><a href="dashboard.html"><i data-lucide="layout-dashboard"></i><span>Overview</span></a></li>
+        <li><a href="products.html"><i data-lucide="package"></i><span>Products</span></a></li>
+        <li><a href="enquiries.html"><i data-lucide="mail"></i><span>Enquiries</span> <span class="nav-badge" id="unreadBadge" style="display:none"></span></a></li>
+        <li><a href="downloads.html" class="active"><i data-lucide="download"></i><span>Document Downloads</span></a></li>
+        <li><a href="filters.html"><i data-lucide="sliders-horizontal"></i><span>Catalogue Filters</span></a></li>
+        <li><a href="settings.html"><i data-lucide="settings"></i><span>Site Settings</span></a></li>
+      </ul>
+      <div class="nav-section-label">Shortcuts</div>
+      <ul>
+        <li><a href="/products"><i data-lucide="external-link"></i><span>View Live Site</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">YL</div>
+      <div class="user-meta">
+        <div class="user-name" id="userName">admin</div>
+        <div class="user-role">Administrator</div>
+      </div>
+      <button class="user-logout" onclick="logout()" aria-label="Sign out"><i data-lucide="log-out"></i></button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-body">
+
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Customer</div>
+          <h1 class="admin-page-title">Document Downloads</h1>
+          <p class="admin-page-sub">Visitors who requested an SDS or TDS. Managed here only, never emailed.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelected()" style="display:none"><i data-lucide="trash-2"></i> Delete selected (<span id="selCount">0</span>)</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon"><i data-lucide="download"></i></div>
+          <div class="stat-info"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total downloads</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i data-lucide="file-text"></i></div>
+          <div class="stat-info"><div class="stat-value" id="statSds">0</div><div class="stat-label">SDS</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i data-lucide="file-text"></i></div>
+          <div class="stat-info"><div class="stat-value" id="statTds">0</div><div class="stat-label">TDS</div></div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div class="card-header-left">
+            <h2>All downloads</h2>
+            <span class="table-count" id="tableCount"></span>
+          </div>
+          <div class="card-header-right">
+            <div class="table-search-wrap">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="tableSearch" class="table-search" placeholder="Search name, company, email, product…" oninput="renderTable()">
+            </div>
+            <select class="filter-select" id="filterType" onchange="renderTable()" aria-label="Filter by document type">
+              <option value="all">All documents</option>
+              <option value="SDS">SDS only</option>
+              <option value="TDS">TDS only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:28px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()" aria-label="Select all"></th>
+                <th>Visitor</th>
+                <th>Contact</th>
+                <th>Product</th>
+                <th>Document</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="downloadTableBody">
+              <tr class="loading-row"><td colspan="7">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Delete record</h2>
+      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close modal"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirm-icon"><i data-lucide="trash-2"></i></div>
+      <p class="delete-confirm-text" id="deleteText"></p>
+      <p class="delete-confirm-sub">This permanently removes the visitor's download record.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger-solid" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-toast" id="adminToast"></div>
+
+<script src="../js/data.js?v=8"></script>
+<script src="downloads.js?v=1"></script>
+<script src="admin-nav.js?v=3"></script>
+<script>
+  (function () {
+    var n = localStorage.getItem("adminUsername");
+    if (n) {
+      document.getElementById("userName").textContent = n;
+      document.getElementById("userAv").textContent =
+        n.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ""; }).join("").toUpperCase() || "YL";
+    }
+  })();
+  lucide.createIcons();
+</script>
+</body>
+</html>

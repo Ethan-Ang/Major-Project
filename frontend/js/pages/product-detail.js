@@ -263,7 +263,7 @@ function renderSummary(product) {
   // has context. Uses the same number as the contact page + footer.
   const waText = encodeURIComponent(
     `Hello Yee Lim, I would like to enquire about ${product.name}.`);
-  const waHref = `https://wa.me/6588755786?text=${waText}`;
+  const waHref = `https://wa.me/${window.ylSetting ? window.ylSetting("whatsapp_number", "6588755786") : "6588755786"}?text=${waText}`;
 
   const logo = DETAIL_BRAND_LOGOS[product.brand];
   const brandLabel = ylEscapeHtml(product.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
@@ -448,21 +448,19 @@ function renderDownloads(product) {
   const el = document.getElementById("detailDownloads");
   if (!el) return;
 
-  const sds = validDocUrl(product.sdsUrl);
-  const tds = validDocUrl(product.tdsUrl);
+  const sds = !!product.hasSds;
+  const tds = !!product.hasTds;
 
   // Same WhatsApp quick-chat pattern used in the summary actions, offered as
   // a fallback when no document exists for this product.
-  const waHref = `https://wa.me/6588755786?text=${encodeURIComponent(
+  const waHref = `https://wa.me/${window.ylSetting ? window.ylSetting("whatsapp_number", "6588755786") : "6588755786"}?text=${encodeURIComponent(
     `Hello Yee Lim, I would like to enquire about ${product.name}.`)}`;
 
-  // ── The single future integration point for CLIENT-003: the gate will
-  // replace this anchor's direct navigation with the visitor-details flow.
-  // Until then the approved behaviour stands: open the PDF in a new tab. ──
-  const docRow = (href, label) => {
-    const type = /\.pdf(\?|#|$)/i.test(href) ? "PDF document" : "Document";
-    return `
-    <a class="doc-download" href="${escapeDocAttr(href)}" target="_blank" rel="noopener">
+  // CLIENT-003: downloads are gated. Clicking a document opens the visitor-details
+  // modal; on submit the server records the request and returns a one-time link.
+  const docRow = (docType, label) => `
+    <a class="doc-download" href="#" role="button"
+       onclick="event.preventDefault(); openDocGate('${product.id}', '${docType}', '${label}'); return false;">
       <span class="doc-download-icon" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -473,18 +471,17 @@ function renderDownloads(product) {
       </span>
       <span class="doc-download-text">
         <span class="doc-download-label">${label}</span>
-        <span class="doc-download-sub">${type}, opens in a new tab</span>
+        <span class="doc-download-sub">PDF &middot; a few details first</span>
       </span>
       <span class="doc-download-go" aria-hidden="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </span>
     </a>`;
-  };
 
   const body = (sds || tds)
     ? `<div class="doc-download-list">
-        ${sds ? docRow(sds, "Safety Data Sheet") : ""}
-        ${tds ? docRow(tds, "Technical Data Sheet") : ""}
+        ${sds ? docRow("sds", "Safety Data Sheet") : ""}
+        ${tds ? docRow("tds", "Technical Data Sheet") : ""}
       </div>`
     : `<div class="doc-empty">
         <span class="doc-empty-icon" aria-hidden="true">
@@ -509,6 +506,149 @@ function renderDownloads(product) {
     <section class="detail-downloads" aria-label="Product downloads">
       ${body}
     </section>`;
+}
+
+// ─── CLIENT-003: gated SDS/TDS download modal ─────────────────────
+// Injected once and appended to <body> so it survives Swup swaps. The doc rows
+// call openDocGate(); on submit we POST to document_request.php and trigger the
+// one-time download link the server returns. No direct document URL is used.
+let _docGateCtx = null;
+
+function ensureDocGate() {
+  if (document.getElementById("ylgOverlay")) return;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .ylg-overlay{position:fixed;inset:0;z-index:9995;display:flex;align-items:center;justify-content:center;padding:1.25rem;background:rgba(20,19,16,.55);}
+    .ylg-overlay[hidden]{display:none;}
+    .ylg-modal{position:relative;width:100%;max-width:440px;background:#fff;color:var(--text,#1e1c17);border-radius:14px;padding:1.6rem 1.5rem 1.5rem;box-shadow:0 24px 60px rgba(20,19,16,.35);max-height:calc(100vh - 2.5rem);overflow:auto;}
+    .ylg-close{position:absolute;top:.55rem;right:.55rem;width:34px;height:34px;border:0;background:none;font-size:1.5rem;line-height:1;color:var(--muted,#6a655a);cursor:pointer;border-radius:8px;}
+    .ylg-close:hover{background:var(--line,#e7e3d8);color:var(--text,#1e1c17);}
+    .ylg-eyebrow{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--red,#CC2929);font-weight:700;margin:0 0 .3rem;}
+    .ylg-title{font-size:1.25rem;margin:0 0 .6rem;color:var(--ink,#141310);}
+    .ylg-notice{font-size:.78rem;line-height:1.55;color:var(--muted,#6a655a);margin:0 0 1rem;}
+    .ylg-field{margin-bottom:.7rem;display:flex;flex-direction:column;gap:.3rem;}
+    .ylg-field label{font-size:.75rem;font-weight:600;color:var(--body,#47433b);}
+    .ylg-field input{font:inherit;font-size:16px;padding:.6rem .7rem;border:1px solid var(--line-2,#d8d3c5);border-radius:8px;background:#fff;color:var(--text,#1e1c17);}
+    .ylg-field input:focus{outline:none;border-color:var(--red,#CC2929);box-shadow:0 0 0 3px var(--red-tint,#fbe9e4);}
+    .ylg-hp{position:absolute!important;left:-9999px;width:1px;height:1px;opacity:0;}
+    .ylg-error{background:var(--red-tint,#fbe9e4);border:1px solid var(--red-tint-bdr,#f0cfc9);color:var(--red-dark,#a82020);font-size:.82rem;padding:.55rem .7rem;border-radius:8px;margin-bottom:.8rem;}
+    .ylg-error[hidden]{display:none;}
+    .ylg-submit{width:100%;margin-top:.4rem;padding:.75rem 1rem;border:0;border-radius:9px;background:var(--red,#CC2929);color:#fff;font:inherit;font-weight:600;cursor:pointer;}
+    .ylg-submit:hover{background:var(--red-hover,#b62525);}
+    .ylg-submit:disabled{opacity:.6;cursor:default;}
+    .ylg-done{text-align:center;padding:.5rem 0;}
+    .ylg-done[hidden]{display:none;}
+    .ylg-done-ic{width:52px;height:52px;margin:.2rem auto 1rem;border-radius:50%;background:#e7f4ec;color:#2f7d4f;font-size:1.6rem;display:flex;align-items:center;justify-content:center;}
+    .ylg-done h3{margin:0 0 .5rem;color:var(--ink,#141310);}
+    .ylg-done p{font-size:.85rem;color:var(--muted,#6a655a);margin:0 0 1rem;}
+  `;
+  document.head.appendChild(style);
+
+  const ov = document.createElement("div");
+  ov.className = "ylg-overlay";
+  ov.id = "ylgOverlay";
+  ov.hidden = true;
+  ov.innerHTML = `
+    <div class="ylg-modal" role="dialog" aria-modal="true" aria-labelledby="ylgTitle">
+      <button class="ylg-close" type="button" onclick="closeDocGate()" aria-label="Close">&times;</button>
+      <div id="ylgForm">
+        <p class="ylg-eyebrow" id="ylgEyebrow">Document</p>
+        <h3 class="ylg-title" id="ylgTitle">Download the document</h3>
+        <p class="ylg-notice">We collect your name, work email, company and optional contact number to record and manage your request for this document, and to contact you about it where necessary. Your details are accessible only to authorised Yee Lim staff and are not used for marketing without your consent.</p>
+        <div class="ylg-error" id="ylgError" hidden></div>
+        <div class="ylg-field"><label for="ylgName">Name *</label><input id="ylgName" type="text" autocomplete="name"></div>
+        <div class="ylg-field"><label for="ylgEmail">Work email *</label><input id="ylgEmail" type="email" autocomplete="email"></div>
+        <div class="ylg-field"><label for="ylgCompany">Company *</label><input id="ylgCompany" type="text" autocomplete="organization"></div>
+        <div class="ylg-field"><label for="ylgPhone">Contact number</label><input id="ylgPhone" type="tel" autocomplete="tel"></div>
+        <input class="ylg-hp" id="ylgWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="ylg-submit" id="ylgSubmit" type="button" onclick="submitDocGate()">Get the document</button>
+      </div>
+      <div id="ylgDone" hidden>
+        <div class="ylg-done">
+          <div class="ylg-done-ic" aria-hidden="true">&#10003;</div>
+          <h3>Your download is starting</h3>
+          <p>If it doesn't begin automatically, <a id="ylgManual" href="#" target="_blank" rel="noopener">click here to download</a>.</p>
+          <button class="ylg-submit" type="button" onclick="closeDocGate()">Done</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+
+  ov.addEventListener("click", e => { if (e.target === ov) closeDocGate(); });
+  document.addEventListener("keydown", e => {
+    const o = document.getElementById("ylgOverlay");
+    if (e.key === "Escape" && o && !o.hidden) closeDocGate();
+  });
+}
+
+function openDocGate(productId, docType, label) {
+  ensureDocGate();
+  _docGateCtx = { productId: productId, docType: docType };
+  document.getElementById("ylgEyebrow").textContent = label;
+  document.getElementById("ylgError").hidden = true;
+  document.getElementById("ylgForm").hidden = false;
+  document.getElementById("ylgDone").hidden = true;
+  ["ylgName", "ylgEmail", "ylgCompany", "ylgPhone", "ylgWebsite"].forEach(id => { document.getElementById(id).value = ""; });
+  const btn = document.getElementById("ylgSubmit");
+  btn.disabled = false; btn.textContent = "Get the document";
+  document.getElementById("ylgOverlay").hidden = false;
+  setTimeout(() => { try { document.getElementById("ylgName").focus(); } catch (e) {} }, 60);
+}
+
+function closeDocGate() {
+  const ov = document.getElementById("ylgOverlay");
+  if (ov) ov.hidden = true;
+}
+
+async function submitDocGate() {
+  const err = document.getElementById("ylgError");
+  const show = m => { err.textContent = m; err.hidden = false; };
+  const name = document.getElementById("ylgName").value.trim();
+  const email = document.getElementById("ylgEmail").value.trim();
+  const company = document.getElementById("ylgCompany").value.trim();
+  const phone = document.getElementById("ylgPhone").value.trim();
+  const website = document.getElementById("ylgWebsite").value;
+
+  if (!name || !email || !company) { show("Please fill in your name, email and company."); return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { show("Please enter a valid email address."); return; }
+
+  const btn = document.getElementById("ylgSubmit");
+  btn.disabled = true; btn.textContent = "Please wait…";
+  err.hidden = true;
+
+  let res, data;
+  try {
+    res = await fetch(`${API_BASE_URL}/api/document_request.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productId: _docGateCtx.productId, docType: _docGateCtx.docType,
+        name: name, email: email, company: company, phone: phone, website: website
+      })
+    });
+    data = await res.json().catch(() => ({}));
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Get the document";
+    show("Could not reach the server. Please try again.");
+    return;
+  }
+
+  if (!res.ok || !data.downloadUrl) {
+    btn.disabled = false; btn.textContent = "Get the document";
+    show(data.message || "Sorry, we couldn't process that. Please try again.");
+    return;
+  }
+
+  const url = "/" + String(data.downloadUrl).replace(/^\/+/, "");
+  document.getElementById("ylgManual").href = url;
+  document.getElementById("ylgForm").hidden = true;
+  document.getElementById("ylgDone").hidden = false;
+
+  // Trigger the download (Content-Disposition: attachment keeps the page put).
+  const a = document.createElement("a");
+  a.href = url; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
 function updateSidebarCompareBtn(productId) {
@@ -545,7 +685,7 @@ function renderStickyCta(product) {
 
   // WhatsApp quick-chat, pre-filled with the product name (same number as the
   // sidebar, contact page + footer).
-  const waHref = `https://wa.me/6588755786?text=${encodeURIComponent(
+  const waHref = `https://wa.me/${window.ylSetting ? window.ylSetting("whatsapp_number", "6588755786") : "6588755786"}?text=${encodeURIComponent(
     `Hello Yee Lim, I would like to enquire about ${product.name}.`)}`;
 
   const bar = document.createElement("div");

@@ -30,6 +30,53 @@ function isNetworkError(err) {
   return err instanceof TypeError;
 }
 
+// ─── Managed taxonomy options (CLIENT-005) ────────────────────────
+// The Brand and Product Type dropdowns are filled from api/taxonomies.php so
+// values added on the Catalogue Filters page become assignable here with no
+// code change. On failure the built-in <option>s in the HTML remain.
+async function populateTaxonomySelects() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/taxonomies.php`);
+    if (!res.ok) throw new Error("status " + res.status);
+    const tax = await res.json();
+    setSelectOptions("fieldBrand", (tax.brand || []).map(t => t.label).filter(Boolean));
+    setSelectOptions("fieldProductType", (tax.product_type || []).map(t => t.label).filter(Boolean));
+  } catch (err) {
+    console.warn("admin: taxonomy load failed; using built-in options.", err);
+  }
+}
+
+// Replace a <select>'s options with `labels`, keeping the current value if it
+// is still present. No-op on an empty list, so a failed fetch never blanks it.
+function setSelectOptions(id, labels) {
+  const sel = document.getElementById(id);
+  if (!sel || !Array.isArray(labels) || !labels.length) return;
+  const current = sel.value;
+  sel.innerHTML = "";
+  labels.forEach(label => {
+    const opt = document.createElement("option");
+    opt.value = label;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+  if (current && labels.includes(current)) sel.value = current;
+}
+
+// Select `value` in a dropdown, injecting it as an option first if the managed
+// list no longer offers it (e.g. the term was archived after this product was
+// assigned). This keeps a product's existing value from being lost on save.
+function ensureOption(id, value) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  if (value && ![...sel.options].some(o => o.value === value)) {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = value;
+    sel.appendChild(opt);
+  }
+  sel.value = value;
+}
+
 // ─── Auth guard ──────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("adminToken");
@@ -38,9 +85,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("pageSizeSelect"));
+    // Brand + Product Type options come from the managed taxonomy so newly
+    // added values are immediately assignable. Inject them BEFORE enhancing,
+    // because the custom-select UI is built from the options only once.
+    await populateTaxonomySelects();
     // Modal selects too, so they use the on-brand custom dropdown instead of
     // the native OS listbox (whose blue option highlight clashes with the brand).
-    ["fieldCategory", "fieldBrand", "fieldStatus"].forEach(id =>
+    ["fieldCategory", "fieldBrand", "fieldProductType"].forEach(id =>
       enhanceCustomSelect(document.getElementById(id)));
   }
 
@@ -686,7 +737,8 @@ existingTdsDocument = null;
   document.getElementById("editingId").value          = p._id;
   document.getElementById("fieldName").value          = p.name || "";
   document.getElementById("fieldCategory").value      = p.category || "Industrial";
-  document.getElementById("fieldBrand").value         = p.brand || "Deer™ Brand";
+  ensureOption("fieldBrand", p.brand || "Deer™ Brand");
+  ensureOption("fieldProductType", p.productType || "Adhesives");
   document.getElementById("fieldShortDesc").value     = p.shortDescription || "";
   document.getElementById("fieldFullDesc").value      = p.fullDescription || "";
   document.getElementById("fieldUsage").value         = p.usage || "";
@@ -697,7 +749,6 @@ document.getElementById("fieldTdsUrl").value = "";
   document.getElementById("fieldIndustries").value    = joinList(p.industries);
   document.getElementById("fieldSurfaces").value      = joinList(p.surfaces);
   document.getElementById("fieldFeatures").value      = joinList(p.features);
-  document.getElementById("fieldStatus").value        = p.status || "Available";
 
   const mainInput = document.getElementById("fieldMainImageFile");
   const extraInput = document.getElementById("fieldExtraImageFiles");
@@ -726,7 +777,7 @@ await loadProductDocuments(p._id);
 // programmatically (edit prefill / add reset).
 function syncModalSelects() {
   if (typeof refreshCustomSelect !== "function") return;
-  ["fieldCategory", "fieldBrand", "fieldStatus"].forEach(id =>
+  ["fieldCategory", "fieldBrand", "fieldProductType"].forEach(id =>
     refreshCustomSelect(document.getElementById(id)));
 }
 
@@ -755,7 +806,8 @@ function clearForm() {
 
   document.getElementById("fieldCategory").value      = "Industrial";
   document.getElementById("fieldBrand").value         = "Deer™ Brand";
-  document.getElementById("fieldStatus").value        = "Available";
+  const ptSelect = document.getElementById("fieldProductType");
+  if (ptSelect) ptSelect.selectedIndex = 0;
   document.getElementById("modalError").style.display = "none";
 
   syncModalSelects();
@@ -883,7 +935,8 @@ async function loadProductDocuments(productId) {
 
   try {
     const res = await fetch(
-      `${API_BASE_URL}/api/product_documents.php?product_id=${encodeURIComponent(productId)}`
+      `${API_BASE_URL}/api/product_documents.php?product_id=${encodeURIComponent(productId)}`,
+      { headers: { Authorization: `Bearer ${getToken()}` } }
     );
 
     const data = await res.json();
@@ -1247,6 +1300,8 @@ category: capitaliseFirst(
   document.getElementById("fieldCategory").value
 ),
 
+productType: document.getElementById("fieldProductType").value,
+
 shortDescription: capitaliseFirst(
   document.getElementById("fieldShortDesc").value
 ),
@@ -1264,9 +1319,13 @@ usage: capitaliseFirst(
 tdsUrl: "",
     industries:       splitList(document.getElementById("fieldIndustries").value),
     surfaces:         splitList(document.getElementById("fieldSurfaces").value),
-    features:         splitList(document.getElementById("fieldFeatures").value),
-    status:           document.getElementById("fieldStatus").value
+    features:         splitList(document.getElementById("fieldFeatures").value)
   };
+
+  // Availability is managed from the product list (the row toggle + bulk
+  // actions), not this form. New products start Available; on edit we omit
+  // status so the API preserves whatever the list last set. See products.php.
+  if (!id) payload.status = "Available";
 
   if (!payload.name || !payload.shortDescription) {
     errorEl.textContent    = "Product name and short description are required.";
