@@ -15,7 +15,10 @@
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      padding: 0 2rem;
+      /* The dark bar fills edge-to-edge (incl. under the notch via viewport-fit=cover);
+         env() keeps the logo/actions out of the landscape notch inset so nothing
+         hides, while the background still reaches the screen edge (no cream gap). */
+      padding: 0 max(2rem, env(safe-area-inset-right)) 0 max(2rem, env(safe-area-inset-left));
       height: 60px;
       box-sizing: border-box;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -141,12 +144,17 @@
       border-radius: 999px;
       min-width: 18px;
       height: 18px;
-      padding: 0 5px;
+      /* Symmetric padding + a fixed line-height equal to the box height so a
+         single digit sits dead-centre; the small translateY drops it onto the
+         same optical baseline as the icon + label (which are nudged the same
+         0.5px), so the badge no longer reads a hair high against the text. */
+      padding: 0 4px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      line-height: 1;
+      line-height: 18px;
       box-sizing: border-box;
+      transform: translateY(0.5px);
     }
     .nav-basket-count.is-empty { display: none; }
     .nav-compare,
@@ -221,27 +229,27 @@
       .nav-hamburger { display: inline-flex; }
     }
     @media (max-width: 480px) {
-      /* Narrow mobile keeps the SAME arrangement as every other page width:
-         logo left, outlined Product Enquiry control, hamburger right (locked
-         final design). Only the paddings compress. */
-      .nav { padding: 0 1rem; gap: 0.4rem; }
+      /* Narrow mobile: swap the long "Product Enquiry" label for the short
+         "Enquiry" (accessible name unchanged) and open the spacing up, so the
+         logo, enquiry chip and hamburger each get room to breathe instead of
+         crowding together. */
+      .nav { padding: 0 1rem; gap: 0.5rem; }
       .nav-logo-img { height: 32px; }
-      .nav-right { gap: 0.45rem; }
-      .nav-basket { font-size: 0.78rem; height: 44px; padding: 0 0.6rem; gap: 0.4rem; }
-      .nav-basket svg { width: 14px; height: 14px; }
-      .nav-basket-count { min-width: 16px; height: 16px; font-size: 0.66rem; padding: 0 4px; }
+      .nav-right { gap: 0.55rem; }
+      .nav-basket-label-full { display: none; }
+      .nav-basket-label-short { display: inline; }
+      .nav-basket { font-size: 0.82rem; height: 42px; padding: 0 0.85rem; gap: 0.45rem; }
+      .nav-basket svg { width: 15px; height: 15px; }
+      .nav-basket-count { min-width: 17px; height: 17px; line-height: 17px; font-size: 0.68rem; padding: 0 4px; }
       .nav-hamburger { min-width: 44px; min-height: 44px; padding: 0.4rem; }
     }
     @media (max-width: 380px) {
-      /* Keep all three header actions available on very narrow devices, but
-         shorten only the visible enquiry label instead of moving or duplicating
-         the action inside the drawer. Its accessible name remains unchanged. */
-      .nav { padding: 0 0.625rem; gap: 0.25rem; }
+      /* Very narrow devices: keep the short "Enquiry" label and all three
+         actions, just compress the paddings a touch further. */
+      .nav { padding: 0 0.7rem; gap: 0.35rem; }
       .nav-logo-img { height: 30px; }
-      .nav-right { gap: 0.25rem; }
-      .nav-basket { padding: 0 0.5rem; gap: 0.3rem; }
-      .nav-basket-label-full { display: none; }
-      .nav-basket-label-short { display: inline; }
+      .nav-right { gap: 0.4rem; }
+      .nav-basket { padding: 0 0.65rem; gap: 0.35rem; }
     }
   `;
   document.head.appendChild(style);

@@ -18,6 +18,22 @@ ${message}`
   window.location.href = `mailto:contact@yeelimadhesives.com.sg?subject=${mailSubject}&body=${mailBody}`;
 }
 
+// Build the contact email at runtime from its parts, so the raw address never
+// appears in the static HTML that Cloudflare scans — that stops it being
+// replaced with "[email protected]". Real visitors get the correct, clickable
+// address; runs on load and across Swup swaps (self-selects on the contact page).
+function ylBuildContactEmail() {
+  document.querySelectorAll("a.contact-email-link").forEach(a => {
+    const u = a.dataset.user, d = a.dataset.domain;
+    if (!u || !d) return;
+    const addr = u + "@" + d;
+    a.setAttribute("href", "mailto:" + addr);
+    a.textContent = addr;
+  });
+}
+if (typeof ylReady === "function") ylReady(ylBuildContactEmail);
+else document.addEventListener("DOMContentLoaded", ylBuildContactEmail);
+
 async function submitContactForm(event) {
   event.preventDefault();
 

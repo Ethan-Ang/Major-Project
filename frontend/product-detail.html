@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Product Detail | Yee Lim Adhesives Industries</title>
   <meta id="metaDescription" name="description" content="Detailed specifications, application surfaces, and usage guide for Yee Lim Adhesives industrial products. Submit an enquiry directly to our sales team.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=83">
+  <link rel="stylesheet" href="/css/products.css?v=89">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
-  <script src="/js/widgets/navbar.js?v=17"></script>
-  <script src="/js/widgets/footer.js?v=19"></script>
+  <script src="/js/widgets/navbar.js?v=19"></script>
+  <script src="/js/widgets/footer.js?v=20"></script>
 </head>
 <body>
 
@@ -40,16 +40,40 @@
   </div>
 </div>
 
-<!-- Three-tab container: Specifications / Application & Suitable Uses / Downloads -->
+<!-- Product info: horizontal tabs on desktop, stacked accordion on phones.
+     One set of panels feeds both — the .detail-tablist drives them as tabs on
+     desktop; the per-section .detail-acc-head buttons drive them as an
+     independent accordion at ≤640px (CSS decides which control set shows). -->
 <section class="detail-tabs" aria-label="Product information">
   <div class="detail-tablist" role="tablist" aria-label="Product information tabs">
     <button class="detail-tab" id="tab-specs" role="tab" aria-selected="true" aria-controls="panel-specs" onclick="ylDetailTab('specs')">Specifications</button>
     <button class="detail-tab" id="tab-apply" role="tab" aria-selected="false" aria-controls="panel-apply" tabindex="-1" onclick="ylDetailTab('apply')">Application &amp; Suitable Uses</button>
     <button class="detail-tab" id="tab-downloads" role="tab" aria-selected="false" aria-controls="panel-downloads" tabindex="-1" onclick="ylDetailTab('downloads')">Downloads</button>
   </div>
-  <div class="detail-tabpanel" id="panel-specs" role="tabpanel" aria-labelledby="tab-specs"><div id="detailSpecs"></div></div>
-  <div class="detail-tabpanel" id="panel-apply" role="tabpanel" aria-labelledby="tab-apply" hidden><div id="detailApply"></div></div>
-  <div class="detail-tabpanel" id="panel-downloads" role="tabpanel" aria-labelledby="tab-downloads" hidden><div id="detailDownloads"></div></div>
+
+  <div class="detail-section is-open" data-section="specs">
+    <button class="detail-acc-head" id="acc-specs" type="button" aria-expanded="true" aria-controls="panel-specs" onclick="ylDetailAcc('specs')">
+      <span>Specifications</span>
+      <svg class="detail-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="detail-tabpanel" id="panel-specs" role="tabpanel" aria-labelledby="tab-specs"><div id="detailSpecs"></div></div>
+  </div>
+
+  <div class="detail-section" data-section="apply">
+    <button class="detail-acc-head" id="acc-apply" type="button" aria-expanded="false" aria-controls="panel-apply" onclick="ylDetailAcc('apply')">
+      <span>Application &amp; Suitable Uses</span>
+      <svg class="detail-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="detail-tabpanel" id="panel-apply" role="tabpanel" aria-labelledby="tab-apply" hidden><div id="detailApply"></div></div>
+  </div>
+
+  <div class="detail-section" data-section="downloads">
+    <button class="detail-acc-head" id="acc-downloads" type="button" aria-expanded="false" aria-controls="panel-downloads" onclick="ylDetailAcc('downloads')">
+      <span>Downloads</span>
+      <svg class="detail-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="detail-tabpanel" id="panel-downloads" role="tabpanel" aria-labelledby="tab-downloads" hidden><div id="detailDownloads"></div></div>
+  </div>
 </section>
 
 <!-- Product Advice: outside the tabs, identical whatever tab is active -->
@@ -98,15 +122,14 @@
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=8"></script>
 <script src="/js/core/app.js?v=3"></script>
-<script src="/js/widgets/compare.js?v=17"></script>
+<script src="/js/widgets/compare.js?v=19"></script>
 <script src="/js/widgets/custom-select.js?v=5"></script>
-<script src="/js/pages/products.js?v=43"></script>
-<script src="/js/pages/home.js?v=1"></script>
-<script src="/js/pages/product-detail.js?v=29"></script>
-<script src="/js/pages/compare-page.js?v=16"></script>
+<script src="/js/pages/products.js?v=44"></script>
+<script src="/js/pages/product-detail.js?v=30"></script>
+<script src="/js/pages/compare-page.js?v=17"></script>
 <script src="/js/pages/enquiry.js?v=7"></script>
-<script src="/js/pages/contact.js?v=3"></script>
-<script src="/js/widgets/chatbot.js?v=18"></script>
+<script src="/js/pages/contact.js?v=4"></script>
+<script src="/js/widgets/chatbot.js?v=26"></script>
 <script src="/js/widgets/page-transitions.js?v=4"></script>
 </body>
 </html>

@@ -168,6 +168,10 @@ html {
      so it flashes an ugly corner-square on our rounded buttons/rows. Interactive
      elements supply their own :active feedback, so nothing is lost. */
   -webkit-tap-highlight-color: transparent;
+  /* Stop iOS Safari from auto-inflating text when the phone rotates to landscape
+     (the reported "everything looks zoomed in" bug) — hold text at its authored size. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -177,6 +181,17 @@ body {
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+}
+
+/* NEVER let a form control trigger iOS focus-zoom: Safari zooms the whole page
+   in the instant you focus any field whose font-size is below 16px, and it
+   deliberately IGNORES maximum-scale / user-scalable=no — so 16px is the ONLY
+   lever. !important is required here: several inputs (.search-bar input at
+   0.95rem, .yl-adv-input, etc.) carry equal-or-higher-specificity font-size
+   rules that appear LATER in the file and would otherwise win the tie. Blanket
+   every control so no field is ever missed. Do not lower this below 16px. */
+@media (max-width: 640px) {
+  input, textarea, select { font-size: 16px !important; }
 }
 
 /* Display typeface for headings — engineered, B2B character */
@@ -2038,7 +2053,6 @@ body.detail-has-cta .toast {
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.enquiry-total-advice:hover { background: var(--red-tint); }
 .enquiry-total-advice:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .enquiry-advice-helper { line-height: 1.3; }
 .enquiry-advice-link {
@@ -2049,7 +2063,13 @@ body.detail-has-cta .toast {
   font-weight: 700;
   color: var(--red);
 }
-.enquiry-advice-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.enquiry-advice-link svg { transition: transform 0.18s ease; }
+/* Hover affordance lives on the "Get Product Advice" link only, not the whole
+   button: the old full red-tint wash covered both lines and read as an awkward
+   slab. The button stays clickable everywhere, but only the link underlines and
+   nudges its arrow. */
+.enquiry-advice-link:hover { color: var(--red-hover); text-decoration: underline; text-underline-offset: 3px; }
+.enquiry-advice-link:hover svg { transform: translateX(3px); }
 @media (max-width: 640px) {
   .enquiry-total-band {
     flex-direction: column;
@@ -2422,12 +2442,11 @@ body.detail-has-cta .toast {
 .sidebar-active-clear:hover { text-decoration: underline; text-underline-offset: 2px; }
 .sidebar-active-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
-/* Mobile summary strip (hidden on desktop, where the sidebar block shows). */
-.active-filter-bar { padding: 0.15rem 0 0.6rem; }
-.active-filter-bar[hidden] { display: none; }
-@media (min-width: 901px) {
-  .active-filter-bar { display: none; }
-}
+/* Retired from the product page entirely: the active filters already show
+   inside the filter sheet, and the "Filters (n)" button + the "N of 31 found"
+   count already signal an active filter — the on-page strip above the grid was
+   redundant clutter. Kept in the DOM (JS still populates it) but never shown. */
+.active-filter-bar { display: none !important; }
 
 .active-filter-bar-inner {
   display: flex;
@@ -2685,8 +2704,59 @@ body.detail-has-cta .toast {
   border-radius: 0 0 6px 6px;
 }
 
+/* Accordion heads: desktop drives the panels from the tablist, so these are
+   hidden there and revealed only at ≤640px (see below). */
+.detail-acc-head { display: none; }
+
 @media (max-width: 640px) {
-  .detail-tab { font-size: 0.78rem; padding: 0.65rem 0.5rem; line-height: 1.3; }
+  /* ─── Mobile: tabs → stacked accordion ─────────────────────────
+     A three-tab row with a label as long as "Application & Suitable Uses"
+     can't sit on a phone width, so the panels restack as an independent
+     accordion. .detail-tabs keeps its inline padding (the inset that lines
+     it up with the gallery); the card is built from per-section borders so
+     nothing has to fight that padding. */
+  .detail-tablist { display: none; }
+
+  .detail-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+  }
+  .detail-section:first-of-type { border-top: 1px solid var(--border); border-radius: 8px 8px 0 0; }
+  .detail-section:last-of-type  { border-radius: 0 0 8px 8px; }
+
+  .detail-acc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.95rem 1.1rem;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .detail-acc-head:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }
+  .detail-acc-chev { flex-shrink: 0; color: var(--muted); transition: transform 0.2s ease; }
+  .detail-section.is-open .detail-acc-chev { transform: rotate(180deg); }
+
+  /* Panels are driven by the accordion's open state, not the desktop [hidden]
+     attribute — the .is-open selector outranks the UA [hidden] rule. */
+  .detail-tabpanel {
+    display: none;
+    border: none;
+    border-radius: 0;
+    padding: 0 1.1rem 1.15rem;
+    background: transparent;
+  }
+  .detail-section.is-open .detail-tabpanel { display: block; }
 }
 
 /* ─── Gallery ────────────────────────────────────────────────── */
@@ -2887,6 +2957,14 @@ body.detail-has-cta .toast {
 .detail-avail-note {
   font-size: 0.82rem;
   color: var(--muted);
+}
+
+/* On phones the note wraps to its own line under the status, which left the
+   divider dangling after "Available" with nothing beside it. Drop the divider
+   there and tighten the wrap gap so the status reads cleanly on its own row. */
+@media (max-width: 640px) {
+  .detail-avail-row { gap: 0.3rem 0.6rem; }
+  .detail-avail-sep { display: none; }
 }
 
 /* Locked hierarchy: Space Grotesk display, ~32-36px on desktop, tight leading. */
@@ -3106,15 +3184,16 @@ body.detail-has-cta .toast {
   .spec-val { padding-left: 22px; }
 }
 
-/* Phones (locked mobile reference): the in-flow actions stack full-width
-   under the availability row; the fixed sticky bar still carries them once
-   the summary scrolls away. */
+/* Phones: the in-flow action group duplicated the persistent sticky bar, so
+   it's hidden here — the fixed bar at the bottom edge is the single action
+   surface. The availability note + advice band still carry the summary's
+   context below the description. */
 @media (max-width: 640px) {
-  .sidebar-actions { flex-direction: column; }
-  .sidebar-actions .detail-act-enq { min-width: 0; }
-  .sidebar-actions .btn,
-  .btn-compare-sidebar,
-  .btn-whatsapp-sidebar { width: 100%; min-height: 46px; font-size: 0.88rem; }
+  .sidebar-actions { display: none; }
+  /* With the inline actions hidden, the foot's top divider would sit as a stray
+     line directly under the availability note — drop it (and its spacing) so the
+     note flows straight into the "prefer to check first" line. */
+  .sidebar-foot { border-top: none; padding-top: 0; margin-top: 0.35rem; }
 }
 
 /* ─── Compare Tray (subtle bottom trigger + on-demand panel) ─────
@@ -3185,11 +3264,10 @@ body.detail-has-cta .toast {
 .compare-tray-trigger svg { flex-shrink: 0; }
 .compare-tray-trigger .ctt-ic { color: var(--red); }
 .compare-tray-trigger #compareTrayCount {
-  display: inline-block;
-  min-width: 3ch;
+  /* Sizes to the actual "(N)" now (no fixed 3ch box + centring left over from the
+     old "(N/3)" format, which floated the number in too much space). */
   margin-left: -0.18rem;
   color: var(--muted);
-  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 .compare-tray-trigger .ctt-chev {
@@ -3429,34 +3507,42 @@ body.detail-has-cta .toast {
 
 /* Mobile compare: thumb-reachable bottom bar + modal detail sheet. */
 @media (max-width: 640px) {
-  /* COLLAPSED — compact bottom bar above the device safe area. */
+  /* COLLAPSED — a vertical side-tab pinned to the left edge (Canyon-style), so
+     compare no longer stacks on top of / duplicates the bottom enquiry CTA.
+     Tapping it opens the same modal comparison sheet below. */
   .compare-tray:not(.is-expanded) {
     top: auto;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-    left: 12px;
-    right: 12px;
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    left: 0;
+    right: auto;
     width: auto;
-    align-items: stretch;
-    transform: translateY(120%);
+    align-items: flex-start;
+    transform: translateX(-101%);
     transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 0.32s;
   }
   .compare-tray.visible:not(.is-expanded) {
-    transform: translateY(0);
+    transform: translateX(0);
     transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s;
   }
   .compare-tray:not(.is-expanded) .compare-tray-trigger {
-    writing-mode: horizontal-tb;
-    gap: 0.55rem;
-    width: 100%;
-    padding: 0 1rem;
+    writing-mode: vertical-rl;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 0.95rem 0.5rem;
     border: 1px solid var(--line-2);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px -12px rgba(32, 30, 24, 0.42);
-    font-size: 0.86rem;
-    min-height: 56px;
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+    box-shadow: 4px 8px 20px -10px rgba(32, 30, 24, 0.5);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
   }
-  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-ic { writing-mode: horizontal-tb; }
-  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-chev { display: block; margin-left: auto; }
+  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-ic { writing-mode: horizontal-tb; color: var(--red); }
+  .compare-tray:not(.is-expanded) .compare-tray-trigger #compareTrayCount { margin: 0; min-width: 0; }
+  .compare-tray:not(.is-expanded) .compare-tray-trigger .ctt-chev { display: none; }
   @media (prefers-reduced-motion: reduce) {
     .compare-tray:not(.is-expanded),
     .compare-tray.visible:not(.is-expanded) { transition: none; }
@@ -3557,9 +3643,8 @@ body.detail-has-cta .toast {
   body.cmp-sheet-open #swup { position: relative; z-index: var(--z-compare-sheet); }
   body.filter-drawer-open #swup { position: relative; z-index: var(--z-filter-sheet); }
 
-  body.detail-has-cta .compare-tray:not(.is-expanded) {
-    bottom: calc(var(--sticky-cta-height, 0px) + 8px);
-  }
+  /* The side-tab is left-anchored and clears the bottom CTA on its own, so it no
+     longer needs to be lifted above the sticky bar the way the old bottom bar did. */
   body.filter-drawer-open .compare-tray { visibility: hidden; }
 }
 
@@ -3991,6 +4076,75 @@ body.detail-has-cta .toast {
 }
 .compare-select-panel[hidden] { display: none; }
 
+/* Remove-× on each comparison table column header. Hidden on desktop + landscape
+   (the selection panel carries removal there); revealed on portrait phones where
+   that panel is hidden, so the table stays self-managing (see ≤640 block). */
+.compare-col-x { display: none; }
+
+/* ── Flip-to-landscape hint (compare page, mobile portrait) ──────
+   Injected/removed by compare-page.js: modal, dismissible, one-time per session,
+   and never a blocker (the table is still swipeable in portrait). */
+.cmp-rotate {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.cmp-rotate-backdrop { position: absolute; inset: 0; background: rgba(16, 14, 10, 0.5); }
+.cmp-rotate-card {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  background: var(--card);
+  border-radius: 18px;
+  padding: 2rem 1.5rem 1.6rem;
+  text-align: center;
+  box-shadow: 0 26px 64px -22px rgba(0, 0, 0, 0.55);
+  animation: cmpRotateIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes cmpRotateIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cmp-rotate-card { animation: none; } }
+.cmp-rotate-x {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.cmp-rotate-x:hover { color: var(--text); border-color: var(--line-2); }
+.cmp-rotate-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 20px;
+  background: var(--red-tint);
+  color: var(--red);
+  margin-bottom: 1rem;
+}
+.cmp-rotate-title {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+.cmp-rotate-text { font-size: 0.9rem; color: var(--muted); line-height: 1.55; margin: 0 0 1.25rem; }
+.cmp-rotate-ok { width: 100%; justify-content: center; min-height: 48px; }
+body.cmp-rotate-open { overflow: hidden; }
+
 .csel-head {
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -4157,9 +4311,26 @@ body.detail-has-cta .toast {
 @media (max-width: 640px) {
   .csel-body { flex-direction: column; gap: 0.9rem; }
   .csel-row { grid-template-columns: 1fr; }
-  .compare-select-panel {
-    width: calc(100% - 24px);
-    padding: 1rem;
+  /* Hidden on portrait phones: it duplicates the table columns and eats scarce
+     height. It returns in landscape (wider than 640px); the column × below keeps
+     removal available in portrait. */
+  .compare-select-panel { display: none; }
+  .compare-col-inner { position: relative; }
+  .compare-col-x {
+    display: inline-flex;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--line-2);
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    z-index: 1;
   }
   .csel-card { min-height: 80px; padding-right: 3.35rem; }
   .csel-x {
@@ -4733,6 +4904,25 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   .nf-actions .btn { flex: 1 1 100%; justify-content: center; min-height: 46px; }
 }
 
+/* Phones: compact hero, then the full destination cards (icon + title +
+   description + chevron) stacked directly under it — the sparse two-tile
+   version left an awkward centred void and read cheap. .nf-help no longer
+   grows/centres, so the cards hug the hero with any slack sitting at the
+   bottom; the page grows naturally rather than being forced to clip. */
+@media (max-width: 640px) {
+  .nf-topbar { height: 52px; padding: 0 1.25rem; }
+  .nf-hero .page-hero-inner { padding-top: 1.4rem; padding-bottom: 1.1rem; }
+  .nf-hero h1 { font-size: 1.55rem; line-height: 1.15; }
+  .nf-hero .hero-lead { font-size: 0.9rem; margin-top: 0.5rem; }
+  .nf-actions { margin-top: 1rem; }
+  .nf-search { margin-top: 0.7rem; }
+
+  .nf-help { flex: 0 0 auto; justify-content: flex-start; padding: 1.5rem 1.25rem 2rem; }
+  .nf-help h2 { font-size: 1.1rem; margin-bottom: 0.85rem; }
+  .nf-help-grid { grid-template-columns: 1fr; gap: 0.7rem; }
+  .nf-help-card { padding: 1rem 1.05rem; }
+}
+
 /* ─── Contact Page (locked design + follow-up corrections) ─────
    White info card left (circular red icon chips, hairline rows, real data
    only), white form card right. Desktop: both cards share one stretched
@@ -4744,14 +4934,14 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
    cards sit closer to the hero. */
 .page-hero.contact-hero { border-bottom: none; }
 
+/* The "Send Us a Message" form is retired site-wide (Product Enquiry covers the
+   same job), so this is no longer a two-column grid — one substantial contact
+   card sits centred below the hero, its details laid out two-up on desktop so
+   it fills the width and reads as a deliberate layout, not a lonely box. */
 .contact-page {
-  max-width: 1400px;
-  margin: 1.9rem auto 3rem;
+  max-width: 880px;
+  margin: 1.25rem auto 3.5rem;
   padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
-  gap: 2rem;
-  align-items: start;
 }
 
 .contact-card {
@@ -4767,14 +4957,14 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 .contact-info-card {
   display: flex;
   flex-direction: column;
+  padding: 2rem 2.25rem;
 }
 .contact-info-card .contact-whatsapp { margin-top: 1rem; }
 .contact-info-card .contact-detail-list { margin-bottom: 0; }
 
-/* Flex column so the form can fill the card height (matched to the info card by
-   the stretched grid row) — the Message field grows into what was a dead region
-   below the button, instead of leaving a large blank area. */
-.contact-form-card { padding: 1.9rem 2rem; display: flex; flex-direction: column; }
+/* Retired site-wide — Product Enquiry does the same job. Kept in the markup
+   (harmless) but never shown. */
+.contact-form-card { display: none; }
 
 .contact-info-heading {
   font-size: 1.2rem;
@@ -4790,6 +4980,15 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 
 .contact-detail-list {
   display: grid;
+}
+
+/* Desktop: two-up detail grid (Address spans the top; Email + Phone share the
+   row below) so the wider card fills its width now the form column is gone.
+   The WhatsApp CTA is capped so it doesn't stretch into a giant bar. */
+@media (min-width: 720px) {
+  .contact-detail-list { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; }
+  .contact-detail:first-child { grid-column: 1 / -1; }
+  .contact-info-card .contact-whatsapp { max-width: 360px; }
 }
 
 .contact-detail {
@@ -4954,6 +5153,13 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   .contact-card h2 {
     font-size: 1.3rem;
   }
+}
+
+@media (max-width: 640px) {
+  /* Phones: the "Send Us a Message" form duplicates the Product Enquiry flow,
+     so it's dropped here. The card keeps the real contact routes — address,
+     email and the WhatsApp button — which cover the same job on a phone. */
+  .contact-form-card { display: none; }
 }
 
 /* ─── Home Page (ReBond) ────────────────────────────────────────
@@ -5276,11 +5482,14 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 
   /* Active-filter summary strip: horizontal swipe row of compact chips with
      the "Active filters:" label and Clear all (locked design). */
-  .active-filter-bar { padding: 10px 0.25rem 0; }
-  .active-filter-bar-inner { gap: 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; align-items: center; }
-  .active-filter-bar-inner::-webkit-scrollbar { width: 0; height: 0; }
-  .active-filter-label { flex-shrink: 0; font-size: 0.72rem; }
-  .active-filter-clear { flex-shrink: 0; color: var(--red); min-height: 44px; padding: 0 0.35rem; }
+  .active-filter-bar { padding: 10px 0.25rem 2px; }
+  /* Wrap instead of a nowrap scroll strip: the old overflow-x + margin-left:auto
+     shoved "Clear all" off the right edge (it read as "Clear..."). Wrapping keeps
+     every chip and the clear control visible; the mono label is dropped on phones
+     to save the row. */
+  .active-filter-bar-inner { gap: 8px; flex-wrap: wrap; overflow: visible; align-items: center; }
+  .active-filter-label { display: none; }
+  .active-filter-clear { flex-shrink: 0; margin-left: 0; color: var(--red); min-height: 44px; padding: 0 0.35rem; }
   .filter-chip { flex-shrink: 0; white-space: nowrap; min-height: 44px; padding: 0.5rem 0.75rem; }
   /* No hover-to-red on touch: a :hover that lingers after a tap must not flash
      the chip solid red. Keep it calm; give a gentle pressed state instead. */
@@ -5469,6 +5678,20 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
     box-shadow: 0 18px 50px -14px rgba(0,0,0,0.48);
     animation: ylFilterSheetUp 0.26s var(--ease) both;
   }
+  /* Grab handle — the premium bottom-sheet cue that reads as "drag / dismiss". */
+  .filter-sidebar.open::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--line-2);
+    z-index: 3;
+    pointer-events: none;
+  }
   @keyframes ylFilterSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   @media (prefers-reduced-motion: reduce) { .filter-sidebar.open { animation: none; } }
 
@@ -5490,9 +5713,16 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
     align-items: center;
     justify-content: space-between;
     min-height: 64px;
-    padding: 0.6rem 1rem;
+    /* Extra top room clears the grab handle; the tight right padding pulls the
+       close × so its glyph lines up with the group chevrons in the list below
+       (a 44px tap target sat its centred glyph ~13px too far in). */
+    padding: 0.95rem 0.3rem 0.55rem 1rem;
     border-bottom: 1px solid #e7e3d8;
     flex-shrink: 0;
+    /* The header is the drag-to-dismiss surface (see ylSetupFilterDrag): claim
+       the vertical gesture so the browser doesn't treat it as a scroll. */
+    touch-action: none;
+    cursor: grab;
   }
   .drawer-head h2 {
     font-family: 'Space Grotesk', 'Inter', sans-serif;
@@ -5557,6 +5787,10 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
     text-transform: none;
     letter-spacing: 0;
   }
+  /* Touch latches :hover after a tap, which left group headers stuck red.
+     Neutralise the hover colour on the sheet and use a real press state. */
+  .filter-group-bar:hover { color: var(--text); }
+  .filter-group-bar:active { color: var(--red); }
 
   .fg-chev {
     display: block;
@@ -5580,7 +5814,43 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   }
   .filter-group label:last-child { margin-bottom: 0; }
   .filter-group label:active { background: var(--panel); }  /* press, not hover, on mobile */
-  .filter-group input[type="checkbox"] { width: 20px; height: 20px; }
+  /* Custom checkbox (mobile): native boxes look inconsistent + cheap. A rounded
+     box that fills brand-red with a crisp white tick reads far more premium and
+     makes the selected state unmistakable. */
+  .filter-group input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    border: 1.5px solid var(--line-2);
+    border-radius: 6px;
+    background: #fff;
+    position: relative;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .filter-group input[type="checkbox"]:checked {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .filter-group input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 11px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  /* The red tick is now the selected indicator, so the red-tint row wash is
+     redundant and reads as too much red on a phone. Keep checked rows on the
+     plain ground — just the tick + a bolder label. */
+  .filter-group label:has(input:checked),
+  .filter-group label:hover:has(input:checked) { background: transparent; }
   .filter-label-text { font-size: 0.92rem; }
   .fg-more-btn { min-height: 44px; padding: 0.65rem 0.55rem; }
 
@@ -5604,12 +5874,14 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
     background: var(--red);
     border: none;
     color: #fff;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 0.7rem;
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     font-weight: 700;
+    letter-spacing: 0.01em;
     font-family: inherit;
     cursor: pointer;
+    box-shadow: 0 6px 16px -8px rgba(204, 41, 41, 0.5);
     transition: background 0.15s var(--ease), transform 0.12s var(--ease);
   }
   .drawer-apply:active { background: var(--red-hover); transform: scale(0.99); }
@@ -5632,16 +5904,19 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   .sticky-cta {
     display: none;
     gap: 0.5rem;
+    align-items: stretch;
     position: fixed;
     left: 0; right: 0; bottom: 0;
     z-index: var(--z-sticky-cta);
-    padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
-    /* Solid (not 0.95 alpha) so the cream body background never shows through as
-       a strip between the dark footer and this bar. Blur kept for depth. */
+    padding: 0.6rem 0.9rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    /* Solid (not alpha) so the cream body never shows through as a strip
+       between the dark footer and this bar. The soft upward shadow gives the
+       bar depth so it reads as a floating surface, not a flat strip. */
     background: #fff;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -10px 26px -14px rgba(20, 16, 8, 0.30);
   }
   .sticky-cta.is-visible { display: flex; }
   .sticky-cta-cmp {
@@ -5649,19 +5924,22 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    width: 62px;
-    min-height: 46px;
+    gap: 3px;
+    width: 60px;
+    min-height: 48px;
     flex-shrink: 0;
     background: #fff;
     border: 1px solid var(--line-2);
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--muted);
     font-family: inherit;
-    font-size: 0.6rem;
+    font-size: 0.62rem;
     font-weight: 600;
+    letter-spacing: 0.02em;
     cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.12s;
   }
+  .sticky-cta-cmp:active { transform: scale(0.97); }
   .sticky-cta-cmp.on {
     color: var(--red);
     border-color: var(--red);
@@ -5672,30 +5950,37 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 46px;
+    gap: 0.45rem;
+    min-height: 48px;
     background: var(--red);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-family: inherit;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 700;
+    letter-spacing: 0.01em;
     cursor: pointer;
+    box-shadow: 0 6px 16px -8px rgba(204, 41, 41, 0.55);
+    transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
   }
-  .sticky-cta-add:active { transform: scale(0.99); }
-  .sticky-cta-add.added { background: var(--green); }
+  .sticky-cta-add:active { transform: scale(0.985); }
+  .sticky-cta-add.added {
+    background: var(--green);
+    box-shadow: 0 6px 16px -8px rgba(22, 128, 58, 0.5);
+  }
   /* Green WhatsApp square (on-brand, bordered — matches the contact page) */
   .sticky-cta-wa {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 54px;
-    min-height: 46px;
+    width: 52px;
+    min-height: 48px;
     flex-shrink: 0;
-    background: #eaf5ec;
-    border: 1px solid #cfe8d5;
-    border-radius: 10px;
-    color: #16803a;
+    background: var(--green-tint);
+    border: 1px solid var(--green-tint-bdr);
+    border-radius: 12px;
+    color: var(--green);
     transition: background 0.15s, transform 0.12s;
   }
   .sticky-cta-wa:active { transform: scale(0.97); background: #dcefe1; }

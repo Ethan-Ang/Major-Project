@@ -13,7 +13,10 @@
     .site-footer-inner {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 3.75rem 1.5rem 3rem;
+      /* env() keeps footer content out of the landscape notch inset; the dark
+         .site-footer background still reaches the screen edge (viewport-fit=cover),
+         so there's no cream gap beside it. */
+      padding: 3.75rem max(1.5rem, env(safe-area-inset-right)) 3rem max(1.5rem, env(safe-area-inset-left));
       display: grid;
       grid-template-columns: 1.55fr 0.85fr 1fr 1.15fr;
       gap: 2.5rem 3.25rem;
@@ -142,7 +145,7 @@
     .site-footer-bottom {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 1.2rem 1.5rem;
+      padding: 1.2rem max(1.5rem, env(safe-area-inset-right)) 1.2rem max(1.5rem, env(safe-area-inset-left));
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -181,7 +184,7 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 0.3rem;
-        padding: 0.9rem 1.25rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
+        padding: 0.9rem max(1.25rem, env(safe-area-inset-right)) calc(0.9rem + env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left));
       }
     }
 

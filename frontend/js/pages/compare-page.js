@@ -77,6 +77,8 @@ function initComparePage() {
   ylOnce("compare:listeners", () => {
     window.addEventListener("compareUpdated", renderComparePage);
     window.addEventListener("resize", updateCompareScrollHint);
+    window.addEventListener("resize", syncCompareRotateHint);
+    window.addEventListener("orientationchange", syncCompareRotateHint);
   });
 }
 ylReady(initComparePage);
@@ -157,6 +159,7 @@ function renderComparePage() {
         <p>Browse the catalogue and click <strong>+ Compare</strong> on the cards you want to compare side by side.</p>
         <a href="/products" class="btn btn-primary" style="display:inline-flex;margin-top:1.25rem">Browse Products</a>
       </div>`;
+    syncCompareRotateHint();
     return;
   }
 
@@ -172,6 +175,9 @@ function renderComparePage() {
     return `
       <td class="compare-col-header">
         <div class="compare-col-inner">
+          <button class="compare-col-x" type="button" onclick="toggleCompare('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from comparison">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
           <div class="compare-product-img">
             ${imgContent}
           </div>
@@ -256,6 +262,7 @@ function renderComparePage() {
 
   // Measure after layout so the swipe hint only appears when columns overflow.
   requestAnimationFrame(updateCompareScrollHint);
+  syncCompareRotateHint();
 }
 
 // Show the swipe hint only when the product columns actually overflow the
@@ -274,5 +281,62 @@ function updateCompareScrollHint() {
 
 function clearAll() {
   clearCompare();
+}
+
+// ── Compare rotate hint (mobile portrait) ────────────────────────
+// A wide side-by-side table reads far better in landscape (Canyon does the
+// same). On a portrait phone with 2+ products we surface a one-time,
+// dismissible prompt — never a blocker: the table is still swipeable in
+// portrait, and full add/clear controls return in landscape.
+const CMP_PORTRAIT = (typeof window !== "undefined" && window.matchMedia)
+  ? window.matchMedia("(max-width: 640px) and (orientation: portrait)")
+  : null;
+
+function compareRotateDismissed() {
+  try { return sessionStorage.getItem("ylCompareRotateHint") === "dismissed"; }
+  catch (e) { return false; }
+}
+
+function dismissCompareRotateHint() {
+  try { sessionStorage.setItem("ylCompareRotateHint", "dismissed"); } catch (e) {}
+  const el = document.getElementById("compareRotateHint");
+  if (el) el.remove();
+  document.body.classList.remove("cmp-rotate-open");
+}
+
+function syncCompareRotateHint() {
+  const onComparePage = !!document.getElementById("comparePageContent");
+  const hasTable = getCompareList().length >= 2;
+  const portrait = CMP_PORTRAIT ? CMP_PORTRAIT.matches : false;
+  const existing = document.getElementById("compareRotateHint");
+
+  if (!(onComparePage && hasTable && portrait && !compareRotateDismissed())) {
+    if (existing) existing.remove();
+    document.body.classList.remove("cmp-rotate-open");
+    return;
+  }
+  if (existing) return;
+
+  const el = document.createElement("div");
+  el.id = "compareRotateHint";
+  el.className = "cmp-rotate";
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-labelledby", "cmpRotateTitle");
+  el.innerHTML = `
+    <div class="cmp-rotate-backdrop" onclick="dismissCompareRotateHint()"></div>
+    <div class="cmp-rotate-card">
+      <button class="cmp-rotate-x" type="button" onclick="dismissCompareRotateHint()" aria-label="Dismiss">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <span class="cmp-rotate-ic" aria-hidden="true">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="14" height="10" rx="2"/><path d="M19 9l3 3-3 3"/><path d="M13 12h9"/></svg>
+      </span>
+      <h2 id="cmpRotateTitle" class="cmp-rotate-title">Rotate for the full comparison</h2>
+      <p class="cmp-rotate-text">Turn your phone to landscape to see the products side by side with more room and the full controls. You can still swipe the table in portrait.</p>
+      <button class="btn btn-primary cmp-rotate-ok" type="button" onclick="dismissCompareRotateHint()">Got it</button>
+    </div>`;
+  document.body.appendChild(el);
+  document.body.classList.add("cmp-rotate-open");
 }
 // showToast now lives in js/core/app.js (shared).

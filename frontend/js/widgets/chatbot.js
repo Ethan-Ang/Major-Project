@@ -66,8 +66,11 @@
       #yl-advisor-panel {
         width: 100%;
         height: auto;
-        min-height: 320px;
-        max-height: 78dvh;
+        /* Near-full-height chat sheet — leaves just a small peek of the dimmed page
+           at the very top (so it still reads as a dismissible sheet). The messages
+           area flexes to fill, keeping the input pinned at the bottom. */
+        min-height: 93dvh;
+        max-height: 95dvh;
         padding-bottom: env(safe-area-inset-bottom, 0px);
         top: auto;
         left: 0;
@@ -102,14 +105,7 @@
       flex-shrink: 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
-    /* Brand-red hairline that fades out — ties the advisor to the Yee Lim identity. */
-    .yl-adv-header::after {
-      content: "";
-      position: absolute;
-      left: 0; right: 0; bottom: -1px;
-      height: 2px;
-      background: linear-gradient(90deg, #CC2929 0%, rgba(204,41,41,0.32) 42%, transparent 74%);
-    }
+    /* (The red header hairline was removed — the quiet bottom border is enough.) */
 
     .yl-adv-mark {
       width: 40px;
@@ -219,25 +215,26 @@
     .yl-msg-body { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
 
     .yl-msg-bubble {
-      padding: 0.7rem 0.95rem;
-      border-radius: 12px;
-      font-size: 0.875rem;
-      line-height: 1.6;
+      padding: 0.6rem 0.85rem;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      line-height: 1.5;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     .yl-msg-user .yl-msg-bubble {
       background: #201e18;
       color: #fff;
-      border-bottom-right-radius: 4px;
+      border-bottom-right-radius: 5px;
     }
 
+    /* Clean white bubble with a hairline border, no shadow — the old bulk was the
+       heavy border + drop shadow, not the white. */
     .yl-msg-assistant .yl-msg-bubble {
       background: #fff;
-      border: 1px solid #e6dfd0;
       color: #201e18;
-      border-bottom-left-radius: 4px;
-      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+      border: 1px solid #efe9dc;
+      border-bottom-left-radius: 5px;
     }
 
     .yl-msg-bubble a { color: #CC2929; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
@@ -251,11 +248,11 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      padding: 0.7rem 0.95rem;
+      padding: 0.65rem 0.9rem;
       background: #fff;
-      border: 1px solid #e6dfd0;
-      border-radius: 12px;
-      border-bottom-left-radius: 4px;
+      border: 1px solid #efe9dc;
+      border-radius: 15px;
+      border-bottom-left-radius: 5px;
     }
 
     .yl-typing span {
@@ -282,14 +279,16 @@
       gap: 0.4rem;
     }
 
+    /* Light pill chips — thin border, no shadow, snug padding, so they read as
+       quiet quick-replies instead of chunky buttons. */
     .yl-suggestion {
       background: #fff;
-      border: 1px solid #e6dfd0;
-      border-radius: 8px;
-      padding: 0.4rem 0.8rem;
-      font-size: 0.79rem;
+      border: 1px solid #eae3d4;
+      border-radius: 999px;
+      padding: 0.33rem 0.75rem;
+      font-size: 0.78rem;
       font-weight: 500;
-      color: #47433b;
+      color: #5c574d;
       cursor: pointer;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       transition: border-color 0.18s cubic-bezier(0.23,1,0.32,1), color 0.18s, background 0.18s, transform 0.12s;
@@ -300,58 +299,67 @@
 
     /* Input */
     .yl-adv-footer {
-      padding: 0.75rem;
-      border-top: 1px solid #e6dfd0;
+      padding: 0.7rem 0.85rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid #efe9dc;
       background: #fff;
       flex-shrink: 0;
     }
 
+    /* Premium composer (Intercom/Nora-style): one soft rounded pill holding the
+       field and a circular send button, generous padding, quiet focus ring. */
     .yl-adv-input-row {
       display: flex;
-      align-items: stretch;
+      align-items: center;
+      gap: 0.4rem;
       background: #fbfaf6;
       border: 1px solid #e6dfd0;
-      border-radius: 8px;
-      overflow: hidden;
+      border-radius: 16px;
+      padding: 0.3rem 0.35rem 0.3rem 0.3rem;
       transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
     }
 
     .yl-adv-input-row:focus-within {
-      border-color: #6a655a;
-      box-shadow: 0 0 0 3px rgba(32, 30, 24, 0.10);
+      border-color: #cbc2b0;
+      box-shadow: 0 0 0 3px rgba(32, 30, 24, 0.07);
       background: #fff;
     }
 
     .yl-adv-input {
       flex: 1;
-      padding: 0.7rem 0.9rem;
+      padding: 0.55rem 0.4rem 0.55rem 0.75rem;
       border: none;
       background: transparent;
-      font-size: 0.875rem;
+      /* 16px minimum: below this, iOS zooms the whole page in the moment the
+         field is focused (the reported "makes me zoom in when I type"). */
+      font-size: 16px;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #201e18;
       outline: none;
       min-width: 0;
     }
 
-    .yl-adv-input::placeholder { color: #8a847a; }
+    .yl-adv-input::placeholder { color: #9a938a; }
 
+    /* Circular send button (Nora reference) — brand red when armed, quiet grey
+       when empty. */
     .yl-adv-send {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: 50%;
       background: #CC2929;
       color: #fff;
       border: none;
-      padding: 0 0.875rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s;
-      flex-shrink: 0;
+      transition: background 0.15s, transform 0.12s;
     }
 
-    .yl-adv-send:hover { background: #a82020; }
-    .yl-adv-send:disabled { background: #e6dfd0; cursor: not-allowed; }
-    .yl-adv-send:disabled svg { opacity: 0.4; }
+    .yl-adv-send:hover:not(:disabled) { background: #a82020; }
+    .yl-adv-send:not(:disabled):active { transform: scale(0.92); }
+    .yl-adv-send:disabled { background: #ece6d8; color: #c3bcad; cursor: not-allowed; }
 
     .yl-adv-note {
       text-align: center;
@@ -373,10 +381,8 @@
       <div class="yl-adv-header">
         <div class="yl-adv-mark"><img src="/images/logos/ylai-seal.png" alt="Yee Lim Adhesives"></div>
         <div class="yl-adv-header-text">
-          <div class="yl-adv-title">Product Advisor</div>
-          <div class="yl-adv-subtitle">
-            <span class="yl-status-dot"></span>Yee Lim Adhesives
-          </div>
+          <div class="yl-adv-title">Ava</div>
+          <div class="yl-adv-subtitle">Yee Lim Product Advisor</div>
         </div>
         <button class="yl-adv-close" onclick="closeProductAdvisor()" aria-label="Close product advisor">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -390,7 +396,7 @@
         <div class="yl-adv-input-row">
           <input class="yl-adv-input" id="ylAdvInput" type="text"
             aria-label="Ask the product advisor a question"
-            placeholder="e.g. What adhesive for tiles in wet areas?"
+            placeholder="Message&hellip;"
             maxlength="400" autocomplete="off" />
           <button class="yl-adv-send" id="ylAdvSend" aria-label="Send message" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -400,7 +406,7 @@
             </svg>
           </button>
         </div>
-        <div class="yl-adv-note">Suggestions are for guidance only. Yee Lim staff will confirm suitability after enquiry.</div>
+        <div class="yl-adv-note">Guidance only. Our team confirms suitability.</div>
       </div>
     </div>
   `;
@@ -441,6 +447,9 @@
   window.closeProductAdvisor = function () {
     backdrop.classList.remove("open");
     panel.classList.remove("open");
+    // Clear any keyboard-avoidance inline styles so the next open starts clean.
+    panel.style.top = ""; panel.style.bottom = ""; panel.style.height = "";
+    panel.style.minHeight = ""; panel.style.maxHeight = "";
     document.body.style.overflow = "";
     if (advisorRelease) { advisorRelease(); advisorRelease = null; }
   };
@@ -450,16 +459,13 @@
   // ─── Greeting ──────────────────────────────────────────────────
   function showGreeting() {
     greeted = true;
-    addMessage("assistant",
-      "Hello. I can help you find the right adhesive for your job. Tell me the surfaces you're bonding and the environment, or pick a common question below.",
-      [
-        "Tiles in wet areas",
-        "Foam & upholstery",
-        "Marine / outdoor use",
-        "Metal bonding",
-        "Carpet & flooring",
-      ]
-    );
+    // Reveal like a real chat: a short typing indicator, then the message.
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      addMessage("assistant",
+        "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive.");
+    }, 750);
   }
 
   // ─── Add message ───────────────────────────────────────────────
@@ -607,5 +613,37 @@
   });
 
   sendBtn.addEventListener("click", () => sendMessage(input.value));
+
+  // ─── Keep the sheet above the on-screen keyboard (mobile) ──────
+  // Without this, the fixed bottom sheet stays pinned to the layout bottom
+  // BEHIND the keyboard, so the gap under the input leaks the page + the
+  // keyboard's accessory bar. VisualViewport gives us the keyboard height; we
+  // pin the sheet to fill exactly the space above it. Reset when it collapses.
+  function ylAdvResetKbStyles() {
+    panel.style.top = ""; panel.style.bottom = ""; panel.style.height = "";
+    panel.style.minHeight = ""; panel.style.maxHeight = "";
+  }
+  function ylAdvKeyboardSync() {
+    const vv = window.visualViewport;
+    const onMobile = window.matchMedia("(max-width: 520px)").matches;
+    if (!vv || !onMobile || !panel.classList.contains("open")) { ylAdvResetKbStyles(); return; }
+    const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    if (kb > 80) {
+      // Keyboard up: make the sheet EXACTLY the visible area above it — top at the
+      // visual-viewport top, height = its height — so its bottom (the input) sits
+      // flush on the keyboard with no dark gap underneath.
+      panel.style.top = vv.offsetTop + "px";
+      panel.style.bottom = "auto";
+      panel.style.height = vv.height + "px";
+      panel.style.minHeight = "0";
+      panel.style.maxHeight = "none";
+    } else {
+      ylAdvResetKbStyles();
+    }
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", ylAdvKeyboardSync);
+    window.visualViewport.addEventListener("scroll", ylAdvKeyboardSync);
+  }
 
 })();

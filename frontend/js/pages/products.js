@@ -671,7 +671,7 @@ function productCardHTML(p) {
   // title right) with the technical rows spanning the full width beneath. This
   // keeps real values readable instead of squeezing them into half a card. The
   // actions live outside .product-card-body so their bottom row can also span
-  // full width. Shared with Home's featured cards (home.js reuses this renderer).
+  // full width. This is the shared catalogue card renderer used across the grid.
   return `
     <article class="product-card${p.status === "Unavailable" ? " is-unavailable" : ""}" data-brand="${brandSlug(p.brand)}">
       <div class="pcard-head">
@@ -847,12 +847,59 @@ function openFilterDrawerA11y(el) {
   const bd = document.getElementById("filterBackdrop");
   if (bd) bd.classList.add("show");
   lockBodyScroll();
+  ylSetupFilterDrag(el);
   if (typeof ylFocusTrap === "function") {
     filterDrawerRelease = ylFocusTrap(el, { onEscape: closeFilterDrawer });
   }
 }
 
+// Drag-to-dismiss for the mobile filter sheet. The grab handle now does what it
+// implies: dragging the header (where the handle sits) downward past a threshold
+// closes the sheet; a short drag snaps back. Anchored on the non-scrolling
+// header only, so it never fights the filter list's own scroll. Bound once.
+function ylSetupFilterDrag(el) {
+  const head = el.querySelector(".drawer-head");
+  if (!head || head.dataset.dragBound === "1") return;
+  head.dataset.dragBound = "1";
+  let startY = null, dy = 0, settling = false;
+
+  head.addEventListener("pointerdown", (e) => {
+    if (window.innerWidth > 640) return;
+    if (e.target.closest(".drawer-x")) return;   // leave the close button tappable
+    startY = e.clientY; dy = 0; settling = false;
+    el.style.transition = "none";
+    try { head.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  head.addEventListener("pointermove", (e) => {
+    if (startY == null) return;
+    dy = Math.max(0, e.clientY - startY);        // downward only
+    el.style.transform = "translateY(" + dy + "px)";
+  });
+  const finish = () => {
+    if (startY == null || settling) { startY = null; return; }
+    settling = true;
+    const closing = dy > 90;
+    startY = null;
+    el.style.transition = "transform 0.26s cubic-bezier(0.23, 1, 0.32, 1)";
+    el.style.transform = closing ? "translateY(110%)" : "";
+    let done = false;
+    const cleanup = () => {
+      if (done) return; done = true;
+      el.removeEventListener("transitionend", cleanup);
+      if (closing) closeFilterDrawer();
+      el.style.transition = ""; el.style.transform = "";
+    };
+    el.addEventListener("transitionend", cleanup);
+    setTimeout(cleanup, 340);                     // fallback if transitionend is missed
+  };
+  head.addEventListener("pointerup", finish);
+  head.addEventListener("pointercancel", finish);
+}
+
 function closeFilterDrawerA11y(el, restoreFocus = true) {
+  // Clear any inline transform/transition left by a drag-to-dismiss gesture.
+  el.style.transform = "";
+  el.style.transition = "";
   syncFilterTriggerState(false);
   document.body.classList.remove("filter-drawer-open");
   el.removeAttribute("aria-modal");

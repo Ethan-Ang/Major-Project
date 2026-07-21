@@ -155,8 +155,10 @@ function renderCompareTray() {
 
   tray.classList.add("visible");
   // Both surfaces show the capacity so the compact trigger remains explicit.
+  // Collapsed side-tab shows just "(N)" — the vertical tab is tight and "/3" ate
+  // too much space. The expanded sheet keeps the full "(N/3)" for context.
   const countEl = document.getElementById("compareTrayCount");
-  if (countEl) countEl.textContent = `(${list.length}/${COMPARE_MAX})`;
+  if (countEl) countEl.textContent = `(${list.length})`;
   const fullEl = document.getElementById("compareTrayFull");
   if (fullEl) fullEl.textContent = `(${list.length}/${COMPARE_MAX})`;
   // Reserve space so the fixed tray never sits over the last products or the
@@ -284,11 +286,9 @@ function updateCompareTrayHeight() {
     return;
   }
   if (CMP_MOBILE_QUERY.matches) {
-    const expanded = tray.classList.contains("is-expanded");
-    const trigger = document.getElementById("compareTrayToggle");
-    const bottomOffset = parseFloat(getComputedStyle(tray).bottom) || 0;
-    const h = expanded ? 0 : Math.max(0, Math.ceil((trigger ? trigger.offsetHeight : 0) + bottomOffset));
-    document.documentElement.style.setProperty("--compare-tray-height", h + "px");
+    // Collapsed compare is now a left-edge side-tab and expanded is a modal
+    // sheet — neither occupies bottom page flow, so reserve nothing here.
+    document.documentElement.style.setProperty("--compare-tray-height", "0px");
     document.documentElement.style.removeProperty("--compare-filter-max-height");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;

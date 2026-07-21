@@ -593,9 +593,11 @@ function observeStickyCta() {
 
 function syncStickyCtaVisibility() {
   const cta = document.getElementById("stickyCta");
-  const actions = document.querySelector(".detail-summary .sidebar-actions");
-  if (!cta || !actions) return;
-  const visible = window.innerWidth <= 640 && actions.getBoundingClientRect().bottom <= 60;
+  if (!cta) return;
+  // Persistent on phones: the in-flow sidebar action group is now hidden ≤640px
+  // (it duplicated this bar), so the bar is the single, always-reachable action
+  // surface rather than something that pops in once the summary scrolls away.
+  const visible = window.innerWidth <= 640;
   cta.classList.toggle("is-visible", visible);
   document.body.classList.toggle("detail-has-cta", visible);
   requestAnimationFrame(() => {
@@ -674,7 +676,7 @@ function renderApplication(product) {
         <h3 class="apply-heading">${applyIcon("method")}${methodHeading}</h3>
         ${steps.length
           ? `<ol class="apply-steps">${steps.map(s => `<li><span class="apply-step-n" aria-hidden="true"></span><span class="apply-step-text">${ylEscapeHtml(s)}</span></li>`).join("")}</ol>`
-          : `<ul class="apply-statement"><li><span class="apply-statement-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span><span>${ylEscapeHtml(method)}</span></li></ul>`}
+          : `<ul class="apply-statement"><li><span>${ylEscapeHtml(method)}</span></li></ul>`}
       </div>`);
   }
 
@@ -787,6 +789,19 @@ function ylDetailTab(name) {
     tab.tabIndex = on ? 0 : -1;
     panel.hidden = !on;
   });
+}
+
+// ─── Mobile accordion (≤640px) ───────────────────────────────────
+// The same three panels render as a stacked accordion on phones (the tablist
+// is hidden by CSS there). Each section toggles independently; this is purely
+// additive — the desktop tab logic above is untouched, and CSS decides which
+// control set is visible at a given width.
+function ylDetailAcc(section) {
+  const sec = document.querySelector(`.detail-section[data-section="${section}"]`);
+  if (!sec) return;
+  const open = sec.classList.toggle("is-open");
+  const head = sec.querySelector(".detail-acc-head");
+  if (head) head.setAttribute("aria-expanded", open ? "true" : "false");
 }
 
 function renderAdvice(product) {
