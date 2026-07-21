@@ -84,7 +84,6 @@ function switchTab(group) {
 function renderTab() {
   const meta  = GROUP_META[currentGroup];
   const terms = TERMS[currentGroup] || [];
-  document.getElementById("addBtnLabel").textContent = "Add " + meta.singular;
 
   const tbody = document.getElementById("termTableBody");
   if (!terms.length) {
