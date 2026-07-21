@@ -148,8 +148,8 @@ function renderStats(animate = true) {
     else { badge.style.display = "none"; }
   }
 
-  document.getElementById("tableCount").textContent =
-    `${filteredEnqs.length} enquir${filteredEnqs.length !== 1 ? "ies" : "y"}`;
+  const _tc = document.getElementById("tableCount");
+  if (_tc) _tc.textContent = `${filteredEnqs.length} enquir${filteredEnqs.length !== 1 ? "ies" : "y"}`;
 }
 
 function countUp(id, target) {
@@ -171,8 +171,8 @@ function countUp(id, target) {
 function renderTable(animate = true) {
   const tbody = document.getElementById("enquiryTableBody");
 
-  document.getElementById("tableCount").textContent =
-    `${filteredEnqs.length} enquir${filteredEnqs.length !== 1 ? "ies" : "y"}`;
+  const _tc = document.getElementById("tableCount");
+  if (_tc) _tc.textContent = `${filteredEnqs.length} enquir${filteredEnqs.length !== 1 ? "ies" : "y"}`;
 
   if (filteredEnqs.length === 0) {
     // Distinguish a load failure, a genuinely empty inbox, and a filter/search

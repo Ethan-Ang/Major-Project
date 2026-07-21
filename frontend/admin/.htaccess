@@ -1,0 +1,10 @@
+# Admin pages must always load fresh so admin edits show up immediately without
+# a hard refresh. Only the HTML is no-cached; JS/CSS keep their ?v cache-busting.
+# Admin is behind login, so it is never publicly/CDN cached anyway.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>
