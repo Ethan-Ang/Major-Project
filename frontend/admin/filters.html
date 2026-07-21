@@ -10,9 +10,8 @@
   <style>
     /* Catalogue Filters page — only genuinely new element (tabs) is styled
        here; everything else reuses admin.css tokens + components. */
-    .tax-tabbar { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; border-bottom:1px solid var(--line); padding:0 .6rem; flex-wrap:wrap; }
-    .tax-tabbar > .btn { margin-bottom:.55rem; flex-shrink:0; }
-    .filter-tabs { display:flex; gap:.15rem; flex-wrap:wrap; }
+    .filter-tabs { display:flex; gap:.15rem; border-bottom:1px solid var(--line); padding:0 .35rem; flex-wrap:wrap; }
+    .page-head .btn { flex-shrink:0; }
     .filter-tab { appearance:none; background:none; border:none; padding:.75rem 1rem; font:inherit; font-size:.9rem; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
     .filter-tab:hover { color:var(--text); }
     .filter-tab.active { color:var(--red); border-bottom-color:var(--red); }
@@ -78,17 +77,15 @@
           <h1 class="admin-page-title">Catalogue Filters</h1>
           <p class="admin-page-sub">Add, rename, reorder or retire the values shown in the product filters. Changes flow straight to the website filters and the product form.</p>
         </div>
+        <button class="btn btn-primary" onclick="openTermModal()"><i data-lucide="plus"></i> <span id="addBtnLabel">Add value</span></button>
       </div>
 
       <div class="admin-card">
-        <div class="tax-tabbar">
-          <div class="filter-tabs" role="tablist" aria-label="Filter groups">
-            <button class="filter-tab active" type="button" data-group="product_type" role="tab" onclick="switchTab('product_type')">Product Types</button>
-            <button class="filter-tab" type="button" data-group="brand" role="tab" onclick="switchTab('brand')">Brands</button>
-            <button class="filter-tab" type="button" data-group="industry" role="tab" onclick="switchTab('industry')">Industries</button>
-            <button class="filter-tab" type="button" data-group="surface" role="tab" onclick="switchTab('surface')">Surfaces</button>
-          </div>
-          <button class="btn btn-primary" onclick="openTermModal()"><i data-lucide="plus"></i> <span id="addBtnLabel">Add value</span></button>
+        <div class="filter-tabs" role="tablist" aria-label="Filter groups">
+          <button class="filter-tab active" type="button" data-group="product_type" role="tab" onclick="switchTab('product_type')">Product Types</button>
+          <button class="filter-tab" type="button" data-group="brand" role="tab" onclick="switchTab('brand')">Brands</button>
+          <button class="filter-tab" type="button" data-group="industry" role="tab" onclick="switchTab('industry')">Industries</button>
+          <button class="filter-tab" type="button" data-group="surface" role="tab" onclick="switchTab('surface')">Surfaces</button>
         </div>
 
         <div class="table-wrap">
