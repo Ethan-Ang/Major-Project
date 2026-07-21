@@ -87,7 +87,7 @@ function renderTab() {
 
   const tbody = document.getElementById("termTableBody");
   if (!terms.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">No ${meta.singular} values yet. Click “Add ${meta.singular}” to create one.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No ${meta.singular} values yet. Use the “Add ${meta.singular}” button to create one.</td></tr>`;
     if (window.lucide) lucide.createIcons();
     return;
   }

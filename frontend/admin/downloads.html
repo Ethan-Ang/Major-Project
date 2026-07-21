@@ -85,7 +85,13 @@
         </div>
       </div>
 
-      <div class="admin-card">
+      <div class="admin-empty-state" id="downloadsEmptyState" style="display:none">
+        <div class="admin-empty-state-icon"><i data-lucide="inbox"></i></div>
+        <h2>No downloads yet</h2>
+        <p>When a visitor requests an SDS or TDS from a product page, their details are captured here for you to review or delete.</p>
+      </div>
+
+      <div class="admin-card" id="downloadsCard">
         <div class="admin-card-header">
           <div class="card-header-left">
             <h2>All downloads</h2>
@@ -151,7 +157,7 @@
 
 <script src="../js/data.js?v=9"></script>
 <script src="../js/widgets/custom-select.js?v=4"></script>
-<script src="downloads.js?v=2"></script>
+<script src="downloads.js?v=3"></script>
 <script src="admin-nav.js?v=4"></script>
 <script>
   (function () {

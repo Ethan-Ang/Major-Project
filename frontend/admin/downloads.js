@@ -62,18 +62,25 @@ function filtered() {
 
 function renderTable() {
   const tbody = document.getElementById("downloadTableBody");
-  const rows = filtered();
-  document.getElementById("tableCount").textContent = rows.length
-    ? `${rows.length} record${rows.length === 1 ? "" : "s"}` : "";
+  const card  = document.getElementById("downloadsCard");
+  const empty = document.getElementById("downloadsEmptyState");
+  const rows  = filtered();
 
+  // No records at all: show the teaching empty state, hide the table card.
   if (!DOWNLOADS.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">No downloads recorded yet. Records appear here after a visitor requests an SDS or TDS.</td></tr>`;
-    syncSelectionUI();
+    if (card) card.style.display = "none";
+    if (empty) empty.style.display = "flex";
     if (window.lucide) lucide.createIcons();
     return;
   }
+  if (card) card.style.display = "";
+  if (empty) empty.style.display = "none";
+
+  document.getElementById("tableCount").textContent = rows.length
+    ? `${rows.length} record${rows.length === 1 ? "" : "s"}` : "";
+
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--muted)">No records match your search.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No records match your search.</td></tr>`;
     syncSelectionUI();
     return;
   }
