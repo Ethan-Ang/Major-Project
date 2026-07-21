@@ -12,6 +12,12 @@
     .dl-doc-sds { background:#fdecec; color:#b62525; }
     .dl-doc-tds { background:#eef2fb; color:#2f52a0; }
     .dl-sub { color:var(--muted); font-size:.8rem; }
+    /* Let the filter dropdown escape the card (it was clipped when the table is short/empty). */
+    .admin-card { overflow: visible; }
+    /* Hide the record-count badge when there are no records (was an empty bordered box). */
+    .table-count:empty { display: none; }
+    /* Tidy, on-brand checkboxes, vertically centred in their cells. */
+    #selectAll, .row-check { width: 15px; height: 15px; margin: 0; vertical-align: middle; accent-color: var(--red); cursor: pointer; }
   </style>
 </head>
 <body>
