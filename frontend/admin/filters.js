@@ -127,9 +127,11 @@ function renderTab() {
           </div>
         </td>
         <td>
-          <button class="icon-btn" title="Rename / edit" aria-label="Edit ${escapeAttr(t.label)}" onclick="openTermModal(${t.id})"><i data-lucide="pencil"></i></button>
-          ${archiveBtn}
-          ${delBtn}
+          <div class="tax-actions">
+            <button class="icon-btn" title="Rename / edit" aria-label="Edit ${escapeAttr(t.label)}" onclick="openTermModal(${t.id})"><i data-lucide="pencil"></i></button>
+            ${archiveBtn}
+            ${delBtn}
+          </div>
         </td>
       </tr>`;
   }).join("");

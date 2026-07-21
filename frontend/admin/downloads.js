@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (err) {
     if (!isNetworkError(err)) { localStorage.removeItem("adminToken"); window.location.href = "login.html"; return; }
   }
+  if (typeof enhanceCustomSelect === "function") {
+    enhanceCustomSelect(document.getElementById("filterType"));
+  }
   loadDownloads();
 });
 
