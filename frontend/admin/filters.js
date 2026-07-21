@@ -85,8 +85,6 @@ function renderTab() {
   const meta  = GROUP_META[currentGroup];
   const terms = TERMS[currentGroup] || [];
   document.getElementById("addBtnLabel").textContent = "Add " + meta.singular;
-  document.getElementById("tabCount").textContent   = terms.length
-    ? `${terms.length} value${terms.length === 1 ? "" : "s"}` : "";
 
   const tbody = document.getElementById("termTableBody");
   if (!terms.length) {

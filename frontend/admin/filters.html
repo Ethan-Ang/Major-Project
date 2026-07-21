@@ -10,16 +10,13 @@
   <style>
     /* Catalogue Filters page — only genuinely new element (tabs) is styled
        here; everything else reuses admin.css tokens + components. */
-    .filter-tabs { display:flex; gap:.15rem; border-bottom:1px solid var(--line); padding:0 .35rem; flex-wrap:wrap; }
+    .tax-tabbar { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; border-bottom:1px solid var(--line); padding:0 .6rem; flex-wrap:wrap; }
+    .tax-tabbar > .btn { margin-bottom:.55rem; flex-shrink:0; }
+    .filter-tabs { display:flex; gap:.15rem; flex-wrap:wrap; }
     .filter-tab { appearance:none; background:none; border:none; padding:.75rem 1rem; font:inherit; font-size:.9rem; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
     .filter-tab:hover { color:var(--text); }
     .filter-tab.active { color:var(--red); border-bottom-color:var(--red); }
-    .tax-head { display:flex; justify-content:space-between; align-items:center; gap:1.25rem; padding:1.2rem 1.35rem; }
-    .tax-head-title { display:flex; align-items:center; gap:.6rem; }
-    .tax-head-title h2 { margin:0; }
-    .tax-head .btn { flex-shrink:0; }
     .tax-actions { display:inline-flex; gap:.35rem; white-space:nowrap; }
-    .table-count:empty { display:none; }
     .tax-badge { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
     .tax-badge-active { background:#e7f4ec; color:#2f7d4f; }
     .tax-badge-muted { background:#efece3; color:var(--muted); }
@@ -84,15 +81,13 @@
       </div>
 
       <div class="admin-card">
-        <div class="filter-tabs" role="tablist" aria-label="Filter groups">
-          <button class="filter-tab active" type="button" data-group="product_type" role="tab" onclick="switchTab('product_type')">Product Types</button>
-          <button class="filter-tab" type="button" data-group="brand" role="tab" onclick="switchTab('brand')">Brands</button>
-          <button class="filter-tab" type="button" data-group="industry" role="tab" onclick="switchTab('industry')">Industries</button>
-          <button class="filter-tab" type="button" data-group="surface" role="tab" onclick="switchTab('surface')">Surfaces</button>
-        </div>
-
-        <div class="tax-head">
-          <span class="table-count" id="tabCount"></span>
+        <div class="tax-tabbar">
+          <div class="filter-tabs" role="tablist" aria-label="Filter groups">
+            <button class="filter-tab active" type="button" data-group="product_type" role="tab" onclick="switchTab('product_type')">Product Types</button>
+            <button class="filter-tab" type="button" data-group="brand" role="tab" onclick="switchTab('brand')">Brands</button>
+            <button class="filter-tab" type="button" data-group="industry" role="tab" onclick="switchTab('industry')">Industries</button>
+            <button class="filter-tab" type="button" data-group="surface" role="tab" onclick="switchTab('surface')">Surfaces</button>
+          </div>
           <button class="btn btn-primary" onclick="openTermModal()"><i data-lucide="plus"></i> <span id="addBtnLabel">Add value</span></button>
         </div>
 
@@ -176,7 +171,7 @@
 <div class="admin-toast" id="adminToast"></div>
 
 <script src="../js/data.js?v=9"></script>
-<script src="filters.js?v=4"></script>
+<script src="filters.js?v=5"></script>
 <script src="admin-nav.js?v=3"></script>
 <script>
   (function () {
