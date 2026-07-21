@@ -90,32 +90,8 @@
       .catch(() => { /* not signed in / offline — leave the badge hidden */ });
   })();
 
-  // ─── Smooth page transitions (multi-page fade) ─────────────────
-  // Admin is multi-page (not a Swup SPA like the public site). We fade the main
-  // content out on navigation and in on load, leaving the sidebar in place, so it
-  // reads like the content is swapping under a persistent shell.
-  (function pageTransitions() {
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const style = document.createElement("style");
-    style.textContent =
-      "@keyframes ylAdminIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}" +
-      ".admin-body{animation:ylAdminIn .3s ease both}" +
-      "body.admin-leaving .admin-body{opacity:0;transform:translateY(-6px);transition:opacity .17s ease,transform .17s ease}";
-    document.head.appendChild(style);
-
-    // Intercept clicks on internal admin page links and fade out before navigating.
-    document.addEventListener("click", function (e) {
-      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const a = e.target.closest ? e.target.closest("a") : null;
-      if (!a || a.target === "_blank" || a.hasAttribute("download") || a.hasAttribute("onclick")) return;
-      const href = a.getAttribute("href") || "";
-      // Only relative admin *.html pages (skip "/products", externals, #anchors, mailto).
-      if (!/^[\w.-]+\.html($|[?#])/.test(href)) return;
-      e.preventDefault();
-      close();
-      document.body.classList.add("admin-leaving");
-      setTimeout(function () { window.location.href = href; }, 170);
-    });
-  })();
+  // Page entrance is a gentle opacity-only fade of the whole page, defined in an
+  // inline <head> style on each admin page (so it applies before first paint and
+  // never flickers). No fade-out / no transform / no reload interception: those
+  // made the multi-page reload read as a jumpy double-motion.
 })();
