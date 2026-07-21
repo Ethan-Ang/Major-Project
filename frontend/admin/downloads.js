@@ -28,7 +28,7 @@ function logout() { localStorage.removeItem("adminToken"); window.location.href 
 
 async function loadDownloads() {
   const tbody = document.getElementById("downloadTableBody");
-  tbody.innerHTML = `<tr class="loading-row"><td colspan="7">Loading…</td></tr>`;
+  tbody.innerHTML = downloadSkeletonRows(6);
   try {
     const res = await fetch(`${API_BASE_URL}/api/downloads.php`, { headers: authHeader() });
     if (!res.ok) throw new Error("status " + res.status);
@@ -166,6 +166,24 @@ async function confirmDelete() {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
+// Shimmer skeleton rows matching this table's 7 columns, shown while records load.
+function downloadSkeletonRows(count) {
+  let out = "";
+  for (let i = 0; i < count; i++) {
+    out += `
+      <tr class="skel-row" aria-hidden="true">
+        <td style="width:28px"><span class="skel skel-checkbox"></span></td>
+        <td><div class="skel skel-text skel-text-md"></div><div class="skel skel-text skel-text-sm"></div></td>
+        <td><div class="skel skel-text skel-text-md"></div><div class="skel skel-text skel-text-sm"></div></td>
+        <td><div class="skel skel-text skel-text-lg"></div></td>
+        <td><div class="skel skel-pill"></div></td>
+        <td><div class="skel skel-text skel-text-sm"></div></td>
+        <td><div class="skel-actions"><span class="skel skel-icon"></span></div></td>
+      </tr>`;
+  }
+  return out;
+}
+
 function showToast(message, type = "default") {
   const toast = document.getElementById("adminToast");
   toast.textContent = message;

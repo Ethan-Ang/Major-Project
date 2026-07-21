@@ -54,7 +54,7 @@ function logout() {
 // ─── Load ─────────────────────────────────────────────────────────
 async function loadTerms() {
   const tbody = document.getElementById("termTableBody");
-  tbody.innerHTML = `<tr class="loading-row"><td colspan="6">Loading…</td></tr>`;
+  tbody.innerHTML = taxSkeletonRows(5);
   try {
     const res = await fetch(`${API_BASE_URL}/api/taxonomies.php?scope=admin`, { headers: authHeader() });
     if (!res.ok) throw new Error("status " + res.status);
@@ -273,6 +273,23 @@ async function apiSend(method, url, body) {
   } catch (err) {
     return { ok: false, status: 0, data: { message: "Could not reach the server." } };
   }
+}
+
+// Shimmer skeleton rows matching this table's 6 columns, shown while terms load.
+function taxSkeletonRows(count) {
+  let out = "";
+  for (let i = 0; i < count; i++) {
+    out += `
+      <tr class="skel-row" aria-hidden="true">
+        <td><div class="skel skel-text skel-text-md"></div></td>
+        <td><div class="skel skel-text skel-text-sm"></div></td>
+        <td><div class="skel skel-text skel-text-sm"></div></td>
+        <td><div class="skel skel-pill"></div></td>
+        <td><div class="skel-actions"><span class="skel skel-icon"></span><span class="skel skel-icon"></span></div></td>
+        <td><div class="skel-actions"><span class="skel skel-icon"></span><span class="skel skel-icon"></span><span class="skel skel-icon"></span></div></td>
+      </tr>`;
+  }
+  return out;
 }
 
 function showToast(message, type = "default") {
