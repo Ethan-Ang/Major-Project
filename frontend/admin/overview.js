@@ -85,8 +85,104 @@ async function loadOverview() {
   renderChart(enquiries);
   renderRecent(enquiries);
   renderUnreadBadges(enquiries);
+  loadAnalytics();
 
   if (window.lucide) lucide.createIcons();
+}
+
+// ─── Product analytics ────────────────────────────────────────────
+// Pulls aggregated view stats from the admin-only analytics endpoint and
+// renders the most-viewed list + a 14-day views trend. Best-effort: on any
+// failure the section shows an honest "unavailable" state, never fake numbers.
+async function loadAnalytics() {
+  const listEl = document.getElementById("topProducts");
+  if (!listEl) return;
+  const trendCol = document.getElementById("analyticsTrend");
+  const cap = document.getElementById("convCap");
+
+  let a = null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/analytics.php`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }
+    });
+    if (res.ok) a = await res.json();
+  } catch (e) { a = null; }
+
+  if (!document.getElementById("topProducts")) return; // swapped away mid-fetch
+
+  if (!a) {
+    listEl.style.gridColumn = "1 / -1";
+    listEl.innerHTML = '<div class="overview-empty">Analytics unavailable right now.</div>';
+    if (trendCol) trendCol.style.display = "none";
+    if (cap) cap.textContent = "";
+    return;
+  }
+
+  const hasViews = Array.isArray(a.topProducts) && a.topProducts.length > 0;
+  if (!hasViews) {
+    // No data yet: one calm centred message, not a stray "0" and a flat line.
+    if (trendCol) trendCol.style.display = "none";
+    if (cap) cap.textContent = "";
+    listEl.style.gridColumn = "1 / -1";
+    listEl.innerHTML =
+      '<div class="analytics-empty">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>' +
+      '<div class="ae-title">No product views yet</div>' +
+      '<div class="ae-sub">Views are recorded automatically as visitors browse the catalogue. This fills in once the site has traffic.</div>' +
+      '</div>';
+    return;
+  }
+
+  // Have data: restore the two-column layout and render.
+  listEl.style.gridColumn = "";
+  if (trendCol) trendCol.style.display = "";
+  renderTopProducts(a.topProducts);
+  renderViewsTrend(a.viewsTrend || []);
+  if (cap && a.conversion) {
+    cap.textContent = `${a.conversion.views} views · ${a.conversion.enquiries} enquiries`;
+  }
+}
+
+function renderTopProducts(rows) {
+  const el = document.getElementById("topProducts");
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = '<div class="overview-empty">No product views yet. Views are recorded as visitors browse the catalogue.</div>';
+    return;
+  }
+  const max = Math.max(...rows.map(r => r.views), 1);
+  el.innerHTML = rows.map(r => `
+    <div class="cat-item">
+      <div class="cat-row"><b>${escapeHtml(r.name)}</b><span>${r.views}</span></div>
+      <div class="cat-track"><div class="cat-fill ink" style="width:${Math.round((r.views / max) * 100)}%"></div></div>
+    </div>
+  `).join("");
+}
+
+function renderViewsTrend(rows) {
+  // Fill 14 contiguous days so gaps render as zero rather than distort the line.
+  const days = [];
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    days.push({ key: d.toISOString().slice(0, 10), count: 0 });
+  }
+  rows.forEach(r => {
+    const slot = days.find(d => d.key === String(r.date).slice(0, 10));
+    if (slot) slot.count = r.views;
+  });
+
+  const values = days.map(d => d.count);
+  const total  = values.reduce((a, b) => a + b, 0);
+  const maxV   = Math.max(1, ...values);
+  const W = 600, top = 12, bottom = 150, padX = 8, step = (W - padX * 2) / 13;
+  const pts = values.map((v, i) => [Math.round(padX + i * step), Math.round(bottom - (v / maxV) * (bottom - top))]);
+  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ");
+  const area = `${line} L${pts[pts.length - 1][0]},${bottom} L${pts[0][0]},${bottom} Z`;
+
+  const lineEl = document.getElementById("viewsLine"); if (lineEl) lineEl.setAttribute("d", line);
+  const areaEl = document.getElementById("viewsAreaPath"); if (areaEl) areaEl.setAttribute("d", area);
+  const totalEl = document.getElementById("viewsTotal"); if (totalEl) totalEl.textContent = total;
 }
 
 // ─── KPIs ─────────────────────────────────────────────────────────
@@ -175,8 +271,10 @@ function renderChart(enquiries) {
   document.getElementById("chartTotal").textContent = total7;
   const cap = document.getElementById("chartCap");
   const todayCount = values[values.length - 1];
-  cap.textContent = todayCount > 0 ? `▲ ${todayCount} today` : "No new leads today";
-  cap.style.color = todayCount > 0 ? "var(--green)" : "var(--muted)";
+  // Only a small green "+N today" when there really are new leads today; otherwise
+  // blank, so the 7-day number never sits next to a contradictory "none today".
+  cap.textContent = todayCount > 0 ? `▲ ${todayCount} today` : "";
+  cap.style.color = "var(--green)";
 
   document.getElementById("chartLabels").innerHTML =
     days.map(d => `<span>${d.date.toLocaleDateString("en-SG", { weekday: "short" })}</span>`).join("");

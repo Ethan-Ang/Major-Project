@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Overview | Yee Lim Adhesives Admin</title>
   <style>html{background:#f3efe6}body{animation:ylAdminIn .28s ease both}@keyframes ylAdminIn{from{opacity:0}to{opacity:1}}@media (prefers-reduced-motion:reduce){body{animation:none}}</style>
-  <link rel="stylesheet" href="admin.css?v=28">
+  <link rel="stylesheet" href="admin.css?v=30">
   <link rel="stylesheet" href="../css/dropdown-ui.css?v=6">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <!-- SPA shell libs: loaded once in <head> so the in-body page script has them -->
@@ -129,6 +129,30 @@
         </div>
       </div>
 
+      <!-- Product analytics -->
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Product Analytics</h2><div class="sub">Most-viewed products and demand, last 30 days</div></div>
+          <span class="chart-cap" id="convCap"></span>
+        </div>
+        <div class="analytics-grid">
+          <div class="analytics-list cat-list" id="topProducts"><div class="overview-empty">Loading…</div></div>
+          <div class="analytics-trend" id="analyticsTrend">
+            <div class="chart-figs"><span class="chart-big" id="viewsTotal">0</span><span class="chart-cap">product views &middot; 14d</span></div>
+            <svg class="chart-svg" viewBox="0 0 600 160" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="viewsArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#CC2929" stop-opacity="0.28"/>
+                  <stop offset="100%" stop-color="#CC2929" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path id="viewsAreaPath" d="" fill="url(#viewsArea)"/>
+              <path id="viewsLine" d="" fill="none" stroke="#CC2929" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
       <!-- Recent enquiries -->
       <div class="card">
         <div class="card-head">
@@ -141,7 +165,7 @@
       </div>
 
     </div>
-      <script src="overview.js?v=8"></script>
+      <script src="overview.js?v=10"></script>
     </div><!-- /#adminSwap -->
   </main>
 </div>

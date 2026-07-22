@@ -1141,11 +1141,14 @@ body.detail-has-cta .toast {
   padding: 0 1.5rem;
   font-size: 0.85rem;
   color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .breadcrumb a { color: var(--muted); text-decoration: none; }
 .breadcrumb a:hover { color: var(--red); }
-.breadcrumb span { margin: 0 0.4rem; }
+.breadcrumb [aria-current] { color: var(--text); font-weight: 500; }
 
 /* ─── Light page breadcrumb (replaces dark hero band) ────────── */
 /* Detail page breadcrumb: shares the SAME 1180px/40px content container as the
@@ -1332,6 +1335,28 @@ body.detail-has-cta .toast {
   overflow-wrap: anywhere;
 }
 .apply-claim-ic { display: inline-flex; flex-shrink: 0; color: var(--red); margin-top: 2px; }
+
+/* Unified Suitable Uses + Key Benefits list: one restrained red check per item,
+   so both columns read as a single consistent system. */
+.apply-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.apply-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.apply-mark { display: inline-flex; flex-shrink: 0; color: var(--red); margin-top: 3px; }
 
 .apply-empty {
   color: var(--muted);
@@ -2624,13 +2649,13 @@ body.detail-has-cta .toast {
     flex: 1;
     height: auto;
     aspect-ratio: auto;
-    min-height: 340px; /* guard for unusually short summaries */
+    min-height: 300px; /* guard for unusually short summaries */
   }
   .gallery-wrap.has-rail { align-items: stretch; }
   .gallery-wrap.has-rail .gallery-main {
     height: 100%;
     aspect-ratio: auto;
-    min-height: 340px;
+    min-height: 300px;
   }
   .gallery-wrap.has-rail .gallery-rail { max-height: 100%; }
   /* The photo must never drive the row height (that would push the white
@@ -2865,7 +2890,7 @@ body.detail-has-cta .toast {
 }
 
 .gallery-thumb:hover { border-color: #aaa; }
-.gallery-thumb.active { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+.gallery-thumb.active { border-color: var(--red); border-width: 2px; }
 .gallery-thumb:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .gallery-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
 
@@ -2894,8 +2919,6 @@ body.detail-has-cta .toast {
    never a large green pill). */
 .detail-product-header {
   margin-bottom: 0.85rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid var(--line);
 }
 
 .detail-brand-chip {
@@ -2918,19 +2941,22 @@ body.detail-has-cta .toast {
   padding: 4px 9px;
 }
 
+/* One meta row (B2B standard): the status leads, a thin divider, then the quiet
+   advisory note as clear secondary info — hierarchy does the work, not a badge. */
 .detail-avail-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.65rem;
-  margin-top: 0.55rem;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
 }
 
 .detail-avail {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
 }
 .detail-avail.is-in  { color: var(--green); }
@@ -2949,13 +2975,13 @@ body.detail-has-cta .toast {
 
 .detail-avail-sep {
   width: 1px;
-  height: 14px;
-  background: var(--line-2);
+  height: 12px;
+  background: var(--border);
   flex-shrink: 0;
 }
 
 .detail-avail-note {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
@@ -3050,6 +3076,7 @@ body.detail-has-cta .toast {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  margin-top: auto; /* anchor the buttons to the bottom so they align with the image */
 }
 
 /* One coordinated group (locked reference): equal ~46px heights, the red

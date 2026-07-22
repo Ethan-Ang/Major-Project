@@ -56,3 +56,14 @@ CREATE TABLE enquiries (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   KEY idx_enquiries_created (created_at)
 );
+
+-- Product-detail view events (analytics). Written by api/track_view.php
+-- (public, best-effort, deduped); aggregated by api/analytics.php (admin-only).
+CREATE TABLE product_views (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT NOT NULL,
+  session_hash CHAR(64) NULL,          -- coarse hashed dedupe key, never PII
+  viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_pv_product (product_id),
+  KEY idx_pv_viewed (viewed_at)
+);
