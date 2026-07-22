@@ -1362,3 +1362,19 @@ input[type="checkbox"] { accent-color: var(--red); }
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SPA PAGE TRANSITION  (admin-spa.js / Swup)
+   Navigation between admin pages is an in-place swap of #adminSwap's
+   contents; the sidebar + toast persist. A quiet opacity cross-fade only —
+   no transform / no will-change:transform, so the position:fixed modals and
+   slide-panel that live inside the container stay pinned to the viewport.
+   ═══════════════════════════════════════════════════════════════ */
+#adminSwap { will-change: opacity; }
+.admin-transition-fade { transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+html.is-animating .admin-transition-fade { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-transition-fade { transition: none; }
+  html.is-animating .admin-transition-fade { opacity: 1; }
+}

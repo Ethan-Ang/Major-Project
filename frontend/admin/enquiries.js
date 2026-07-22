@@ -5,11 +5,13 @@
 // email, or toggle it manually. Opening a lead does NOT change its status.
 
 // ─── State ────────────────────────────────────────────────────────
-let enquiries    = [];
-let filteredEnqs = [];
-let currentEnqId = null;
-let repliedIds   = new Set();
-let loadFailed   = false; // true when the API could not be reached
+// `var` so this script is safe to re-execute on each Swup return visit (see
+// admin-spa.js).
+var enquiries    = [];
+var filteredEnqs = [];
+var currentEnqId = null;
+var repliedIds   = new Set();
+var loadFailed   = false; // true when the API could not be reached
 
 // Non-dismissable banner at the top of the page. Used to make a load failure
 // obvious instead of silently showing fake or stale data.
@@ -44,7 +46,12 @@ function isNetworkError(err) {
 // instead of only checking that one is present. An expired or revoked token
 // used to slip through here — the page just showed the "could not reach the
 // server" banner with an empty table instead of sending you back to login.
-document.addEventListener("DOMContentLoaded", async () => {
+// Immediately-invoked so it runs on first load AND when admin-spa.js re-executes
+// this script after a soft page swap back to Enquiries.
+(async function initEnquiries() {
+  // Self-select: bail if this script's async re-execution lands after we've
+  // navigated away (its anchor element is no longer in the DOM).
+  if (!document.getElementById("enquiryTableBody")) return;
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
 
@@ -68,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   loadEnquiries();
-});
+})();
 
 function logout() {
   localStorage.removeItem("adminToken");
@@ -78,6 +85,7 @@ function logout() {
 // ─── Load enquiries ───────────────────────────────────────────────
 async function loadEnquiries() {
   const tbody = document.getElementById("enquiryTableBody");
+  if (!tbody) return; // page swapped out during async init
   tbody.innerHTML = adminSkeletonRows(6, 5);
 
   // No demo/sample fallback here: a real inbox must never show fake leads. On a
@@ -170,6 +178,7 @@ function countUp(id, target) {
 // doesn't re-animate the whole table.
 function renderTable(animate = true) {
   const tbody = document.getElementById("enquiryTableBody");
+  if (!tbody) return; // soft-navigated away before an async render resolved — no-op
 
   const _tc = document.getElementById("tableCount");
   if (_tc) _tc.textContent = `${filteredEnqs.length} enquir${filteredEnqs.length !== 1 ? "ies" : "y"}`;
@@ -378,7 +387,7 @@ function openPanel(id) {
   }
 }
 
-let detailPanelRelease = null;
+var detailPanelRelease = null;
 
 function updateToggleBtn(id) {
   const btn = document.getElementById("toggleReadBtn");

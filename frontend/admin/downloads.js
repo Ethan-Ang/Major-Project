@@ -2,14 +2,20 @@
 // Admin viewer for SDS/TDS download records from api/downloads.php. Self-contained
 // (own auth guard + helpers), matching the enquiries page pattern.
 
-let DOWNLOADS = [];
-let selected = new Set();
-let pendingDelete = null; // number id, or "selected"
+// `var` so this script is safe to re-execute on each Swup return visit (admin-spa.js).
+var DOWNLOADS = [];
+var selected = new Set();
+var pendingDelete = null; // number id, or "selected"
 
 function isNetworkError(err) { return err instanceof TypeError; }
 function authHeader() { return { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }; }
 
-document.addEventListener("DOMContentLoaded", async () => {
+// Immediately-invoked so it runs on first load AND when admin-spa.js re-executes
+// this script after a soft page swap back to Document Downloads.
+(async function initDownloads() {
+  // Self-select: bail if this script's async re-execution lands after we've
+  // navigated away (its anchor element is no longer in the DOM).
+  if (!document.getElementById("downloadTableBody")) return;
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
   try {
@@ -22,12 +28,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     enhanceCustomSelect(document.getElementById("filterType"));
   }
   loadDownloads();
-});
+})();
 
 function logout() { localStorage.removeItem("adminToken"); window.location.href = "login.html"; }
 
 async function loadDownloads() {
   const tbody = document.getElementById("downloadTableBody");
+  if (!tbody) return; // page swapped out during async init
   tbody.innerHTML = downloadSkeletonRows(6);
   try {
     const res = await fetch(`${API_BASE_URL}/api/downloads.php`, { headers: authHeader() });
@@ -62,6 +69,7 @@ function filtered() {
 
 function renderTable() {
   const tbody = document.getElementById("downloadTableBody");
+  if (!tbody) return; // soft-navigated away before an async render resolved — no-op
   const card  = document.getElementById("downloadsCard");
   const empty = document.getElementById("downloadsEmptyState");
   const rows  = filtered();

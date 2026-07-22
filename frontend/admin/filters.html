@@ -5,29 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catalogue Filters | Yee Lim Adhesives Admin</title>
   <style>html{background:#f3efe6}body{animation:ylAdminIn .28s ease both}@keyframes ylAdminIn{from{opacity:0}to{opacity:1}}@media (prefers-reduced-motion:reduce){body{animation:none}}</style>
-  <link rel="stylesheet" href="admin.css?v=17">
+  <link rel="stylesheet" href="admin.css?v=28">
   <link rel="stylesheet" href="../css/dropdown-ui.css?v=6">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <style>
-    /* Catalogue Filters page — only genuinely new element (tabs) is styled
-       here; everything else reuses admin.css tokens + components. */
-    .filter-tabs { display:flex; gap:.15rem; border-bottom:1px solid var(--line); padding:0 .35rem; flex-wrap:wrap; }
-    .page-head .btn { flex-shrink:0; }
-    .filter-tab { appearance:none; background:none; border:none; padding:.75rem 1rem; font:inherit; font-size:.9rem; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
-    .filter-tab:hover { color:var(--text); }
-    .filter-tab.active { color:var(--red); border-bottom-color:var(--red); }
-    .tax-actions { display:inline-flex; gap:.35rem; white-space:nowrap; }
-    .tax-badge { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
-    .tax-badge-active { background:#e7f4ec; color:#2f7d4f; }
-    .tax-badge-muted { background:#efece3; color:var(--muted); }
-    .tax-name-cell { display:flex; align-items:center; }
-    .tax-logo-thumb { width:26px; height:26px; object-fit:contain; border-radius:4px; background:var(--bg); border:1px solid var(--line); vertical-align:middle; margin-right:.55rem; }
-    .tax-slug { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8rem; color:var(--muted); }
-    .tax-order-btns { display:inline-flex; gap:.25rem; }
-    .tax-check { display:flex; align-items:center; gap:.55rem; font-size:.88rem; color:var(--text); margin-top:.5rem; text-transform:none; letter-spacing:normal; font-weight:500; }
-    .tax-check input { width:16px; height:16px; accent-color:var(--red); }
-    .tax-modal-hint { color:var(--muted); font-size:.78rem; margin-top:.6rem; line-height:1.5; }
-  </style>
+  <!-- SPA shell libs: loaded once in <head> so the in-body page script has them -->
+  <script src="../js/vendor/swup.umd.js"></script>
+  <script src="../js/data.js?v=9"></script>
+  <script src="../js/widgets/custom-select.js?v=4"></script>
 </head>
 <body>
 
@@ -69,6 +53,27 @@
 
   <!-- Main -->
   <main class="admin-main">
+    <!-- SPA swap container: content + modals + page script; sidebar + toast persist. -->
+    <div id="adminSwap" class="admin-transition-fade">
+    <style>
+      /* Catalogue Filters page — only genuinely new element (tabs) is styled here. */
+      .filter-tabs { display:flex; gap:.15rem; border-bottom:1px solid var(--line); padding:0 .35rem; flex-wrap:wrap; }
+      .page-head .btn { flex-shrink:0; }
+      .filter-tab { appearance:none; background:none; border:none; padding:.75rem 1rem; font:inherit; font-size:.9rem; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+      .filter-tab:hover { color:var(--text); }
+      .filter-tab.active { color:var(--red); border-bottom-color:var(--red); }
+      .tax-actions { display:inline-flex; gap:.35rem; white-space:nowrap; }
+      .tax-badge { display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.72rem; font-weight:600; white-space:nowrap; }
+      .tax-badge-active { background:#e7f4ec; color:#2f7d4f; }
+      .tax-badge-muted { background:#efece3; color:var(--muted); }
+      .tax-name-cell { display:flex; align-items:center; }
+      .tax-logo-thumb { width:26px; height:26px; object-fit:contain; border-radius:4px; background:var(--bg); border:1px solid var(--line); vertical-align:middle; margin-right:.55rem; }
+      .tax-slug { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.8rem; color:var(--muted); }
+      .tax-order-btns { display:inline-flex; gap:.25rem; }
+      .tax-check { display:flex; align-items:center; gap:.55rem; font-size:.88rem; color:var(--text); margin-top:.5rem; text-transform:none; letter-spacing:normal; font-weight:500; }
+      .tax-check input { width:16px; height:16px; accent-color:var(--red); }
+      .tax-modal-hint { color:var(--muted); font-size:.78rem; margin-top:.6rem; line-height:1.5; }
+    </style>
     <div class="admin-body">
 
       <!-- Page header -->
@@ -107,10 +112,8 @@
       </div>
 
     </div>
-  </main>
-</div>
 
-<!-- Term editor modal (add / edit) -->
+      <!-- Term editor modal (add / edit) -->
 <div class="modal-overlay" id="termModal">
   <div class="modal modal-sm">
     <div class="modal-header">
@@ -164,21 +167,15 @@
   </div>
 </div>
 
+      <script src="filters.js?v=9"></script>
+    </div><!-- /#adminSwap -->
+  </main>
+</div>
+
+<!-- Toast (persistent chrome, outside the swap container) -->
 <div class="admin-toast" id="adminToast"></div>
 
-<script src="../js/data.js?v=9"></script>
-<script src="filters.js?v=8"></script>
-<script src="admin-nav.js?v=5"></script>
-<script>
-  (function () {
-    var n = localStorage.getItem("adminUsername");
-    if (n) {
-      document.getElementById("userName").textContent = n;
-      document.getElementById("userAv").textContent =
-        n.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ""; }).join("").toUpperCase() || "YL";
-    }
-  })();
-  lucide.createIcons();
-</script>
+<script src="admin-spa.js?v=1"></script>
+<script src="admin-nav.js?v=6"></script>
 </body>
 </html>

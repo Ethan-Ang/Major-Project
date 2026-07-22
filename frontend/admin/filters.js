@@ -3,7 +3,9 @@
 // Industries, Surfaces) served by api/taxonomies.php. Self-contained (its own
 // auth guard + helpers), matching the enquiries.js page pattern.
 
-const GROUP_META = {
+// `var` throughout so this script is safe to re-execute on each Swup return visit
+// (admin-spa.js re-runs it every time you return to Catalogue Filters).
+var GROUP_META = {
   product_type: {
     title: "Product Types", singular: "product type", brand: false,
     hint: "The broadest catalogue split (e.g. Adhesives vs Spray Guns). Every product is assigned one on its edit page.",
@@ -22,15 +24,20 @@ const GROUP_META = {
   },
 };
 
-let TERMS = { product_type: [], brand: [], industry: [], surface: [] };
-let currentGroup = "product_type";
-let pendingDeleteId = null;
+var TERMS = { product_type: [], brand: [], industry: [], surface: [] };
+var currentGroup = "product_type";
+var pendingDeleteId = null;
 
 function isNetworkError(err) { return err instanceof TypeError; }
 function authHeader() { return { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }; }
 
 // ─── Auth guard ───────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", async () => {
+// Immediately-invoked so it runs on first load AND when admin-spa.js re-executes
+// this script after a soft page swap back to Catalogue Filters.
+(async function initFilters() {
+  // Self-select: bail if this script's async re-execution lands after we've
+  // navigated away (its anchor element is no longer in the DOM).
+  if (!document.getElementById("termTableBody")) return;
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
   try {
@@ -44,7 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   loadTerms();
-});
+})();
 
 function logout() {
   localStorage.removeItem("adminToken");
@@ -54,6 +61,7 @@ function logout() {
 // ─── Load ─────────────────────────────────────────────────────────
 async function loadTerms() {
   const tbody = document.getElementById("termTableBody");
+  if (!tbody) return; // page swapped out during async init
   tbody.innerHTML = taxSkeletonRows(5);
   try {
     const res = await fetch(`${API_BASE_URL}/api/taxonomies.php?scope=admin`, { headers: authHeader() });
@@ -86,6 +94,7 @@ function renderTab() {
   const terms = TERMS[currentGroup] || [];
 
   const tbody = document.getElementById("termTableBody");
+  if (!tbody) return; // soft-navigated away before an async render resolved — no-op
   if (!terms.length) {
     tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No ${meta.singular} values yet. Use the “Add ${meta.singular}” button to create one.</td></tr>`;
     if (window.lucide) lucide.createIcons();

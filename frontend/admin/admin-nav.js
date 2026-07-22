@@ -58,40 +58,8 @@
   // If the viewport grows back to desktop while open, reset so nothing is stuck.
   window.addEventListener("resize", () => { if (window.innerWidth > 768) close(); });
 
-  // ─── Sidebar Enquiries unread badge ────────────────────────────
-  // Show the "new leads" count on the Enquiries nav item on EVERY admin page.
-  // Previously only the dashboard (overview.js) and enquiries (enquiries.js)
-  // pages set it, so Products showed no badge. Pages that already manage their
-  // own badge are skipped so this doesn't double-fetch.
-  (function unreadBadge() {
-    const link = sidebar.querySelector('.admin-nav a[href="enquiries.html"]')
-      || [...sidebar.querySelectorAll(".admin-nav a")].find(a => /enquir/i.test(a.textContent));
-    if (!link) return;
-    if (link.querySelector("#navUnread, #unreadBadge")) return; // page handles it itself
-
-    let badge = link.querySelector(".nav-badge");
-    if (!badge) {
-      badge = document.createElement("span");
-      badge.className = "nav-badge";
-      badge.style.display = "none";
-      link.appendChild(badge);
-    }
-
-    const base  = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : "";
-    const token = localStorage.getItem("adminToken");
-    fetch(`${base}/api/enquiries.php`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      .then(r => (r.ok ? r.json() : null))
-      .then(list => {
-        if (!Array.isArray(list)) return;
-        const unread = list.filter(e => !e.replied).length;
-        badge.textContent   = unread;
-        badge.style.display = unread > 0 ? "inline-flex" : "none";
-      })
-      .catch(() => { /* not signed in / offline — leave the badge hidden */ });
-  })();
-
-  // Page entrance is a gentle opacity-only fade of the whole page, defined in an
-  // inline <head> style on each admin page (so it applies before first paint and
-  // never flickers). No fade-out / no transform / no reload interception: those
-  // made the multi-page reload read as a jumpy double-motion.
+  // The Enquiries "new leads" badge and the page-entrance fade are owned by the SPA
+  // shell (admin-spa.js): it refreshes the badge and re-syncs the sidebar chrome on
+  // every soft page swap, and the opacity cross-fade lives in admin.css. This file
+  // now owns only the mobile drawer, which persists across swaps with the sidebar.
 })();

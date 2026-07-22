@@ -6,7 +6,12 @@
 function isNetworkError(err) { return err instanceof TypeError; }
 function authHeader() { return { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }; }
 
-document.addEventListener("DOMContentLoaded", async () => {
+// Immediately-invoked so it runs on first load AND when admin-spa.js re-executes
+// this script after a soft page swap back to Site Settings.
+(async function initSettings() {
+  // Self-select: bail if this script's async re-execution lands after we've
+  // navigated away (its anchor element is no longer in the DOM).
+  if (!document.getElementById("saveSettingsBtn")) return;
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
   try {
@@ -20,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   loadSettings();
-});
+})();
 
 function logout() {
   localStorage.removeItem("adminToken");
@@ -92,6 +97,7 @@ function flashSaved() {
 
 function showError(msg) {
   const el = document.getElementById("settingsError");
+  if (!el) return; // soft-navigated away before an async error surfaced — no-op
   el.textContent = msg;
   el.style.display = "block";
 }

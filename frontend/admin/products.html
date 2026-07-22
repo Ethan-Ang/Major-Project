@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Products | Yee Lim Adhesives Admin</title>
   <style>html{background:#f3efe6}body{animation:ylAdminIn .28s ease both}@keyframes ylAdminIn{from{opacity:0}to{opacity:1}}@media (prefers-reduced-motion:reduce){body{animation:none}}</style>
-  <link rel="stylesheet" href="admin.css?v=27">
+  <link rel="stylesheet" href="admin.css?v=28">
   <link rel="stylesheet" href="../css/dropdown-ui.css?v=6">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- SPA shell libs: loaded once in <head> so the in-body page script has them -->
+  <script src="../js/vendor/swup.umd.js"></script>
+  <script src="../js/data.js?v=9"></script>
+  <script src="../js/widgets/custom-select.js?v=4"></script>
 </head>
 <body>
 
@@ -49,6 +53,9 @@
 
   <!-- Main -->
   <main class="admin-main">
+    <!-- SPA swap container: everything below (content + modals + page script) is
+         replaced on navigation; the sidebar + toast outside it persist. -->
+    <div id="adminSwap" class="admin-transition-fade">
     <div class="admin-body">
 
 
@@ -167,10 +174,8 @@
       </div>
 
     </div>
-  </main>
-</div>
 
-<!-- Add / Edit Modal -->
+      <!-- Add / Edit Modal -->
 <div class="modal-overlay" id="productModal">
   <div class="modal">
     <div class="modal-header">
@@ -383,24 +388,15 @@
   </div>
 </div>
 
-<!-- Toast -->
+      <script src="admin.js?v=20"></script>
+    </div><!-- /#adminSwap -->
+  </main>
+</div>
+
+<!-- Toast (persistent chrome, outside the swap container) -->
 <div class="admin-toast" id="adminToast"></div>
 
-<script src="../js/data.js?v=9"></script>
-<script src="../js/widgets/custom-select.js?v=4"></script>
-<script src="admin.js?v=19"></script>
-<script src="admin-nav.js?v=5"></script>
-<script>
-  // Reflect logged-in username into the sidebar
-  (function () {
-    var n = localStorage.getItem("adminUsername");
-    if (n) {
-      document.getElementById("userName").textContent = n;
-      document.getElementById("userAv").textContent =
-        n.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ""; }).join("").toUpperCase() || "YL";
-    }
-  })();
-  lucide.createIcons();
-</script>
+<script src="admin-spa.js?v=1"></script>
+<script src="admin-nav.js?v=6"></script>
 </body>
 </html>

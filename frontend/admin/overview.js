@@ -12,7 +12,13 @@ function isNetworkError(err) {
 // revoked token still "worked" here — the dashboard rendered normally because
 // none of its own fetches redirect on failure — while Products/Enquiries
 // correctly bounced you to login, which looked like a random, page-specific bug.
-document.addEventListener("DOMContentLoaded", async () => {
+// Runs immediately on load AND every time admin-spa.js re-executes this script
+// after a soft page swap (see admin-spa.js). It is self-contained, so re-running
+// it simply re-initialises the dashboard.
+(async function initOverview() {
+  // Self-select: if this script's async re-execution lands after we've already
+  // navigated to another page, its anchor is gone — bail before touching the DOM.
+  if (!document.getElementById("greetingTitle")) return;
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
 
@@ -33,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   renderGreeting();
   loadOverview();
-});
+})();
 
 function logout() {
   localStorage.removeItem("adminToken");
@@ -42,10 +48,12 @@ function logout() {
 
 // ─── Greeting ─────────────────────────────────────────────────────
 function renderGreeting() {
+  const title = document.getElementById("greetingTitle");
+  if (!title) return; // dashboard swapped out during async init — nothing to render
   const h = new Date().getHours();
   const part = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
   const name = localStorage.getItem("adminUsername") || "Yee Lim";
-  document.getElementById("greetingTitle").textContent = `${part}, ${name}`;
+  title.textContent = `${part}, ${name}`;
   document.getElementById("userName").textContent = name;
   document.getElementById("userAv").textContent = initials(name);
   document.getElementById("greetingSub").textContent =
@@ -67,6 +75,10 @@ async function loadOverview() {
     });
     if (res.ok) enquiries = await res.json();
   } catch (e) { enquiries = []; }
+
+  // If the fetch resolved after we soft-navigated away from the dashboard, its
+  // anchors are gone — bail rather than throw.
+  if (!document.getElementById("catList")) return;
 
   renderKpis(products, enquiries);
   renderCategories(products);

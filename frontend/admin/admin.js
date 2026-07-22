@@ -1,29 +1,31 @@
 // API_BASE_URL is defined in data.js
 
 // ─── State ───────────────────────────────────────────────────────
-let allProducts    = [];
-let filteredProducts = [];
-let selectedIds    = new Set();
-let deletingId     = null;
-let currentPage    = 1;
-let pageSize       = 10;
-let sortCol        = "";
-let sortDir        = "asc";
-let demoMode       = false;
-let selectedMainImageFile = null;
-let selectedExtraImageFiles = [];
-let existingExtraImageUrls = [];
-let selectedSdsFile = null;
-let selectedTdsFile = null;
+// `var` (not let/const) so this script is safe to re-execute: the admin runs as a
+// Swup SPA (admin-spa.js) and re-runs this file each time you return to Products.
+var allProducts    = [];
+var filteredProducts = [];
+var selectedIds    = new Set();
+var deletingId     = null;
+var currentPage    = 1;
+var pageSize       = 10;
+var sortCol        = "";
+var sortDir        = "asc";
+var demoMode       = false;
+var selectedMainImageFile = null;
+var selectedExtraImageFiles = [];
+var existingExtraImageUrls = [];
+var selectedSdsFile = null;
+var selectedTdsFile = null;
 
-let existingSdsDocument = null;
-let existingTdsDocument = null;
+var existingSdsDocument = null;
+var existingTdsDocument = null;
 
 // Demo fallback when the backend is unreachable. Built from the bundled
 // DEMO_PRODUCTS catalogue (the same data the public pages fall back to), not the
 // empty live PRODUCTS array, so the offline admin list is populated rather than
 // blank. normaliseProduct sets a string _id, which the table/selection rely on.
-const SAMPLE_ADMIN_PRODUCTS = (typeof DEMO_PRODUCTS !== "undefined" ? DEMO_PRODUCTS : [])
+var SAMPLE_ADMIN_PRODUCTS = (typeof DEMO_PRODUCTS !== "undefined" ? DEMO_PRODUCTS : [])
   .map(normaliseProduct);
 
 function isNetworkError(err) {
@@ -78,7 +80,12 @@ function ensureOption(id, value) {
 }
 
 // ─── Auth guard ──────────────────────────────────
-document.addEventListener("DOMContentLoaded", async () => {
+// Immediately-invoked so it runs on first load AND when admin-spa.js re-executes
+// this script after a soft page swap back to Products.
+(async function initProducts() {
+  // Self-select: bail if this script's async re-execution lands after we've
+  // navigated away (its anchor element is no longer in the DOM).
+  if (!document.getElementById("productTableBody")) return;
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
   bindProductImageUploadInputs();
@@ -111,7 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "login.html";
     }
   }
-});
+})();
 
 function getToken() { return localStorage.getItem("adminToken"); }
 
@@ -247,6 +254,7 @@ function formatFileSize(bytes) {
 async function loadProducts() {
   const tbody   = document.getElementById("productTableBody");
   const errorEl = document.getElementById("pageError");
+  if (!tbody) return; // page swapped out during async init — nothing to load into
 
   tbody.innerHTML = adminSkeletonRows(6, 5);
   errorEl.style.display = "none";
@@ -275,6 +283,9 @@ async function loadProducts() {
 }
 
 function finishLoad(products) {
+  // If the fetch resolved after we soft-navigated away from Products, its anchors
+  // are gone — bail rather than animate stats into a detached DOM.
+  if (!document.getElementById("productTableBody")) return;
   allProducts      = products;
   filteredProducts = applySort([...products]);
   currentPage      = 1;
@@ -327,6 +338,7 @@ function updateStats(products) {
 
 function countUp(id, target) {
   const el    = document.getElementById(id);
+  if (!el) return; // element gone (soft-navigated away) — don't animate a null node
   const dur   = 600;
   const start = performance.now();
   function tick(now) {
@@ -341,6 +353,7 @@ function countUp(id, target) {
 // ─── Render table with pagination ────────────────────────────────
 function renderTable() {
   const tbody = document.getElementById("productTableBody");
+  if (!tbody) return; // soft-navigated away before an async render resolved — no-op
   const total = filteredProducts.length;
 
   document.getElementById("tableCount").textContent =
