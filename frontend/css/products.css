@@ -3473,26 +3473,6 @@ body.detail-has-cta .toast {
   overflow: hidden;
 }
 
-/* Product-row remove. Same 1.8 stroke as the sheet's collapse control so the
-   two belong to one icon family, but a smaller glyph and a red-tinted hover:
-   this one changes the selection, the sheet control only hides the sheet. */
-.cmp-slot-x {
-  background: none;
-  border: 1px solid transparent;
-  color: var(--muted-2);
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  padding: 0;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.cmp-slot-x:hover { border-color: var(--red-tint-bdr); color: var(--red); background: var(--red-tint); }
-
 /* Dashed "add another product" slot, shown only while list.length < 3.
    Same height/radius as the filled slots so the row is one coherent system. */
 .cmp-slot-add {
@@ -4324,21 +4304,46 @@ body.cmp-rotate-open { overflow: hidden; }
   position: absolute;
   top: 0.45rem;
   right: 0.45rem;
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
+}
+
+/* Product removal is one control across tray, selection panel and mobile table:
+   a precise 44px industrial touch target, never a playful floating circle. */
+.cmp-slot-x,
+.csel-x,
+.compare-col-x {
+  width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
   padding: 0;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--muted);
+  border-radius: 6px;
+  color: var(--red);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.csel-x:hover { color: var(--red); border-color: var(--red-tint-bdr); }
-.csel-x:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+.cmp-slot-x,
+.csel-x { display: inline-flex; }
+
+.cmp-slot-x { flex-shrink: 0; }
+
+.cmp-slot-x svg,
+.csel-x svg,
+.compare-col-x svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.8;
+}
+
+.cmp-slot-x:hover,
+.csel-x:hover,
+.compare-col-x:hover {
+  color: var(--red);
+  border-color: var(--red-tint-bdr);
+  background: var(--red-tint);
+}
 
 .csel-add {
   display: flex;
@@ -4409,23 +4414,12 @@ body.cmp-rotate-open { overflow: hidden; }
     position: absolute;
     top: 4px;
     right: 4px;
-    width: 26px;
-    height: 26px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid var(--line-2);
-    background: var(--card);
-    color: var(--muted);
-    cursor: pointer;
     z-index: 1;
   }
   .csel-card { min-height: 80px; padding-right: 3.35rem; }
   .csel-x {
     top: 50%;
     right: 0.35rem;
-    width: 44px;
-    height: 44px;
     transform: translateY(-50%);
   }
   .csel-actions {
@@ -4623,6 +4617,8 @@ body.cmp-rotate-open { overflow: hidden; }
 .compare-tray-clear:focus-visible,
 .compare-tray-collapse:focus-visible,
 .cmp-slot-x:focus-visible,
+.csel-x:focus-visible,
+.compare-col-x:focus-visible,
 .cmp-slot-add:focus-visible {
   outline: 2px solid var(--red);
   outline-offset: 2px;

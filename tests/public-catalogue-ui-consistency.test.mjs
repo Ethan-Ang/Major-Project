@@ -87,3 +87,33 @@ test("checked filter rows stay plain while the checkbox carries selection", () =
     `hovered checked row backgrounds must all be transparent; found: ${hoverBackgrounds.join(", ")}`
   );
 });
+
+test("all compare-product remove controls share option A", () => {
+  const shared = findRule([".cmp-slot-x", ".csel-x", ".compare-col-x"]);
+  assert.ok(shared, "one shared remove-control rule must exist");
+  assert.equal(shared.declarations.width, "44px");
+  assert.equal(shared.declarations.height, "44px");
+  assert.equal(shared.declarations["border-radius"], "6px");
+  assert.equal(shared.declarations.background, "var(--card)");
+  assert.equal(shared.declarations.border, "1px solid var(--border)");
+  assert.equal(shared.declarations.color, "var(--red)");
+
+  const icons = findRule([
+    ".cmp-slot-x svg",
+    ".csel-x svg",
+    ".compare-col-x svg",
+  ]);
+  assert.ok(icons, "remove icons must share one geometry rule");
+  assert.equal(icons.declarations.width, "14px");
+  assert.equal(icons.declarations.height, "14px");
+  assert.equal(icons.declarations["stroke-width"], "1.8");
+
+  const hover = findRule([
+    ".cmp-slot-x:hover",
+    ".csel-x:hover",
+    ".compare-col-x:hover",
+  ]);
+  assert.ok(hover, "remove controls must share one hover rule");
+  assert.equal(hover.declarations.background, "var(--red-tint)");
+  assert.equal(hover.declarations["border-color"], "var(--red-tint-bdr)");
+});
