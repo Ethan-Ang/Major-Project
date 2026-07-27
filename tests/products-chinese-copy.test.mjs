@@ -8,7 +8,7 @@ const productsHtmlPath = new URL("../frontend/products.html", import.meta.url);
 const productsSource = fs.readFileSync(productsPath, "utf8");
 const productsHtml = fs.readFileSync(productsHtmlPath, "utf8");
 
-function extractNamedFunction(source, name) {
+function extractNamedFunctionSource(source, name) {
   const start = source.indexOf(`function ${name}(`);
   assert.notEqual(start, -1, `${name} must exist`);
   const open = source.indexOf("{", start);
@@ -18,11 +18,33 @@ function extractNamedFunction(source, name) {
     if (source[index] === "{") depth += 1;
     if (source[index] === "}") depth -= 1;
     if (depth === 0) {
-      return vm.runInNewContext(`(${source.slice(start, index + 1)})`);
+      return source.slice(start, index + 1);
     }
   }
 
   throw new Error(`Could not parse ${name}`);
+}
+
+function extractNamedFunction(source, name) {
+  return vm.runInNewContext(`(${extractNamedFunctionSource(source, name)})`);
+}
+
+function assertFilterBadgeIntegration(source) {
+  const updateSource = extractNamedFunctionSource(
+    source,
+    "updateFilterGroupBadges"
+  );
+
+  assert.match(
+    updateSource,
+    /headTotal\.textContent\s*=\s*formatActiveFilterSummary\(\s*totalActive\s*,\s*window\.ylLang\s*\)\s*;/,
+    "updateFilterGroupBadges must pass window.ylLang to the summary formatter"
+  );
+  assert.match(
+    updateSource,
+    /headTotal\.hidden\s*=\s*totalActive\s*===\s*0\s*;/,
+    "updateFilterGroupBadges must hide the summary only when totalActive is zero"
+  );
 }
 
 test("active filter summary uses the catalogue language", () => {
@@ -37,6 +59,40 @@ test("active filter summary uses the catalogue language", () => {
   assert.equal(formatActiveFilterSummary(0, "zh"), "");
   assert.equal(formatActiveFilterSummary(1, "zh"), "已选 1 项");
   assert.equal(formatActiveFilterSummary(2, "zh"), "已选 2 项");
+});
+
+test("filter badge updater wires language and zero-count visibility", () => {
+  assertFilterBadgeIntegration(productsSource);
+});
+
+test("filter badge integration guard rejects either wiring mutation", () => {
+  const wrongLanguageSource = productsSource.replace(
+    "formatActiveFilterSummary(totalActive, window.ylLang)",
+    'formatActiveFilterSummary(totalActive, "en")'
+  );
+  assert.notEqual(
+    wrongLanguageSource,
+    productsSource,
+    "language mutation must alter the source fixture"
+  );
+  assert.throws(
+    () => assertFilterBadgeIntegration(wrongLanguageSource),
+    /must pass window\.ylLang/
+  );
+
+  const wrongHiddenSource = productsSource.replace(
+    "headTotal.hidden = totalActive === 0;",
+    "headTotal.hidden = totalActive < 1;"
+  );
+  assert.notEqual(
+    wrongHiddenSource,
+    productsSource,
+    "hidden-state mutation must alter the source fixture"
+  );
+  assert.throws(
+    () => assertFilterBadgeIntegration(wrongHiddenSource),
+    /must hide the summary only when totalActive is zero/
+  );
 });
 
 test("products catalogue requests products.js v49", () => {
