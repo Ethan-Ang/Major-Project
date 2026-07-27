@@ -13,6 +13,53 @@ if (typeof window !== "undefined" && typeof window.ylEscapeHtml !== "function") 
   };
 }
 
+function comparePageCopy(lang) {
+  const copy = {
+    en: {
+      heading: "Products to compare",
+      add: "Add a product",
+      search: "Search or browse",
+      compareNow: "Compare now",
+      clearAll: "Clear all",
+      swipe: "Swipe to compare all {count} products",
+      rotateTitle: "Rotate for the full comparison",
+      rotateBody: "Turn your phone to landscape to see the products side by side with more room and the full controls. You can still swipe the table in portrait.",
+      gotIt: "Got it",
+      closeHint: "Dismiss",
+      remove: "Remove {product} from comparison",
+      notSpecified: "Not specified",
+      disclaimer: "Product information is provided for general guidance only. Contact Yee Lim for full technical details."
+    },
+    zh: {
+      heading: "待对比产品",
+      add: "添加产品",
+      search: "搜索或浏览",
+      compareNow: "立即对比",
+      clearAll: "清除全部",
+      swipe: "滑动查看全部 {count} 款产品",
+      rotateTitle: "横屏查看完整对比",
+      rotateBody: "请将手机旋转至横屏，以便并排查看产品及完整控制项。竖屏下仍可滑动表格。",
+      gotIt: "知道了",
+      closeHint: "关闭提示",
+      remove: "从对比中移除 {product}",
+      notSpecified: "未提供",
+      disclaimer: "产品信息仅供一般参考。如需完整技术资料，请联系 Yee Lim。"
+    }
+  };
+  return lang === "zh" ? copy.zh : copy.en;
+}
+
+function formatComparePageCopy(template, replacements) {
+  const values = replacements !== null && typeof replacements === "object"
+    ? replacements
+    : { count: replacements };
+  return String(template).replace(/\{([a-z][a-zA-Z0-9]*)\}/g, function (match, key) {
+    return Object.prototype.hasOwnProperty.call(values, key)
+      ? String(values[key])
+      : match;
+  });
+}
+
 // Loading skeleton (catalogue shimmer style) while product data is fetched.
 function renderCompareSkeleton() {
   const content = document.getElementById("comparePageContent");
@@ -35,6 +82,8 @@ function renderCompareSkeleton() {
 function renderCompareSelectSkeleton() {
   const el = document.getElementById("compareSelectPanel");
   if (!el) return;
+  const copy = comparePageCopy(window.ylLang);
+  el.setAttribute("aria-label", copy.heading);
   const count = Math.min(COMPARE_MAX, getCompareList().length);
   if (!count) { el.hidden = true; el.innerHTML = ""; return; }
   el.hidden = false;
@@ -48,7 +97,7 @@ function renderCompareSelectSkeleton() {
       </span>
     </div>`).join("");
   el.innerHTML = `
-    <div class="csel-head">Products to compare (${count}/${COMPARE_MAX})</div>
+    <div class="csel-head">${copy.heading} (${count}/${COMPARE_MAX})</div>
     <div class="csel-body">
       <div class="csel-row">${slots}</div>
       <div class="csel-actions csel-skeleton-actions" aria-hidden="true">
@@ -94,6 +143,8 @@ function cxBrandLabel(brand) {
 function renderSelectPanel(products) {
   const el = document.getElementById("compareSelectPanel");
   if (!el) return;
+  const copy = comparePageCopy(window.ylLang);
+  el.setAttribute("aria-label", copy.heading);
   if (!products.length) { el.hidden = true; el.innerHTML = ""; return; }
   el.hidden = false;
 
@@ -113,7 +164,7 @@ function renderSelectPanel(products) {
           <span class="csel-name">${ylEscapeHtml(p.name)}</span>
           <span class="csel-sub">${ylEscapeHtml(window.ylTerm ? window.ylTerm(subtype(p)) : subtype(p))}</span>
         </span>
-        <button class="csel-x" onclick="toggleCompare('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from comparison">
+        <button class="csel-x" onclick="toggleCompare('${p.id}')" aria-label="${formatComparePageCopy(copy.remove, { product: ylEscapeHtml(p.name) })}">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>`;
@@ -122,20 +173,20 @@ function renderSelectPanel(products) {
   // Add/Search slot only below 3/3 — completely removed at the cap. Opens the
   // dedicated compare picker (side panel), not a jump back to the catalogue.
   const addSlot = products.length < COMPARE_MAX
-    ? `<button class="csel-card csel-add" type="button" onclick="ylCompareAddMore()"><span class="csel-add-icon" aria-hidden="true">+</span><span class="csel-add-text"><strong>Add a product</strong><small>Search or browse</small></span></button>`
+    ? `<button class="csel-card csel-add" type="button" onclick="ylCompareAddMore()"><span class="csel-add-icon" aria-hidden="true">+</span><span class="csel-add-text"><strong>${copy.add}</strong><small>${copy.search}</small></span></button>`
     : "";
 
   el.innerHTML = `
-    <div class="csel-head">Products to compare (${products.length}/3)</div>
+    <div class="csel-head">${copy.heading} (${products.length}/3)</div>
     <div class="csel-body">
       <div class="csel-row">${cards}${addSlot}</div>
       <div class="csel-actions">
-        <a class="btn btn-primary csel-compare" href="#comparePageContent">Compare now
+        <a class="btn btn-primary csel-compare" href="#comparePageContent">${copy.compareNow}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </a>
         <button class="compare-page-clear" onclick="clearAll()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          Clear all
+          ${copy.clearAll}
         </button>
       </div>
     </div>`;
@@ -146,6 +197,7 @@ function renderComparePage() {
   const products = list.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
   const content  = document.getElementById("comparePageContent");
   if (!content) return;
+  const copy = comparePageCopy(window.ylLang);
   content.classList.remove("is-loading");
 
   // The selection panel tracks the raw compare list (0-3 products); it is
@@ -175,7 +227,7 @@ function renderComparePage() {
     return `
       <td class="compare-col-header">
         <div class="compare-col-inner">
-          <button class="compare-col-x" type="button" onclick="toggleCompare('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from comparison">
+          <button class="compare-col-x" type="button" onclick="toggleCompare('${p.id}')" aria-label="${formatComparePageCopy(copy.remove, { product: ylEscapeHtml(p.name) })}">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <div class="compare-product-img">
@@ -189,7 +241,7 @@ function renderComparePage() {
   }).join("");
 
   // Real comparison fields only; a missing value renders as an em dash.
-  const EMPTY = `<span class="compare-empty-val" aria-label="Not specified">&mdash;</span>`;
+  const EMPTY = `<span class="compare-empty-val" aria-label="${copy.notSpecified}">&mdash;</span>`;
   const text = v => (v && String(v).trim()) ? ylEscapeHtml(String(v).trim()) : EMPTY;
   // Chinese: translate each data value; join lists with the full-width comma.
   const termOf = window.ylTerm || (x => x);
@@ -240,7 +292,7 @@ function renderComparePage() {
   content.innerHTML = `
     <div class="cx-scrollhint" id="cxScrollHint" hidden>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-      Swipe to compare all ${products.length} products
+      ${formatComparePageCopy(copy.swipe, products.length)}
     </div>
     <div class="compare-page-table-wrap cx-scroll">
       <table class="compare-table" style="min-width:${minTableWidth}px">
@@ -261,7 +313,7 @@ function renderComparePage() {
     </div>
     <p class="compare-disclaimer">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-      Product information is provided for general guidance only. Contact Yee Lim for full technical details.
+      ${copy.disclaimer}
     </p>`;
 
   // Measure after layout so the swipe hint only appears when columns overflow.
@@ -321,6 +373,7 @@ function syncCompareRotateHint() {
   }
   if (existing) return;
 
+  const copy = comparePageCopy(window.ylLang);
   const el = document.createElement("div");
   el.id = "compareRotateHint";
   el.className = "cmp-rotate";
@@ -330,15 +383,15 @@ function syncCompareRotateHint() {
   el.innerHTML = `
     <div class="cmp-rotate-backdrop" onclick="dismissCompareRotateHint()"></div>
     <div class="cmp-rotate-card">
-      <button class="cmp-rotate-x" type="button" onclick="dismissCompareRotateHint()" aria-label="Dismiss">
+      <button class="cmp-rotate-x" type="button" onclick="dismissCompareRotateHint()" aria-label="${copy.closeHint}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
       <span class="cmp-rotate-ic" aria-hidden="true">
         <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="14" height="10" rx="2"/><path d="M19 9l3 3-3 3"/><path d="M13 12h9"/></svg>
       </span>
-      <h2 id="cmpRotateTitle" class="cmp-rotate-title">Rotate for the full comparison</h2>
-      <p class="cmp-rotate-text">Turn your phone to landscape to see the products side by side with more room and the full controls. You can still swipe the table in portrait.</p>
-      <button class="btn btn-primary cmp-rotate-ok" type="button" onclick="dismissCompareRotateHint()">Got it</button>
+      <h2 id="cmpRotateTitle" class="cmp-rotate-title">${copy.rotateTitle}</h2>
+      <p class="cmp-rotate-text">${copy.rotateBody}</p>
+      <button class="btn btn-primary cmp-rotate-ok" type="button" onclick="dismissCompareRotateHint()">${copy.gotIt}</button>
     </div>`;
   document.body.appendChild(el);
   document.body.classList.add("cmp-rotate-open");
