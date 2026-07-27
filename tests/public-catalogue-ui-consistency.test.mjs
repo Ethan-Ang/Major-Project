@@ -63,20 +63,27 @@ test("Products nav is active only on the catalogue route", () => {
 test("checked filter rows stay plain while the checkbox carries selection", () => {
   const checkedRules = rulesFor(".filter-group label:has(input:checked)");
   const hoverRules = rulesFor(".filter-group label:hover:has(input:checked)");
+  const backgroundValues = rules => rules.flatMap(rule =>
+    ["background", "background-color"].flatMap(property =>
+      property in rule.declarations ? [rule.declarations[property]] : []
+    )
+  );
+  const checkedBackgrounds = backgroundValues(checkedRules);
+  const hoverBackgrounds = backgroundValues(hoverRules);
   assert.ok(
-    checkedRules.some(rule => rule.declarations.background === "transparent"),
-    "checked row must have a transparent background"
+    checkedBackgrounds.length > 0,
+    "checked row must declare a background or background-color"
   );
   assert.ok(
-    hoverRules.some(rule => rule.declarations.background === "transparent"),
-    "hovered checked row must stay transparent"
+    checkedBackgrounds.every(value => value === "transparent"),
+    `checked row backgrounds must all be transparent; found: ${checkedBackgrounds.join(", ")}`
   );
   assert.ok(
-    !checkedRules.some(rule => rule.declarations.background === "var(--red-tint)"),
-    "checked row must not use the red tint"
+    hoverBackgrounds.length > 0,
+    "hovered checked row must declare a background or background-color"
   );
   assert.ok(
-    !hoverRules.some(rule => rule.declarations.background === "var(--red-tint)"),
-    "hovered checked row must not use the red tint"
+    hoverBackgrounds.every(value => value === "transparent"),
+    `hovered checked row backgrounds must all be transparent; found: ${hoverBackgrounds.join(", ")}`
   );
 });
