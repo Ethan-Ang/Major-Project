@@ -4683,13 +4683,12 @@ body:has(.compare-tray.visible) .toast {
 /* Whole-row hover (the row is a <label>, so clicking anywhere toggles it). */
 .filter-group label:hover:not(.is-empty) { background: var(--well); }
 
-/* Applied row: faint warm tint (never a dark fill), heavier label. Rows keep
-   a small margin-bottom (above) so two adjacent checked rows never merge
-   into one block. */
-.filter-group label:has(input:checked) { background: var(--red-tint); }
-/* Hover on an already-checked row must not flip it back to the neutral hover
-   fill (0,3,2 beats the plain :hover rule's 0,3,1). */
-.filter-group label:hover:has(input:checked) { background: var(--red-tint); }
+/* The red checked box and semibold label already communicate selection.
+   Keep the dense B2B filter list on one calm, plain surface. */
+.filter-group label:has(input:checked),
+.filter-group label:hover:has(input:checked) {
+  background: transparent;
+}
 .filter-group label:has(input:checked) .filter-label-text {
   color: var(--text);
   font-weight: 600;

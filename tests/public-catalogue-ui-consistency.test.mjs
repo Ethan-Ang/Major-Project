@@ -59,3 +59,24 @@ test("Products nav is active only on the catalogue route", () => {
   assert.equal(isActivePage("products", "compare"), false);
   assert.equal(isActivePage("home", "index"), true);
 });
+
+test("checked filter rows stay plain while the checkbox carries selection", () => {
+  const checkedRules = rulesFor(".filter-group label:has(input:checked)");
+  const hoverRules = rulesFor(".filter-group label:hover:has(input:checked)");
+  assert.ok(
+    checkedRules.some(rule => rule.declarations.background === "transparent"),
+    "checked row must have a transparent background"
+  );
+  assert.ok(
+    hoverRules.some(rule => rule.declarations.background === "transparent"),
+    "hovered checked row must stay transparent"
+  );
+  assert.ok(
+    !checkedRules.some(rule => rule.declarations.background === "var(--red-tint)"),
+    "checked row must not use the red tint"
+  );
+  assert.ok(
+    !hoverRules.some(rule => rule.declarations.background === "var(--red-tint)"),
+    "hovered checked row must not use the red tint"
+  );
+});
