@@ -41,6 +41,9 @@ function ylBuildContactEmail() {
 if (typeof ylReady === "function") ylReady(ylBuildContactEmail);
 else document.addEventListener("DOMContentLoaded", ylBuildContactEmail);
 
+// Chinese label helper (English fallback when zh is not active).
+function ctT(key, fb) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb; }
+
 async function submitContactForm(event) {
   event.preventDefault();
 
@@ -54,7 +57,7 @@ async function submitContactForm(event) {
   const btn = document.querySelector(".contact-submit-btn");
 
   if (!name || !email || !subject || !message) {
-    status.textContent = "Please fill in all required fields.";
+    status.textContent = ctT("contact.fill_required", "Please fill in all required fields.");
     status.className = "contact-form-status error";
     return;
   }
@@ -64,8 +67,8 @@ async function submitContactForm(event) {
   // accepts that (only name + email are required).
   const fullMessage = "Subject: " + subject + "\n\n" + message;
 
-  if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
-  status.textContent = "Sending your message…";
+  if (btn) { btn.disabled = true; btn.textContent = ctT("contact.sending", "Sending…"); }
+  status.textContent = ctT("contact.sending_msg", "Sending your message…");
   status.className = "contact-form-status";
 
   try {
@@ -79,23 +82,27 @@ async function submitContactForm(event) {
 
     // Success: clear the form and confirm, with the reference number if returned.
     document.querySelector(".contact-form").reset();
-    const ref = result.reference ? " Your reference is " + result.reference + "." : "";
-    status.innerHTML = "Thank you. We've received your enquiry." + ref
-      + " Our team will reply within 1&ndash;2 business days.";
+    const zh = (window.ylLang === "zh" && window.ylT);
+    const ref = result.reference
+      ? (zh ? " " + ctT("contact.ref_is", "Your reference is") + " " + result.reference + "。"
+            : " " + ctT("contact.ref_is", "Your reference is") + " " + result.reference + ".")
+      : "";
+    status.innerHTML = ctT("contact.thanks", "Thank you. We've received your enquiry.") + ref
+      + " " + ctT("contact.reply2", "Our team will reply within 1-2 business days.");
     status.className = "contact-form-status success";
   } catch (err) {
     // API unavailable — fall back to the mail client so nothing is lost, and
     // keep the user's input in the form.
     contactMailtoFallback(name, company, email, phone, subject, message);
     const fallbackEmail = ylContactEmail() || "contact@yeelimadhesives.com.sg";
-    status.innerHTML = 'We could not submit your message automatically. Your email app should have opened so you can send it directly. '
-      + 'If it did not, email us at '
-      + '<a href="mailto:' + fallbackEmail + '">' + fallbackEmail + '</a>.';
+    status.innerHTML = ctT("contact.fail_auto", "We could not submit your message automatically. Your email app should have opened so you can send it directly.")
+      + ' ' + ctT("contact.fail_email_at", "If it did not, email us at") + ' '
+      + '<a href="mailto:' + fallbackEmail + '">' + fallbackEmail + '</a>' + (window.ylLang === "zh" ? "。" : ".");
     status.className = "contact-form-status error";
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Message';
+      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> ' + ctT("contact.send_msg", "Send Message");
     }
   }
 }

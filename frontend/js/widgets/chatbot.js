@@ -374,6 +374,9 @@
   styleEl.textContent = css;
   document.head.appendChild(styleEl);
 
+  // Chinese label helper (English fallback when zh is not active).
+  const cbT = (key, fb) => (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb;
+
   // ─── HTML ──────────────────────────────────────────────────────
   const html = `
     <div id="yl-advisor-backdrop"></div>
@@ -382,9 +385,9 @@
         <div class="yl-adv-mark"><img src="/images/logos/ylai-seal.png" alt="Yee Lim Adhesives"></div>
         <div class="yl-adv-header-text">
           <div class="yl-adv-title">Ava</div>
-          <div class="yl-adv-subtitle">Yee Lim Product Advisor</div>
+          <div class="yl-adv-subtitle">${cbT("advisor.subtitle", "Yee Lim Product Advisor")}</div>
         </div>
-        <button class="yl-adv-close" onclick="closeProductAdvisor()" aria-label="Close product advisor">
+        <button class="yl-adv-close" onclick="closeProductAdvisor()" aria-label="${cbT("advisor.aria_close", "Close product advisor")}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -395,10 +398,10 @@
       <div class="yl-adv-footer">
         <div class="yl-adv-input-row">
           <input class="yl-adv-input" id="ylAdvInput" type="text"
-            aria-label="Ask the product advisor a question"
-            placeholder="Message&hellip;"
+            aria-label="${cbT("advisor.aria_input", "Ask the product advisor a question")}"
+            placeholder="${cbT("advisor.placeholder", "Message…")}"
             maxlength="400" autocomplete="off" />
-          <button class="yl-adv-send" id="ylAdvSend" aria-label="Send message" disabled>
+          <button class="yl-adv-send" id="ylAdvSend" aria-label="${cbT("advisor.aria_send", "Send message")}" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/>
@@ -406,7 +409,7 @@
             </svg>
           </button>
         </div>
-        <div class="yl-adv-note">Guidance only. Our team confirms suitability.</div>
+        <div class="yl-adv-note">${cbT("advisor.note", "Guidance only. Our team confirms suitability.")}</div>
       </div>
     </div>
   `;
@@ -464,7 +467,7 @@
     setTimeout(() => {
       hideTyping();
       addMessage("assistant",
-        "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive.");
+        cbT("advisor.greeting", "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive."));
     }, 750);
   }
 
@@ -583,7 +586,7 @@
       const data  = await res.json();
       const reply = (data && typeof data.reply === "string" && data.reply.trim())
         ? data.reply
-        : "I couldn't find an answer for that. Please [submit an enquiry](/enquiry) and our team will help.";
+        : cbT("advisor.fallback", "I couldn't find an answer for that. Please [submit an enquiry](/enquiry) and our team will help.");
 
       hideTyping();
       history.push({ role: "assistant", content: reply });
@@ -591,7 +594,7 @@
     } catch (err) {
       hideTyping();
       addMessage("assistant",
-        "Sorry, I can't connect right now. Please [submit an enquiry](/enquiry) directly."
+        cbT("advisor.error", "Sorry, I can't connect right now. Please [submit an enquiry](/enquiry) directly.")
       );
     } finally {
       isLoading = false;

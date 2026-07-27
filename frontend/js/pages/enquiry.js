@@ -1,6 +1,10 @@
 // Yee Lim — Product Enquiry page controller (extracted from enquiry.html so it
 // survives Swup page swaps). Uses the shared basket API in core/app.js.
 
+// Chinese label helpers (English fallback when zh is not active).
+function eqT(key, fb) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb; }
+function eqItemWord(n) { return window.ylLang === "zh" ? "件" : (n !== 1 ? "items" : "item"); }
+
 // Loading skeleton (catalogue shimmer style) while product data is fetched, so
 // the basket area is not blank on a slow connection.
 function renderBasketSkeleton() {
@@ -20,7 +24,7 @@ function renderBasketSkeleton() {
   if (formSection) formSection.style.display = "block";
   if (colHead) colHead.style.display = "flex";
   if (totalBand) totalBand.style.display = "flex";
-  if (totalCount) totalCount.innerHTML = `<b>${count}</b> item${count !== 1 ? "s" : ""}`;
+  if (totalCount) totalCount.innerHTML = `<b>${count}</b> ${eqItemWord(count)}`;
   const row = '<div class="basket-item" aria-hidden="true" style="align-items:center">' +
     '<div class="skeleton-img" style="width:64px;height:64px;aspect-ratio:auto;border-radius:6px;flex:none"></div>' +
     '<div style="flex:1">' +
@@ -88,9 +92,9 @@ function renderBasket() {
         <div class="basket-empty-icon" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17"/><circle cx="9" cy="20" r="1.4"/><circle cx="16" cy="20" r="1.4"/></svg>
         </div>
-        <h2>No products selected yet</h2>
-        <p>Browse the catalogue and add adhesives to build a single enquiry for our team.</p>
-        <a href="/products" class="btn btn-primary">Browse Products</a>
+        <h2>${eqT("enquiry.empty_title", "No products selected yet")}</h2>
+        <p>${eqT("enquiry.empty_body", "Browse the catalogue and add adhesives to build a single enquiry for our team.")}</p>
+        <a href="/products" class="btn btn-primary">${eqT("enquiry.browse", "Browse Products")}</a>
       </div>`;
     if (formSection) formSection.style.display = "none";
     if (colHead) colHead.style.display = "none";
@@ -103,7 +107,7 @@ function renderBasket() {
   if (totalBand) totalBand.style.display = "flex";
   // Emphasised number + quiet unit (target treatment). products.length is a
   // number, so this innerHTML carries no untrusted text.
-  if (totalCount) totalCount.innerHTML = `<b>${products.length}</b> item${products.length !== 1 ? "s" : ""}`;
+  if (totalCount) totalCount.innerHTML = `<b>${products.length}</b> ${eqItemWord(products.length)}`;
 
   const subtype = p => (typeof productSubtype === "function") ? productSubtype(p) : (p.category || "");
 
@@ -118,12 +122,12 @@ function renderBasket() {
         <div class="basket-item-thumb" aria-hidden="true">${thumb}</div>
         <div class="basket-item-info">
           <div class="basket-item-name">${ylEscapeHtml(p.name)}</div>
-          <span class="basket-item-sub">${ylEscapeHtml(subtype(p))}</span>
+          <span class="basket-item-sub">${ylEscapeHtml(window.ylTerm ? window.ylTerm(subtype(p)) : subtype(p))}</span>
           <span class="basket-item-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
         </div>
         <button class="basket-remove" onclick="removeFromBasket('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from your product enquiry">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <span>Remove</span>
+          <span>${eqT("enquiry.remove", "Remove")}</span>
         </button>
       </div>
     `;
@@ -172,11 +176,11 @@ async function submitEnquiry() {
   // Inline validation: each invalid field gets its own message + aria link;
   // the summary stays as the announced overview (not the only signal).
   const invalid = [];
-  if (!name)    invalid.push({ id: "eName",    label: "full name" });
-  if (!company) invalid.push({ id: "eCompany", label: "company name" });
-  if (!email)   invalid.push({ id: "eEmail",   label: "email address" });
+  if (!name)    invalid.push({ id: "eName",    label: eqT("enquiry.fld_name", "full name") });
+  if (!company) invalid.push({ id: "eCompany", label: eqT("enquiry.fld_company", "company name") });
+  if (!email)   invalid.push({ id: "eEmail",   label: eqT("enquiry.fld_email", "email address") });
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
-    invalid.push({ id: "eEmail", label: "valid email address" });
+    invalid.push({ id: "eEmail", label: eqT("enquiry.fld_email_valid", "valid email address") });
 
   if (invalid.length > 0) {
     invalid.forEach(f => {
@@ -186,7 +190,9 @@ async function submitEnquiry() {
       const inline = document.getElementById(f.id + "Err");
       if (inline) inline.hidden = false;
     });
-    errorEl.textContent   = "Please enter your " + invalid.map(f => f.label).join(", ") + " before sending your enquiry.";
+    errorEl.textContent   = eqT("enquiry.fill_prefix", "Please enter your ") +
+      invalid.map(f => f.label).join(window.ylLang === "zh" ? "、" : ", ") +
+      eqT("enquiry.fill_suffix", " before sending your enquiry.");
     errorEl.style.display = "block";
     document.getElementById(invalid[0].id).focus();
     window.scrollTo({ top: errorEl.offsetTop - 100, behavior: "smooth" });
@@ -197,7 +203,7 @@ async function submitEnquiry() {
   if (privacy && !privacy.checked) {
     privacy.setAttribute("aria-invalid", "true");
     if (privacyErr) privacyErr.hidden = false;
-    errorEl.textContent   = "Please agree to the use of your information so we can process your enquiry.";
+    errorEl.textContent   = eqT("enquiry.err_privacy", "Please agree to the use of your information so we can process your enquiry.");
     errorEl.style.display = "block";
     privacy.focus();
     return;
@@ -212,7 +218,7 @@ async function submitEnquiry() {
     .map(p => p.name);
 
   btn.disabled    = true;
-  btn.textContent = "Sending…";
+  btn.textContent = eqT("enquiry.sending", "Sending…");
 
   try {
     let res;
@@ -223,13 +229,13 @@ async function submitEnquiry() {
         body: JSON.stringify({ name, company, email, phone, message, products, website })
       });
     } catch (networkErr) {
-      throw new Error("We could not send your enquiry right now. Please try again shortly, or contact Yee Lim directly via the Contact page.");
+      throw new Error(eqT("enquiry.send_fail", "We could not send your enquiry right now. Please try again shortly, or contact Yee Lim directly via the Contact page."));
     }
 
     const result = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      throw new Error(result.message || "Something went wrong. Please try again.");
+      throw new Error(result.message || eqT("enquiry.send_wrong", "Something went wrong. Please try again."));
     }
 
     // Success — clear the basket and show the confirmation screen
@@ -241,7 +247,7 @@ async function submitEnquiry() {
     // Show the reference number and the "we emailed you a copy" note.
     if (result.reference) {
       const refEl = document.getElementById("confirmationRef");
-      refEl.textContent = "Your reference: " + result.reference;
+      refEl.textContent = eqT("enquiry.your_ref", "Your reference:") + " " + result.reference;
       refEl.style.display = "block";
     }
     if (result.confirmed) {
@@ -252,7 +258,7 @@ async function submitEnquiry() {
     errorEl.textContent   = err.message;
     errorEl.style.display = "block";
     btn.disabled    = false;
-    btn.textContent = "Submit Enquiry";
+    btn.textContent = eqT("enquiry.submit", "Submit Enquiry");
     // Move focus to the message so screen readers announce the failure
     errorEl.focus();
     window.scrollTo({ top: errorEl.offsetTop - 100, behavior: "smooth" });

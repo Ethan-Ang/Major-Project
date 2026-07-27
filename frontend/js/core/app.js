@@ -72,13 +72,15 @@
     try {
       window.saveBasket(basket); // persists + updates count + dispatches basketUpdated
     } catch (e) {
-      window.showToast("Sorry, we couldn't update your enquiry. Please try again.", "error");
+      var errMsg = (window.ylLang === "zh" && window.ylT) ? (window.ylT("enquiry.update_fail") || "Sorry, we couldn't update your enquiry. Please try again.") : "Sorry, we couldn't update your enquiry. Please try again.";
+      window.showToast(errMsg, "error");
       return; // basket not persisted -> button state unchanged, retry possible
     }
-    var name = (productName && String(productName).trim()) ? String(productName).trim() : "Product";
+    var zh = (window.ylLang === "zh" && window.ylT);
+    var name = (productName && String(productName).trim()) ? String(productName).trim() : (zh ? "产品" : "Product");
     window.announce(adding
-      ? name + " was added to your product enquiry."
-      : name + " was removed from your product enquiry.");
+      ? name + (zh ? " " + (window.ylT("common.added_enquiry") || "") : " was added to your product enquiry.")
+      : name + (zh ? " " + (window.ylT("common.removed_enquiry") || "") : " was removed from your product enquiry."));
   };
 
   window.updateBasketCount = function () {

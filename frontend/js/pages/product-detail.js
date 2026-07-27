@@ -105,7 +105,7 @@ async function initDetailPage() {
     // skeleton content they held, so no separate clearing of #detailSummary
     // is needed here.
     if (grid) grid.innerHTML =
-      "<p style='padding:3rem 1.5rem;color:var(--muted)'>Product not found. <a href='/products' style='color:var(--red)'>Back to products</a></p>";
+      "<p style='padding:3rem 1.5rem;color:var(--muted)'>" + ylTr("detail.not_found", "Product not found.") + " <a href='/products' style='color:var(--red)'>" + ylTr("detail.back_products", "Back to products") + "</a></p>";
     const tabs = document.querySelector(".detail-tabs");
     if (tabs) tabs.style.display = "none";
     const advice = document.getElementById("detailAdvice");
@@ -335,7 +335,7 @@ function renderSummary(product) {
       <button
         class="btn btn-primary detail-act-enq${inBasket ? " btn-added" : ""}"
         id="sidebarBasketBtn"
-        data-enquiry-label="Add to Enquiry"
+        data-enquiry-label="${ylTr("common.add_enquiry", "Add to Enquiry")}"
         aria-pressed="${inBasket ? "true" : "false"}"
         onclick="toggleBasket('${product.id}', '${ylTxt(product.name)}')">
         ${inBasket
@@ -447,8 +447,8 @@ function renderSpecTable(product) {
   if (!left.length && !right.length) {
     el.innerHTML = `
       <div class="apply-empty">
-        <p>Specifications for this product are available from our team.</p>
-        <p><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> for detailed technical information.</p>
+        <p>${ylTr("detail.spec_empty", "Specifications for this product are available from our team.")}</p>
+        <p><a href="/contact" class="doc-empty-link">${ylTr("detail.contact_yl", "Contact Yee Lim")}</a> ${ylTr("detail.tech_info", "for detailed technical information.")}</p>
       </div>`;
     return;
   }
@@ -552,8 +552,8 @@ function renderDownloads(product) {
           </svg>
         </span>
         <span class="doc-empty-text">
-          <span class="doc-empty-main">No downloads are currently available for this product.</span>
-          <span class="doc-empty-sub">Contact Yee Lim for technical documentation.</span>
+          <span class="doc-empty-main">${ylTr("detail.no_downloads", "No downloads are currently available for this product.")}</span>
+          <span class="doc-empty-sub">${ylTr("detail.no_downloads_sub", "Contact Yee Lim for technical documentation.")}</span>
         </span>
       </div>
       <a class="btn-whatsapp-sidebar doc-empty-wa" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Chat about this product on WhatsApp">
@@ -610,25 +610,25 @@ function ensureDocGate() {
   ov.hidden = true;
   ov.innerHTML = `
     <div class="ylg-modal" role="dialog" aria-modal="true" aria-labelledby="ylgTitle">
-      <button class="ylg-close" type="button" onclick="closeDocGate()" aria-label="Close">&times;</button>
+      <button class="ylg-close" type="button" onclick="closeDocGate()" aria-label="${ylTr("detail.gate_close", "Close")}">&times;</button>
       <div id="ylgForm">
-        <p class="ylg-eyebrow" id="ylgEyebrow">Document</p>
-        <h3 class="ylg-title" id="ylgTitle">Download the document</h3>
-        <p class="ylg-notice">We collect your name, work email, company and optional contact number to record and manage your request for this document, and to contact you about it where necessary. Your details are accessible only to authorised Yee Lim staff and are not used for marketing without your consent.</p>
+        <p class="ylg-eyebrow" id="ylgEyebrow">${ylTr("detail.gate_doc", "Document")}</p>
+        <h3 class="ylg-title" id="ylgTitle">${ylTr("detail.gate_title", "Download the document")}</h3>
+        <p class="ylg-notice">${ylTr("detail.gate_notice", "We collect your name, work email, company and optional contact number to record and manage your request for this document, and to contact you about it where necessary. Your details are accessible only to authorised Yee Lim staff and are not used for marketing without your consent.")}</p>
         <div class="ylg-error" id="ylgError" hidden></div>
-        <div class="ylg-field"><label for="ylgName">Name *</label><input id="ylgName" type="text" autocomplete="name"></div>
-        <div class="ylg-field"><label for="ylgEmail">Work email *</label><input id="ylgEmail" type="email" autocomplete="email"></div>
-        <div class="ylg-field"><label for="ylgCompany">Company *</label><input id="ylgCompany" type="text" autocomplete="organization"></div>
-        <div class="ylg-field"><label for="ylgPhone">Contact number</label><input id="ylgPhone" type="tel" autocomplete="tel"></div>
+        <div class="ylg-field"><label for="ylgName">${ylTr("detail.gate_name", "Name *")}</label><input id="ylgName" type="text" autocomplete="name"></div>
+        <div class="ylg-field"><label for="ylgEmail">${ylTr("detail.gate_email", "Work email *")}</label><input id="ylgEmail" type="email" autocomplete="email"></div>
+        <div class="ylg-field"><label for="ylgCompany">${ylTr("detail.gate_company", "Company *")}</label><input id="ylgCompany" type="text" autocomplete="organization"></div>
+        <div class="ylg-field"><label for="ylgPhone">${ylTr("detail.gate_phone", "Contact number")}</label><input id="ylgPhone" type="tel" autocomplete="tel"></div>
         <input class="ylg-hp" id="ylgWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <button class="ylg-submit" id="ylgSubmit" type="button" onclick="submitDocGate()">Get the document</button>
+        <button class="ylg-submit" id="ylgSubmit" type="button" onclick="submitDocGate()">${ylTr("detail.gate_submit", "Get the document")}</button>
       </div>
       <div id="ylgDone" hidden>
         <div class="ylg-done">
           <div class="ylg-done-ic" aria-hidden="true">&#10003;</div>
-          <h3>Your download is starting</h3>
-          <p>If it doesn't begin automatically, <a id="ylgManual" href="#" target="_blank" rel="noopener">click here to download</a>.</p>
-          <button class="ylg-submit" type="button" onclick="closeDocGate()">Done</button>
+          <h3>${ylTr("detail.gate_starting", "Your download is starting")}</h3>
+          <p>${ylTr("detail.gate_manual_pre", "If it doesn't begin automatically,")} <a id="ylgManual" href="#" target="_blank" rel="noopener">${ylTr("detail.gate_manual_link", "click here to download")}</a>.</p>
+          <button class="ylg-submit" type="button" onclick="closeDocGate()">${ylTr("detail.gate_done", "Done")}</button>
         </div>
       </div>
     </div>`;
@@ -650,7 +650,7 @@ function openDocGate(productId, docType, label) {
   document.getElementById("ylgDone").hidden = true;
   ["ylgName", "ylgEmail", "ylgCompany", "ylgPhone", "ylgWebsite"].forEach(id => { document.getElementById(id).value = ""; });
   const btn = document.getElementById("ylgSubmit");
-  btn.disabled = false; btn.textContent = "Get the document";
+  btn.disabled = false; btn.textContent = ylTr("detail.gate_submit", "Get the document");
   document.getElementById("ylgOverlay").hidden = false;
   setTimeout(() => { try { document.getElementById("ylgName").focus(); } catch (e) {} }, 60);
 }
@@ -688,13 +688,13 @@ async function submitDocGate() {
     });
     data = await res.json().catch(() => ({}));
   } catch (e) {
-    btn.disabled = false; btn.textContent = "Get the document";
+    btn.disabled = false; btn.textContent = ylTr("detail.gate_submit", "Get the document");
     show("Could not reach the server. Please try again.");
     return;
   }
 
   if (!res.ok || !data.downloadUrl) {
-    btn.disabled = false; btn.textContent = "Get the document";
+    btn.disabled = false; btn.textContent = ylTr("detail.gate_submit", "Get the document");
     show(data.message || "Sorry, we couldn't process that. Please try again.");
     return;
   }
@@ -740,7 +740,7 @@ function renderStickyCta(product) {
   if (document.getElementById("stickyCta")) return;
   const inBasket  = getBasket().includes(product.id);
   const inCompare = isInCompare(product.id);
-  const addLabel  = product.status === "Available" ? "Add to Enquiry" : "Enquire";
+  const addLabel  = product.status === "Available" ? ylTr("common.add_enquiry", "Add to Enquiry") : ylTr("detail.enquire", "Enquire");
 
   // WhatsApp quick-chat, pre-filled with the product name (same number as the
   // sidebar, contact page + footer).
@@ -920,8 +920,8 @@ function renderApplication(product) {
   if (!cols.length) {
     el.innerHTML = `
       <div class="apply-empty">
-        <p>Application guidance for this product is available from our team.</p>
-        <p><a href="/contact" class="doc-empty-link">Contact Yee Lim</a> for advice on your surface and application.</p>
+        <p>${ylTr("detail.apply_empty", "Application guidance for this product is available from our team.")}</p>
+        <p><a href="/contact" class="doc-empty-link">${ylTr("detail.contact_yl", "Contact Yee Lim")}</a> ${ylTr("detail.surface_advice", "for advice on your surface and application.")}</p>
       </div>`;
     return;
   }
@@ -1037,12 +1037,12 @@ function renderAdvice(product) {
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 0 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
       </span>
       <div class="enquiry-guidance-copy">
-        <h2 class="enquiry-guidance-title">Need help confirming compatibility?</h2>
-        <p>Share your materials, application and quantity requirements. Our team will help confirm the most suitable option.</p>
+        <h2 class="enquiry-guidance-title">${ylTr("detail.guidance_title", "Need help confirming compatibility?")}</h2>
+        <p>${ylTr("detail.guidance_body", "Share your materials, application and quantity requirements. Our team will help confirm the most suitable option.")}</p>
       </div>
       <button type="button" class="enquiry-guidance-link"
         onclick="if(window.openProductAdvisor){openProductAdvisor()}else{window.location.href='/contact'}">
-        Get Product Advice
+        ${ylTr("enquiry.get_advice", "Get Product Advice")}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>`;
@@ -1154,7 +1154,7 @@ function syncRelatedEnqButtons() {
     const on = basket.includes(String(btn.dataset.productId));
     btn.classList.toggle("added", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
-    btn.textContent = on ? "In Enquiry" : "Add to Enquiry";
+    btn.textContent = on ? ylTr("common.in_enquiry", "In Enquiry") : ylTr("common.add_enquiry", "Add to Enquiry");
   });
 }
 
@@ -1169,15 +1169,15 @@ function syncDetailBasketButtons(product) {
   const btn = document.getElementById("sidebarBasketBtn");
   if (btn) {
     btn.innerHTML = inBasket
-      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> In Enquiry`
-      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg> ${btn.dataset.enquiryLabel || "Add to Enquiry"}`;
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> ${ylTr("common.in_enquiry", "In Enquiry")}`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg> ${btn.dataset.enquiryLabel || ylTr("common.add_enquiry", "Add to Enquiry")}`;
     btn.classList.toggle("btn-added", inBasket);
     btn.setAttribute("aria-pressed", inBasket ? "true" : "false");
   }
 
   const sticky = document.getElementById("stickyBasketBtn");
   if (sticky) {
-    sticky.textContent = inBasket ? "In Enquiry" : (sticky.dataset.addLabel || "Add to Enquiry");
+    sticky.textContent = inBasket ? ylTr("common.in_enquiry", "In Enquiry") : (sticky.dataset.addLabel || ylTr("common.add_enquiry", "Add to Enquiry"));
     sticky.classList.toggle("added", inBasket);
     sticky.setAttribute("aria-pressed", inBasket ? "true" : "false");
   }

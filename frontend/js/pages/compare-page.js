@@ -111,7 +111,7 @@ function renderSelectPanel(products) {
         <span class="csel-text">
           <span class="csel-brand">${ylEscapeHtml(brandDisplay(p.brand))}</span>
           <span class="csel-name">${ylEscapeHtml(p.name)}</span>
-          <span class="csel-sub">${ylEscapeHtml(subtype(p))}</span>
+          <span class="csel-sub">${ylEscapeHtml(window.ylTerm ? window.ylTerm(subtype(p)) : subtype(p))}</span>
         </span>
         <button class="csel-x" onclick="toggleCompare('${p.id}')" aria-label="Remove ${ylEscapeHtml(p.name)} from comparison">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -167,7 +167,7 @@ function renderComparePage() {
 
   const headerCols = products.map(p => {
     const brandLabel  = cxBrandLabel(p.brand);
-    const placeholderSub = ylEscapeHtml((p.category && p.category !== "Others") ? p.category : "Adhesive Solution");
+    const placeholderSub = ylEscapeHtml(window.ylTerm ? window.ylTerm((p.category && p.category !== "Others") ? p.category : "Adhesive Solution") : ((p.category && p.category !== "Others") ? p.category : "Adhesive Solution"));
     const hasRealImage = p.images && p.images.length > 0;
     const imgContent = hasRealImage
       ? `<img src="${encodeURI(p.images[0])}" alt="${ylEscapeHtml(p.name)}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
@@ -183,7 +183,7 @@ function renderComparePage() {
           </div>
           <div class="compare-product-brand">${ylEscapeHtml(brandDisplay(p.brand))}</div>
           <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
-          <div class="compare-product-sub">${ylEscapeHtml(subtype(p))}</div>
+          <div class="compare-product-sub">${ylEscapeHtml(window.ylTerm ? window.ylTerm(subtype(p)) : subtype(p))}</div>
         </div>
       </td>`;
   }).join("");
@@ -191,7 +191,10 @@ function renderComparePage() {
   // Real comparison fields only; a missing value renders as an em dash.
   const EMPTY = `<span class="compare-empty-val" aria-label="Not specified">&mdash;</span>`;
   const text = v => (v && String(v).trim()) ? ylEscapeHtml(String(v).trim()) : EMPTY;
-  const listVals = arr => (arr && arr.length) ? ylEscapeHtml(arr.join(", ")) : EMPTY;
+  // Chinese: translate each data value; join lists with the full-width comma.
+  const termOf = window.ylTerm || (x => x);
+  const joinSep = (window.ylLang === "zh") ? "，" : ", ";
+  const listVals = arr => (arr && arr.length) ? ylEscapeHtml(arr.map(termOf).join(joinSep)) : EMPTY;
   // The real "Suitable for" method segment of the usage field, when present.
   const methodOf = p => {
     const usage = String(p.usage || "").trim();
@@ -202,23 +205,24 @@ function renderComparePage() {
   const check = `<span class="compare-check" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`;
   const icon = d => `<span class="compare-label-ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg></span>`;
 
+  const ylTr = function (key, fb) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb; };
   const specRows = [
-    { label: "Best for",
+    { label: ylTr("common.best_for", "Best for"),
       ic: icon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>'),
       render: p => listVals(p.industries) },
-    { label: "Surface / Material",
+    { label: ylTr("spec.surfaces", "Surface / Material"),
       ic: icon('<polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/>'),
       render: p => listVals(p.surfaces) },
-    { label: "Application Method",
+    { label: ylTr("spec.app_method", "Application Method"),
       ic: icon('<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>'),
-      render: p => text(methodOf(p)) },
-    { label: "Category",
+      render: p => text(termOf(methodOf(p))) },
+    { label: ylTr("compare.category", "Category"),
       ic: icon('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>'),
-      render: p => text(p.category === "Others" ? "Application Equipment" : p.category) },
-    { label: "Key Features",
+      render: p => text(termOf(p.category === "Others" ? "Application Equipment" : p.category)) },
+    { label: ylTr("compare.key_features", "Key Features"),
       ic: icon('<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'),
       render: p => p.features.length
-        ? p.features.map(f => `<div class="compare-feature">${check}${ylEscapeHtml(f)}</div>`).join("")
+        ? p.features.map(f => `<div class="compare-feature">${check}${ylEscapeHtml(termOf(f))}</div>`).join("")
         : EMPTY }
   ].map(row => `
     <tr>
