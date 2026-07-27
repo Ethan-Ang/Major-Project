@@ -155,6 +155,44 @@ test("desktop compare trigger stays language-neutral and centered", () => {
   const count = findRule([".compare-tray-trigger #compareTrayCount"]);
   assert.ok(count, "compare tray count base rule must exist");
   assert.equal(count.declarations["margin-left"], "0");
+
+  const isLanguageSpecificCompareSelector = selector =>
+    (selector.includes("[lang") || selector.includes(":lang(")) &&
+    (
+      selector.includes("compare-tray-trigger") ||
+      selector.includes("compareTrayCount")
+    );
+  assert.equal(
+    isLanguageSpecificCompareSelector('[lang="zh"] .compare-tray-trigger'),
+    true,
+    "guard must detect a synthetic [lang] compare offset"
+  );
+  assert.equal(
+    isLanguageSpecificCompareSelector(":lang(zh) #compareTrayCount"),
+    true,
+    "guard must detect a synthetic :lang() compare offset"
+  );
+  const languageSpecificRules = cssRules(css).filter(rule =>
+    rule.selectors.some(isLanguageSpecificCompareSelector)
+  );
+  assert.deepEqual(
+    languageSpecificRules.map(rule => rule.selectors),
+    [],
+    "compare alignment must not use language-specific CSS rules"
+  );
+
+  const sideTab = findRule([
+    ".compare-tray:not(.is-expanded) .compare-tray-trigger",
+  ]);
+  assert.ok(sideTab, "collapsed phone side-tab rule must exist");
+  assert.equal(sideTab.declarations["writing-mode"], "vertical-rl");
+  assert.equal(sideTab.declarations["justify-content"], "center");
+
+  const sideTabCount = findRule([
+    ".compare-tray:not(.is-expanded) .compare-tray-trigger #compareTrayCount",
+  ]);
+  assert.ok(sideTabCount, "collapsed phone count rule must exist");
+  assert.equal(sideTabCount.declarations.margin, "0");
 });
 
 test("sort label remains legible in both languages", () => {
