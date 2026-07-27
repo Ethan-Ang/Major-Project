@@ -98,6 +98,13 @@ test("all compare-product remove controls share option A", () => {
   assert.equal(shared.declarations.border, "1px solid var(--border)");
   assert.equal(shared.declarations.color, "var(--red)");
 
+  const selectionCard = findRule([".csel-card"]);
+  assert.ok(selectionCard, "selection card base rule must exist");
+  assert.equal(
+    selectionCard.declarations.padding,
+    "0.6rem 3.35rem 0.6rem 0.6rem"
+  );
+
   const icons = findRule([
     ".cmp-slot-x svg",
     ".csel-x svg",
@@ -116,4 +123,26 @@ test("all compare-product remove controls share option A", () => {
   assert.ok(hover, "remove controls must share one hover rule");
   assert.equal(hover.declarations.background, "var(--red-tint)");
   assert.equal(hover.declarations["border-color"], "var(--red-tint-bdr)");
+
+  const active = findRule([
+    ".cmp-slot-x:active",
+    ".csel-x:active",
+    ".compare-col-x:active",
+  ]);
+  assert.ok(active, "remove controls must share one active rule");
+  assert.equal(active.declarations.color, "var(--red)");
+  assert.equal(active.declarations.background, "var(--red-tint)");
+  assert.equal(active.declarations["border-color"], "var(--red-tint-bdr)");
+
+  const focusSelectors = [
+    ".cmp-slot-x:focus-visible",
+    ".csel-x:focus-visible",
+    ".compare-col-x:focus-visible",
+  ];
+  const focus = cssRules(css).find(rule =>
+    focusSelectors.every(selector => rule.selectors.includes(selector))
+  );
+  assert.ok(focus, "remove controls must share one focus group");
+  assert.equal(focus.declarations.outline, "2px solid var(--red)");
+  assert.equal(focus.declarations["outline-offset"], "2px");
 });

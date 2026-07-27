@@ -4245,7 +4245,7 @@ body.cmp-rotate-open { overflow: hidden; }
   gap: 0.65rem;
   min-height: 76px;
   box-sizing: border-box;
-  padding: 0.6rem 1.85rem 0.6rem 0.6rem;
+  padding: 0.6rem 3.35rem 0.6rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: 5px;
   background: #fff;
@@ -4345,6 +4345,14 @@ body.cmp-rotate-open { overflow: hidden; }
   background: var(--red-tint);
 }
 
+.cmp-slot-x:active,
+.csel-x:active,
+.compare-col-x:active {
+  color: var(--red);
+  border-color: var(--red-tint-bdr);
+  background: var(--red-tint);
+}
+
 .csel-add {
   display: flex;
   flex-direction: column;
@@ -4416,7 +4424,7 @@ body.cmp-rotate-open { overflow: hidden; }
     right: 4px;
     z-index: 1;
   }
-  .csel-card { min-height: 80px; padding-right: 3.35rem; }
+  .csel-card { min-height: 80px; }
   .csel-x {
     top: 50%;
     right: 0.35rem;
