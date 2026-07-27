@@ -28,6 +28,11 @@ function comparePageCopy(lang) {
       closeHint: "Dismiss",
       remove: "Remove {product} from comparison",
       notSpecified: "Not specified",
+      emptyTitle: "Add at least 2 products to compare",
+      emptyBody: "Browse the catalogue and click + Compare on the cards you want to compare side by side.",
+      emptyAction: "+ Compare",
+      browseProducts: "Browse Products",
+      productLabel: "Product",
       disclaimer: "Product information is provided for general guidance only. Contact Yee Lim for full technical details."
     },
     zh: {
@@ -43,6 +48,11 @@ function comparePageCopy(lang) {
       closeHint: "关闭提示",
       remove: "从对比中移除 {product}",
       notSpecified: "未提供",
+      emptyTitle: "请至少添加 2 款产品进行对比",
+      emptyBody: "浏览产品目录，并在需要并排对比的产品卡片上点击“+ 对比”。",
+      emptyAction: "+ 对比",
+      browseProducts: "浏览产品",
+      productLabel: "产品",
       disclaimer: "产品信息仅供一般参考。如需完整技术资料，请联系 Yee Lim。"
     }
   };
@@ -58,6 +68,13 @@ function formatComparePageCopy(template, replacements) {
       ? String(values[key])
       : match;
   });
+}
+
+function emphasizeComparePageAction(body, action) {
+  const text = String(body);
+  const label = String(action);
+  if (!label) return text;
+  return text.replace(label, "<strong>" + label + "</strong>");
 }
 
 // Loading skeleton (catalogue shimmer style) while product data is fetched.
@@ -207,9 +224,9 @@ function renderComparePage() {
   if (products.length < 2) {
     content.innerHTML = `
       <div class="empty-state">
-        <h2>Add at least 2 products to compare</h2>
-        <p>Browse the catalogue and click <strong>+ Compare</strong> on the cards you want to compare side by side.</p>
-        <a href="/products" class="btn btn-primary" style="display:inline-flex;margin-top:1.25rem">Browse Products</a>
+        <h2>${copy.emptyTitle}</h2>
+        <p>${emphasizeComparePageAction(copy.emptyBody, copy.emptyAction)}</p>
+        <a href="/products" class="btn btn-primary" style="display:inline-flex;margin-top:1.25rem">${copy.browseProducts}</a>
       </div>`;
     syncCompareRotateHint();
     return;
@@ -302,7 +319,7 @@ function renderComparePage() {
         </colgroup>
         <thead>
           <tr>
-            <td class="compare-row-label compare-corner">Product</td>
+            <td class="compare-row-label compare-corner">${copy.productLabel}</td>
             ${headerCols}
           </tr>
         </thead>

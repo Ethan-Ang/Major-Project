@@ -89,6 +89,9 @@
   });
 
   function afterSwap() {
+    if (typeof window.ylApplyI18n === "function") {
+      window.ylApplyI18n(document.getElementById("swup") || document);
+    }
     if (typeof window.ylRunReady === "function") window.ylRunReady();
 
     // Tidy up chrome that some pages inject into <body> but others must not show.
@@ -108,10 +111,10 @@
   }
 
   function updateNavActive() {
-    // navbar.js owns the rule for what counts as "active" (Products stays lit
-    // across product-detail and compare) and applies it to the desktop row AND
-    // the mobile drawer. Calling its helper keeps a swap identical to a direct
-    // page load instead of maintaining a second, diverging copy here.
+    // navbar.js owns exact-route active matching and applies it to the desktop
+    // row AND the mobile drawer. Product detail and compare therefore do not
+    // inherit the Products state. Calling its helper keeps a swap identical to
+    // a direct page load instead of maintaining a second, diverging copy here.
     if (typeof window.ylSyncNavActive === "function") window.ylSyncNavActive();
     // Close the mobile drawer if it was left open by the tap that navigated.
     var drawer = document.getElementById("_navDrawer");

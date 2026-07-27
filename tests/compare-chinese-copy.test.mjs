@@ -44,6 +44,12 @@ const englishCopy = {
   closeHint: "Dismiss",
   remove: "Remove {product} from comparison",
   notSpecified: "Not specified",
+  emptyTitle: "Add at least 2 products to compare",
+  emptyBody:
+    "Browse the catalogue and click + Compare on the cards you want to compare side by side.",
+  emptyAction: "+ Compare",
+  browseProducts: "Browse Products",
+  productLabel: "Product",
   disclaimer:
     "Product information is provided for general guidance only. Contact Yee Lim for full technical details.",
 };
@@ -62,8 +68,54 @@ const chineseCopy = {
   closeHint: "关闭提示",
   remove: "从对比中移除 {product}",
   notSpecified: "未提供",
+  emptyTitle: "请至少添加 2 款产品进行对比",
+  emptyBody: "浏览产品目录，并在需要并排对比的产品卡片上点击“+ 对比”。",
+  emptyAction: "+ 对比",
+  browseProducts: "浏览产品",
+  productLabel: "产品",
   disclaimer: "产品信息仅供一般参考。如需完整技术资料，请联系 Yee Lim。",
 };
+
+const compareCopyIntegrations = [
+  {
+    key: "emptyTitle",
+    fragment: "<h2>${copy.emptyTitle}</h2>",
+    mutationTarget: "${copy.emptyTitle}",
+  },
+  {
+    key: "emptyBody",
+    fragment:
+      "<p>${emphasizeComparePageAction(copy.emptyBody, copy.emptyAction)}</p>",
+    mutationTarget: "copy.emptyBody",
+  },
+  {
+    key: "emptyAction",
+    fragment:
+      "<p>${emphasizeComparePageAction(copy.emptyBody, copy.emptyAction)}</p>",
+    mutationTarget: "copy.emptyAction",
+  },
+  {
+    key: "browseProducts",
+    fragment:
+      'style="display:inline-flex;margin-top:1.25rem">${copy.browseProducts}</a>',
+    mutationTarget: "${copy.browseProducts}",
+  },
+  {
+    key: "productLabel",
+    fragment:
+      '<td class="compare-row-label compare-corner">${copy.productLabel}</td>',
+    mutationTarget: "${copy.productLabel}",
+  },
+];
+
+function assertCompareCopyIntegrated(source) {
+  for (const { key, fragment } of compareCopyIntegrations) {
+    assert.ok(
+      source.includes(fragment),
+      `${key} must be interpolated from comparePageCopy at its render site`
+    );
+  }
+}
 
 test("comparePageCopy returns the exact English and Simplified-Chinese copy", () => {
   const comparePageCopy = extractNamedFunction(
@@ -115,6 +167,43 @@ test("compare-page copy safely formats count and named placeholders", () => {
     "Keep {missing}",
     "unknown placeholders must remain intact"
   );
+});
+
+test("under-two action emphasis is preserved in both languages", () => {
+  const emphasizeComparePageAction = extractNamedFunction(
+    comparePageSource,
+    "emphasizeComparePageAction"
+  );
+
+  assert.equal(
+    emphasizeComparePageAction(englishCopy.emptyBody, englishCopy.emptyAction),
+    "Browse the catalogue and click <strong>+ Compare</strong> on the cards you want to compare side by side."
+  );
+  assert.equal(
+    emphasizeComparePageAction(chineseCopy.emptyBody, chineseCopy.emptyAction),
+    "浏览产品目录，并在需要并排对比的产品卡片上点击“<strong>+ 对比</strong>”。"
+  );
+});
+
+test("under-two and table-corner render sites cannot regress to hardcoded copy", () => {
+  assertCompareCopyIntegrated(comparePageSource);
+
+  for (const { key, fragment, mutationTarget } of compareCopyIntegrations) {
+    const mutation = comparePageSource.replace(
+      fragment,
+      fragment.replace(mutationTarget, englishCopy[key])
+    );
+    assert.notEqual(
+      mutation,
+      comparePageSource,
+      `${key} mutation fixture must alter the source`
+    );
+    assert.throws(
+      () => assertCompareCopyIntegrated(mutation),
+      /must be interpolated from comparePageCopy/,
+      `${key} guard must reject hardcoded integration`
+    );
+  }
 });
 
 test("compare.html requests the localized compare-page asset version", () => {
