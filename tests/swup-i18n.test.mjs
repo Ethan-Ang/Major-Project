@@ -104,6 +104,22 @@ test("all public Swup consumers request compare-page.js v20", () => {
   }
 });
 
+test("all public Swup consumers request compare.js v22", () => {
+  for (const page of publicConsumers) {
+    const html = consumerHtml(page);
+    assert.match(
+      html,
+      /src="\/js\/widgets\/compare\.js\?v=22"/,
+      `${page} must request compare.js v22`
+    );
+    assert.doesNotMatch(
+      html,
+      /src="\/js\/widgets\/compare\.js\?v=21"/,
+      `${page} must not request stale compare.js v21`
+    );
+  }
+});
+
 test("afterSwap reapplies static i18n before ready callbacks", () => {
   const swupRoot = { id: "swup" };
   const withRoot = runAfterSwap(swupRoot);

@@ -207,6 +207,8 @@ test("catalogue pages request the corrected asset versions", () => {
     "products.html",
     "product-detail.html",
     "compare.html",
+    "enquiry.html",
+    "contact.html",
   ]) {
     const html = fs.readFileSync(
       new URL(`../frontend/${page}`, import.meta.url),

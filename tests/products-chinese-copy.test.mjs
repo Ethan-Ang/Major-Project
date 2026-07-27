@@ -100,20 +100,20 @@ for (const page of [
   "enquiry.html",
   "contact.html",
 ]) {
-  test(`${page} requests products.js v49`, () => {
+  test(`${page} requests products.js v50`, () => {
     const html = fs.readFileSync(
       new URL(`../frontend/${page}`, import.meta.url),
       "utf8"
     );
     assert.match(
       html,
-      /src="\/js\/pages\/products\.js\?v=49"/,
-      `${page} must request products.js v49`
+      /src="\/js\/pages\/products\.js\?v=50"/,
+      `${page} must request products.js v50`
     );
     assert.doesNotMatch(
       html,
-      /src="\/js\/pages\/products\.js\?v=48"/,
-      `${page} must not request stale products.js v48`
+      /src="\/js\/pages\/products\.js\?v=49"/,
+      `${page} must not request stale products.js v49`
     );
   });
 }
