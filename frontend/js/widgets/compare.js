@@ -563,6 +563,67 @@ window.addEventListener("scroll", () => {
 // Recently-viewed ids are written by product-detail.js (ylPushRecentlyViewed).
 const YL_RECENT_KEY = "recentlyViewed";
 
+function comparePickerCopy(lang) {
+  const copy = {
+    en: {
+      eyebrow: "Compare Products",
+      title: "Add a product to compare",
+      closeAria: "Close product picker",
+      sourceAria: "Product source",
+      recentTab: "Recently viewed",
+      allTab: "All products",
+      searchLabel: "Search products to compare",
+      searchPlaceholder: "Search by name, brand or keyword…",
+      loading: "Loading products…",
+      selectedCount: "{count} of {max} selected",
+      recentEmptyTitle: "No recently viewed products",
+      recentEmptyBody: "Products you open will appear here for quick comparison.",
+      browseAll: "Browse all products",
+      noSearchResults: "No products match your search.",
+      noProducts: "No products available.",
+      add: "Add",
+      added: "Added",
+      removeAria: "Remove {product} from comparison",
+      addAria: "Add {product} to comparison",
+      fullAria: "Comparison full: remove one to add another"
+    },
+    zh: {
+      eyebrow: "产品对比",
+      title: "添加产品进行对比",
+      closeAria: "关闭产品选择器",
+      sourceAria: "产品来源",
+      recentTab: "最近浏览",
+      allTab: "所有产品",
+      searchLabel: "搜索要对比的产品",
+      searchPlaceholder: "按名称、品牌或关键词搜索……",
+      loading: "正在加载产品……",
+      selectedCount: "已选择 {count}／{max} 款产品",
+      recentEmptyTitle: "暂无最近浏览的产品",
+      recentEmptyBody: "您浏览过的产品将显示在此处，便于快速对比。",
+      browseAll: "浏览所有产品",
+      noSearchResults: "没有符合搜索条件的产品。",
+      noProducts: "暂无可用产品。",
+      add: "添加",
+      added: "已添加",
+      removeAria: "从对比中移除 {product}",
+      addAria: "将 {product} 添加至对比",
+      fullAria: "对比列表已满：请先移除一款产品再添加"
+    }
+  };
+  return lang === "zh" ? copy.zh : copy.en;
+}
+
+function formatComparePickerCopy(template, replacements) {
+  const values = replacements !== null && typeof replacements === "object"
+    ? replacements
+    : { count: replacements };
+  return String(template).replace(/\{([a-z][a-zA-Z0-9]*)\}/g, function (match, key) {
+    return Object.prototype.hasOwnProperty.call(values, key)
+      ? String(values[key])
+      : match;
+  });
+}
+
 function ylGetRecentlyViewed() {
   try { return JSON.parse(localStorage.getItem(YL_RECENT_KEY) || "[]").map(String); }
   catch (e) { return []; }
@@ -580,6 +641,7 @@ let _pickerState = null; // { tab, query, release, opener }
 function openComparePicker(opener) {
   if (document.getElementById("ylCmpPicker")) return; // already open
 
+  const copy = comparePickerCopy(window.ylLang);
   const recents = ylGetRecentlyViewed();
   _pickerState = {
     tab: recents.length ? "recent" : "all",
@@ -600,23 +662,23 @@ function openComparePicker(opener) {
   panel.innerHTML = `
     <div class="cmp-picker-head">
       <div>
-        <span class="cmp-picker-eyebrow">Compare Products</span>
-        <h2 class="cmp-picker-title" id="ylCmpPickerTitle">Add a product to compare</h2>
+        <span class="cmp-picker-eyebrow">${copy.eyebrow}</span>
+        <h2 class="cmp-picker-title" id="ylCmpPickerTitle">${copy.title}</h2>
         <span class="cmp-picker-count" id="ylCmpPickerCount"></span>
       </div>
-      <button class="cmp-picker-x" type="button" onclick="closeComparePicker()" aria-label="Close product picker">
+      <button class="cmp-picker-x" type="button" onclick="closeComparePicker()" aria-label="${copy.closeAria}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="cmp-picker-tools">
-      <div class="cmp-picker-tabs" role="group" aria-label="Product source">
-        <button class="cmp-picker-tab" id="ylCmpTabRecent" type="button" aria-pressed="false" onclick="ylCmpPickerTab('recent')">Recently viewed</button>
-        <button class="cmp-picker-tab" id="ylCmpTabAll" type="button" aria-pressed="false" onclick="ylCmpPickerTab('all')">All products</button>
+      <div class="cmp-picker-tabs" role="group" aria-label="${copy.sourceAria}">
+        <button class="cmp-picker-tab" id="ylCmpTabRecent" type="button" aria-pressed="false" onclick="ylCmpPickerTab('recent')">${copy.recentTab}</button>
+        <button class="cmp-picker-tab" id="ylCmpTabAll" type="button" aria-pressed="false" onclick="ylCmpPickerTab('all')">${copy.allTab}</button>
       </div>
       <div class="cmp-picker-search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <label class="sr-only" for="ylCmpPickerSearch">Search products to compare</label>
-        <input type="text" id="ylCmpPickerSearch" placeholder="Search by name, brand or keyword&hellip;" autocomplete="off">
+        <label class="sr-only" for="ylCmpPickerSearch">${copy.searchLabel}</label>
+        <input type="text" id="ylCmpPickerSearch" placeholder="${copy.searchPlaceholder}" autocomplete="off">
       </div>
     </div>
     <div class="cmp-picker-list" id="ylCmpPickerList" aria-live="polite"></div>`;
@@ -640,7 +702,7 @@ function openComparePicker(opener) {
     renderComparePickerList();
   } else if (typeof loadProductsFromBackend === "function") {
     const list = panel.querySelector("#ylCmpPickerList");
-    if (list) list.innerHTML = `<div class="cmp-picker-empty">Loading products&hellip;</div>`;
+    if (list) list.innerHTML = `<div class="cmp-picker-empty">${copy.loading}</div>`;
     loadProductsFromBackend().catch(() => {}).finally(renderComparePickerList);
   }
 }
@@ -749,13 +811,19 @@ function cmpScoreProduct(p, q) {
 function renderComparePickerList() {
   const panel = document.getElementById("ylCmpPicker");
   if (!panel || !_pickerState) return;
+  const copy = comparePickerCopy(window.ylLang);
   const listEl = panel.querySelector("#ylCmpPickerList");
   const countEl = panel.querySelector("#ylCmpPickerCount");
   const products = (typeof PRODUCTS !== "undefined" && PRODUCTS) ? PRODUCTS : [];
   const compare = getCompareList().map(String);
   const full = compare.length >= COMPARE_MAX;
 
-  if (countEl) countEl.textContent = `${compare.length} of ${COMPARE_MAX} selected`;
+  if (countEl) {
+    countEl.textContent = formatComparePickerCopy(copy.selectedCount, {
+      count: compare.length,
+      max: COMPARE_MAX
+    });
+  }
 
   // Both segments stay clickable at all times; an empty Recently viewed shows
   // a designed empty state below instead of a disabled control + tooltip.
@@ -774,9 +842,9 @@ function renderComparePickerList() {
         <span class="cmp-picker-empty-ic" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </span>
-        <h3>No recently viewed products</h3>
-        <p>Products you open will appear here for quick comparison.</p>
-        <button class="cmp-picker-browse" type="button" onclick="ylCmpPickerTab('all')">Browse all products</button>
+        <h3>${copy.recentEmptyTitle}</h3>
+        <p>${copy.recentEmptyBody}</p>
+        <button class="cmp-picker-browse" type="button" onclick="ylCmpPickerTab('all')">${copy.browseAll}</button>
       </div>`;
     return;
   }
@@ -801,7 +869,7 @@ function renderComparePickerList() {
 
   if (!rows.length) {
     listEl.innerHTML = `<div class="cmp-picker-empty">${
-      q ? "No products match your search." : "No products available."
+      q ? copy.noSearchResults : copy.noProducts
     }</div>`;
     return;
   }
@@ -812,20 +880,22 @@ function renderComparePickerList() {
     const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
     const hasImg = p.images && p.images.length > 0;
     const img = hasImg
-      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" data-fallback-brand="${brandLabel}" onerror="ylImageFallback(this,this.dataset.fallbackBrand)">`
       : `<span class="no-image-mark" aria-hidden="true">${brandLabel}</span>`;
     const inCmp = compare.includes(String(p.id));
     const disabled = !inCmp && full;
     const dataId = ylEscapeHtml(String(p.id));
+    const removeAria = formatComparePickerCopy(copy.removeAria, { product: name });
+    const addAria = formatComparePickerCopy(copy.addAria, { product: name });
     const btn = inCmp
-      ? `<button class="cmp-picker-add is-added" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd('${p.id}')" aria-pressed="true" aria-label="Remove ${name} from comparison">&#10003; Added</button>`
-      : `<button class="cmp-picker-add" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd('${p.id}')" ${disabled ? "disabled" : ""} aria-pressed="false" aria-label="${disabled ? "Comparison full: remove one to add another" : `Add ${name} to comparison`}">+ Add</button>`;
+      ? `<button class="cmp-picker-add is-added" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd(this.dataset.productId)" aria-pressed="true" aria-label="${removeAria}">&#10003; ${copy.added}</button>`
+      : `<button class="cmp-picker-add" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd(this.dataset.productId)" ${disabled ? "disabled" : ""} aria-pressed="false" aria-label="${disabled ? copy.fullAria : addAria}">+ ${copy.add}</button>`;
     return `
       <div class="cmp-picker-row">
         <span class="cmp-picker-thumb" aria-hidden="true">${img}</span>
         <span class="cmp-picker-info">
           <span class="cmp-picker-name">${name}</span>
-          <span class="cmp-picker-sub">${ylEscapeHtml(subtype(p))}</span>
+          <span class="cmp-picker-sub">${ylEscapeHtml(window.ylTerm ? window.ylTerm(subtype(p)) : subtype(p))}</span>
         </span>
         ${btn}
       </div>`;
