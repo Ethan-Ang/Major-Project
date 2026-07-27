@@ -4,9 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 
 const productsPath = new URL("../frontend/js/pages/products.js", import.meta.url);
-const productsHtmlPath = new URL("../frontend/products.html", import.meta.url);
 const productsSource = fs.readFileSync(productsPath, "utf8");
-const productsHtml = fs.readFileSync(productsHtmlPath, "utf8");
 
 function extractNamedFunctionSource(source, name) {
   const start = source.indexOf(`function ${name}(`);
@@ -95,6 +93,27 @@ test("filter badge integration guard rejects either wiring mutation", () => {
   );
 });
 
-test("products catalogue requests products.js v49", () => {
-  assert.match(productsHtml, /src="\/js\/pages\/products\.js\?v=49"/);
-});
+for (const page of [
+  "products.html",
+  "product-detail.html",
+  "compare.html",
+  "enquiry.html",
+  "contact.html",
+]) {
+  test(`${page} requests products.js v49`, () => {
+    const html = fs.readFileSync(
+      new URL(`../frontend/${page}`, import.meta.url),
+      "utf8"
+    );
+    assert.match(
+      html,
+      /src="\/js\/pages\/products\.js\?v=49"/,
+      `${page} must request products.js v49`
+    );
+    assert.doesNotMatch(
+      html,
+      /src="\/js\/pages\/products\.js\?v=48"/,
+      `${page} must not request stale products.js v48`
+    );
+  });
+}
