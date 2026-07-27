@@ -1127,10 +1127,67 @@ function onMobileSortChange(sel) {
 // Called from initProductsPage on each page view against the fresh search
 // input. Its window/document listeners are registered once and delegate to the
 // current input/panel via window.__ylTypeahead, so they never stack on swaps.
+function productsSearchCopy(lang) {
+  const copy = {
+    en: {
+      sections: {
+        products: "Products",
+        brands: "Brands",
+        productTypes: "Product Types",
+        industries: "Industries",
+        surfaces: "Surfaces"
+      },
+      noMatches: "No direct matches. Press Enter to search the full catalogue.",
+      advisor: "Ask the Product Advisor",
+      productAria: "{product}, product",
+      filterAria: "{label}, {type} filter, {count} {resultNoun}",
+      filterApplied: "{label} filter applied. {resultCount}",
+      filterTypes: {
+        brand: "Brand",
+        producttype: "Product Type",
+        industry: "Industry",
+        surface: "Surface"
+      }
+    },
+    zh: {
+      sections: {
+        products: "产品",
+        brands: "品牌",
+        productTypes: "产品类型",
+        industries: "行业",
+        surfaces: "表面 / 材料"
+      },
+      noMatches: "未找到直接匹配项。按 Enter 键搜索完整产品目录。",
+      advisor: "询问产品顾问",
+      productAria: "{product}，产品",
+      filterAria: "{label}，{type}筛选，{count} 款产品",
+      filterApplied: "已应用{label}筛选。{resultCount}",
+      filterTypes: {
+        brand: "品牌",
+        producttype: "产品类型",
+        industry: "行业",
+        surface: "表面 / 材料"
+      }
+    }
+  };
+  return lang === "zh" ? copy.zh : copy.en;
+}
+
+function formatProductsSearchCopy(template, replacements) {
+  const values = replacements !== null && typeof replacements === "object"
+    ? replacements
+    : {};
+  return String(template).replace(/\{([a-z][a-zA-Z0-9]*)\}/g, function (match, key) {
+    if (!Object.prototype.hasOwnProperty.call(values, key)) return match;
+    return String(values[key] == null ? "" : values[key]);
+  });
+}
+
 function initSearchTypeahead() {
   const input = document.getElementById("searchInput");
   const panel = document.getElementById("searchTypeahead");
   if (!input || !panel) return;
+  const copy = productsSearchCopy(window.ylLang);
 
   const MAX_PRODUCTS = 5;       // top product matches lead (SEARCH-001 A6)
   const MAX_PER_FILTER = 2;     // per-group cap
@@ -1210,10 +1267,10 @@ function initSearchTypeahead() {
     const brandList = (typeof PUBLIC_BRANDS !== "undefined") ? PUBLIC_BRANDS
       : BRANDS.filter(b => b !== "Others & Accessories");
     return [
-      { group: "Brands",        type: "brand",       labels: brandList,     counts: count(p => [p.brand]) },
-      { group: "Product Types", type: "producttype", labels: PRODUCT_TYPES, counts: count(p => [productType(p)]) },
-      { group: "Industries",    type: "industry",    labels: INDUSTRIES,    counts: count(p => p.industries || []) },
-      { group: "Surfaces",      type: "surface",     labels: SURFACES,      counts: count(p => p.surfaces || []) },
+      { group: "brands",        type: "brand",       labels: brandList,     counts: count(p => [p.brand]) },
+      { group: "productTypes",  type: "producttype", labels: PRODUCT_TYPES, counts: count(p => [productType(p)]) },
+      { group: "industries",    type: "industry",    labels: INDUSTRIES,    counts: count(p => p.industries || []) },
+      { group: "surfaces",      type: "surface",     labels: SURFACES,      counts: count(p => p.surfaces || []) },
     ];
   }
 
@@ -1300,8 +1357,8 @@ function initSearchTypeahead() {
   }
 
   function sectionOf(item) {
-    if (item.kind === "product") return "Products";
-    if (item.kind === "filter") return item.group;
+    if (item.kind === "product") return copy.sections.products;
+    if (item.kind === "filter") return copy.sections[item.group] || item.group;
     return null; // viewall / advisor rows carry no section header
   }
 
@@ -1310,8 +1367,8 @@ function initSearchTypeahead() {
       // A7: honest empty state + one helpful action (still a real option row).
       items = [{ kind: "advisor" }];
       panel.innerHTML = `
-        <li class="search-typeahead-empty" role="presentation">No direct matches. Press Enter to search the full catalogue.</li>
-        <li class="search-typeahead-row st-row-action" role="option" id="st-opt-0" aria-selected="false">Ask the Product Advisor</li>`;
+        <li class="search-typeahead-empty" role="presentation">${escapeHTML(copy.noMatches)}</li>
+        <li class="search-typeahead-row st-row-action" role="option" id="st-opt-0" aria-selected="false">${escapeHTML(copy.advisor)}</li>`;
       return;
     }
     let html = "", lastSection = null;
@@ -1329,7 +1386,7 @@ function initSearchTypeahead() {
           : `<span class="st-thumb st-thumb-ph" aria-hidden="true"></span>`;
         html += `
           <li class="search-typeahead-row" role="option" id="st-opt-${i}" ${sel}
-              aria-label="${escapeHTML(p.name)}, product">
+              aria-label="${escapeHTML(formatProductsSearchCopy(copy.productAria, { product: p.name }))}">
             ${img}
             <span class="st-main">
               <span class="st-name">${highlightMatch(p.name, lastQuery)}</span>
@@ -1337,11 +1394,18 @@ function initSearchTypeahead() {
             </span>
           </li>`;
       } else if (item.kind === "filter") {
-        const singular = { "Brands": "Brand", "Product Types": "Product Type", "Industries": "Industry", "Surfaces": "Surface" }[item.group] || item.group;
+        const filterType = copy.filterTypes[item.type] || item.type;
+        const filterLabel = window.ylTerm ? window.ylTerm(item.label) : item.label;
+        const resultNoun = item.count === 1 ? "product" : "products";
         html += `
           <li class="search-typeahead-row st-row-filter" role="option" id="st-opt-${i}" ${sel}
-              aria-label="${escapeHTML(item.label)}, ${escapeHTML(singular)} filter, ${item.count} product${item.count !== 1 ? "s" : ""}">
-            <span class="st-name">${highlightMatch(window.ylTerm ? window.ylTerm(item.label) : item.label, lastQuery)}</span>
+              aria-label="${escapeHTML(formatProductsSearchCopy(copy.filterAria, {
+                label: filterLabel,
+                type: filterType,
+                count: item.count,
+                resultNoun
+              }))}">
+            <span class="st-name">${highlightMatch(filterLabel, lastQuery)}</span>
             <span class="st-count">${(window.ylLang === "zh") ? `${item.count} 款产品` : `${item.count} product${item.count !== 1 ? "s" : ""}`}</span>
           </li>`;
       } else if (item.kind === "viewall") {
@@ -1379,7 +1443,13 @@ function initSearchTypeahead() {
     applyFilters({ pushHistory: true });
     if (typeof window.announce === "function") {
       const rc = document.getElementById("resultCount");
-      window.announce(`${item.label} filter applied. ${rc ? rc.textContent : ""}`.trim());
+      const appliedLabel = window.ylTerm ? window.ylTerm(item.label) : item.label;
+      window.announce(
+        formatProductsSearchCopy(copy.filterApplied, {
+          label: appliedLabel,
+          resultCount: rc ? rc.textContent : ""
+        }).trim()
+      );
     }
     scrollToCatalogue();
     input.focus(); // logical place to keep refining
