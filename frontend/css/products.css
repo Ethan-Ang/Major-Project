@@ -699,10 +699,10 @@ h1, h2, h3,
 .grid-sort-label {
   font-family: var(--mono);
   font-size: 0.68rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted-2);
+  color: var(--muted);
 }
 
 .product-grid {
@@ -3307,6 +3307,7 @@ body.detail-has-cta .toast {
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.46rem;
   background: var(--card); /* SAME white surface token as .compare-tray-panel */
   border: 1px solid var(--border);
@@ -3334,9 +3335,8 @@ body.detail-has-cta .toast {
 .compare-tray-trigger svg { flex-shrink: 0; }
 .compare-tray-trigger .ctt-ic { color: var(--red); }
 .compare-tray-trigger #compareTrayCount {
-  /* Sizes to the actual "(N)" now (no fixed 3ch box + centring left over from the
-     old "(N/3)" format, which floated the number in too much space). */
-  margin-left: -0.18rem;
+  /* Let the shared flex gap space "(N)" consistently in every language. */
+  margin-left: 0;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }

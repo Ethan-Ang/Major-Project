@@ -146,3 +146,20 @@ test("all compare-product remove controls share option A", () => {
   assert.equal(focus.declarations.outline, "2px solid var(--red)");
   assert.equal(focus.declarations["outline-offset"], "2px");
 });
+
+test("desktop compare trigger stays language-neutral and centered", () => {
+  const trigger = findRule([".compare-tray-trigger"]);
+  assert.ok(trigger, "compare tray trigger base rule must exist");
+  assert.equal(trigger.declarations["justify-content"], "center");
+
+  const count = findRule([".compare-tray-trigger #compareTrayCount"]);
+  assert.ok(count, "compare tray count base rule must exist");
+  assert.equal(count.declarations["margin-left"], "0");
+});
+
+test("sort label remains legible in both languages", () => {
+  const [sortLabel] = rulesFor(".grid-sort-label");
+  assert.ok(sortLabel, "sort label rule must exist");
+  assert.equal(sortLabel.declarations["font-weight"], "600");
+  assert.equal(sortLabel.declarations.color, "var(--muted)");
+});
