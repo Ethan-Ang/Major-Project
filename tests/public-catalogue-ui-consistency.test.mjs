@@ -201,3 +201,26 @@ test("sort label remains legible in both languages", () => {
   assert.equal(sortLabel.declarations["font-weight"], "600");
   assert.equal(sortLabel.declarations.color, "var(--muted)");
 });
+
+test("catalogue pages request the corrected asset versions", () => {
+  for (const page of [
+    "products.html",
+    "product-detail.html",
+    "compare.html",
+  ]) {
+    const html = fs.readFileSync(
+      new URL(`../frontend/${page}`, import.meta.url),
+      "utf8"
+    );
+    assert.match(
+      html,
+      /href="\/css\/products\.css\?v=97"/,
+      `${page} must request products.css v97`
+    );
+    assert.match(
+      html,
+      /src="\/js\/widgets\/navbar\.js\?v=23"/,
+      `${page} must request navbar.js v23`
+    );
+  }
+});
