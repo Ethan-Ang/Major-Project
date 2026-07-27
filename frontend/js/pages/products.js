@@ -495,6 +495,12 @@ function applyFilters(opts = {}) {
   updateFilterGroupBadges();
 }
 
+function formatActiveFilterSummary(totalActive, lang) {
+  if (totalActive === 0) return "";
+  if (lang === "zh") return `已选 ${totalActive} 项`;
+  return totalActive === 1 ? "1 filter active" : `${totalActive} filters active`;
+}
+
 function updateFilterGroupBadges() {
   let totalActive = 0;
 
@@ -518,9 +524,7 @@ function updateFilterGroupBadges() {
   // Desktop sidebar heading chip: a calmer summary of the total applied filters.
   const headTotal = document.getElementById("filterActiveTotal");
   if (headTotal) {
-    if (totalActive === 1) headTotal.textContent = "1 filter active";
-    else if (totalActive > 1) headTotal.textContent = `${totalActive} filters active`;
-    else headTotal.textContent = "";
+    headTotal.textContent = formatActiveFilterSummary(totalActive, window.ylLang);
     headTotal.hidden = totalActive === 0;
   }
 }
