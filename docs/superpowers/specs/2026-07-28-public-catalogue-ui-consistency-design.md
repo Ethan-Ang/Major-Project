@@ -1,6 +1,6 @@
 # Public Catalogue UI Consistency Design
 
-**Date:** 2026-07-28  
+**Date:** 2026-07-28
 **Status:** Approved in conversation, pending written-spec review
 
 ## Goal
