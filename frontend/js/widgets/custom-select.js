@@ -41,6 +41,21 @@
     trigger.setAttribute("aria-controls", listboxId);
     if (ariaLabel) trigger.setAttribute("aria-label", ariaLabel);
 
+    // Optional inline prefix (data-trigger-label="Sort"). The desktop sort sits
+    // beside a separate "Sort by" label; the mobile bar has no room for one, and
+    // without it the trigger read as a value floating a long way from its
+    // chevron. Rendering the prefix inside the trigger gives the mobile control
+    // the same label + value + chevron geometry as desktop. Purely presentational
+    // — the accessible name still comes from the select's aria-label.
+    const prefix = select.getAttribute("data-trigger-label");
+    if (prefix) {
+      const prefixSpan = document.createElement("span");
+      prefixSpan.className = "custom-select-trigger-prefix";
+      prefixSpan.setAttribute("aria-hidden", "true");
+      prefixSpan.textContent = prefix;
+      trigger.appendChild(prefixSpan);
+    }
+
     const labelSpan = document.createElement("span");
     labelSpan.className = "custom-select-trigger-label";
     trigger.appendChild(labelSpan);

@@ -8,10 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=89">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
-  <script src="/js/widgets/navbar.js?v=19"></script>
-  <script src="/js/widgets/footer.js?v=21"></script>
+  <link rel="stylesheet" href="/css/products.css?v=96">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=9">
+  <script src="/js/i18n.js?v=3"></script>
+  <script src="/js/i18n-products.js?v=1"></script>
+  <script src="/js/widgets/navbar.js?v=22"></script>
+  <script src="/js/widgets/footer.js?v=24"></script>
 </head>
 <body>
 
@@ -36,14 +38,14 @@
       width="1600" height="533" alt="" loading="eager" decoding="async" fetchpriority="high" draggable="false">
   </picture>
   <div class="page-hero-inner">
-    <span class="hero-eyebrow">Product Catalogue</span>
-    <h1 id="catalogueHeading">Find the Right Bonding Solution</h1>
-    <p class="hero-lead">Explore adhesives and application equipment by brand, industry, material, or intended use.</p>
+    <span class="hero-eyebrow" data-i18n="products.eyebrow">Product Catalogue</span>
+    <h1 id="catalogueHeading" data-i18n="products.title">Find the Right Bonding Solution</h1>
+    <p class="hero-lead" data-i18n="products.lead">Explore adhesives and application equipment by brand, industry, material, or intended use.</p>
     <div class="hero-search">
       <div class="search-bar" role="search">
         <label for="searchInput" class="sr-only">Search products by name, number, brand or keyword</label>
         <span class="search-bar-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-        <input type="text" id="searchInput" placeholder="Search by product name, number, brand or keyword&hellip;" autocomplete="off"
+        <input type="text" id="searchInput" placeholder="Search by product name, number, brand or keyword&hellip;" data-i18n-attr="placeholder:products.search_ph" autocomplete="off"
           role="combobox" aria-expanded="false" aria-controls="searchTypeahead" aria-autocomplete="list" aria-haspopup="listbox">
         <button onclick="submitHeroSearch()" aria-label="Search">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -63,7 +65,7 @@
   <button class="filter-toggle" id="filterToggle" type="button" onclick="toggleFilterSidebar()"
     aria-controls="filterSidebar" aria-expanded="false">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-    Filters
+    <span data-i18n="products.filters">Filters</span>
   </button>
 
   <!-- Dimmed backdrop behind the mobile filters bottom sheet -->
@@ -73,28 +75,28 @@
   <aside class="filter-sidebar" id="filterSidebar" aria-label="Refine products">
     <!-- Drawer header — mobile full-screen drawer only -->
     <div class="drawer-head">
-      <h2>Filters</h2>
+      <h2 data-i18n="products.filters">Filters</h2>
       <button class="drawer-x" onclick="closeFilterDrawer()" aria-label="Close filters">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
     <!-- Panel title stays fixed above the scrolling filter list (desktop) -->
-    <h2 class="filter-heading">Filters <span class="filter-active-total" id="filterActiveTotal" hidden></span></h2>
+    <h2 class="filter-heading"><span data-i18n="products.filters">Filters</span> <span class="filter-active-total" id="filterActiveTotal" hidden></span></h2>
 
     <!-- Scrollable body: active filters + the filter groups + clear button -->
     <div class="drawer-body">
       <!-- Active filters, shown once on desktop inside the filter area -->
       <div class="sidebar-active" id="sidebarActive" hidden>
         <div class="sidebar-active-head">
-          <span class="sidebar-active-label">Active filters</span>
-          <button type="button" class="sidebar-active-clear" onclick="clearFilters()">Clear all</button>
+          <span class="sidebar-active-label" data-i18n="products.active_filters">Active filters</span>
+          <button type="button" class="sidebar-active-clear" onclick="clearFilters()" data-i18n="products.clear_all">Clear all</button>
         </div>
         <div class="sidebar-active-chips" id="sidebarActiveChips"></div>
       </div>
       <div class="filter-group open">
         <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
-          Product Type
+          <span data-i18n="products.f_product_type">Product Type</span>
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
             <svg class="fg-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -105,7 +107,7 @@
 
       <div class="filter-group open">
         <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
-          Brand
+          <span data-i18n="products.f_brand">Brand</span>
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
             <svg class="fg-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -116,7 +118,7 @@
 
       <div class="filter-group open">
         <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
-          Industry
+          <span data-i18n="products.f_industry">Industry</span>
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
             <svg class="fg-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -127,7 +129,7 @@
 
       <div class="filter-group open">
         <button class="filter-group-bar" onclick="toggleFilterGroup(this)" aria-expanded="true">
-          Surface / Material
+          <span data-i18n="products.f_surface">Surface / Material</span>
           <span class="r">
             <span class="filter-group-badge" aria-hidden="true" style="display:none"></span>
             <svg class="fg-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -140,7 +142,7 @@
 
     <!-- Drawer footer — mobile only -->
     <div class="drawer-foot">
-      <button class="drawer-apply" id="drawerApplyBtn" onclick="closeFilterDrawer()">Show products</button>
+      <button class="drawer-apply" id="drawerApplyBtn" onclick="closeFilterDrawer()" data-i18n="products.show_products">Show products</button>
     </div>
   </aside>
 
@@ -156,29 +158,29 @@
         <button class="mfb-btn" type="button" onclick="toggleFilterSidebar()"
           aria-controls="filterSidebar" aria-expanded="false">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
-          Filters
+          <span data-i18n="products.filters">Filters</span>
           <span class="mfb-count" id="mobileFilterCount"></span>
         </button>
         <div class="mfb-sort-wrap">
-          <select id="mobileSortSelect" class="mfb-sort-sel" onchange="onMobileSortChange(this)" aria-label="Sort products">
-            <option value="default">Default order</option>
-            <option value="az">Name A–Z</option>
-            <option value="za">Name Z–A</option>
-            <option value="brand">Sort by Brand</option>
+          <select id="mobileSortSelect" class="mfb-sort-sel" onchange="onMobileSortChange(this)" aria-label="Sort products" data-trigger-label="Sort">
+            <option value="default" data-i18n="products.sort_default">Default order</option>
+            <option value="az" data-i18n="products.sort_az">Name A–Z</option>
+            <option value="za" data-i18n="products.sort_za">Name Z–A</option>
+            <option value="brand" data-i18n="products.sort_brand">Sort by Brand</option>
           </select>
         </div>
       </div>
 
       <div class="grid-meta">
-        <span id="resultCount" aria-live="polite" aria-atomic="true">Loading products…</span>
-        <button class="grid-clear-all" id="gridClearAll" hidden onclick="clearFilters()">Clear all</button>
+        <span id="resultCount" aria-live="polite" aria-atomic="true" data-i18n="products.loading">Loading products…</span>
+        <button class="grid-clear-all" id="gridClearAll" hidden onclick="clearFilters()" data-i18n="products.clear_all">Clear all</button>
         <div class="grid-sort">
-          <span class="grid-sort-label" aria-hidden="true">Sort by</span>
+          <span class="grid-sort-label" aria-hidden="true" data-i18n="products.sort_by">Sort by</span>
           <select class="sort-select" id="sortSelect" onchange="applyFilters()" aria-label="Sort products">
-            <option value="default">Default order</option>
-            <option value="az">Name A–Z</option>
-            <option value="za">Name Z–A</option>
-            <option value="brand">Sort by Brand</option>
+            <option value="default" data-i18n="products.sort_default">Default order</option>
+            <option value="az" data-i18n="products.sort_az">Name A–Z</option>
+            <option value="za" data-i18n="products.sort_za">Name Z–A</option>
+            <option value="brand" data-i18n="products.sort_brand">Sort by Brand</option>
           </select>
         </div>
       </div>
@@ -202,19 +204,19 @@
 <div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
   <button class="compare-tray-trigger" id="compareTrayToggle" type="button" onclick="toggleCompareTray()" aria-expanded="false" aria-controls="compareTrayPanel">
     <svg class="ctt-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-    Compare <span id="compareTrayCount">(0/3)</span>
+    <span data-i18n="common.compare">Compare</span> <span id="compareTrayCount">(0/3)</span>
     <svg class="ctt-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
   <div class="compare-tray-panel" id="compareTrayPanel">
     <div class="compare-tray-inner">
       <div class="compare-tray-head">
-        <span class="compare-tray-title">Compare <span id="compareTrayFull">(0/3)</span></span>
-        <span class="compare-tray-sub">Add up to 3 products</span>
+        <span class="compare-tray-title"><span data-i18n="common.compare">Compare</span> <span id="compareTrayFull">(0/3)</span></span>
+        <span class="compare-tray-sub" data-i18n="detail.add3">Add up to 3 products</span>
       </div>
       <div class="compare-tray-slots" id="compareTraySlots"></div>
       <div class="compare-tray-actions" id="compareTrayActions">
-        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison">Clear all</button>
-        <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view">Compare now
+        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison" data-i18n="products.clear_all">Clear all</button>
+        <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view"><span data-i18n="detail.compare_now">Compare now</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
       </div>
@@ -227,14 +229,14 @@
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=9"></script>
 <script src="/js/core/app.js?v=4"></script>
-<script src="/js/widgets/compare.js?v=19"></script>
-<script src="/js/widgets/custom-select.js?v=5"></script>
-<script src="/js/pages/products.js?v=45"></script>
-<script src="/js/pages/product-detail.js?v=32"></script>
-<script src="/js/pages/compare-page.js?v=17"></script>
+<script src="/js/widgets/compare.js?v=20"></script>
+<script src="/js/widgets/custom-select.js?v=6"></script>
+<script src="/js/pages/products.js?v=47"></script>
+<script src="/js/pages/product-detail.js?v=38"></script>
+<script src="/js/pages/compare-page.js?v=18"></script>
 <script src="/js/pages/enquiry.js?v=7"></script>
 <script src="/js/pages/contact.js?v=5"></script>
 <script src="/js/widgets/chatbot.js?v=26"></script>
-<script src="/js/widgets/page-transitions.js?v=4"></script>
+<script src="/js/widgets/page-transitions.js?v=5"></script>
 </body>
 </html>

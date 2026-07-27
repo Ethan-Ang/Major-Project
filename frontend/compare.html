@@ -15,25 +15,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=90">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
-  <script src="/js/widgets/navbar.js?v=19"></script>
-  <script src="/js/widgets/footer.js?v=21"></script>
+  <link rel="stylesheet" href="/css/products.css?v=96">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=9">
+  <script src="/js/i18n.js?v=3"></script>
+  <script src="/js/i18n-products.js?v=1"></script>
+  <script src="/js/widgets/navbar.js?v=22"></script>
+  <script src="/js/widgets/footer.js?v=24"></script>
 </head>
 <body>
 
 <div id="swup" class="transition-fade">
 <main id="mainContent">
 <div class="compare-page-top">
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a href="/">Home</a>
-    <span aria-hidden="true">&rsaquo;</span>
-    <a href="/products">Products</a>
-    <span aria-hidden="true">&rsaquo;</span>
-    <span aria-current="page">Compare</span>
-  </nav>
-  <h1>Compare Products</h1>
-  <p class="compare-page-lead">Side-by-side comparison to help you find the right bonding solution.</p>
+  <!-- Same treatment as Product Detail: no breadcrumb trail while the full
+       navigation is visible (the navbar keeps Products lit and the H1 names the
+       page), and one compact catalogue link once the nav collapses on mobile. -->
+  <div class="detail-backrow">
+    <a class="detail-back" id="detailBackLink" href="/products"
+       onclick="ylBackToCatalogue()" data-i18n-attr="aria-label:common.back_products">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      <span data-i18n="common.back_products">Back to Products</span>
+    </a>
+  </div>
+  <h1 data-i18n="compare.title">Compare Products</h1>
+  <p class="compare-page-lead" data-i18n="compare.lead">Side-by-side comparison to help you find the right bonding solution.</p>
 </div>
 
 <section class="compare-select-panel" id="compareSelectPanel" aria-label="Products to compare"></section>
@@ -53,14 +58,14 @@
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=9"></script>
 <script src="/js/core/app.js?v=4"></script>
-<script src="/js/widgets/compare.js?v=19"></script>
-<script src="/js/widgets/custom-select.js?v=5"></script>
-<script src="/js/pages/products.js?v=45"></script>
-<script src="/js/pages/product-detail.js?v=32"></script>
-<script src="/js/pages/compare-page.js?v=17"></script>
+<script src="/js/widgets/compare.js?v=20"></script>
+<script src="/js/widgets/custom-select.js?v=6"></script>
+<script src="/js/pages/products.js?v=47"></script>
+<script src="/js/pages/product-detail.js?v=38"></script>
+<script src="/js/pages/compare-page.js?v=18"></script>
 <script src="/js/pages/enquiry.js?v=7"></script>
 <script src="/js/pages/contact.js?v=5"></script>
 <script src="/js/widgets/chatbot.js?v=26"></script>
-<script src="/js/widgets/page-transitions.js?v=4"></script>
+<script src="/js/widgets/page-transitions.js?v=5"></script>
 </body>
 </html>

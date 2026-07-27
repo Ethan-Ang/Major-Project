@@ -3,6 +3,78 @@ let activeFilters  = { productTypes: [], brands: [], industries: [], surfaces: [
 let currentResults = [];
 let initialLoadDone = false;
 
+// ─── Catalogue return state (for Product Detail's "Back to Products") ──
+// Every part of the catalogue view that matters — free-text query, sort order
+// and all four filter groups — already lives in the URL (see writeStateToURL),
+// so remembering the URL plus the scroll offset is enough to put a visitor back
+// exactly where they were. This is written when LEAVING the products page and
+// read once, on request, by the back link. It deliberately does not rely on
+// history.back(): after an in-place SPA visit document.referrer still names
+// whatever document was originally loaded, so "go back" could land on Home,
+// Google or another site entirely.
+const YL_RETURN_KEY = "ylCatalogueReturn";
+const YL_RETURN_FLAG = "ylCatalogueRestore";
+
+function ylOnProductsPage() {
+  return /\/products(\.html)?$/.test(location.pathname);
+}
+
+function ylSaveCatalogueReturn() {
+  if (!ylOnProductsPage()) return;
+  try {
+    sessionStorage.setItem(YL_RETURN_KEY, JSON.stringify({
+      url: location.pathname + location.search,
+      y: Math.round(window.scrollY || window.pageYOffset || 0)
+    }));
+  } catch (e) { /* private mode: the back link falls back to plain /products */ }
+}
+
+// Read by product-detail.js / compare-page.js to build a real href.
+window.ylCatalogueReturn = function () {
+  try {
+    const raw = sessionStorage.getItem(YL_RETURN_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    // Only ever trust a same-site products path from our own storage.
+    if (!saved || typeof saved.url !== "string" || !/^\/products(\?|$)/.test(saved.url)) return null;
+    return saved;
+  } catch (e) { return null; }
+};
+
+// The back link sets this immediately before navigating, so a plain visit to
+// /products still opens at the top of the page as it always has — only an
+// explicit "Back to Products" restores the remembered scroll offset.
+window.ylRequestCatalogueRestore = function () {
+  try { sessionStorage.setItem(YL_RETURN_FLAG, "1"); } catch (e) {}
+};
+
+// Scroll back to a remembered offset. The target is always clamped to the
+// document so a shorter result set can never strand the visitor past the end of
+// the page — but the clamp must not be applied to a document that is still
+// growing. Straight after the grid renders, card images have not settled and the
+// page can measure far shorter than its final height, which would clamp a deep
+// offset down to near the top. So the scroll is re-applied for a few frames while
+// the document is still too short to reach the target, then stops. Bounded by a
+// ~20-frame budget, and it gives up immediately once the target is reachable.
+function ylRestoreCatalogueScroll(y) {
+  let tries = 0;
+  const step = () => {
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo(0, Math.min(y, max));
+    if (max < y && ++tries < 20) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function ylConsumeCatalogueRestore() {
+  try {
+    if (sessionStorage.getItem(YL_RETURN_FLAG) !== "1") return null;
+    sessionStorage.removeItem(YL_RETURN_FLAG);
+    const saved = window.ylCatalogueReturn();
+    return saved && typeof saved.y === "number" ? saved.y : null;
+  } catch (e) { return null; }
+}
+
 // ─── Init ────────────────────────────────────────────────────────
 // Re-runnable across Swup page swaps: registered via ylReady (runs on initial
 // load and on every swap) and self-selecting — it bails immediately when the
@@ -22,14 +94,19 @@ async function initProductsPage() {
       // demo catalogue instead of throwing, so this branch should not be
       // reachable in normal operation. The real offline UX is the fallback.
       console.error(err);
-      grid.innerHTML = `
+      grid.innerHTML = (window.ylLang === "zh") ? `
+        <div class="empty-state">
+          <h3>产品暂时无法显示</h3>
+          <p>请稍后刷新页面，或直接联系 Yee Lim，我们的团队将为您提供协助。</p>
+          <a class="btn btn-outline" href="/contact">联系 Yee Lim</a>
+        </div>` : `
         <div class="empty-state">
           <h3>Products are temporarily unavailable</h3>
           <p>Please refresh the page in a moment, or contact Yee Lim directly and our team will assist you.</p>
           <a class="btn btn-outline" href="/contact">Contact Yee Lim</a>
         </div>`;
       const rc = document.getElementById("resultCount");
-      if (rc) rc.textContent = "0 products";
+      if (rc) rc.textContent = (window.ylLang === "zh") ? "0 款产品" : "0 products";
       return;
     }
   }
@@ -54,11 +131,19 @@ async function initProductsPage() {
   if (typeof renderCompareTray === "function") renderCompareTray();
   initSearchTypeahead();
 
+  // Set before the render so a restored scroll offset is not overwritten by the
+  // deep-link scroll below (arriving via "Back to Products" is not a deep link).
+  const restoreY = ylConsumeCatalogueRestore();
+
   requestAnimationFrame(() => {
     applyFilters({ skipUrlWrite: true });
     initialLoadDone = true;
     updateFilterScrollFade();
     initStickyToolbar();
+    if (restoreY !== null) {
+      ylRestoreCatalogueScroll(restoreY);
+      return;
+    }
     // Arriving from a footer/brand deep-link (e.g. ?brand=Deer™ Brand) should
     // land the visitor on the filtered results, not the top hero/search. A plain
     // /products visit (no filter params) still opens at the hero as before.
@@ -103,6 +188,12 @@ async function initProductsPage() {
       filterMobileQuery.addListener(reconcileFilterMode);
     }
     document.addEventListener("swup:visit:start", ylCleanupFilterDrawer);
+    // Snapshot the catalogue view as the visitor leaves it, for both navigation
+    // modes: swup:visit:start fires on an in-place SPA visit (tapping a card),
+    // pagehide covers a full document unload (direct link, reload, back/forward
+    // cache eviction). Both read the live URL + scroll offset at that instant.
+    document.addEventListener("swup:visit:start", ylSaveCatalogueReturn);
+    window.addEventListener("pagehide", ylSaveCatalogueReturn);
     window.addEventListener("compareUpdated", syncCompareButtons);
     // Update the affected buttons in place — never re-render the whole grid
     // for a basket change (the full re-render re-ran every card's entrance
@@ -286,7 +377,7 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
     return `
       <label class="${disabled ? 'is-empty' : ''}">
         <input type="checkbox" value="${item}" data-type="${type}" onchange="applyFilters()" ${disabled}>
-        <span class="filter-label-text">${item}</span>
+        <span class="filter-label-text">${window.ylTerm ? window.ylTerm(item) : item}</span>
         <span class="filter-count">${count}</span>
       </label>
     `;
@@ -307,7 +398,7 @@ function buildCheckboxGroup(containerId, items, type, valueExtractor) {
       <div class="fg-more" ${expanded ? "" : "hidden"}>${rest.map(row).join("")}</div>
       <button type="button" class="fg-more-btn" data-container="${containerId}"
         aria-expanded="${expanded}" onclick="toggleFgMore(this)">
-        ${expanded ? "Show less" : `Show more (${rest.length})`}</button>`;
+        ${expanded ? ylTr("products.show_less", "Show less") : `${ylTr("products.show_more", "Show more")} (${rest.length})`}</button>`;
   } else {
     html = items.map(row).join("");
   }
@@ -322,7 +413,7 @@ function toggleFgMore(btn) {
   const expand = more.hidden;
   more.hidden = !expand;
   btn.setAttribute("aria-expanded", String(expand));
-  btn.textContent = expand ? "Show less" : `Show more (${more.querySelectorAll("label").length})`;
+  btn.textContent = expand ? ylTr("products.show_less", "Show less") : `${ylTr("products.show_more", "Show more")} (${more.querySelectorAll("label").length})`;
   sessionStorage.setItem("ylFgMore:" + btn.dataset.container, expand ? "1" : "0");
   updateFilterScrollFade();
 }
@@ -479,8 +570,9 @@ function renderFilterChips() {
   }
 
   const addChip = (type, value) => {
-    const safe  = escapeHTML(value);            // safe as both text and quoted attr
-    const jsVal = value.replace(/'/g, "\\'");   // safe inside the single-quoted onclick
+    const disp  = window.ylTerm ? window.ylTerm(value) : value; // Chinese label when zh
+    const safe  = escapeHTML(disp);             // safe as both text and quoted attr
+    const jsVal = value.replace(/'/g, "\\'");   // English value drives removeFilter
     chips.push(chip(safe, `Remove ${safe} filter`, `removeFilter('${type}','${jsVal}')`));
   };
   activeFilters.productTypes.forEach(t => addChip("producttype", t));
@@ -506,9 +598,9 @@ function renderFilterChips() {
       strip.hidden = false;
       strip.innerHTML =
         `<div class="active-filter-bar-inner">` +
-          `<span class="active-filter-label">Active filters:</span>` +
+          `<span class="active-filter-label">${ylTr("products.active_filters", "Active filters")}:</span>` +
           `<div class="active-filter-pills">${chips.join("")}</div>` +
-          `<button class="active-filter-clear" onclick="clearFilters()">Clear all</button>` +
+          `<button class="active-filter-clear" onclick="clearFilters()">${ylTr("products.clear_all", "Clear all")}</button>` +
         `</div>`;
     }
   }
@@ -559,24 +651,30 @@ function renderGrid(products) {
   // Show the narrowing ("8 of 31 products") whenever filters/search reduce the
   // set, so buyers feel the effect. The "of N" span is revealed on mobile only.
   // Bold count (locked ReBond reference: "31 products found", number leading).
-  if (products.length < totalCount) {
+  if (window.ylLang === "zh") {
+    countEl.innerHTML = (products.length < totalCount)
+      ? `<strong>${products.length}</strong> <span class="rc-of">/ ${totalCount} </span>款产品`
+      : `共 <strong>${products.length}</strong> 款产品`;
+  } else if (products.length < totalCount) {
     countEl.innerHTML = `<strong>${products.length}</strong> <span class="rc-of">of ${totalCount} </span>${countNoun} found`;
   } else {
     countEl.innerHTML = `<strong>${products.length}</strong> ${countNoun} found`;
   }
 
   const applyBtn = document.getElementById("drawerApplyBtn");
-  if (applyBtn) applyBtn.textContent = `Show ${products.length} product${products.length !== 1 ? "s" : ""}`;
+  if (applyBtn) applyBtn.textContent = (window.ylLang === "zh")
+    ? `显示 ${products.length} 款产品`
+    : `Show ${products.length} product${products.length !== 1 ? "s" : ""}`;
 
   if (products.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon" aria-hidden="true">&#9783;</div>
-        <h3>No products match those filters</h3>
-        <p>Try removing a filter or clearing your search, or describe your job to the Product Advisor.</p>
+        <h3>${ylTr("products.empty_title", "No products match those filters")}</h3>
+        <p>${ylTr("products.empty_body", "Try removing a filter or clearing your search, or describe your job to the Product Advisor.")}</p>
         <div class="empty-state-actions">
-          <button class="btn btn-outline" onclick="clearFilters()">Clear all filters</button>
-          <button class="btn btn-outline" onclick="if(window.openProductAdvisor)openProductAdvisor()">Ask the Product Advisor</button>
+          <button class="btn btn-outline" onclick="clearFilters()">${ylTr("products.empty_clear", "Clear all filters")}</button>
+          <button class="btn btn-outline" onclick="if(window.openProductAdvisor)openProductAdvisor()">${ylTr("products.empty_advisor", "Ask the Product Advisor")}</button>
         </div>
       </div>`;
     return;
@@ -616,13 +714,18 @@ function productCodeFromName(p) {
   return (code && code.length <= 10 && code.toLowerCase() !== String(p.name || "").toLowerCase()) ? code : "";
 }
 
-// Official brand marks (real assets only). Accessories have no brand mark and
-// fall back to a plain text tag.
+// Official brand marks (real assets only, never redrawn). /images/logos/marks/
+// holds the SAME four official emblems trimmed to their own content and centred
+// on a square canvas: the originals sit on a big padded sheet at four different
+// content ratios, so at card size the deer rendered as a tiny speck while the
+// rhino nearly filled its box. Trimmed + squared, every brand now reads at one
+// deliberate weight through a plain object-fit:contain window. Accessories have
+// no official mark and fall back to a plain text tag.
 const BRAND_LOGOS = {
-  "Deer™ Brand":     "/images/logos/Deer.png",
-  "Horsemen™ Brand": "/images/logos/Horsemen.png",
-  "Premier™ Brand":  "/images/logos/Premier.png",
-  "Rhino™ Brand":    "/images/logos/Rhino.png",
+  "Deer™ Brand":     "/images/logos/marks/Deer.png",
+  "Horsemen™ Brand": "/images/logos/marks/Horsemen.png",
+  "Premier™ Brand":  "/images/logos/marks/Premier.png",
+  "Rhino™ Brand":    "/images/logos/marks/Rhino.png",
 };
 
 // Truthful one-line subtype under the product name, derived from real data:
@@ -644,8 +747,10 @@ function productCardHTML(p) {
   const compareListFull = getCompareList().length >= COMPARE_MAX;
   const compareDisabled = !inCompare && compareListFull;
 
-  const primaryApps = escapeHTML(bestForText(p));
-  const worksOn = p.surfaces && p.surfaces.length ? escapeHTML(p.surfaces.slice(0, 3).join(", ")) : "";
+  // Chinese: translate each taxonomy value in the "Best for" / "Works on" lists.
+  const termList = window.ylTermList || (s => s);
+  const primaryApps = escapeHTML(termList(bestForText(p)));
+  const worksOn = p.surfaces && p.surfaces.length ? escapeHTML(termList(p.surfaces.slice(0, 3).join(", "))) : "";
 
   const hasRealImage = p.images && p.images.length > 0;
   const brandLabel = escapeHTML(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
@@ -661,7 +766,7 @@ function productCardHTML(p) {
   // beside the brand name; accessories carry a plain text tag instead.
   const brandMark = logo
     ? `<span class="pcard-brand-ic"><img src="${logo}" alt="" loading="lazy"></span><span class="pcard-brand-name">${brandLabel}</span>`
-    : `<span class="pcard-brand-text">${isAccessory ? "ACCESSORY" : brandLabel}</span>`;
+    : `<span class="pcard-brand-text">${isAccessory ? (window.ylLang === "zh" ? "配件" : "ACCESSORY") : brandLabel}</span>`;
 
   const subtype = productSubtype(p);
 
@@ -691,7 +796,7 @@ function productCardHTML(p) {
           <span class="pcard-cb" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </span>
-          Compare
+          ${ylTr("common.compare", "Compare")}
         </button>
       </div>
       <div class="pcard-main">
@@ -700,18 +805,18 @@ function productCardHTML(p) {
         </div>
         <div class="product-card-body">
           <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
-          <p class="pcard-subtype">${escapeHTML(subtype)}</p>
+          <p class="pcard-subtype">${escapeHTML(window.ylTerm ? window.ylTerm(subtype) : subtype)}</p>
         </div>
         <div class="pcard-rows">
           <div class="card-application">
             <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
-            <span class="card-application-label">Best for</span>
+            <span class="card-application-label">${ylTr("common.best_for", "Best for")}</span>
             <span class="card-application-val">${primaryApps}</span>
           </div>
           ${worksOn ? `
           <div class="card-application card-workson">
             <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/></svg></span>
-            <span class="card-application-label">Works on</span>
+            <span class="card-application-label">${ylTr("common.works_on", "Works on")}</span>
             <span class="card-application-val">${worksOn}</span>
           </div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
         </div>
@@ -726,7 +831,7 @@ function productCardHTML(p) {
           aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
           ${inBasket ? PCARD_ENQ_ADDED_HTML : PCARD_ENQ_ADD_HTML}
         </button>
-        <a href="${detailHref}" class="btn btn-outline pcard-view">View details
+        <a href="${detailHref}" class="btn btn-outline pcard-view">${ylTr("common.view_details", "View details")}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
         </a>
       </div>
@@ -739,8 +844,11 @@ function brandSlug(brand) {
 
 // Shared enquiry-button contents (default / added), used by the card render
 // AND the in-place state sync so the two can never drift apart.
-const PCARD_ENQ_ADD_HTML = `Add to Enquiry`;
-const PCARD_ENQ_ADDED_HTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>In Enquiry</span>`;
+// i18n helper: window.ylT returns the current-language string (English matches
+// the source text, so this is a no-op visually in English).
+var ylTr = function (key, fb) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb; };
+const PCARD_ENQ_ADD_HTML = ylTr("common.add_enquiry", "Add to Enquiry");
+const PCARD_ENQ_ADDED_HTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>${ylTr("common.in_enquiry", "In Enquiry")}</span>`;
 
 // ─── Sync enquiry button states without rebuilding the grid ────────
 // Add/remove flips only the affected buttons (state, label, aria) in place:
@@ -1150,17 +1258,23 @@ function initSearchTypeahead() {
 
   function isOpen() { return !panel.hidden; }
 
-  // The panel is position:fixed, so glue it to the search bar's current rect.
+  // Placement is pure CSS now: the panel is an absolutely positioned child of
+  // .hero-search, pinned to the search bar's bottom edge and its exact width,
+  // so it can never end up over the input, over the search button or over the
+  // filter/sort toolbar. This only caps the HEIGHT so the list stays inside the
+  // space the visitor can actually see.
+  //
+  // window.innerHeight does not shrink when the iOS keyboard opens; the visual
+  // viewport does. Prefer it when available (progressive enhancement) and fall
+  // back to the layout viewport everywhere else. The panel scrolls internally,
+  // so the last suggestion stays reachable at any cap.
   function reposition() {
     const anchor = input.closest(".search-bar") || input;
     const r = anchor.getBoundingClientRect();
-    panel.style.left = `${Math.round(r.left)}px`;
-    panel.style.top = `${Math.round(r.bottom + 6)}px`;
-    panel.style.width = `${Math.round(r.width)}px`;
-    // Controlled height (locked ReBond fix): capped at 420px so the panel can
-    // never sprawl over the filters/sort/grid; still shrinks to fit the space
-    // below the bar (keyboard/safe-area aware) and scrolls internally.
-    panel.style.maxHeight = `${Math.min(420, Math.max(180, Math.round(window.innerHeight - r.bottom - 18)))}px`;
+    const vv = window.visualViewport;
+    const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+    const space = Math.round(visibleBottom - r.bottom - 18);
+    panel.style.maxHeight = `${Math.min(420, Math.max(140, space))}px`;
   }
 
   function open() {
@@ -1215,7 +1329,7 @@ function initSearchTypeahead() {
             ${img}
             <span class="st-main">
               <span class="st-name">${highlightMatch(p.name, lastQuery)}</span>
-              <span class="st-brand">${highlightMatch(brandName(p), lastQuery)} &middot; ${escapeHTML(productType(p))}</span>
+              <span class="st-brand">${highlightMatch(brandName(p), lastQuery)} &middot; ${escapeHTML(window.ylTerm ? window.ylTerm(productType(p)) : productType(p))}</span>
             </span>
           </li>`;
       } else if (item.kind === "filter") {
@@ -1223,13 +1337,13 @@ function initSearchTypeahead() {
         html += `
           <li class="search-typeahead-row st-row-filter" role="option" id="st-opt-${i}" ${sel}
               aria-label="${escapeHTML(item.label)}, ${escapeHTML(singular)} filter, ${item.count} product${item.count !== 1 ? "s" : ""}">
-            <span class="st-name">${highlightMatch(item.label, lastQuery)}</span>
-            <span class="st-count">${item.count} product${item.count !== 1 ? "s" : ""}</span>
+            <span class="st-name">${highlightMatch(window.ylTerm ? window.ylTerm(item.label) : item.label, lastQuery)}</span>
+            <span class="st-count">${(window.ylLang === "zh") ? `${item.count} 款产品` : `${item.count} product${item.count !== 1 ? "s" : ""}`}</span>
           </li>`;
       } else if (item.kind === "viewall") {
         html += `
           <li class="search-typeahead-row st-row-action" role="option" id="st-opt-${i}" ${sel}>
-            View all ${item.total} matching products
+            ${(window.ylLang === "zh") ? `查看全部 ${item.total} 个匹配产品` : `View all ${item.total} matching products`}
           </li>`;
       }
     });
@@ -1336,14 +1450,21 @@ function initSearchTypeahead() {
       if (!t) return;
       if (e.target !== t.input && !t.panel.contains(e.target)) t.close();
     });
-    // Keep the fixed panel glued to the search bar while it is open.
-    window.addEventListener("scroll", () => {
+    // Re-cap the open panel's height whenever the space below the search bar
+    // changes: page scroll, window resize, rotation, and — the one that matters
+    // on a phone — the visual viewport shrinking as the on-screen keyboard
+    // opens or closes. visualViewport is an enhancement; the resize/scroll
+    // handlers already cover browsers without it.
+    const recap = () => {
       const t = window.__ylTypeahead;
       if (t && t.isOpen()) t.reposition();
-    }, true);
-    window.addEventListener("resize", () => {
-      const t = window.__ylTypeahead;
-      if (t && t.isOpen()) t.reposition();
-    });
+    };
+    window.addEventListener("scroll", recap, true);
+    window.addEventListener("resize", recap);
+    window.addEventListener("orientationchange", recap);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", recap);
+      window.visualViewport.addEventListener("scroll", recap);
+    }
   });
 }

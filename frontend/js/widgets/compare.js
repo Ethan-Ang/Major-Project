@@ -18,6 +18,12 @@ const COMPARE_KEY  = "compareList";
 const COMPARE_MAX  = 3;
 const CMP_MOBILE_QUERY = window.matchMedia("(max-width: 640px)");
 
+// Chinese label when zh is active (English fallback otherwise). Mirrors the
+// page renderers' ylTr so the tray's JS-built slots translate too.
+function cmpT(key, fallback) {
+  return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fallback) : fallback;
+}
+
 let _compareTrayObserver = null;
 let _compareObservedTray = null;
 let _compareMeasureFrame = 0;
@@ -178,15 +184,15 @@ function renderCompareTray() {
         <span class="cmp-slot-img">${img}</span>
         <span class="cmp-slot-name" title="${name}">${name}</span>
         <button type="button" class="cmp-slot-x" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${name} from comparison">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>`;
   }).join("");
 
   const addSlot = list.length < COMPARE_MAX ? `
-    <button type="button" class="cmp-slot cmp-slot-add" onclick="ylCompareAddMore()" aria-label="Add a product to compare">
+    <button type="button" class="cmp-slot cmp-slot-add" onclick="ylCompareAddMore()" aria-label="${cmpT("common.add_product", "Add a product")}">
       <span class="cmp-slot-add-icon" aria-hidden="true">+</span>
-      <span class="cmp-slot-add-text"><strong>Add a product</strong><small>Search or browse</small></span>
+      <span class="cmp-slot-add-text"><strong>${cmpT("common.add_product", "Add a product")}</strong><small>${cmpT("common.search_browse", "Search or browse")}</small></span>
     </button>` : "";
 
   const slotsEl = document.getElementById("compareTraySlots");
@@ -197,7 +203,7 @@ function renderCompareTray() {
     const notEnough = list.length < 2;
     btn.disabled = notEnough;
     // Explain why the button is inactive instead of leaving a silent greyed button.
-    const hint = notEnough ? "Select at least 2 products to compare" : "Open comparison view";
+    const hint = notEnough ? cmpT("common.cmp_hint_min", "Select at least 2 products to compare") : cmpT("common.cmp_hint_open", "Open comparison view");
     btn.title = hint;
     btn.setAttribute("aria-label", hint);
   }
@@ -233,6 +239,16 @@ function ylKeepCompareSourceClear(productId) {
 // Add-a-product slot: opens the dedicated compare picker (side panel with
 // search + Recently viewed / All products). Falls back to the catalogue if
 // the picker cannot be built for any reason.
+//
+// On phones the expanded sheet has to stand down while the picker owns the
+// screen (two stacked modals would fight over scroll lock and focus). That is
+// a temporary hand-over, NOT a dismissal: _cmpSheetPendingReopen records that
+// the sheet was the layer that opened the picker so closing the picker puts it
+// straight back, with every selected product still in place. Without this the
+// picker's × dropped the visitor onto the collapsed side-tab, which reads as
+// "my whole comparison was cancelled".
+let _cmpSheetPendingReopen = false;
+
 function ylCompareAddMore() {
   if (typeof openComparePicker === "function") {
     const tray = document.getElementById("compareTray");
@@ -244,6 +260,7 @@ function ylCompareAddMore() {
       ylSyncCompareTrayA11y(getCompareList().length);
       ylCloseCompareSheet(false);
       scheduleCompareTrayHeight();
+      _cmpSheetPendingReopen = true;
       requestAnimationFrame(() => openComparePicker(opener));
     } else {
       openComparePicker(opener);
@@ -251,6 +268,20 @@ function ylCompareAddMore() {
     return;
   }
   location.href = "/products#catalogue";
+}
+
+// Put the mobile sheet back after the picker hands the screen over. Selections
+// are untouched by any of this — they only ever change via a row × or Clear all.
+function ylReopenCompareSheetIfPending() {
+  if (!_cmpSheetPendingReopen) return;
+  _cmpSheetPendingReopen = false;
+  if (!CMP_MOBILE_QUERY.matches) return;
+  const tray = document.getElementById("compareTray");
+  if (!tray || !tray.classList.contains("visible")) return;
+  tray.classList.add("is-expanded");
+  ylSyncCompareTrayA11y(getCompareList().length);
+  ylOpenCompareSheet();
+  scheduleCompareTrayHeight();
 }
 
 // Observe the tray itself rather than guessing from breakpoints or one render.
@@ -379,9 +410,11 @@ function ylEnsureSheetCloseBtn() {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "cmp-sheet-close";
-  btn.setAttribute("aria-label", "Close comparison");
+  // This control COLLAPSES the sheet back to the compact compare tab; it never
+  // clears the selection (only a row × or Clear all do). The name says so.
+  btn.setAttribute("aria-label", "Collapse compare");
   btn.onclick = toggleCompareTray;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   inner.insertBefore(btn, inner.firstChild);
 }
 
@@ -621,7 +654,15 @@ function closeComparePicker(restoreFocus = true) {
   document.body.style.overflow = "";
   if (state && typeof state.release === "function") state.release(false);
   _pickerState = null;
-  if (!restoreFocus) return;
+  // restoreFocus === false marks a forced teardown (another modal is taking
+  // over, or the page is being swapped): the sheet must NOT come back then.
+  if (restoreFocus === false) { _cmpSheetPendingReopen = false; return; }
+  if (_cmpSheetPendingReopen) {
+    ylReopenCompareSheetIfPending();
+    // The sheet is the layer the visitor returns to; its focus trap owns focus
+    // from here, so the generic restore below would fight it.
+    return;
+  }
   const candidates = [
     state && state.opener,
     document.getElementById("compareTrayToggle"),

@@ -108,14 +108,11 @@
   }
 
   function updateNavActive() {
-    var page = pathOf(location.href);
-    var links = document.querySelectorAll(".nav-links a");
-    for (var i = 0; i < links.length; i++) {
-      var href = pathOf(links[i].getAttribute("href"));
-      // Match navbar.js's own logic: only the exact page is highlighted (the
-      // product-detail page highlights nothing, same as a direct page load).
-      links[i].classList.toggle("nav-active", href === page);
-    }
+    // navbar.js owns the rule for what counts as "active" (Products stays lit
+    // across product-detail and compare) and applies it to the desktop row AND
+    // the mobile drawer. Calling its helper keeps a swap identical to a direct
+    // page load instead of maintaining a second, diverging copy here.
+    if (typeof window.ylSyncNavActive === "function") window.ylSyncNavActive();
     // Close the mobile drawer if it was left open by the tap that navigated.
     var drawer = document.getElementById("_navDrawer");
     if (drawer) drawer.classList.remove("open");

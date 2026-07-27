@@ -65,8 +65,33 @@
   box-shadow: 0 0 0 1px var(--muted, #6a655a);
 }
 
+/* Optional inline label (data-trigger-label). Quiet, so the chosen value keeps
+   the emphasis; both sit on the same baseline as the chevron. */
+.custom-select-trigger-prefix {
+  flex-shrink: 0;
+  color: var(--muted, #6a655a);
+  font-weight: 500;
+}
+
+/* The value takes the free space and truncates rather than pushing the chevron,
+   so the chevron never moves as the selection changes. */
+.custom-select-trigger-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Fixed box so rotating the chevron cannot shift anything around it. */
 .custom-select-chevron {
   flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #666;
   transition: transform 0.18s ease;
 }

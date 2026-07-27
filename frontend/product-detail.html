@@ -8,21 +8,31 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=95">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
-  <script src="/js/widgets/navbar.js?v=19"></script>
-  <script src="/js/widgets/footer.js?v=21"></script>
+  <link rel="stylesheet" href="/css/products.css?v=96">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=9">
+  <script src="/js/i18n.js?v=3"></script>
+  <script src="/js/i18n-products.js?v=1"></script>
+  <script src="/js/widgets/navbar.js?v=22"></script>
+  <script src="/js/widgets/footer.js?v=24"></script>
 </head>
 <body>
 
 <div id="swup" class="transition-fade">
-<nav class="breadcrumb page-breadcrumb" id="breadcrumb" aria-label="Breadcrumb">
-  <a href="/" class="bc-home">Home</a>
-  <span aria-hidden="true" class="bc-sep-home">&rsaquo;</span>
-  <a href="/products#catalogue" id="breadcrumbProducts" onclick="return backToProducts(event)">Products</a>
-  <span aria-hidden="true">&rsaquo;</span>
-  <span id="breadcrumbProduct" aria-current="page">Loading&hellip;</span>
-</nav>
+<!-- Return to the catalogue. NOT a breadcrumb trail: with the full desktop
+     navigation visible, "Home › Products › <product>" only repeats what the
+     permanent navbar (Products already lit) and the product heading below
+     already say, so CSS hides this row entirely at those widths. It appears
+     only once the navigation has collapsed into the mobile menu, where there is
+     no visible route back to the catalogue. It is a real link with a guaranteed
+     /products fallback; product-detail.js upgrades the href to the exact
+     filtered/scrolled catalogue view the visitor came from when it knows it. -->
+<div class="detail-backrow">
+  <a class="detail-back" id="detailBackLink" href="/products"
+     onclick="ylBackToCatalogue()" data-i18n-attr="aria-label:common.back_products">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+    <span data-i18n="common.back_products">Back to Products</span>
+  </a>
+</div>
 
 <main id="mainContent">
 <!-- Gallery left, product summary right -->
@@ -46,14 +56,14 @@
      independent accordion at ≤640px (CSS decides which control set shows). -->
 <section class="detail-tabs" aria-label="Product information">
   <div class="detail-tablist" role="tablist" aria-label="Product information tabs">
-    <button class="detail-tab" id="tab-specs" role="tab" aria-selected="true" aria-controls="panel-specs" onclick="ylDetailTab('specs')">Specifications</button>
-    <button class="detail-tab" id="tab-apply" role="tab" aria-selected="false" aria-controls="panel-apply" tabindex="-1" onclick="ylDetailTab('apply')">Application &amp; Suitable Uses</button>
-    <button class="detail-tab" id="tab-downloads" role="tab" aria-selected="false" aria-controls="panel-downloads" tabindex="-1" onclick="ylDetailTab('downloads')">Downloads</button>
+    <button class="detail-tab" id="tab-specs" role="tab" aria-selected="true" aria-controls="panel-specs" onclick="ylDetailTab('specs')" data-i18n="detail.tab_specs">Specifications</button>
+    <button class="detail-tab" id="tab-apply" role="tab" aria-selected="false" aria-controls="panel-apply" tabindex="-1" onclick="ylDetailTab('apply')" data-i18n="detail.tab_apply">Application &amp; Suitable Uses</button>
+    <button class="detail-tab" id="tab-downloads" role="tab" aria-selected="false" aria-controls="panel-downloads" tabindex="-1" onclick="ylDetailTab('downloads')" data-i18n="detail.tab_downloads">Downloads</button>
   </div>
 
   <div class="detail-section is-open" data-section="specs">
     <button class="detail-acc-head" id="acc-specs" type="button" aria-expanded="true" aria-controls="panel-specs" onclick="ylDetailAcc('specs')">
-      <span>Specifications</span>
+      <span data-i18n="detail.tab_specs">Specifications</span>
       <svg class="detail-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="detail-tabpanel" id="panel-specs" role="tabpanel" aria-labelledby="tab-specs"><div id="detailSpecs"></div></div>
@@ -61,7 +71,7 @@
 
   <div class="detail-section" data-section="apply">
     <button class="detail-acc-head" id="acc-apply" type="button" aria-expanded="false" aria-controls="panel-apply" onclick="ylDetailAcc('apply')">
-      <span>Application &amp; Suitable Uses</span>
+      <span data-i18n="detail.tab_apply">Application &amp; Suitable Uses</span>
       <svg class="detail-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="detail-tabpanel" id="panel-apply" role="tabpanel" aria-labelledby="tab-apply" hidden><div id="detailApply"></div></div>
@@ -69,7 +79,7 @@
 
   <div class="detail-section" data-section="downloads">
     <button class="detail-acc-head" id="acc-downloads" type="button" aria-expanded="false" aria-controls="panel-downloads" onclick="ylDetailAcc('downloads')">
-      <span>Downloads</span>
+      <span data-i18n="detail.tab_downloads">Downloads</span>
       <svg class="detail-acc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="detail-tabpanel" id="panel-downloads" role="tabpanel" aria-labelledby="tab-downloads" hidden><div id="detailDownloads"></div></div>
@@ -81,8 +91,8 @@
 
 <div class="related-section" id="relatedSection" style="display:none">
   <div class="related-section-head">
-    <h2>Related Products</h2>
-    <a class="related-view-all" href="/products">View all products
+    <h2 data-i18n="common.related">Related Products</h2>
+    <a class="related-view-all" href="/products"><span data-i18n="common.view_all">View all products</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </a>
   </div>
@@ -93,19 +103,19 @@
 <div class="compare-tray" id="compareTray" role="region" aria-label="Product comparison tray">
   <button class="compare-tray-trigger" id="compareTrayToggle" type="button" onclick="toggleCompareTray()" aria-expanded="false" aria-controls="compareTrayPanel">
     <svg class="ctt-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-    Compare <span id="compareTrayCount">(0/3)</span>
+    <span data-i18n="common.compare">Compare</span> <span id="compareTrayCount">(0/3)</span>
     <svg class="ctt-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
   <div class="compare-tray-panel" id="compareTrayPanel">
     <div class="compare-tray-inner">
       <div class="compare-tray-head">
-        <span class="compare-tray-title">Compare <span id="compareTrayFull">(0/3)</span></span>
-        <span class="compare-tray-sub">Add up to 3 products</span>
+        <span class="compare-tray-title"><span data-i18n="common.compare">Compare</span> <span id="compareTrayFull">(0/3)</span></span>
+        <span class="compare-tray-sub" data-i18n="detail.add3">Add up to 3 products</span>
       </div>
       <div class="compare-tray-slots" id="compareTraySlots"></div>
       <div class="compare-tray-actions" id="compareTrayActions">
-        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison">Clear all</button>
-        <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view">Compare now
+        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison" data-i18n="products.clear_all">Clear all</button>
+        <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view"><span data-i18n="detail.compare_now">Compare now</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
       </div>
@@ -122,14 +132,14 @@
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=9"></script>
 <script src="/js/core/app.js?v=4"></script>
-<script src="/js/widgets/compare.js?v=19"></script>
-<script src="/js/widgets/custom-select.js?v=5"></script>
-<script src="/js/pages/products.js?v=45"></script>
-<script src="/js/pages/product-detail.js?v=36"></script>
-<script src="/js/pages/compare-page.js?v=17"></script>
+<script src="/js/widgets/compare.js?v=20"></script>
+<script src="/js/widgets/custom-select.js?v=6"></script>
+<script src="/js/pages/products.js?v=47"></script>
+<script src="/js/pages/product-detail.js?v=38"></script>
+<script src="/js/pages/compare-page.js?v=18"></script>
 <script src="/js/pages/enquiry.js?v=7"></script>
 <script src="/js/pages/contact.js?v=5"></script>
 <script src="/js/widgets/chatbot.js?v=26"></script>
-<script src="/js/widgets/page-transitions.js?v=4"></script>
+<script src="/js/widgets/page-transitions.js?v=5"></script>
 </body>
 </html>

@@ -8,7 +8,15 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 0.875rem;
       line-height: 1.6;
-      border-top: 2px solid #CC2929;
+      /* AUDIT (red divider): this rule is the ONLY red horizontal line on the
+         site, and because the footer is shared it renders identically on every
+         page — including the teammate-owned Home and About — so it is a genuine
+         design-system element (the footer boundary), not a leftover on one or two
+         pages. Kept for that reason, but restrained from 2px to a 1px hairline:
+         at 2px a fully saturated red edge between the cream page and the
+         near-black footer read as a hard stripe rather than an accent. No other
+         red rule was introduced anywhere to justify it. */
+      border-top: 1px solid #CC2929;
     }
     .site-footer-inner {
       max-width: 1280px;
@@ -118,6 +126,11 @@
       color: #cdc7b9;
       overflow-wrap: anywhere;
     }
+    /* Both footer CTAs stay brand red. Red is the site's single action colour
+       (Add to Enquiry, Compare now, this), and the footer band carries the one
+       CTA on the page, so it should hold that weight. It does not duplicate the
+       product page's small green icon-only WhatsApp control: different size,
+       different placement, different job in the hierarchy. */
     .site-footer-cta {
       display: inline-flex;
       align-items: center;
@@ -275,6 +288,11 @@
   // full-name URLs keep working there too.
   const BRAND_SLUGS = { "Deer™ Brand": "deer", "Horsemen™ Brand": "horsemen", "Premier™ Brand": "premier", "Rhino™ Brand": "rhino" };
   const brandLink = b => `/products?brand=${BRAND_SLUGS[b] || encodeURIComponent(b)}`;
+  // Falls back to English where the i18n engine isn't loaded (teammate pages).
+  var T = function (key, fallback) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fallback) : fallback; };
+
+  // Shared WhatsApp glyph for both footer CTAs, so the two never drift apart.
+  const WA_GLYPH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>';
 
   const footer = document.createElement("footer");
   footer.className = "site-footer";
@@ -285,32 +303,28 @@
         <a href="/" class="site-footer-brand" aria-label="Yee Lim Adhesives Industries home">
           <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries" class="site-footer-logo">
         </a>
-        <p class="site-footer-blurb">
-          One of Singapore's earliest and largest adhesive manufacturers. For over
-          50 years we have formulated commercial and industrial adhesive solutions
-          engineered to the job, not off the shelf.
-        </p>
+        <p class="site-footer-blurb">${T("footer.blurb", "One of Singapore's earliest and largest adhesive manufacturers. For over 50 years we have formulated commercial and industrial adhesive solutions engineered to the job, not off the shelf.")}</p>
         <div class="site-footer-certs" aria-label="Certifications">
-          <span class="site-footer-cert">ISO Certified</span>
-          <span class="site-footer-cert">Singapore Green Label</span>
-          <span class="site-footer-cert">Low-VOC / Low-Formaldehyde</span>
+          <span class="site-footer-cert">${T("footer.cert_iso", "ISO Certified")}</span>
+          <span class="site-footer-cert">${T("footer.cert_green", "Singapore Green Label")}</span>
+          <span class="site-footer-cert">${T("footer.cert_lowvoc", "Low-VOC / Low-Formaldehyde")}</span>
         </div>
       </div>
 
       <nav class="site-footer-col" aria-label="Company">
-        <p class="site-footer-col-title">Company</p>
+        <p class="site-footer-col-title">${T("footer.company", "Company")}</p>
         <ul class="site-footer-links">
-          <li><a href="/about">About Yee Lim</a></li>
-          <li><a href="/about">Our Heritage</a></li>
-          <li><a href="/about">Quality &amp; Environment</a></li>
-          <li><a href="/contact">Contact</a></li>
+          <li><a href="/about">${T("footer.about", "About Yee Lim")}</a></li>
+          <li><a href="/about">${T("footer.heritage", "Our Heritage")}</a></li>
+          <li><a href="/about">${T("footer.quality", "Quality & Environment")}</a></li>
+          <li><a href="/contact">${T("nav.contact", "Contact")}</a></li>
         </ul>
       </nav>
 
       <nav class="site-footer-col" aria-label="Products and brands">
-        <p class="site-footer-col-title">Products &amp; Brands</p>
+        <p class="site-footer-col-title">${T("footer.products_brands", "Products & Brands")}</p>
         <ul class="site-footer-links">
-          <li><a href="/products">All Products</a></li>
+          <li><a href="/products">${T("footer.all_products", "All Products")}</a></li>
           <li><a href="${brandLink("Deer™ Brand")}">Deer™ Brand</a></li>
           <li><a href="${brandLink("Horsemen™ Brand")}">Horsemen™ Brand</a></li>
           <li><a href="${brandLink("Premier™ Brand")}">Premier™ Brand</a></li>
@@ -319,14 +333,14 @@
       </nav>
 
       <div class="site-footer-col">
-        <p class="site-footer-col-title">Contact &amp; Enquiry</p>
+        <p class="site-footer-col-title">${T("footer.contact_enquiry", "Contact & Enquiry")}</p>
         <dl class="site-footer-contact">
           <div>
-            <dt>Address</dt>
+            <dt>${T("footer.address", "Address")}</dt>
             <dd data-yl-address>1 Ang Mo Kio Street 65, #03-17, Singapore 569063</dd>
           </div>
           <div>
-            <dt>Email</dt>
+            <dt>${T("footer.email", "Email")}</dt>
             <dd><a data-yl-email="text" href="mailto:contact@yeelimadhesives.com.sg">contact@yeelimadhesives.com.sg</a></dd>
           </div>
           <div>
@@ -334,14 +348,14 @@
             <dd><a data-yl-wa data-yl-phone href="https://wa.me/6588755786" target="_blank" rel="noopener noreferrer">+65 8875 5786</a></dd>
           </div>
         </dl>
-        <a class="site-footer-cta" data-yl-wa href="https://wa.me/6588755786?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer">Speak to Yee Lim &rarr;</a>
+        <a class="site-footer-cta" data-yl-wa href="https://wa.me/6588755786?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products." target="_blank" rel="noopener noreferrer" aria-label="${T("footer.whatsapp_aria", "Message Yee Lim on WhatsApp (opens WhatsApp)")}">${WA_GLYPH}${T("footer.whatsapp_us", "WhatsApp us")}</a>
       </div>
     </div>
 
     <div class="site-footer-bottom-wrap">
       <div class="site-footer-bottom">
-        <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. All rights reserved.</span>
-        <span>Commercial &amp; Industrial Adhesive Solutions · Singapore</span>
+        <span>&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong>. ${T("footer.rights", "All rights reserved.")}</span>
+        <span>${T("footer.tagline", "Commercial & Industrial Adhesive Solutions · Singapore")}</span>
       </div>
     </div>
 
@@ -353,16 +367,16 @@
     <div class="site-footer-mobile">
       <div class="sfm-brand-row">
         <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries" class="sfm-logo">
-        <p class="sfm-blurb">Commercial &amp; industrial adhesives, manufactured in Singapore since 1976.</p>
+        <p class="sfm-blurb">${T("footer.mobile_blurb", "Commercial & industrial adhesives, manufactured in Singapore since 1976.")}</p>
       </div>
       <div class="site-footer-certs sfm-certs" aria-label="Certifications">
-        <span class="site-footer-cert">ISO Certified</span>
-        <span class="site-footer-cert">Singapore Green Label</span>
-        <span class="site-footer-cert">Low-VOC / Low-Formaldehyde</span>
+        <span class="site-footer-cert">${T("footer.cert_iso", "ISO Certified")}</span>
+        <span class="site-footer-cert">${T("footer.cert_green", "Singapore Green Label")}</span>
+        <span class="site-footer-cert">${T("footer.cert_lowvoc", "Low-VOC / Low-Formaldehyde")}</span>
       </div>
       <div class="sfm-cols">
         <nav class="sfm-col" aria-label="Brands">
-          <p class="sfm-col-title">Brands</p>
+          <p class="sfm-col-title">${T("footer.brands", "Brands")}</p>
           <ul class="site-footer-links">
             <li><a href="${brandLink("Deer™ Brand")}">Deer&trade;</a></li>
             <li><a href="${brandLink("Horsemen™ Brand")}">Horsemen&trade;</a></li>
@@ -371,21 +385,33 @@
           </ul>
         </nav>
         <nav class="sfm-col" aria-label="Company">
-          <p class="sfm-col-title">Company</p>
+          <p class="sfm-col-title">${T("footer.company", "Company")}</p>
           <ul class="site-footer-links">
-            <li><a href="/products">All Products</a></li>
-            <li><a href="/about">About Yee Lim</a></li>
-            <li><a href="/about">Our Heritage</a></li>
-            <li><a href="/contact">Contact</a></li>
+            <li><a href="/products">${T("footer.all_products", "All Products")}</a></li>
+            <li><a href="/about">${T("footer.about", "About Yee Lim")}</a></li>
+            <li><a href="/about">${T("footer.heritage", "Our Heritage")}</a></li>
+            <li><a href="/contact">${T("nav.contact", "Contact")}</a></li>
           </ul>
         </nav>
       </div>
+      <!-- The mobile band's CTA opens WhatsApp DIRECTLY. It used to read
+           "Contact us" and route to the Contact page, which made the fastest
+           route to a real conversation a two-step detour. Same configured number
+           as the desktop column and the contact page (data-yl-wa lets an admin
+           edit it in one place — see applySiteSettings in core/app.js), same
+           prefilled opener, and the icon + accessible name both say WhatsApp so
+           nobody taps it expecting a form. -->
       <div class="sfm-cta-band">
         <div class="sfm-cta-text">
-          <p class="sfm-cta-title">Have a project in mind?</p>
-          <p class="sfm-cta-sub">Enquiries &amp; quotations within 1&ndash;2 business days.</p>
+          <p class="sfm-cta-title">${T("footer.project", "Have a project in mind?")}</p>
+          <p class="sfm-cta-sub">${T("footer.project_sub", "Enquiries & quotations within 1-2 business days.")}</p>
         </div>
-        <a class="sfm-cta-btn" href="/contact">Contact us &rarr;</a>
+        <a class="sfm-cta-btn" data-yl-wa
+           href="https://wa.me/6588755786?text=Hello%20Yee%20Lim%2C%20I%20would%20like%20to%20enquire%20about%20your%20adhesive%20products."
+           target="_blank" rel="noopener noreferrer"
+           aria-label="${T("footer.whatsapp_aria", "Message Yee Lim on WhatsApp (opens WhatsApp)")}">
+          ${WA_GLYPH}${T("footer.whatsapp_us", "WhatsApp us")}
+        </a>
       </div>
       <p class="sfm-address" data-yl-address>1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
       <div class="sfm-copyright">&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong> &middot; Singapore</div>

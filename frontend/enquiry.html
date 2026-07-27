@@ -8,10 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=89">
-  <link rel="stylesheet" href="/css/dropdown-ui.css?v=8">
-  <script src="/js/widgets/navbar.js?v=19"></script>
-  <script src="/js/widgets/footer.js?v=21"></script>
+  <link rel="stylesheet" href="/css/products.css?v=96">
+  <link rel="stylesheet" href="/css/dropdown-ui.css?v=9">
+  <script src="/js/i18n.js?v=3"></script>
+  <script src="/js/i18n-products.js?v=1"></script>
+  <script src="/js/widgets/navbar.js?v=22"></script>
+  <script src="/js/widgets/footer.js?v=24"></script>
 </head>
 <body>
 
@@ -22,13 +24,11 @@
 <section class="page-hero" aria-labelledby="enquiryHeading">
   <div class="page-hero-img" aria-hidden="true"></div>
   <div class="page-hero-inner hero-inner-narrow">
-    <nav class="hero-breadcrumb" aria-label="Breadcrumb">
-      <a href="/">Home</a>
-      <span aria-hidden="true">&rsaquo;</span>
-      <span aria-current="page">Product Enquiry</span>
-    </nav>
-    <h1 id="enquiryHeading">Product Enquiry</h1>
-    <p class="hero-lead">Review your selected products and submit an enquiry. Our team will respond with expert advice and recommendations.</p>
+    <!-- No breadcrumb: Product Enquiry is a top-level destination reached from
+         the persistent Enquiry action in the header, so "Home › Product Enquiry"
+         added a strip of redundant text above the page title on every width. -->
+    <h1 id="enquiryHeading" data-i18n="enquiry.title">Product Enquiry</h1>
+    <p class="hero-lead" data-i18n="enquiry.lead">Review your selected products and submit an enquiry. Our team will respond with expert advice and recommendations.</p>
   </div>
 </section>
 
@@ -41,10 +41,10 @@
       <div class="enquiry-basket-card">
         <div class="enquiry-col-head" id="enquiryColHead" style="display:none">
           <div>
-            <h2>Your Enquiry Basket</h2>
-            <p class="enquiry-basket-sub">Review the products you&rsquo;ve selected.</p>
+            <h2 data-i18n="enquiry.basket">Your Enquiry Basket</h2>
+            <p class="enquiry-basket-sub" data-i18n="enquiry.basket_sub">Review the products you&rsquo;ve selected.</p>
           </div>
-          <button type="button" class="enquiry-clear-all" id="clearAllBtn" onclick="clearAllBasket()">Clear all</button>
+          <button type="button" class="enquiry-clear-all" id="clearAllBtn" onclick="clearAllBasket()" data-i18n="enquiry.clear_all">Clear all</button>
         </div>
 
         <!-- Basket list -->
@@ -58,11 +58,11 @@
             <span class="enquiry-total-ic" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
             </span>
-            <span class="enquiry-total-text"><strong>Total Products</strong><span id="enquiryTotalCount"></span></span>
+            <span class="enquiry-total-text"><strong data-i18n="enquiry.total">Total Products</strong><span id="enquiryTotalCount"></span></span>
           </div>
           <button type="button" class="enquiry-total-advice" aria-haspopup="dialog" onclick="if(window.openProductAdvisor){window.openProductAdvisor()}else{window.location.href='/contact'}">
-            <span class="enquiry-advice-helper">Need help finding the right product?</span>
-            <span class="enquiry-advice-link">Get Product Advice
+            <span class="enquiry-advice-helper" data-i18n="enquiry.need_help">Need help finding the right product?</span>
+            <span class="enquiry-advice-link"><span data-i18n="enquiry.get_advice">Get Product Advice</span>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </span>
           </button>
@@ -75,10 +75,10 @@
       <div class="enquiry-form" id="enquiryFormSection" style="display:none">
         <div class="enquiry-form-body">
           <div class="enquiry-form-head">
-            <h2>Your Details</h2>
-            <span class="enquiry-required-note">* Required fields</span>
+            <h2 data-i18n="enquiry.your_details">Your Details</h2>
+            <span class="enquiry-required-note" data-i18n="enquiry.required">* Required fields</span>
           </div>
-          <p class="enquiry-form-sub">Please provide your details so our team can respond accurately.</p>
+          <p class="enquiry-form-sub" data-i18n="enquiry.details_sub">Please provide your details so our team can respond accurately.</p>
 
           <!-- Honeypot: hidden from people, tempting to bots. A real submission
                leaves this empty; the server silently drops anything that fills it. -->
@@ -89,65 +89,65 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="eName">Full Name *</label>
-              <input type="text" id="eName" required aria-required="true" autocomplete="name" placeholder="John Tan">
-              <p class="field-error" id="eNameErr" hidden>Please enter your full name.</p>
+              <label for="eName" data-i18n="enquiry.f_name">Full Name *</label>
+              <input type="text" id="eName" required aria-required="true" autocomplete="name" placeholder="John Tan" data-i18n-attr="placeholder:enquiry.ph_name">
+              <p class="field-error" id="eNameErr" hidden data-i18n="enquiry.err_name">Please enter your full name.</p>
             </div>
             <div class="form-group">
-              <label for="eCompany">Company Name *</label>
-              <input type="text" id="eCompany" required aria-required="true" autocomplete="organization" placeholder="ABC Pte Ltd">
-              <p class="field-error" id="eCompanyErr" hidden>Please enter your company name.</p>
+              <label for="eCompany" data-i18n="enquiry.f_company">Company Name *</label>
+              <input type="text" id="eCompany" required aria-required="true" autocomplete="organization" placeholder="ABC Pte Ltd" data-i18n-attr="placeholder:enquiry.ph_company">
+              <p class="field-error" id="eCompanyErr" hidden data-i18n="enquiry.err_company">Please enter your company name.</p>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="eEmail">Email Address *</label>
+              <label for="eEmail" data-i18n="enquiry.f_email">Email Address *</label>
               <input type="email" id="eEmail" required aria-required="true" autocomplete="email" placeholder="you@company.com">
-              <p class="field-error" id="eEmailErr" hidden>Please enter a valid email address.</p>
+              <p class="field-error" id="eEmailErr" hidden data-i18n="enquiry.err_email">Please enter a valid email address.</p>
             </div>
             <div class="form-group">
-              <label for="ePhone">Phone Number</label>
+              <label for="ePhone" data-i18n="enquiry.f_phone">Phone Number</label>
               <input type="tel" id="ePhone" autocomplete="tel" placeholder="+65 9123 4567">
             </div>
           </div>
           <div class="form-group">
-            <label for="eSubject">Subject</label>
+            <label for="eSubject" data-i18n="enquiry.f_subject">Subject</label>
             <select id="eSubject" aria-label="Enquiry subject">
-              <option value="" selected>Select enquiry subject</option>
-              <option>General product enquiry</option>
-              <option>Request a quotation</option>
-              <option>Technical / application advice</option>
-              <option>Bulk or distributor enquiry</option>
-              <option>Other</option>
+              <option value="" selected data-i18n="enquiry.opt_select">Select enquiry subject</option>
+              <option data-i18n="enquiry.opt_general">General product enquiry</option>
+              <option data-i18n="enquiry.opt_quote">Request a quotation</option>
+              <option data-i18n="enquiry.opt_tech">Technical / application advice</option>
+              <option data-i18n="enquiry.opt_bulk">Bulk or distributor enquiry</option>
+              <option data-i18n="enquiry.opt_other">Other</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="eMessage">Message</label>
-            <textarea id="eMessage" maxlength="1000" placeholder="Tell us the surfaces you are bonding, your application, and the quantity you need…"></textarea>
+            <label for="eMessage" data-i18n="enquiry.f_message">Message</label>
+            <textarea id="eMessage" maxlength="1000" placeholder="Tell us the surfaces you are bonding, your application, and the quantity you need…" data-i18n-attr="placeholder:enquiry.ph_message"></textarea>
             <span class="ta-counter" id="eMessageCount" aria-hidden="true">0 / 1000</span>
           </div>
           <div class="form-group">
-            <label for="eNotes">Enquiry Notes <span style="font-weight:400;color:var(--muted)">(Optional)</span></label>
-            <textarea id="eNotes" maxlength="1000" style="min-height:76px" placeholder="Any additional information that may help our team…"></textarea>
+            <label for="eNotes"><span data-i18n="enquiry.f_notes">Enquiry Notes</span> <span style="font-weight:400;color:var(--muted)" data-i18n="enquiry.optional">(Optional)</span></label>
+            <textarea id="eNotes" maxlength="1000" style="min-height:76px" placeholder="Any additional information that may help our team…" data-i18n-attr="placeholder:enquiry.ph_notes"></textarea>
             <span class="ta-counter" id="eNotesCount" aria-hidden="true">0 / 1000</span>
           </div>
           <label class="form-check" for="ePrivacy">
             <input type="checkbox" id="ePrivacy" aria-required="true">
-            <span>I agree to the collection and use of my information to process this enquiry.</span>
+            <span data-i18n="enquiry.privacy_agree">I agree to the collection and use of my information to process this enquiry.</span>
           </label>
-          <p class="field-error" id="ePrivacyErr" hidden>Please agree to the use of your information so we can process your enquiry.</p>
+          <p class="field-error" id="ePrivacyErr" hidden data-i18n="enquiry.err_privacy">Please agree to the use of your information so we can process your enquiry.</p>
           <div class="form-submit">
             <p id="enquiryError" tabindex="-1" style="display:none;color:#c0392b;font-size:0.875rem;margin-bottom:0.75rem"></p>
             <button class="btn btn-primary enquiry-submit-btn" id="submitEnquiryBtn" onclick="submitEnquiry()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              Submit Enquiry
+              <span data-i18n="enquiry.submit">Submit Enquiry</span>
             </button>
-            <p class="enquiry-reassurance">We'll reply within 1&ndash;2 business days with advice or a quotation.</p>
+            <p class="enquiry-reassurance" data-i18n="enquiry.reassurance">We'll reply within 1&ndash;2 business days with advice or a quotation.</p>
           </div>
         </div>
         <p class="enquiry-security-note">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-          Your information is secure and will only be used to process your enquiry.
+          <span data-i18n="enquiry.security">Your information is secure and will only be used to process your enquiry.</span>
         </p>
       </div>
     </aside>
@@ -158,11 +158,11 @@
 <!-- Confirmation screen (hidden until submit) -->
 <div class="page-content confirmation" id="confirmation">
   <div class="check" aria-hidden="true">&check;</div>
-  <h2>Enquiry Sent</h2>
-  <p>Thank you for your enquiry. Our team will get back to you within 1&ndash;2 business days.</p>
+  <h2 data-i18n="enquiry.sent">Enquiry Sent</h2>
+  <p data-i18n="enquiry.sent_body">Thank you for your enquiry. Our team will get back to you within 1&ndash;2 business days.</p>
   <p class="confirmation-ref" id="confirmationRef" style="display:none;font-weight:600;color:var(--text)"></p>
-  <p class="confirmation-note" id="confirmationNote" style="display:none;font-size:0.85rem;color:var(--muted)">We've emailed a copy to you for your records.</p>
-  <a href="/products" class="btn btn-primary" style="margin-top:1.5rem;padding:0.75rem 1.5rem;display:inline-block">
+  <p class="confirmation-note" id="confirmationNote" style="display:none;font-size:0.85rem;color:var(--muted)" data-i18n="enquiry.sent_email">We've emailed a copy to you for your records.</p>
+  <a href="/products" class="btn btn-primary" style="margin-top:1.5rem;padding:0.75rem 1.5rem;display:inline-block" data-i18n="enquiry.browse_more">
     Browse More Products
   </a>
 </div>
@@ -174,14 +174,14 @@
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=9"></script>
 <script src="/js/core/app.js?v=4"></script>
-<script src="/js/widgets/compare.js?v=19"></script>
-<script src="/js/widgets/custom-select.js?v=5"></script>
-<script src="/js/pages/products.js?v=45"></script>
-<script src="/js/pages/product-detail.js?v=32"></script>
-<script src="/js/pages/compare-page.js?v=17"></script>
+<script src="/js/widgets/compare.js?v=20"></script>
+<script src="/js/widgets/custom-select.js?v=6"></script>
+<script src="/js/pages/products.js?v=47"></script>
+<script src="/js/pages/product-detail.js?v=38"></script>
+<script src="/js/pages/compare-page.js?v=18"></script>
 <script src="/js/pages/enquiry.js?v=7"></script>
 <script src="/js/pages/contact.js?v=5"></script>
 <script src="/js/widgets/chatbot.js?v=26"></script>
-<script src="/js/widgets/page-transitions.js?v=4"></script>
+<script src="/js/widgets/page-transitions.js?v=5"></script>
 </body>
 </html>

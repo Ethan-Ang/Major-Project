@@ -19,6 +19,9 @@
          env() keeps the logo/actions out of the landscape notch inset so nothing
          hides, while the background still reaches the screen edge (no cream gap). */
       padding: 0 max(2rem, env(safe-area-inset-right)) 0 max(2rem, env(safe-area-inset-left));
+      /* Guaranteed air between the three grid columns, so the centre link row can
+         never end up touching the right-hand cluster (logo | links | actions). */
+      column-gap: 1.25rem;
       height: 60px;
       box-sizing: border-box;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -56,8 +59,11 @@
     .nav-links {
       display: flex;
       /* Professional B2B spacing: ~40-44px between links at 1440, easing down to
-         ~30px at 1024. Fluid, so the centred group never crowds or over-spreads. */
-      gap: clamp(1.75rem, 3vw, 2.75rem);
+         ~30px at 1024. Fluid, so the centred group never crowds or over-spreads.
+         The floor is 1rem rather than 1.75rem because just above the mobile
+         breakpoint (769-820px) the link row plus the actions cluster filled the
+         bar exactly, leaving the language switch pressed against "Contact". */
+      gap: clamp(1rem, 3vw, 2.75rem);
       list-style: none;
       margin: 0;
       padding: 0;
@@ -207,16 +213,36 @@
     }
     .nav-mobile-backdrop.open { display: block; }
     .nav-mobile-drawer a {
+      position: relative;
       color: #cdc7b9;
       text-decoration: none;
       font-size: 0.98rem;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 0.85rem 0.25rem;
+      padding: 0.85rem 0.25rem 0.85rem 0.85rem;
       border-bottom: 1px solid #262421;
       transition: color 0.2s;
     }
     .nav-mobile-drawer a:last-child { border-bottom: none; }
     .nav-mobile-drawer a:hover { color: #fff; }
+    /* Current page in the open menu: a short brand-red accent on the leading
+       edge plus brighter, heavier text. Restrained on purpose — a filled red
+       row would shout over the four quiet items around it. The left padding
+       above is shared by every row so the active state never shifts the list. */
+    .nav-mobile-drawer a.nav-active {
+      color: #fff;
+      font-weight: 600;
+    }
+    .nav-mobile-drawer a.nav-active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 1.15em;
+      border-radius: 2px;
+      background: #CC2929;
+    }
     @media (max-width: 768px) {
       /* With the centre nav-links hidden, only the logo and the right-hand
          cluster remain. Switch to a two-column grid so the right cluster (count
@@ -230,36 +256,79 @@
     }
     @media (max-width: 480px) {
       /* Narrow mobile: swap the long "Product Enquiry" label for the short
-         "Enquiry" (accessible name unchanged) and open the spacing up, so the
-         logo, enquiry chip and hamburger each get room to breathe instead of
-         crowding together. */
-      .nav { padding: 0 1rem; gap: 0.5rem; }
+         "Enquiry" (accessible name unchanged). Space is reclaimed from the
+         outer padding and the gaps between items FIRST — the touch targets
+         themselves stay full size so 中文, Enquiry and the menu all remain
+         comfortably tappable on one row. */
+      .nav { padding: 0 0.85rem; gap: 0.4rem; }
       .nav-logo-img { height: 32px; }
-      .nav-right { gap: 0.55rem; }
+      .nav-right { gap: 0.1rem; }
       .nav-basket-label-full { display: none; }
       .nav-basket-label-short { display: inline; }
-      .nav-basket { font-size: 0.82rem; height: 42px; padding: 0 0.85rem; gap: 0.45rem; }
+      .nav-basket { font-size: 0.82rem; height: 42px; padding: 0 0.8rem; gap: 0.4rem; margin-left: 0.25rem; }
       .nav-basket svg { width: 15px; height: 15px; }
       .nav-basket-count { min-width: 17px; height: 17px; line-height: 17px; font-size: 0.68rem; padding: 0 4px; }
       .nav-hamburger { min-width: 44px; min-height: 44px; padding: 0.4rem; }
+      .nav-lang-btn { min-width: 40px; font-size: 0.86rem; }
     }
     @media (max-width: 380px) {
-      /* Very narrow devices: keep the short "Enquiry" label and all three
-         actions, just compress the paddings a touch further. */
-      .nav { padding: 0 0.7rem; gap: 0.35rem; }
-      .nav-logo-img { height: 30px; }
-      .nav-right { gap: 0.4rem; }
-      .nav-basket { padding: 0 0.65rem; gap: 0.35rem; }
+      /* Very narrow devices (320-380px): still one row with all four items.
+         Only the paddings and gaps compress further; the 40px language box,
+         the 42px Enquiry chip and the 44px menu button are left alone. */
+      .nav { padding: 0 0.55rem; gap: 0.2rem; }
+      .nav-logo-img { height: 29px; }
+      .nav-right { gap: 0; }
+      .nav-basket { padding: 0 0.6rem; gap: 0.3rem; margin-left: 0.1rem; font-size: 0.78rem; }
+      .nav-lang-btn { min-width: 38px; padding: 0; }
     }
+    /* ─── Language switch ──────────────────────────────────────────
+       One borderless control showing only the language you are NOT in
+       (中文 on English pages, EN on Chinese ones), so it never reads as a
+       second boxed button beside Enquiry and never repeats the current
+       state. It stays in the header at EVERY width — language is a global
+       utility and a visitor who needs Chinese must not have to read an
+       English menu first. The visible label is small type; an invisible
+       44px box around it keeps the touch target full size. */
+    .nav-lang-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 0.2rem;
+      background: none;
+      border: none;
+      color: #cdc7b9;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      flex-shrink: 0;
+    }
+    .nav-lang-btn:hover { color: #fff; }
+    .nav-lang-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 4px; }
   `;
   document.head.appendChild(style);
 
   // ─── Detect active page ───────────────────────────────────────
-  const page = window.location.pathname.split("/").pop().replace(".html", "") || "home";
-  function isActive(name) {
-    if (name === "home" && (page === "home" || page === "")) return true;
+  // Products owns the whole catalogue journey, so a product detail page and the
+  // comparison view both keep "Products" lit — the visitor is still inside that
+  // section and the menu should say so. Product Enquiry is deliberately NOT a
+  // menu row (the persistent Enquiry action in the header represents it), so it
+  // never lights anything here.
+  function currentPage(pathname) {
+    return String(pathname || "").split("/").pop().replace(".html", "") || "home";
+  }
+  function isActivePage(name, page) {
+    if (name === "home") return page === "home" || page === "" || page === "index";
+    if (name === "products") return page === "products" || page === "product-detail" || page === "compare";
     return page === name;
   }
+  const page = currentPage(window.location.pathname);
+  function isActive(name) { return isActivePage(name, page); }
 
   // ─── Basket count ─────────────────────────────────────────────
   function getBasketCount() {
@@ -271,11 +340,20 @@
   }
 
   // ─── Build nav HTML ───────────────────────────────────────────
+  // Labels resolve through the i18n engine when present (owned pages) and fall
+  // back to English where it isn't loaded (e.g. teammate-owned home/about).
+  var T = function (key, fallback) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fallback) : fallback; };
+  var curLang = (typeof window.ylLang === "string") ? window.ylLang : "en";
+  // Only the language you can switch TO is shown; the current one is never
+  // repeated. The accessible name spells the action out in the target language.
+  var altLang = curLang === "zh" ? "en" : "zh";
+  var altLangLabel = altLang === "zh" ? "中文" : "EN";
+  var altLangAria = altLang === "zh" ? "切换到中文 (Switch to Chinese)" : "Switch to English";
   const links = [
-    { name: "home",     label: "Home",    href: "/" },
-    { name: "products", label: "Products", href: "/products" },
-    { name: "about",    label: "About",   href: "/about" },
-    { name: "contact",  label: "Contact", href: "/contact" },
+    { name: "home",     label: T("nav.home", "Home"),         href: "/" },
+    { name: "products", label: T("nav.products", "Products"), href: "/products" },
+    { name: "about",    label: T("nav.about", "About"),       href: "/about" },
+    { name: "contact",  label: T("nav.contact", "Contact"),   href: "/contact" },
   ];
 
   const navEl = document.createElement("nav");
@@ -286,14 +364,15 @@
     </a>
     <ul class="nav-links">
       ${links.map(l => `
-        <li><a href="${l.href}" ${isActive(l.name) ? 'class="nav-active"' : ""}>${l.label}</a></li>
+        <li><a href="${l.href}" data-nav="${l.name}" ${isActive(l.name) ? 'class="nav-active" aria-current="page"' : ""}>${l.label}</a></li>
       `).join("")}
     </ul>
     <div class="nav-right">
-      <a href="/enquiry" class="nav-basket" aria-label="Product Enquiry">
+      <button type="button" class="nav-lang-btn" data-lang="${altLang}" lang="${altLang === "zh" ? "zh-Hans" : "en"}" aria-label="${altLangAria}">${altLangLabel}</button>
+      <a href="/enquiry" class="nav-basket" aria-label="${T("nav.enquiry", "Product Enquiry")}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
-        <span class="nav-basket-label nav-basket-label-full">Product Enquiry</span>
-        <span class="nav-basket-label nav-basket-label-short" aria-hidden="true">Enquiry</span>
+        <span class="nav-basket-label nav-basket-label-full">${T("nav.enquiry", "Product Enquiry")}</span>
+        <span class="nav-basket-label nav-basket-label-short" aria-hidden="true">${T("nav.enquiry_short", "Enquiry")}</span>
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
       <button type="button" class="nav-hamburger" id="_navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="_navDrawer" aria-haspopup="dialog">&#9776;</button>
@@ -308,9 +387,11 @@
   drawerEl.setAttribute("aria-label", "Site navigation");
   drawerEl.setAttribute("aria-hidden", "true");
   drawerEl.tabIndex = -1;
-  drawerEl.innerHTML = `
-    ${links.map(l => `<a href="${l.href}">${l.label}</a>`).join("")}
-  `;
+  // No language control inside the drawer: it now lives in the header at every
+  // width, and duplicating it here would give the same global utility two homes.
+  drawerEl.innerHTML = links.map(l =>
+    `<a href="${l.href}" data-nav="${l.name}" ${isActive(l.name) ? 'class="nav-active" aria-current="page"' : ""}>${l.label}</a>`
+  ).join("");
 
   const backdropEl = document.createElement("div");
   backdropEl.className = "nav-mobile-backdrop";
@@ -487,7 +568,32 @@
     window.addEventListener("basketUpdated", updateCounts);
     window.addEventListener("compareUpdated", updateCounts);
     updateCounts();
+
+    // Language switch. ylSetLang stores the choice and reloads IN PLACE, so the
+    // visitor stays on the page they were reading (never bounced to Home) and
+    // the selection persists across every later page via localStorage.
+    document.querySelectorAll(".nav-lang-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var lang = btn.getAttribute("data-lang");
+        if (window.ylSetLang) { window.ylSetLang(lang); }
+        else { try { localStorage.setItem("ylLang", lang); } catch (e) {} window.location.reload(); }
+      });
+    });
   }
+
+  // Single source of truth for the current-page state, used on first paint and
+  // re-applied by page-transitions.js after every Swup content swap. It covers
+  // BOTH the desktop link row and the mobile drawer, so the open menu always
+  // shows where the visitor is.
+  window.ylSyncNavActive = function () {
+    var current = currentPage(window.location.pathname);
+    document.querySelectorAll(".nav-links a[data-nav], .nav-mobile-drawer a[data-nav]").forEach(function (a) {
+      var on = isActivePage(a.getAttribute("data-nav"), current);
+      a.classList.toggle("nav-active", on);
+      if (on) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    });
+  };
 
   function updateCounts() {
     const n = getBasketCount();

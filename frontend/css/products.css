@@ -228,18 +228,9 @@ h1, h2, h3,
   z-index: 1;
 }
 
-/* Small breadcrumb inside the hero (enquiry page). */
-.hero-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 1rem;
-}
-.hero-breadcrumb a { color: var(--muted); text-decoration: none; }
-.hero-breadcrumb a:hover { color: var(--red); }
-.hero-breadcrumb [aria-current] { color: var(--text); font-weight: 500; }
+/* (The enquiry hero's .hero-breadcrumb was removed: Product Enquiry is a
+   top-level destination reached from the header's persistent Enquiry action, so
+   "Home › Product Enquiry" only repeated the page title beneath it.) */
 
 .page-hero .hero-eyebrow {
   display: block;
@@ -398,13 +389,31 @@ h1, h2, h3,
 .search-bar:focus-within .search-bar-icon { color: var(--red); }
 
 /* ─── Hero search typeahead ──────────────────────────────────────
-   Lightweight suggestion dropdown under the hero search bar. The hero inner
-   uses overflow:hidden for its two-column layout, which would clip an absolute
-   child, so the panel is position:fixed (escaping the clip) and its left/top/
-   width are set in JS from the search bar's rect, repositioned on scroll. */
-.hero-search { position: relative; }
+   Lightweight suggestion dropdown under the hero search bar.
+
+   The panel is anchored IN THE DOCUMENT, directly beneath .search-bar, rather
+   than position:fixed with JS-written coordinates. The fixed version had to
+   re-derive its own top/left/width on every scroll and resize, and on iOS
+   Safari a position:fixed layer is placed against the LAYOUT viewport while the
+   on-screen keyboard shifts the VISUAL one — so opening the keyboard could
+   leave the panel sitting on top of the field you were typing into. Anchored in
+   flow, "below the input, same width as the input" is a layout fact that no
+   viewport shift can undo. JS now only caps the height (see initSearchTypeahead).
+
+   .page-hero clips its decorative photo with overflow:hidden, which would also
+   clip this panel, so the clip is lifted for exactly as long as the panel is
+   open. The photo is absolutely positioned inside the hero's own box (and is
+   display:none on phones), so it has nothing to spill. */
+/* The wrapper hugs the search bar exactly (same 620px cap), so a panel pinned to
+   its left/right edges is always the width of the field it belongs to — on
+   desktop the wrapper would otherwise stretch to the full hero column and the
+   suggestions would overhang the bar. */
+.hero-search { position: relative; max-width: 620px; }
 .search-typeahead {
-  position: fixed;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
   margin: 0;
   padding: 4px;
   list-style: none;
@@ -414,10 +423,11 @@ h1, h2, h3,
   box-shadow: var(--shadow-md);
   z-index: var(--z-typeahead);
   /* Controlled height: the panel must never sprawl over the filters/grid.
-     JS may lower this further to fit the viewport, never raise it. */
+     JS lowers this to the space actually visible, never raises it. */
   max-height: 420px;
   overflow-y: auto;
 }
+.page-hero:has(.search-typeahead:not([hidden])) { overflow: visible; }
 .search-typeahead[hidden] { display: none; }
 .search-typeahead-row {
   display: flex;
@@ -738,23 +748,22 @@ h1, h2, h3,
   gap: 0.75rem;
   padding: 0.8rem 1rem 0.55rem;
 }
-.pcard-brand { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 22px; min-width: 0; }
-/* The official marks sit centred on large padded canvases; a fixed window with
-   a CSS zoom crops the padding without touching (or redrawing) the asset. */
+.pcard-brand { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 22px; min-width: 0; }
+/* The marks in /images/logos/marks/ are the official emblems trimmed to their
+   own content and centred on a square canvas, so a plain contained window shows
+   each one whole at the same optical weight. (The old fixed 240% zoom-crop was
+   tuned for one brand's padding and clipped or shrank the others.) */
 .pcard-brand-ic {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  overflow: hidden;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .pcard-brand-ic img {
-  position: absolute;
-  width: 240%;
-  height: 240%;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 .pcard-brand-name {
@@ -1134,38 +1143,51 @@ body.detail-has-cta .toast {
 /* ─── Filter chip pop-in ──────────────────────────────────────── */
 .filter-chip { animation: popIn 0.2s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
-/* ─── Product Detail Page ─────────────────────────────────────── */
-.breadcrumb {
-  max-width: 1280px;
-  margin: 1.5rem auto 0;
-  padding: 0 1.5rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
+/* ─── Product Detail / Compare: return to catalogue ───────────────
+   Breadcrumb trails are gone from the owned pages. Where the full navigation is
+   visible it carries the orientation (Products stays lit across detail and
+   compare) and the page heading names the current page, so a trail above the
+   content was pure repetition and cost the page its clean opening. What is left
+   is a single compact link, shown ONLY once the navigation has collapsed into
+   the mobile menu — there, nothing else offers a route back to the catalogue.
 
-.breadcrumb a { color: var(--muted); text-decoration: none; }
-.breadcrumb a:hover { color: var(--red); }
-.breadcrumb [aria-current] { color: var(--text); font-weight: 500; }
-
-/* ─── Light page breadcrumb (replaces dark hero band) ────────── */
-/* Detail page breadcrumb: shares the SAME 1180px/40px content container as the
-   gallery/tabs/related sections below it, so every band starts on one left edge. */
-.page-breadcrumb {
-  max-width: 1180px;
-  margin: 0.6rem auto 0;
-  padding: 0 40px;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
+   The breakpoint deliberately matches navbar.js's own switch to the hamburger
+   (max-width: 768px) rather than an arbitrary width, so the link appears exactly
+   when the visible navigation stops doing this job. */
+.detail-backrow { display: none; }
 
 @media (max-width: 768px) {
-  .page-breadcrumb { padding: 0 24px; }
+  .detail-backrow {
+    display: block;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0.85rem 24px 0;
+  }
+  .detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    /* Subordinate to the product content: quiet muted label, no box, no bar. */
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    /* Comfortable target without a visible chip: the negative inline margin
+       pulls the padded hit area back so the label still starts on the page's
+       content edge. */
+    min-height: 44px;
+    padding: 0 0.5rem;
+    margin: 0 -0.5rem;
+  }
+  .detail-back svg { flex-shrink: 0; }
+  .detail-back:active { color: var(--red); }
+  .detail-back:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 4px; }
+}
+@media (max-width: 768px) and (hover: hover) {
+  .detail-back:hover { color: var(--red); }
 }
 @media (max-width: 560px) {
-  .page-breadcrumb { padding: 0 16px; }
+  .detail-backrow { padding: 0.7rem 16px 0; }
 }
 
 .related-section { animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.3s both; }
@@ -1262,10 +1284,13 @@ body.detail-has-cta .toast {
   gap: 0.6rem;
   counter-increment: applystep;
 }
+/* Counter height matches the first text line's box (0.9rem x 1.5 = 21.6px) and
+   carries no vertical offset, so the circle's centre lands on that line's centre
+   instead of hanging below it. */
 .apply-step-n {
   flex-shrink: 0;
-  width: 21px;
-  height: 21px;
+  width: 21.6px;
+  height: 21.6px;
   border: 1.5px solid var(--red);
   border-radius: 50%;
   color: var(--red);
@@ -1274,7 +1299,6 @@ body.detail-has-cta .toast {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1px;
   font-variant-numeric: tabular-nums;
 }
 .apply-step-n::before { content: counter(applystep); }
@@ -2742,13 +2766,23 @@ body.detail-has-cta .toast {
      nothing has to fight that padding. */
   .detail-tablist { display: none; }
 
+  /* Card built from per-section borders: each section carries left/right/bottom,
+     and only the first carries a top edge, so no line is ever drawn twice.
+     NOTE the selector. The first element inside .detail-tabs is the (hidden)
+     .detail-tablist div, so `.detail-section:first-of-type` matched NOTHING —
+     :first-of-type keys off the element type (div), not the class. The result
+     was an accordion with no top border and square top corners: the card looked
+     broken open at the top. `.detail-tablist + .detail-section` names the first
+     section explicitly, and :first-child covers any future markup where the
+     tablist is absent. */
   .detail-section {
     background: var(--card);
     border: 1px solid var(--border);
     border-top: none;
   }
-  .detail-section:first-of-type { border-top: 1px solid var(--border); border-radius: 8px 8px 0 0; }
-  .detail-section:last-of-type  { border-radius: 0 0 8px 8px; }
+  .detail-tablist + .detail-section,
+  .detail-section:first-child { border-top: 1px solid var(--border); border-radius: 8px 8px 0 0; }
+  .detail-section:last-child { border-radius: 0 0 8px 8px; }
 
   .detail-acc-head {
     display: flex;
@@ -2973,6 +3007,9 @@ body.detail-has-cta .toast {
 }
 .detail-avail.is-in .avail-dot { background: var(--green-dot); }
 
+/* Desktop divider: deliberately shorter than the text line it sits between, so
+   it separates without drawing attention. ~13px of air either side (the row's
+   0.8rem gap) gives the status and the note their own space. */
 .detail-avail-sep {
   width: 1px;
   height: 12px;
@@ -2985,11 +3022,17 @@ body.detail-has-cta .toast {
   color: var(--muted);
 }
 
-/* On phones the note wraps to its own line under the status, which left the
-   divider dangling after "Available" with nothing beside it. Drop the divider
-   there and tighten the wrap gap so the status reads cleanly on its own row. */
+@media (min-width: 641px) {
+  .detail-avail-row { gap: 0.8rem; }
+}
+
+/* Phones do NOT inherit the desktop divider. There the note wraps under the
+   status, which left a vertical rule dangling after "Available" with nothing
+   beside it. Instead the dot, "Available" and the note stay ONE status group:
+   the divider is dropped and the row gap is tightened to ~11px so a wrap reads
+   as the same block continuing, never as a detached second paragraph. */
 @media (max-width: 640px) {
-  .detail-avail-row { gap: 0.3rem 0.6rem; }
+  .detail-avail-row { gap: 0.35rem 0.7rem; margin-top: 0.6rem; }
   .detail-avail-sep { display: none; }
 }
 
@@ -3430,13 +3473,16 @@ body.detail-has-cta .toast {
   overflow: hidden;
 }
 
+/* Product-row remove. Same 1.8 stroke as the sheet's collapse control so the
+   two belong to one icon family, but a smaller glyph and a red-tinted hover:
+   this one changes the selection, the sheet control only hides the sheet. */
 .cmp-slot-x {
   background: none;
   border: 1px solid transparent;
-  color: var(--muted);
+  color: var(--muted-2);
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3628,25 +3674,38 @@ body.detail-has-cta .toast {
   .compare-tray-clear,
   .compare-tray-btn { flex: 1 1 50%; justify-content: center; min-height: 48px; }
 
-  /* Close control (injected by compare.js), top-right of the sheet header. */
+  /* Sheet dismiss (injected by compare.js), top-right of the sheet header.
+     Deliberately NOT the same object as a product row's ×: this one collapses
+     the sheet, the row one removes a product. The circle it used to wear made
+     it look like a detached floating button competing with the rows below, so
+     the visible mark is now just the glyph — the 44px hit area is still there,
+     it is simply invisible. align-self:center sits it on the heading block's
+     optical centre (not the product rows), and the negative right margin lets
+     the icon line up with the sheet's content edge while the target overhangs
+     into the padding. */
   .compare-tray.is-expanded .cmp-sheet-close {
     display: inline-flex;
     order: 1;
     flex: 0 0 auto;
     margin-left: auto;
-    align-self: flex-start;
+    margin-right: -0.45rem;
+    align-self: center;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
+    border-radius: 10px;
     align-items: center;
     justify-content: center;
-    background: var(--panel);
-    border: 1px solid var(--border);
+    background: none;
+    border: 1px solid transparent;
     color: var(--muted);
     cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
   }
-  .compare-tray.is-expanded .cmp-sheet-close:hover { color: var(--text); border-color: var(--line-2); }
-  .compare-tray.is-expanded .cmp-sheet-close:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+  @media (hover: hover) {
+    .compare-tray.is-expanded .cmp-sheet-close:hover { color: var(--text); background: var(--panel-2); }
+  }
+  .compare-tray.is-expanded .cmp-sheet-close:active { color: var(--text); background: var(--panel-2); }
+  .compare-tray.is-expanded .cmp-sheet-close:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }
 
   /* Dimmed backdrop behind the sheet (injected by compare.js). */
   .cmp-sheet-backdrop {
@@ -4073,9 +4132,11 @@ body.detail-has-cta .toast {
   gap: 0.35rem;
 }
 
-.compare-page-top .breadcrumb {
-  margin: 0 0 0.15rem;
+/* The catalogue link already sits inside .compare-page-top's own container, so
+   it drops the shared component's page padding and keeps only its hit area. */
+.compare-page-top .detail-backrow {
   max-width: none;
+  margin: 0;
   padding: 0;
 }
 
@@ -4379,7 +4440,9 @@ body.cmp-rotate-open { overflow: hidden; }
   .compare-label-col { width: 132px; min-width: 132px; }
   .compare-row-label { padding: 0.78rem 0.65rem; font-size: 0.78rem; }
   .compare-row-value { padding: 0.78rem 0.9rem; }
-  .compare-page-body { padding: 0 12px; }
+  /* Bottom margin keeps clear air between the closing note and the dark footer,
+     so the two never read as one block. */
+  .compare-page-body { padding: 0 12px; margin-bottom: 2.25rem; }
 }
 
 .compare-img-placeholder {
@@ -4524,17 +4587,26 @@ body.cmp-rotate-open { overflow: hidden; }
 
 .compare-empty-val { color: var(--muted-2); }
 
+/* Supporting note under the comparison table. It is a quiet aside, not a second
+   footer: centred full-width text sitting alone on the page background read as a
+   detached grey band and ate a lot of phone height. Left-aligned on the same
+   content edge as the table above it, with the info icon aligned to the FIRST
+   line (align-items:flex-start, not centre, so a two-line wrap keeps the icon
+   beside the opening words), no container, no extra padding. */
 .compare-disclaimer {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
   gap: 0.45rem;
-  margin: 1.1rem 0 0;
-  font-size: 0.8rem;
+  margin: 0.9rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
   color: var(--muted);
-  text-align: center;
+  text-align: left;
+  max-width: 68ch;
 }
-.compare-disclaimer svg { flex-shrink: 0; opacity: 0.7; }
+/* Nudged onto the first line's optical centre; opacity kept high enough that the
+   mark still meets contrast against the warm page background. */
+.compare-disclaimer svg { flex-shrink: 0; margin-top: 0.18em; opacity: 0.85; }
 
 /* ─── Focus states ───────────────────────────────────────────── */
 .gallery-thumb:focus-visible {
@@ -4749,22 +4821,9 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 .rc-of { display: none; }
 .grid-clear-all { display: none; }
 
-/* Slight breadcrumb hierarchy tightening */
-.page-breadcrumb {
-  font-size: 0.82rem;
-  margin-top: 1rem;
-  color: var(--muted);
-}
-
-.page-breadcrumb a { color: var(--muted); font-weight: 500; }
-.page-breadcrumb a:hover { color: var(--red); }
-.page-breadcrumb span[aria-hidden] { margin: 0 0.4rem; opacity: 0.5; }
-/* Mobile: drop the "Home ›" step so the trail reads "Products › <product>" —
-   cleaner and easier to scan on a phone. Desktop keeps the full hierarchy. */
-@media (max-width: 640px) {
-  .page-breadcrumb .bc-home,
-  .page-breadcrumb .bc-sep-home { display: none; }
-}
+/* (The .page-breadcrumb / .breadcrumb / .hero-breadcrumb rules that used to sit
+   here were removed with the breadcrumbs themselves — see the
+   ".detail-backrow / .detail-back" component above for what replaced them.) */
 
 /* Enquiry grid: collapse to one column, form drops below the product list,
    sticky positioning is meaningless once stacked so it's turned off. */
@@ -5663,8 +5722,22 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
     box-shadow: none;
   }
   .mfb-sort-wrap .custom-select-chevron { color: #8a847a; }
-  /* Comfortable touch height for each option in the mobile dropdown. */
-  .mfb-sort-wrap .custom-select-listbox { min-width: 180px; }
+  /* Inline "Sort" label (data-trigger-label on the native select). Without it
+     the chosen value sat at the left of a wide segment with the chevron alone at
+     the far right, which read as an unexplained floating arrow. Label + value +
+     chevron now match the desktop sort control's geometry. */
+  .mfb-sort-wrap .custom-select-trigger { gap: 0.45rem; }
+  .mfb-sort-wrap .custom-select-trigger-prefix {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  /* Panel pinned to the trigger's own box on BOTH edges, so it opens exactly
+     under the control at every width instead of shrink-to-fitting its content. */
+  .mfb-sort-wrap .custom-select-listbox { left: 0; right: 0; min-width: 0; }
   .mfb-sort-wrap .custom-select-option { min-height: 44px; }
 
   .mfb-sort-sel {
