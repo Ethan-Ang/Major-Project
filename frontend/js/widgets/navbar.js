@@ -314,17 +314,15 @@
   document.head.appendChild(style);
 
   // ─── Detect active page ───────────────────────────────────────
-  // Products owns the whole catalogue journey, so a product detail page and the
-  // comparison view both keep "Products" lit — the visitor is still inside that
-  // section and the menu should say so. Product Enquiry is deliberately NOT a
-  // menu row (the persistent Enquiry action in the header represents it), so it
-  // never lights anything here.
+  // Product Detail and Compare are task pages, so they do not claim a primary
+  // navigation item. Product Enquiry is deliberately NOT a menu row (the
+  // persistent Enquiry action in the header represents it), so it never lights
+  // anything here.
   function currentPage(pathname) {
     return String(pathname || "").split("/").pop().replace(".html", "") || "home";
   }
   function isActivePage(name, page) {
     if (name === "home") return page === "home" || page === "" || page === "index";
-    if (name === "products") return page === "products" || page === "product-detail" || page === "compare";
     return page === name;
   }
   const page = currentPage(window.location.pathname);
