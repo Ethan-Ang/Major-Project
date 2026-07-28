@@ -151,8 +151,9 @@ function buildSystemPrompt($products) {
          . "Company Knowledge and Catalogue below. Be precise, professional and brief (under 100 words "
          . "unless asked to compare or explain in detail). No emoji, no filler.\n\n"
          . "Language: reply in the SAME language the user writes in (English or Simplified Chinese). "
-         . "Keep company, brand and product names and model numbers in their original Latin form "
-         . "(for example Deer Brand 101).\n\n"
+         . "Always write the company name as Yee Lim, and all brand names, product names and model "
+         . "numbers, in their original Latin letters (for example Yee Lim, Deer Brand 101). Never "
+         . "translate or transliterate these names into Chinese.\n\n"
          . "When you recommend a product, link it exactly like this: "
          . "[Product Name](/product-detail?id=ID) using its id from the catalogue.\n\n"
          . buildCompanyKnowledge() . "\n\n"
@@ -199,10 +200,14 @@ function callGemini($apiKey, $model, $system, $messages) {
         $contents[] = ["role" => $role, "parts" => [["text" => $m["content"]]]];
     }
 
+    // gemini-flash-latest resolves to a 2.5 "thinking" model whose reasoning is
+    // counted in the output budget (often ~600-700 tokens). The budget must be
+    // generous or the visible answer is starved and truncated. thinkingConfig is
+    // not accepted by this model via v1beta, so we give room instead of disabling.
     $payload = [
         "system_instruction" => ["parts" => [["text" => $system]]],
         "contents"           => $contents,
-        "generationConfig"   => ["maxOutputTokens" => 800, "temperature" => 0.4],
+        "generationConfig"   => ["maxOutputTokens" => 2048, "temperature" => 0.4],
     ];
 
     $res = httpPostJson($url, ["content-type: application/json"], $payload);
@@ -215,6 +220,7 @@ function callGemini($apiKey, $model, $system, $messages) {
 
     $text = "";
     foreach ($body["candidates"][0]["content"]["parts"] ?? [] as $part) {
+        if (!empty($part["thought"])) continue; // skip reasoning parts, keep the answer
         $text .= $part["text"] ?? "";
     }
     $text = trim($text);
