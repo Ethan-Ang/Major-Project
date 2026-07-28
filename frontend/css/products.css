@@ -5058,23 +5058,14 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
    cards sit closer to the hero. */
 .page-hero.contact-hero { border-bottom: none; }
 
-/* Two columns again, but not the old form layout: the "Send Us a Message" form
-   stays retired (Product Enquiry does the same job and arrives with the product
-   details attached). The right column now carries that route instead, which both
-   fills the grid and tells the visitor where the message box went. Single column
-   from tablet down. */
+/* The "Send Us a Message" form is retired site-wide (Product Enquiry covers the
+   same job), so this is a single centred card rather than a two-column grid.
+   The Business Operating Hours and Find Us sections below it carry the rest of
+   the page, so the card does not need a second column beside it. */
 .contact-page {
-  max-width: 1180px;
+  max-width: 880px;
   margin: 1.25rem auto 3.5rem;
   padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: stretch;
-}
-
-@media (max-width: 900px) {
-  .contact-page { grid-template-columns: 1fr; gap: 1.25rem; }
 }
 
 .contact-card {
@@ -5095,81 +5086,6 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 .contact-info-card .contact-whatsapp { margin-top: 1rem; }
 .contact-info-card .contact-detail-list { margin-bottom: 0; }
 
-/* Right column: the Product Enquiry route that replaced the contact form. Same
-   card shell and padding as the info card so the two columns read as a pair. */
-.contact-route-card {
-  display: flex;
-  flex-direction: column;
-  padding: 2rem 2.25rem;
-}
-
-.contact-route-lead {
-  margin: 0 0 1.35rem;
-  color: var(--body);
-  font-size: 0.92rem;
-  line-height: 1.6;
-}
-
-.contact-route-steps {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  margin: 0 0 1.6rem;
-  padding: 0;
-}
-
-.contact-route-steps li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  color: var(--body);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-/* Numbered chip, deliberately smaller than the info card's 44px icon chips so
-   the two columns stay distinguishable rather than mirroring each other. */
-.contact-route-num {
-  flex-shrink: 0;
-  width: 25px;
-  height: 25px;
-  margin-top: 0.05rem;
-  border-radius: 50%;
-  background: var(--red-tint);
-  color: var(--red);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-/* margin-top:auto pins the actions to the card foot, so both columns end level
-   when the info card is the taller of the two. */
-.contact-route-actions {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.95rem;
-}
-
-.contact-route-primary { align-self: stretch; gap: 0.5rem; padding: 0.8rem 1rem; font-size: 0.9rem; }
-
-.contact-route-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--red);
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.contact-route-secondary:hover { text-decoration: underline; text-underline-offset: 2px; }
-.contact-route-secondary:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
 .contact-info-heading {
   font-size: 1.2rem;
@@ -5187,12 +5103,13 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   display: grid;
 }
 
-/* Details stay in one stacked column. They were briefly laid out two-up to pad
-   out a full-width single card; with the enquiry-route column back beside it the
-   card is ~540px and two-up would crush Email and Phone into ~250px each. */
-@media (min-width: 901px) and (max-width: 1100px) {
-  .contact-info-card,
-  .contact-route-card { padding: 1.75rem 1.6rem; }
+/* Desktop: two-up detail grid (Address spans the top; Email + Phone share the
+   row below) so the single full-width card fills its width. The WhatsApp CTA is
+   capped so it doesn't stretch into a giant bar. */
+@media (min-width: 720px) {
+  .contact-detail-list { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; }
+  .contact-detail:first-child { grid-column: 1 / -1; }
+  .contact-info-card .contact-whatsapp { max-width: 360px; }
 }
 
 .contact-detail {
@@ -5360,14 +5277,6 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 }
 
 @media (max-width: 640px) {
-  /* Phones: the enquiry-route card keeps its content but loses the numbered
-     steps, which are explanatory rather than load-bearing and cost a lot of
-     height on a small screen. The lead sentence and the CTA still carry the
-     whole message. */
-  .contact-route-steps { display: none; }
-  .contact-route-card { padding: 1.5rem 1.35rem; }
-  .contact-route-lead { margin-bottom: 1.1rem; }
-
   /* The address is one unbreakable 30-character token. At 375px it lands a
      character or two over the line, and overflow-wrap:anywhere then splits it
      mid-domain ("...com.s" / "g"), which reads as a typo rather than a wrap. One

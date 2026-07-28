@@ -511,8 +511,27 @@ async function loadProductsFromBackend(opts = {}) {
 // "Others & Accessories" grouping) are excluded from every public list except
 // the full BRANDS list, which still needs them to resolve legacy brand values.
 let TAXONOMIES_LOADED = false;
-async function loadTaxonomiesFromBackend() {
-  if (TAXONOMIES_LOADED) return;
+let TAXONOMY_TERMS = {
+  product_type: [],
+  brand: [],
+  industry: [],
+  surface: []
+};
+
+// Resolve a managed taxonomy label to its immutable slug. This lets public
+// features keep recognising core values after an administrator renames labels.
+function taxonomySlug(group, label) {
+  const terms = TAXONOMY_TERMS[group] || [];
+  const wanted = String(label || "").trim().toLowerCase();
+  const term = terms.find(item =>
+    String(item && item.label || "").trim().toLowerCase() === wanted
+  );
+  if (term && term.slug) return String(term.slug);
+  return String(label || "").toLowerCase().replace(/[™®]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+async function loadTaxonomiesFromBackend(opts = {}) {
+  if (TAXONOMIES_LOADED && !opts.force) return;
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 6000);
@@ -522,6 +541,13 @@ async function loadTaxonomiesFromBackend() {
 
     const tax = await res.json();
     if (!tax || typeof tax !== "object") throw new Error("Unexpected taxonomy payload.");
+
+    TAXONOMY_TERMS = {
+      product_type: Array.isArray(tax.product_type) ? tax.product_type.filter(Boolean) : [],
+      brand:        Array.isArray(tax.brand) ? tax.brand.filter(Boolean) : [],
+      industry:     Array.isArray(tax.industry) ? tax.industry.filter(Boolean) : [],
+      surface:      Array.isArray(tax.surface) ? tax.surface.filter(Boolean) : []
+    };
 
     const all = g => Array.isArray(tax[g]) ? tax[g].map(t => t && t.label).filter(Boolean) : [];
     const pub = g => Array.isArray(tax[g]) ? tax[g].filter(t => t && t.public !== false).map(t => t.label).filter(Boolean) : [];
