@@ -2,7 +2,7 @@
 
 ## Scope
 
-Refine only the public `404.html` experience and its page-scoped styles and translations. Keep the existing industrial image, recovery copy, product search, and three destination cards. Reuse the established public navigation and footer. Do not modify Home, About, admin, API, database, production configuration, product upload components, or unrelated catalogue behavior.
+Refine only the public `404.html` experience, its page-scoped styles and translations, and the minimum shared-navbar support needed for a page identity override and correctly ordered skip link. Keep the existing industrial image, recovery copy, product search, and three destination cards. Reuse the established public navigation and footer. Do not modify Home, About, admin, API, database, production configuration, product upload components, or unrelated catalogue behavior.
 
 ## Problem
 
@@ -21,7 +21,7 @@ Use the normal public site structure and natural document flow:
 5. Inject the shared footer after the page content.
 6. Allow a short natural scroll on desktop instead of forcing the complete page into one viewport.
 
-The `/404.html` route must not activate Home, Products, About, or Contact in the shared navigation. The existing navbar route matching already treats `404` as a distinct page, so no navbar logic change is required.
+No unknown URL may activate Home, Products, About, or Contact in the shared navigation, including paths whose final segment happens to be `/products`, `/about`, or `/contact`. Mark the error document with an explicit `404` page identity and let the shared navbar honor that override on initial render and later active-state synchronisation.
 
 ## Desktop Layout
 
@@ -44,7 +44,7 @@ The `/404.html` route must not activate Home, Products, About, or Contact in the
 
 ## Internationalisation
 
-Load the existing shared i18n engine before the navbar and footer so the complete page switches language consistently. Add 404-specific English and Simplified Chinese dictionary keys for:
+Load the existing shared i18n engine before the navbar and footer so the shared chrome switches language consistently. Keep the 404-specific Simplified Chinese strings in a small page-local translation script, rather than changing the currently dirty shared dictionary. The page-local script covers:
 
 - eyebrow;
 - heading;
@@ -53,12 +53,12 @@ Load the existing shared i18n engine before the navbar and footer so the complet
 - helpful-links heading;
 - three card titles and descriptions.
 
-Use `data-i18n` and `data-i18n-attr` in the page markup. English remains the source HTML. The Chinese version must retain the same hierarchy and avoid mixed-language recovery content.
+Use `data-nf-i18n` and `data-nf-i18n-attr` in the page markup. English remains the source HTML. The page-local script only replaces copy when the shared language preference is Chinese. The Chinese version must retain the same hierarchy and avoid mixed-language recovery content.
 
 ## Accessibility and Recovery Behavior
 
 - Retain a descriptive document title and one H1.
-- Add the established skip link so keyboard users can move directly to `main`.
+- Add the established skip link so keyboard users can move directly to `main`, and keep it as the first focusable body element after the shared navbar injects its shell.
 - Keep a visible label for assistive technology on the search field.
 - Use a real submit button for search and links for destinations.
 - Preserve visible focus styling.
@@ -76,9 +76,10 @@ Automated regression checks must prove that:
 
 - the shared navbar and footer scripts are loaded;
 - the standalone top bar is removed;
-- no primary navigation link is marked active for `/404.html`;
+- no primary navigation link is marked active for `/404.html` or a real unknown URL ending in a primary route name;
+- the skip link remains first in body order after navigation injection;
 - desktop uses natural flow rather than flex-centered leftover space;
 - recovery content and destinations remain intact;
-- 404 translation keys and markup hooks exist.
+- the isolated 404 translation map and markup hooks exist.
 
 Browser verification must cover English and Chinese at 1600x900, 1440x900, 768x1024, and 390x844. It must check layout rhythm, text clipping, horizontal overflow, navigation state, mobile drawer behavior, footer rendering, search submission, and destination links.

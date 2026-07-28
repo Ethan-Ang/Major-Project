@@ -1,0 +1,82 @@
+/* 404-specific layout overrides loaded after the shared product stylesheet. */
+.nf-skip-link {
+  position: fixed;
+  top: .75rem;
+  left: .75rem;
+  z-index: 200;
+  transform: translateY(-180%);
+  padding: .65rem .9rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 150ms ease-out;
+}
+
+.nf-skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+/* Use the warehouse photo while retaining a JPEG fallback. */
+.nf-hero .page-hero-img {
+  background-image: url("/images/hero/adhesive-pails-warehouse-1536.jpg");
+  background-image: image-set(
+    url("/images/hero/adhesive-pails-warehouse-1536.webp") type("image/webp") 1x,
+    url("/images/hero/adhesive-pails-warehouse-1536.jpg") type("image/jpeg") 1x
+  );
+  background-position: right bottom;
+}
+
+.nf-hero .page-hero-inner {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.nf-hero .hero-eyebrow { color: var(--red); }
+.nf-hero h1 { max-width: 20ch; }
+.nf-search { margin-top: 1rem; max-width: 560px; }
+
+.nf-help {
+  display: block;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3.25rem 2rem 4rem;
+}
+
+.nf-help h2 {
+  margin-bottom: 1.25rem;
+  font-size: 1.25rem;
+}
+
+.nf-help-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.nf-help-card {
+  min-height: 120px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .nf-help { padding: 2.75rem 1.25rem 3.5rem; }
+  .nf-help-grid { grid-template-columns: 1fr; }
+  .nf-help-card { min-height: 0; }
+}
+
+@media (max-width: 640px) {
+  .nf-hero .page-hero-inner { padding: 1.75rem 1.25rem 1.5rem; }
+  .nf-help { padding: 2rem 1.25rem 2.75rem; }
+  .nf-help h2 { margin-bottom: .9rem; font-size: 1.1rem; }
+  .nf-help-grid { gap: .75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-skip-link { transition: none; }
+}

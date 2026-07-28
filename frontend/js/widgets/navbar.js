@@ -321,11 +321,14 @@
   function currentPage(pathname) {
     return String(pathname || "").split("/").pop().replace(".html", "") || "home";
   }
+  function resolveCurrentPage(pathname, override) {
+    return String(override || "").trim() || currentPage(pathname);
+  }
   function isActivePage(name, page) {
     if (name === "home") return page === "home" || page === "" || page === "index";
     return page === name;
   }
-  const page = currentPage(window.location.pathname);
+  const page = resolveCurrentPage(window.location.pathname, document.documentElement.getAttribute("data-nav-page"));
   function isActive(name) { return isActivePage(name, page); }
 
   // ─── Basket count ─────────────────────────────────────────────
@@ -396,11 +399,19 @@
   backdropEl.id = "_navBackdrop";
   backdropEl.setAttribute("aria-hidden", "true");
 
+  // Keep a page-level skip link ahead of the injected navigation in keyboard
+  // order. Pages without one retain the existing shell insertion behavior.
+  function preserveSkipLinkFirst(body) {
+    var skipLink = body.querySelector("[data-skip-link]");
+    if (skipLink) body.insertBefore(skipLink, body.firstChild);
+  }
+
   // ─── Insert at top of body ────────────────────────────────────
   function insert() {
     document.body.insertBefore(backdropEl, document.body.firstChild);
     document.body.insertBefore(drawerEl, document.body.firstChild);
     document.body.insertBefore(navEl, document.body.firstChild);
+    preserveSkipLinkFirst(document.body);
 
     const hamburger = document.getElementById("_navHamburger");
     const firstDrawerLink = drawerEl.querySelector("a[href]");
@@ -584,7 +595,7 @@
   // BOTH the desktop link row and the mobile drawer, so the open menu always
   // shows where the visitor is.
   window.ylSyncNavActive = function () {
-    var current = currentPage(window.location.pathname);
+    var current = resolveCurrentPage(window.location.pathname, document.documentElement.getAttribute("data-nav-page"));
     document.querySelectorAll(".nav-links a[data-nav], .nav-mobile-drawer a[data-nav]").forEach(function (a) {
       var on = isActivePage(a.getAttribute("data-nav"), current);
       a.classList.toggle("nav-active", on);

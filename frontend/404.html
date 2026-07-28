@@ -1,42 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-nav-page="404">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Page Not Found | Yee Lim Adhesives Industries</title>
+  <title data-nf-i18n="nf.page_title">Page Not Found | Yee Lim Adhesives Industries</title>
   <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=96">
+  <link rel="stylesheet" href="/css/products.css?v=100">
+  <link rel="stylesheet" href="/css/404.css?v=1">
+  <script src="/js/i18n.js?v=4"></script>
+  <script src="/js/pages/not-found.js?v=1"></script>
+  <script src="/js/widgets/navbar.js?v=24"></script>
+  <script src="/js/widgets/footer.js?v=24"></script>
 </head>
-<body class="nf-body">
+<body>
 
-<!-- Standalone one-screen recovery page (locked ReBond design): a minimal
-     branded top bar, no site nav, no footer or copyright row — the whole
-     page fits a desktop viewport without scrolling. -->
-<header class="nf-topbar">
-  <a href="/" aria-label="Yee Lim Adhesives Industries home">
-    <img src="/images/logos/YLAI-nav.png" alt="Yee Lim Adhesives Industries">
-  </a>
-</header>
+<a class="nf-skip-link" href="#mainContent" data-skip-link data-nf-i18n="nf.skip">Skip to main content</a>
 
+<div id="swup" class="transition-fade">
 <main id="mainContent">
 <section class="page-hero nf-hero" aria-labelledby="nfHeading">
   <div class="page-hero-img" aria-hidden="true"></div>
   <div class="page-hero-inner">
-    <span class="hero-eyebrow">404 &ndash; Page Not Found</span>
-    <h1 id="nfHeading">We can&rsquo;t find the page you&rsquo;re looking for</h1>
-    <p class="hero-lead">The page you&rsquo;re trying to access may have been moved, renamed, or doesn&rsquo;t exist. Let&rsquo;s get you back on track.</p>
+    <span class="hero-eyebrow" data-nf-i18n="nf.eyebrow">404 &ndash; Page Not Found</span>
+    <h1 id="nfHeading" data-nf-i18n="nf.title">We can&rsquo;t find the page you&rsquo;re looking for</h1>
+    <p class="hero-lead" data-nf-i18n="nf.lead">The page you&rsquo;re trying to access may have been moved, renamed, or doesn&rsquo;t exist. Let&rsquo;s get you back on track.</p>
 
     <!-- Product search: the single primary action, submitting to the real
          catalogue search (no JS needed). The Browse Products card below already
          covers "back to catalogue", so there is no duplicate button here. -->
     <form class="search-bar nf-search" role="search" action="/products" method="get">
-      <label for="nfSearchInput" class="sr-only">Search by product name, number, brand or keyword</label>
+      <label for="nfSearchInput" class="sr-only" data-nf-i18n="nf.search_label">Search by product name, number, brand or keyword</label>
       <span class="search-bar-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-      <input type="text" id="nfSearchInput" name="q" placeholder="Search by product name, number, brand or keyword&hellip;" autocomplete="off">
-      <button type="submit" aria-label="Search">
+      <input type="text" id="nfSearchInput" name="q" placeholder="Search by product name, number, brand or keyword&hellip;" autocomplete="off" data-nf-i18n-attr="placeholder:nf.search_ph">
+      <button type="submit" aria-label="Search" data-nf-i18n-attr="aria-label:nf.search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
     </form>
@@ -45,15 +44,15 @@
 
 <!-- Helpful destinations (real pages only). -->
 <section class="nf-help" aria-labelledby="nfHelpHeading">
-  <h2 id="nfHelpHeading">Helpful places to go</h2>
+  <h2 id="nfHelpHeading" data-nf-i18n="nf.help">Helpful places to go</h2>
   <div class="nf-help-grid">
     <a class="nf-help-card" href="/products">
       <span class="nf-help-ic" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
       </span>
       <span class="nf-help-text">
-        <strong>Browse Products</strong>
-        <span>Explore our full range of commercial and industrial adhesives.</span>
+        <strong data-nf-i18n="nf.browse">Browse Products</strong>
+        <span data-nf-i18n="nf.browse_copy">Explore our full range of commercial and industrial adhesives.</span>
       </span>
       <svg class="nf-help-go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </a>
@@ -62,8 +61,8 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 0 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
       </span>
       <span class="nf-help-text">
-        <strong>Contact Yee Lim</strong>
-        <span>Our team is here to help with product advice, technical support and enquiries.</span>
+        <strong data-nf-i18n="nf.contact">Contact Yee Lim</strong>
+        <span data-nf-i18n="nf.contact_copy">Our team is here to help with product advice, technical support and enquiries.</span>
       </span>
       <svg class="nf-help-go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </a>
@@ -72,14 +71,16 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       </span>
       <span class="nf-help-text">
-        <strong>About Yee Lim</strong>
-        <span>Learn more about our commitment to quality and industrial bonding solutions.</span>
+        <strong data-nf-i18n="nf.about">About Yee Lim</strong>
+        <span data-nf-i18n="nf.about_copy">Learn more about our commitment to quality and industrial bonding solutions.</span>
       </span>
       <svg class="nf-help-go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </a>
   </div>
 </section>
 </main>
+</div>
 
+<script src="/js/core/app.js?v=5"></script>
 </body>
 </html>
