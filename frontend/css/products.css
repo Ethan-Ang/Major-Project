@@ -4075,6 +4075,9 @@ body.detail-has-cta .toast {
    right rule — never a separate beige block. */
 .compare-row-label {
   padding: 0.875rem 1rem 0.875rem 1.25rem;
+  /* These cells are <th scope="row"> for screen readers, so the UA default of
+     centred text has to be overridden back to the original left alignment. */
+  text-align: left;
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: -0.005em;

@@ -33,6 +33,7 @@ function comparePageCopy(lang) {
       emptyAction: "+ Compare",
       browseProducts: "Browse Products",
       productLabel: "Product",
+      caption: "Side-by-side comparison of {count} products. Each column is a product; each row is a specification.",
       disclaimer: "Product information is provided for general guidance only. Contact Yee Lim for full technical details."
     },
     zh: {
@@ -53,6 +54,7 @@ function comparePageCopy(lang) {
       emptyAction: "+ 对比",
       browseProducts: "浏览产品",
       productLabel: "产品",
+      caption: "{count} 款产品并排对比。每一列为一款产品，每一行为一项规格。",
       disclaimer: "产品信息仅供一般参考。如需完整技术资料，请联系 Yee Lim。"
     }
   };
@@ -241,8 +243,12 @@ function renderComparePage() {
     const imgContent = hasRealImage
       ? `<img src="${encodeURI(p.images[0])}" alt="${ylEscapeHtml(p.name)}" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
       : `<span class="compare-img-placeholder">${brandLabel}</span><span class="compare-img-placeholder-sub">${placeholderSub}</span>`;
+    // scope="col" so a screen reader announces the product name against every
+    // value in its column. Previously every cell in this table was a <td>, so
+    // "Leather" was read with no indication of which product or which spec row
+    // it belonged to (WCAG 2.2 AA, 1.3.1 Info and Relationships).
     return `
-      <td class="compare-col-header">
+      <th scope="col" class="compare-col-header">
         <div class="compare-col-inner">
           <button class="compare-col-x" type="button" onclick="toggleCompare('${p.id}')" aria-label="${formatComparePageCopy(copy.remove, { product: ylEscapeHtml(p.name) })}">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -254,7 +260,7 @@ function renderComparePage() {
           <a class="compare-product-name" href="/product-detail?id=${encodeURIComponent(p.id)}">${ylEscapeHtml(p.name)}</a>
           <div class="compare-product-sub">${ylEscapeHtml(window.ylTerm ? window.ylTerm(subtype(p)) : subtype(p))}</div>
         </div>
-      </td>`;
+      </th>`;
   }).join("");
 
   // Real comparison fields only; a missing value renders as an em dash.
@@ -295,7 +301,7 @@ function renderComparePage() {
         : EMPTY }
   ].map(row => `
     <tr>
-      <td class="compare-row-label"><span class="compare-label-wrap">${row.ic}<span>${row.label}</span></span></td>
+      <th scope="row" class="compare-row-label"><span class="compare-label-wrap">${row.ic}<span>${row.label}</span></span></th>
       ${products.map(p => `<td class="compare-row-value">${row.render(p)}</td>`).join("")}
     </tr>`).join("");
 
@@ -313,6 +319,7 @@ function renderComparePage() {
     </div>
     <div class="compare-page-table-wrap cx-scroll">
       <table class="compare-table" style="min-width:${minTableWidth}px">
+        <caption class="sr-only">${formatComparePageCopy(copy.caption, products.length)}</caption>
         <colgroup>
           <col class="compare-label-col">
           ${products.map(() => "<col>").join("")}

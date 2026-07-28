@@ -152,13 +152,25 @@ async function submitEnquiry() {
   const company = document.getElementById("eCompany").value.trim();
   const email   = document.getElementById("eEmail").value.trim();
   const phone   = document.getElementById("ePhone").value.trim();
-  const message = document.getElementById("eMessage").value.trim();
   const website = document.getElementById("eWebsite").value.trim(); // honeypot
   const errorEl = document.getElementById("enquiryError");
   const btn     = document.getElementById("submitEnquiryBtn");
-  // NOTE: #eSubject and #eNotes are design-stage frontend fields — the current
-  // API/database has no columns for them, so they are deliberately NOT posted.
-  // A later backend + schema update will wire them through.
+
+  // #eSubject and #eNotes have no columns of their own in the enquiries table,
+  // so they are folded into `message` rather than dropped. They used to be
+  // collected and silently discarded: a customer could pick "Request a
+  // quotation", type notes, submit, and none of it reached the team. The
+  // enquiries table, the admin inbox and both notification emails all render
+  // `message`, so prefixing/suffixing it puts the content in front of a human
+  // with no schema change. Labels stay in the visitor's language.
+  const subject = (document.getElementById("eSubject") || {}).value || "";
+  const notes   = (document.getElementById("eNotes") || {}).value || "";
+  const message = [
+    subject.trim() ? `${eqT("enquiry.f_subject", "Subject")}: ${subject.trim()}` : "",
+    document.getElementById("eMessage").value.trim(),
+    notes.trim() ? `${eqT("enquiry.f_notes", "Enquiry Notes")}: ${notes.trim()}` : "",
+  ].filter(Boolean).join("\n\n");
+
   const privacy = document.getElementById("ePrivacy");
   const privacyErr = document.getElementById("ePrivacyErr");
 

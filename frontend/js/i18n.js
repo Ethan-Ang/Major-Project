@@ -116,6 +116,26 @@
     "contact.lead":        { en: "Get in touch with our team for product enquiries, technical advice, or partnership opportunities. We’ll get back to you promptly.", zh: "如需产品询价、技术咨询或合作洽谈，请与我们的团队联系，我们会尽快回复您。" },
     "contact.info":        { en: "Contact Information", zh: "联系方式" },
     "contact.send":        { en: "Send Us a Message", zh: "给我们留言" },
+    /* Response time note, Business Operating Hours and Find Us. The markup for
+       these shipped without translation keys, so 中文 rendered an English lower
+       half. Drafts, like the rest of this file: needs a native review pass. */
+    "contact.response_title":  { en: "Response time", zh: "回复时间" },
+    "contact.response_body":   { en: "We usually respond within 1-2 business days. For urgent product enquiries, message our team directly on WhatsApp.", zh: "我们通常在 1-2 个工作日内回复。如有紧急产品需求，请直接通过 WhatsApp 联系我们的团队。" },
+    "contact.visit_eyebrow":   { en: "Plan Your Visit",  zh: "到访须知" },
+    "contact.hours_title":     { en: "Business Operating Hours", zh: "营业时间" },
+    "contact.hours_intro":     { en: "Visit or contact our team during the operating hours below.", zh: "请在以下营业时间内到访或联系我们的团队。" },
+    "contact.weekdays":        { en: "Monday-Friday",    zh: "周一至周五" },
+    "contact.saturday":        { en: "Saturday",         zh: "周六" },
+    "contact.sunday":          { en: "Sunday",           zh: "周日" },
+    "contact.closed":          { en: "Closed",           zh: "休息" },
+    "contact.public_holidays": { en: "Public holidays",  zh: "公共假期" },
+    "contact.holiday_hours":   { en: "Hours may vary",   zh: "营业时间可能有所调整" },
+    "contact.holiday_note":    { en: "Please contact us before visiting on a public holiday.", zh: "公共假期到访前，请先与我们联系确认。" },
+    "contact.location_eyebrow":{ en: "Our Location",     zh: "我们的位置" },
+    "contact.find_us":         { en: "Find Us",          zh: "查找我们" },
+    "contact.map_address":     { en: "1 Ang Mo Kio Street 65, #03-17 JTC Space @ Ang Mo Kio, Singapore 569063", zh: "新加坡宏茂桥 65 街 1 号 #03-17，JTC Space @ Ang Mo Kio，邮编 569063" },
+    "contact.directions":      { en: "Get Directions",   zh: "获取路线" },
+    "contact.map_title":       { en: "Map showing Yee Lim Adhesives Industries at JTC Space @ Ang Mo Kio", zh: "显示 Yee Lim Adhesives Industries 位于 JTC Space @ Ang Mo Kio 的地图" },
     "contact.email_link":  { en: "contact us by email", zh: "通过电子邮件联系我们" },
     /* contact.reply_time is retired: it said "we reply within 1-2 business days"
        directly above the Response time note that says the same thing. The note
