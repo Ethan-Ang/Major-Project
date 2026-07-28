@@ -29,14 +29,9 @@
     <h1 id="nfHeading">We can&rsquo;t find the page you&rsquo;re looking for</h1>
     <p class="hero-lead">The page you&rsquo;re trying to access may have been moved, renamed, or doesn&rsquo;t exist. Let&rsquo;s get you back on track.</p>
 
-    <div class="nf-actions">
-      <a class="btn btn-primary nf-btn-back" href="/products">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Back to Products
-      </a>
-    </div>
-
-    <!-- Product search: submits to the real catalogue search (no JS needed). -->
+    <!-- Product search: the single primary action, submitting to the real
+         catalogue search (no JS needed). The Browse Products card below already
+         covers "back to catalogue", so there is no duplicate button here. -->
     <form class="search-bar nf-search" role="search" action="/products" method="get">
       <label for="nfSearchInput" class="sr-only">Search by product name, number, brand or keyword</label>
       <span class="search-bar-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
