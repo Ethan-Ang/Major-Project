@@ -112,6 +112,29 @@ function decodeList($value) {
     return is_array($decoded) ? $decoded : [];
 }
 
+// Company facts Ava can answer from, sourced from the live site (contact),
+// the About page and the FAQ. Pricing / MOQ / exact lead times stay unpublished
+// on purpose so the model always defers those to an enquiry.
+function buildCompanyKnowledge() {
+    return "Company Knowledge (answer company, logistics and how-to-buy questions ONLY from this):\n"
+         . "- Company: Yee Lim Adhesives Industries, a Singapore B2B adhesives and glue manufacturer "
+         . "with over 50 years of experience, one of the biggest and earliest adhesive manufacturers in Singapore.\n"
+         . "- History: started as a shoe factory, then shifted to commercial and industrial adhesives; "
+         . "grew from home-based manufacturing to a fully operational factory with over 20,000 square feet of production space.\n"
+         . "- Tagline: For a Better Job. Mission: produce the best quality adhesives and provide the best customer service.\n"
+         . "- Brands: Deer, Horsemen, Premier and Rhino, plus Others and Accessories (for example spray guns).\n"
+         . "- Serves: construction, chemical, carpentry, furniture, marine, hardware, and leather and craft industries, plus OEM services.\n"
+         . "- Certification: some products carry the Singapore Green Label (low VOC, eco friendly), for example Premier Brand G100.\n"
+         . "- Product types: normal adhesives and spray adhesives; application methods include hand sprayed, machine sprayed, rolled and brushed.\n"
+         . "- Custom formulation: if a required adhesive is not in the catalogue, Yee Lim can specially formulate one to suit the job; invite an enquiry.\n"
+         . "- Export: some products are exported overseas and export can be arranged; for availability in a local market, ask the buyer to enquire.\n"
+         . "- Delivery: offered for orders above a minimum quantity; smaller orders needing delivery can be arranged for a small fee; buyers may also collect from the office.\n"
+         . "- Stock and lead time: smaller quantities are usually ready stock; larger quantities typically need about 3 to 5 days from order to delivery. Confirm exact timing via an enquiry.\n"
+         . "- Pricing, minimum order quantity and exact lead times are NOT published; always direct these to an enquiry.\n"
+         . "- Contact: 1 Ang Mo Kio Street 65, #03-17, Singapore 569063. Phone +65 8875 5786. WhatsApp 6588755786. "
+         . "Email contact@yeelimadhesives.com.sg. Enquiry form at /enquiry, contact page at /contact.";
+}
+
 function buildSystemPrompt($products) {
     $lines = [];
     foreach ($products as $p) {
@@ -122,20 +145,26 @@ function buildSystemPrompt($products) {
     }
     $catalogue = implode("\n", $lines);
 
-    return "You are the Product Advisor for Yee Lim Adhesives Industries, a Singapore B2B "
-         . "adhesives manufacturer with over 50 years of experience.\n\n"
-         . "Help buyers find the right adhesive from the catalogue below. Be precise, "
-         . "professional and brief (under 100 words unless asked to compare). No emoji, no filler.\n\n"
+    return "You are Ava, the product advisor and company assistant for Yee Lim Adhesives Industries, "
+         . "a Singapore B2B adhesives manufacturer with over 50 years of experience.\n\n"
+         . "Answer buyers' questions about the company, its products, and how to buy, using ONLY the "
+         . "Company Knowledge and Catalogue below. Be precise, professional and brief (under 100 words "
+         . "unless asked to compare or explain in detail). No emoji, no filler.\n\n"
+         . "Language: reply in the SAME language the user writes in (English or Simplified Chinese). "
+         . "Keep company, brand and product names and model numbers in their original Latin form "
+         . "(for example Deer Brand 101).\n\n"
          . "When you recommend a product, link it exactly like this: "
          . "[Product Name](/product-detail?id=ID) using its id from the catalogue.\n\n"
+         . buildCompanyKnowledge() . "\n\n"
          . "Catalogue:\n" . $catalogue . "\n\n"
          . "Rules:\n"
-         . "- Only recommend products from the catalogue above. Never invent products or specifications.\n"
+         . "- Answer company, delivery, export, lead-time and how-to-buy questions from the Company Knowledge above.\n"
+         . "- Only recommend products from the catalogue above. Never invent products, specifications, prices or facts.\n"
          . "- If a product is marked Unavailable, do not present it as in stock. Say it is currently "
          . "unavailable and suggest enquiring about availability.\n"
          . "- If the need is unclear, ask one short clarifying question (which surfaces, what conditions).\n"
-         . "- If nothing fits, say so and point them to [submit an enquiry](/enquiry).\n"
-         . "- For pricing, MOQ or lead time, direct them to [submit an enquiry](/enquiry).\n"
+         . "- If nothing fits, or the answer is not in the knowledge above, say so briefly and point them to [submit an enquiry](/enquiry).\n"
+         . "- For pricing, MOQ or exact lead time, direct them to [submit an enquiry](/enquiry).\n"
          . "- For greetings, thanks or small talk, reply briefly and warmly, then invite the next question.\n"
          . "- Do not use em dashes (the long dash). Write plainly with commas or periods.\n"
          . "- Tone: a knowledgeable technical sales rep. Reply with your final answer only.";
@@ -269,6 +298,55 @@ function smallTalkReply($q) {
     return null;
 }
 
+// Company-fact answers for the free fallback path (LLM off or unavailable).
+// Mirrors the Company Knowledge in the system prompt so basic questions still
+// work without a model. English only; the LLM path handles other languages.
+function companyFactReply($q) {
+    $enq = "[submit an enquiry](/enquiry)";
+    if (preg_match('/\b(address|located|location|directions?)\b/', $q)
+        || preg_match('/where.*(you|located|shop|office|factory|find|based)/', $q)) {
+        return "Yee Lim Adhesives Industries is at 1 Ang Mo Kio Street 65, #03-17, Singapore 569063. "
+             . "Phone +65 8875 5786, WhatsApp 6588755786, email contact@yeelimadhesives.com.sg. See our [contact page](/contact).";
+    }
+    if (preg_match('/\b(contact|phone|call|email|whatsapp|reach)\b/', $q)) {
+        return "You can reach us on +65 8875 5786, WhatsApp 6588755786, or email contact@yeelimadhesives.com.sg. "
+             . "You can also $enq and our team will follow up.";
+    }
+    if (preg_match('/\b(export|overseas|international)\b/', $q) || preg_match('/outside singapore|other countr/', $q)) {
+        return "Some of our products are exported overseas, and export can be arranged. Tell us your country in an $enq and we will advise.";
+    }
+    if (preg_match('/\b(deliver|delivery|shipping|ship|courier|postage)\b/', $q)) {
+        return "We offer delivery for orders above a minimum quantity; smaller orders can be delivered for a small fee, "
+             . "or you can collect from our office. For a delivery quote, $enq.";
+    }
+    if (preg_match('/\b(lead time|turnaround|in stock|ready stock)\b/', $q)
+        || preg_match('/how long|when.*(deliver|ready|arrive)/', $q)) {
+        return "Smaller quantities are usually ready stock; larger orders typically need about 3 to 5 days from order to delivery. "
+             . "For exact timing on your order, $enq.";
+    }
+    if (preg_match('/\b(custom|special|formulat|bespoke)\b/', $q) || preg_match('/not listed|can'."'".'?t find|cannot find|made to order/', $q)) {
+        return "If the adhesive you need is not in our catalogue, we can specially formulate one for your job. "
+             . "Describe your requirement in an $enq and our team will help.";
+    }
+    if (preg_match('/\b(about|company|history|established|experience)\b/', $q) || preg_match('/who (are|is) (you|yee lim)|how (old|long)|how many years/', $q)) {
+        return "Yee Lim Adhesives Industries is a Singapore adhesives and glue manufacturer with over 50 years of experience, "
+             . "one of the biggest and earliest in Singapore. We started as a shoe factory and grew into a full adhesives manufacturer "
+             . "serving construction, furniture, marine, leather and craft and more, plus OEM services.";
+    }
+    if (preg_match('/\b(green label|eco|environment|voc|certif)\b/', $q)) {
+        return "Some products carry the Singapore Green Label (low VOC, eco friendly), for example Premier Brand G100. "
+             . "Ask me for an eco-friendly option and I will suggest one.";
+    }
+    if (preg_match('/\b(price|pricing|cost|quote|quotation|moq)\b/', $q) || preg_match('/minimum order|how much/', $q)) {
+        return "Pricing and minimum order quantities depend on the product and volume, so please $enq and our team will quote you.";
+    }
+    if (preg_match('/how (to|do i) (buy|order|purchase)|where.*buy/', $q)) {
+        return "Add the products you want to your enquiry from the [catalogue](/products) and $enq, or contact us on "
+             . "+65 8875 5786 / WhatsApp 6588755786. Our team will confirm availability, price and delivery.";
+    }
+    return null;
+}
+
 function ruleBasedReply($query, $products) {
     $q = strtolower($query);
     if (trim($q) === "") {
@@ -278,6 +356,9 @@ function ruleBasedReply($query, $products) {
 
     $small = smallTalkReply($q);
     if ($small !== null) return $small;
+
+    $fact = companyFactReply($q);
+    if ($fact !== null) return $fact;
 
     $syn = [
         "wood"      => ["wood", "timber", "veneer", "laminate", "furniture", "carpentry", "cabinet", "plywood", "mdf"],
