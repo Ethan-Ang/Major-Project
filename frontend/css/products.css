@@ -274,6 +274,26 @@ h1, h2, h3,
   pointer-events: none;
 }
 
+/* Contact, Enquiry and 404 carry the adhesive-pails warehouse shot: real stock
+   on a real pallet, which is what a trade supplier actually looks like. Scoped
+   to those three classes rather than changed on .page-hero-img itself, because
+   the shared rule above is also what the protected (live-only) Home page draws
+   from and must keep rendering industrial-dispense.jpg.
+
+   Anchored bottom, not centre: this one box runs from 2.38:1 on 404 to 4.17:1
+   on Enquiry, so the shallowest hero crops hard. Bottom anchoring spends that
+   crop on the racking overhead and keeps the pallet and floor, which is what
+   grounds the shot. Centre anchoring floated the pails with no pallet. */
+.contact-hero .page-hero-img,
+.enquiry-hero .page-hero-img,
+.nf-hero .page-hero-img {
+  background-image: url("/images/hero/adhesive-pails-warehouse-1536.jpg");
+  background-image: image-set(
+    url("/images/hero/adhesive-pails-warehouse-1536.webp") type("image/webp"),
+    url("/images/hero/adhesive-pails-warehouse-1536.jpg") type("image/jpeg"));
+  background-position: right bottom;
+}
+
 @media (max-width: 900px) {
   /* Phones: the photo stays a top-right corner accent behind the heading,
      double-masked (left + bottom) so the copy always sits on readable cream. */
@@ -4589,26 +4609,41 @@ body.cmp-rotate-open { overflow: hidden; }
 
 .compare-empty-val { color: var(--muted-2); }
 
-/* Supporting note under the comparison table. It is a quiet aside, not a second
-   footer: centred full-width text sitting alone on the page background read as a
-   detached grey band and ate a lot of phone height. Left-aligned on the same
-   content edge as the table above it, with the info icon aligned to the FIRST
-   line (align-items:flex-start, not centre, so a two-line wrap keeps the icon
-   beside the opening words), no container, no extra padding. */
+/* Supporting note under the comparison table. Desktop keeps the original centred
+   aside: the table above it is full-bleed and wide, so a short left-aligned
+   paragraph hanging under one corner reads as a stray fragment rather than a
+   footnote to the whole table. */
 .compare-disclaimer {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   gap: 0.45rem;
-  margin: 0.9rem 0 0;
-  font-size: 0.78rem;
+  margin: 1.1rem 0 0;
+  font-size: 0.8rem;
   line-height: 1.5;
   color: var(--muted);
-  text-align: left;
-  max-width: 68ch;
+  text-align: center;
 }
-/* Nudged onto the first line's optical centre; opacity kept high enough that the
-   mark still meets contrast against the warm page background. */
-.compare-disclaimer svg { flex-shrink: 0; margin-top: 0.18em; opacity: 0.85; }
+/* Opacity kept high enough that the mark still meets contrast against the warm
+   page background. */
+.compare-disclaimer svg { flex-shrink: 0; opacity: 0.85; }
+
+/* Phones only. Centred full-width text sitting alone on the page background read
+   as a detached grey band and ate a lot of vertical space on a small screen, so
+   here it becomes a quiet left-aligned note on the same content edge as the
+   table, with the info icon pinned to the FIRST line (align-items:flex-start,
+   not centre, so a two-line wrap keeps the mark beside the opening words). */
+@media (max-width: 640px) {
+  .compare-disclaimer {
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin: 0.9rem 0 0;
+    font-size: 0.78rem;
+    text-align: left;
+    max-width: 68ch;
+  }
+  .compare-disclaimer svg { margin-top: 0.18em; }
+}
 
 /* ─── Focus states ───────────────────────────────────────────── */
 .gallery-thumb:focus-visible {
@@ -5023,14 +5058,23 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
    cards sit closer to the hero. */
 .page-hero.contact-hero { border-bottom: none; }
 
-/* The "Send Us a Message" form is retired site-wide (Product Enquiry covers the
-   same job), so this is no longer a two-column grid — one substantial contact
-   card sits centred below the hero, its details laid out two-up on desktop so
-   it fills the width and reads as a deliberate layout, not a lonely box. */
+/* Two columns again, but not the old form layout: the "Send Us a Message" form
+   stays retired (Product Enquiry does the same job and arrives with the product
+   details attached). The right column now carries that route instead, which both
+   fills the grid and tells the visitor where the message box went. Single column
+   from tablet down. */
 .contact-page {
-  max-width: 880px;
+  max-width: 1180px;
   margin: 1.25rem auto 3.5rem;
   padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .contact-page { grid-template-columns: 1fr; gap: 1.25rem; }
 }
 
 .contact-card {
@@ -5051,9 +5095,81 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 .contact-info-card .contact-whatsapp { margin-top: 1rem; }
 .contact-info-card .contact-detail-list { margin-bottom: 0; }
 
-/* Retired site-wide — Product Enquiry does the same job. Kept in the markup
-   (harmless) but never shown. */
-.contact-form-card { display: none; }
+/* Right column: the Product Enquiry route that replaced the contact form. Same
+   card shell and padding as the info card so the two columns read as a pair. */
+.contact-route-card {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 2.25rem;
+}
+
+.contact-route-lead {
+  margin: 0 0 1.35rem;
+  color: var(--body);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.contact-route-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0 0 1.6rem;
+  padding: 0;
+}
+
+.contact-route-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: var(--body);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Numbered chip, deliberately smaller than the info card's 44px icon chips so
+   the two columns stay distinguishable rather than mirroring each other. */
+.contact-route-num {
+  flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  margin-top: 0.05rem;
+  border-radius: 50%;
+  background: var(--red-tint);
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* margin-top:auto pins the actions to the card foot, so both columns end level
+   when the info card is the taller of the two. */
+.contact-route-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.95rem;
+}
+
+.contact-route-primary { align-self: stretch; gap: 0.5rem; padding: 0.8rem 1rem; font-size: 0.9rem; }
+
+.contact-route-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--red);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.contact-route-secondary:hover { text-decoration: underline; text-underline-offset: 2px; }
+.contact-route-secondary:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
 .contact-info-heading {
   font-size: 1.2rem;
@@ -5071,13 +5187,12 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   display: grid;
 }
 
-/* Desktop: two-up detail grid (Address spans the top; Email + Phone share the
-   row below) so the wider card fills its width now the form column is gone.
-   The WhatsApp CTA is capped so it doesn't stretch into a giant bar. */
-@media (min-width: 720px) {
-  .contact-detail-list { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; }
-  .contact-detail:first-child { grid-column: 1 / -1; }
-  .contact-info-card .contact-whatsapp { max-width: 360px; }
+/* Details stay in one stacked column. They were briefly laid out two-up to pad
+   out a full-width single card; with the enquiry-route column back beside it the
+   card is ~540px and two-up would crush Email and Phone into ~250px each. */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .contact-info-card,
+  .contact-route-card { padding: 1.75rem 1.6rem; }
 }
 
 .contact-detail {
@@ -5245,10 +5360,20 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 }
 
 @media (max-width: 640px) {
-  /* Phones: the "Send Us a Message" form duplicates the Product Enquiry flow,
-     so it's dropped here. The card keeps the real contact routes — address,
-     email and the WhatsApp button — which cover the same job on a phone. */
-  .contact-form-card { display: none; }
+  /* Phones: the enquiry-route card keeps its content but loses the numbered
+     steps, which are explanatory rather than load-bearing and cost a lot of
+     height on a small screen. The lead sentence and the CTA still carry the
+     whole message. */
+  .contact-route-steps { display: none; }
+  .contact-route-card { padding: 1.5rem 1.35rem; }
+  .contact-route-lead { margin-bottom: 1.1rem; }
+
+  /* The address is one unbreakable 30-character token. At 375px it lands a
+     character or two over the line, and overflow-wrap:anywhere then splits it
+     mid-domain ("...com.s" / "g"), which reads as a typo rather than a wrap. One
+     step down keeps it whole. Needs the two-class selector to outrank
+     `.contact-detail span`. */
+  .contact-detail .contact-email-link { font-size: 0.86rem; }
 }
 
 /* ─── Home Page (ReBond) ────────────────────────────────────────
@@ -6105,4 +6230,88 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   }
   .cx-scrollhint svg { flex-shrink: 0; }
   .cx-scrollhint[hidden] { display: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Yee Lim Bond Finder V3
+   ═══════════════════════════════════════════════════════════════ */
+.bond-finder-section { max-width: 1400px; margin: 1.5rem auto 0; padding: 0 2rem; }
+.bond-finder-shell {
+  display: grid; grid-template-columns: minmax(250px,.65fr) minmax(620px,1.5fr);
+  gap: 1.5rem 2rem; align-items: end; padding: 1.5rem; overflow: visible;
+  background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--red);
+  border-radius: 6px; box-shadow: var(--shadow);
+}
+.bond-finder-eyebrow { display:block; margin-bottom:.45rem; font-family:var(--mono); font-size:.66rem; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--red); }
+.bond-finder-copy h2 { margin:0 0 .4rem; font-size:1.45rem; line-height:1.15; color:var(--text); }
+.bond-finder-copy p { margin:0; max-width:52ch; color:var(--muted); font-size:.88rem; line-height:1.55; }
+.bond-finder-controls { display:grid; grid-template-columns:repeat(2,minmax(160px,1fr)); gap:.8rem; align-items:end; }
+.bond-finder-field { min-width:0; }
+.bond-finder-field label { display:block; margin-bottom:.4rem; font-size:.76rem; font-weight:600; color:var(--body); }
+.bond-finder-field > select { width:100%; min-height:46px; padding:.65rem .85rem; border:1px solid var(--line-2); border-radius:5px; background:#fff; color:var(--text); font:inherit; }
+.bond-finder-field .custom-select-wrap,.bond-finder-field .custom-select-trigger { width:100%; min-width:0; }
+.bond-finder-field .custom-select-trigger { min-height:46px; padding:.65rem .85rem; border-radius:5px; font-size:.88rem; }
+.bond-finder-field .custom-select-trigger:focus-visible,.bond-finder-field .custom-select-trigger[aria-expanded="true"] { border-color:var(--red); box-shadow:0 0 0 1px var(--red); }
+.bond-finder-field .custom-select-listbox { left:0; right:0; min-width:0; z-index:80; }
+.bond-finder-plus { display:none; }
+.bond-finder-submit { grid-column:1/-1; min-height:46px; display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.65rem 1rem; border:1px solid var(--red); border-radius:5px; background:var(--red); color:#fff; font:700 .84rem inherit; cursor:pointer; transition:.18s; }
+.bond-finder-submit:hover { background:var(--red-hover); border-color:var(--red-hover); }
+.bond-finder-submit:focus-visible { outline:2px solid var(--red); outline-offset:2px; }
+.bond-finder-result { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-top:1rem; border-top:1px solid var(--line); }
+.bond-finder-result[hidden] { display:none; }
+.bond-finder-result-copy { display:flex; flex-direction:column; gap:.18rem; min-width:0; }
+.bond-finder-result-copy strong { color:var(--green); font-size:.92rem; }
+.bond-finder-result-copy span { color:var(--muted); font-size:.82rem; line-height:1.45; }
+.bond-finder-result-copy small { margin-top:.25rem; color:var(--muted-2); font-size:.72rem; line-height:1.45; max-width:85ch; }
+.bond-finder-result-copy a { color:var(--red); font-weight:600; }
+.bond-finder-result.is-warning .bond-finder-result-copy strong { color:#9a5b12; }
+.bond-finder-result-actions { display:flex; gap:.55rem; flex-shrink:0; }
+.bond-finder-whatsapp,.bond-finder-clear { min-height:40px; display:inline-flex; align-items:center; justify-content:center; padding:.5rem .8rem; border-radius:5px; font:600 .78rem inherit; text-decoration:none; cursor:pointer; white-space:nowrap; }
+.bond-finder-whatsapp { border:1px solid #16803a; background:#16803a; color:#fff; }
+.bond-finder-whatsapp:hover { background:#116d31; }
+.bond-finder-clear { border:1px solid var(--line-2); background:#fff; color:var(--body); }
+.bond-finder-clear:hover { border-color:var(--red); color:var(--red); background:var(--red-tint); }
+
+/* Match explanation inserted into every recommended product card. */
+.bond-match-box { margin:.1rem 0 .8rem; padding:.65rem .7rem; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--red); border-radius:5px; }
+.bond-match-head { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.35rem; }
+.bond-match-label { font-family:var(--mono); font-size:.62rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--red); }
+.bond-match-head strong { font-size:.78rem; color:var(--text); }
+.bond-match-box ul { list-style:none; display:flex; flex-direction:column; gap:.18rem; margin:0; padding:0; }
+.bond-match-box li { position:relative; padding-left:.85rem; font-size:.72rem; color:var(--muted); line-height:1.35; }
+.bond-match-box li::before { content:"✓"; position:absolute; left:0; color:var(--green); font-weight:700; }
+
+@media (max-width:1050px) { .bond-finder-shell { grid-template-columns:1fr; align-items:stretch; } }
+@media (max-width:760px) {
+  .bond-finder-section { padding:0 1.25rem; margin-top:1.25rem; }
+  .bond-finder-shell { padding:1.25rem; gap:1.15rem; }
+  .bond-finder-controls { grid-template-columns:1fr 1fr; }
+  .bond-finder-result { align-items:stretch; flex-direction:column; }
+  .bond-finder-result-actions { width:100%; }
+  .bond-finder-whatsapp,.bond-finder-clear { flex:1; }
+}
+@media (max-width:520px) {
+  .bond-finder-section { padding:0 1rem; }
+  .bond-finder-shell { border-left-width:3px; padding:1rem; }
+  .bond-finder-copy h2 { font-size:1.3rem; }
+  .bond-finder-controls { grid-template-columns:1fr; }
+  .bond-finder-submit { width:100%; min-height:48px; }
+  .bond-finder-result-actions { flex-direction:column; }
+  .bond-finder-whatsapp,.bond-finder-clear { width:100%; }
+}
+
+/* Bond Finder V3 final refinements */
+.bond-finder-submit:disabled { opacity:.62; cursor:wait; }
+.bond-finder-result a:focus-visible,
+.bond-finder-whatsapp:focus-visible,
+.bond-finder-clear:focus-visible {
+  outline:2px solid var(--red);
+  outline-offset:2px;
+}
+.bond-match-box { overflow-wrap:anywhere; }
+@media (prefers-reduced-motion: reduce) {
+  .bond-finder-submit,
+  .bond-finder-whatsapp,
+  .bond-finder-clear { transition:none; }
 }

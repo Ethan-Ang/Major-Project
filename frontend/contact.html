@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=97">
+  <link rel="stylesheet" href="/css/products.css?v=102">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=9">
-  <script src="/js/i18n.js?v=4"></script>
+  <script src="/js/i18n.js?v=5"></script>
   <script src="/js/i18n-products.js?v=2"></script>
   <script src="/js/widgets/navbar.js?v=23"></script>
   <script src="/js/widgets/footer.js?v=24"></script>
@@ -74,62 +74,110 @@
       <span data-i18n="contact.talk_wa">Talk to Yee Lim on WhatsApp</span>
       <svg class="contact-whatsapp-go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </a>
+
+    <div class="contact-response-note" role="note">
+      <span class="contact-response-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      </span>
+      <div>
+        <strong data-i18n="contact.response_title">Response time</strong>
+        <p data-i18n="contact.response_body">We usually respond within 1–2 business days. For urgent product enquiries, message our team directly on WhatsApp.</p>
+      </div>
+    </div>
   </section>
 
-  <section class="contact-card contact-form-card">
-    <h2 data-i18n="contact.send">Send Us a Message</h2>
+  <!-- Right column: the Product Enquiry route. The "Send Us a Message" form was
+       retired because the enquiry basket does the same job and arrives with the
+       product details already attached, so this column names that route
+       explicitly rather than leaving the reader to guess where it went. -->
+  <section class="contact-card contact-route-card" aria-labelledby="contactRouteHeading">
+    <h2 id="contactRouteHeading" data-i18n="contact.route_title">Enquiries &amp; Quotations</h2>
+    <p class="contact-route-lead" data-i18n="contact.route_lead">For pricing, samples or technical questions, add the products you are interested in to an enquiry and send them in one go. It reaches the same team, with the product details already attached.</p>
 
-    <form class="contact-form" onsubmit="submitContactForm(event)">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="contactName" data-i18n="contact.f_name">Full Name *</label>
-          <input type="text" id="contactName" required placeholder="Your name" data-i18n-attr="placeholder:contact.ph_name">
-        </div>
+    <ol class="contact-route-steps">
+      <li>
+        <span class="contact-route-num" aria-hidden="true">1</span>
+        <span data-i18n="contact.route_s1">Browse the catalogue and add products to your enquiry.</span>
+      </li>
+      <li>
+        <span class="contact-route-num" aria-hidden="true">2</span>
+        <span data-i18n="contact.route_s2">Add your details and any notes on your application.</span>
+      </li>
+      <li>
+        <span class="contact-route-num" aria-hidden="true">3</span>
+        <span data-i18n="contact.route_s3">We reply within 1-2 business days.</span>
+      </li>
+    </ol>
 
-        <div class="form-group">
-          <label for="contactCompany" data-i18n="contact.f_company">Company</label>
-          <input type="text" id="contactCompany" placeholder="Company name" data-i18n-attr="placeholder:contact.ph_company">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="contactEmail" data-i18n="contact.f_email">Email Address *</label>
-          <input type="email" id="contactEmail" required placeholder="you@example.com">
-        </div>
-
-        <div class="form-group">
-          <label for="contactPhone" data-i18n="contact.f_phone">Phone Number</label>
-          <input type="tel" id="contactPhone" placeholder="+65 9123 4567">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="contactSubject" data-i18n="contact.f_subject">Subject *</label>
-        <input type="text" id="contactSubject" required placeholder="Product enquiry / quotation request" data-i18n-attr="placeholder:contact.ph_subject">
-      </div>
-
-      <div class="form-group contact-message-group">
-        <label for="contactMessage" data-i18n="contact.f_message">Message *</label>
-        <textarea id="contactMessage" required placeholder="Tell us what product or adhesive application you need help with..." data-i18n-attr="placeholder:contact.ph_message"></textarea>
-      </div>
-
-      <p id="contactFormStatus" class="contact-form-status" role="status"></p>
-
-      <p class="contact-security-note">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-        <span data-i18n="contact.security_note">Your information is kept secure and will only be used to respond to your enquiry.</span>
-      </p>
-
-      <div class="contact-form-actions">
-        <button type="submit" class="btn btn-primary contact-submit-btn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          <span data-i18n="contact.send_msg">Send Message</span>
-        </button>
-      </div>
-    </form>
+    <div class="contact-route-actions">
+      <a class="btn btn-primary contact-route-primary" href="/enquiry">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        <span data-i18n="contact.route_cta">Start a Product Enquiry</span>
+      </a>
+      <a class="contact-route-secondary" href="/products">
+        <span data-i18n="contact.route_browse">Browse the catalogue</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
   </section>
+
 </div>
+
+<section class="contact-visit-section" aria-labelledby="visitHeading">
+  <div class="contact-visit-grid">
+    <section class="contact-card contact-hours-card">
+      <span class="contact-section-eyebrow" data-i18n="contact.visit_eyebrow">Plan Your Visit</span>
+      <h2 id="visitHeading" data-i18n="contact.hours_title">Business Operating Hours</h2>
+      <p class="contact-section-intro" data-i18n="contact.hours_intro">Visit or contact our team during the operating hours below.</p>
+
+      <dl class="contact-hours-list">
+        <div>
+          <dt data-i18n="contact.weekdays">Monday–Friday</dt>
+          <dd>8:00 AM–5:00 PM</dd>
+        </div>
+        <div>
+          <dt data-i18n="contact.saturday">Saturday</dt>
+          <dd>8:00 AM–12:00 PM</dd>
+        </div>
+        <div>
+          <dt data-i18n="contact.sunday">Sunday</dt>
+          <dd data-i18n="contact.closed">Closed</dd>
+        </div>
+        <div>
+          <dt data-i18n="contact.public_holidays">Public holidays</dt>
+          <dd data-i18n="contact.holiday_hours">Hours may vary</dd>
+        </div>
+      </dl>
+
+      <p class="contact-hours-note" data-i18n="contact.holiday_note">Please contact us before visiting on a public holiday.</p>
+    </section>
+
+    <section class="contact-card contact-map-card" aria-labelledby="mapHeading">
+      <div class="contact-map-head">
+        <div>
+          <span class="contact-section-eyebrow" data-i18n="contact.location_eyebrow">Our Location</span>
+          <h2 id="mapHeading" data-i18n="contact.find_us">Find Us</h2>
+          <p data-i18n="contact.map_address">1 Ang Mo Kio Street 65, #03-17 JTC Space @ Ang Mo Kio, Singapore 569063</p>
+        </div>
+        <a class="btn btn-outline contact-directions-btn" href="https://maps.app.goo.gl/wdeFTUD4oWrUBUx18" target="_blank" rel="noopener noreferrer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4.5 8-12a8 8 0 1 0-16 0c0 7.5 8 12 8 12Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+          <span data-i18n="contact.directions">Get Directions</span>
+        </a>
+      </div>
+
+      <div class="contact-map-frame">
+        <iframe
+          title="Map showing Yee Lim Adhesives Industries at JTC Space @ Ang Mo Kio"
+          data-i18n-attr="title:contact.map_title"
+          src="https://www.google.com/maps?q=Yee%20Lim%20Adhesives%20Industries%20Pte%20Ltd%2C%201%20Ang%20Mo%20Kio%20Street%2065%2C%20Singapore%20569063&output=embed"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </section>
+  </div>
+</section>
 </main>
 </div>
 
