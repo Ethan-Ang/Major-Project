@@ -271,11 +271,16 @@ function ylSearchNorm(s) {
 // active at 2+ non-space characters, so a lone letter never dumps the catalogue.
 function ylWords(s) { return ylSearchNorm(s).split(" ").filter(Boolean); }
 
-function ylProductWords(p) {
-  return ylWords([
-    p.name, p.brand, brandDisplay(p.brand), productType(p),
-    p.shortDescription, (p.industries || []).join(" "), (p.surfaces || []).join(" ")
-  ].join(" "));
+// Words that make up a product's searchable text. In SHORT mode (a single-letter
+// query) only the NAME and BRAND count, so one letter jumps to a product/brand
+// initial ("s" -> Spray Gun, "d" -> Deer) instead of matching the generic word
+// "Adhesives" that appears on every product. 2+ letters search every field.
+function ylProductWords(p, shortMode) {
+  const fields = shortMode
+    ? [p.name, p.brand, brandDisplay(p.brand)]
+    : [p.name, p.brand, brandDisplay(p.brand), productType(p),
+       p.shortDescription, (p.industries || []).join(" "), (p.surfaces || []).join(" ")];
+  return ylWords(fields.join(" "));
 }
 
 // Every query token must be a PREFIX of some word (AND across tokens), so
@@ -286,9 +291,9 @@ function ylPrefixMatch(words, query) {
   return toks.every(t => words.some(w => w.startsWith(t)));
 }
 
-// A search only kicks in at 2+ real characters (research-backed minimum).
-function ylSearchIsActive(query) {
-  return ylSearchNorm(query).replace(/\s+/g, "").length >= 2;
+// True when a query is a single real character (name/brand-initial mode).
+function ylShortQuery(query) {
+  return ylSearchNorm(query).replace(/\s+/g, "").length < 2;
 }
 
 // Canonical slug for URL state (SEARCH-001 A10): lowercase, ™/® dropped,
@@ -485,11 +490,10 @@ function applyFilters(opts = {}) {
     // Note: does not match against p.features. Those are internal spec bullets
     // (e.g. "lab-tested", "Low VOC") — matching them let short, generic words
     // like "test" surface unrelated products via substrings such as "tested".
-    // Word-prefix match on all searchable fields; a query under 2 characters is
-    // treated as no search (the grid stays unfiltered) rather than matching a
-    // common letter across the whole catalogue.
-    const matchesQuery = !ylSearchIsActive(query) ||
-      ylPrefixMatch(ylProductWords(p), query);
+    // Word-prefix match. A single letter matches name/brand initials only; 2+
+    // characters search every field. Empty query leaves the grid unfiltered.
+    const matchesQuery = !query ||
+      ylPrefixMatch(ylProductWords(p, ylShortQuery(query)), query);
 
     const matchesType = activeFilters.productTypes.length === 0 ||
       activeFilters.productTypes.includes(productType(p));
@@ -1256,7 +1260,7 @@ function initSearchTypeahead() {
     // Must match every token as a word-prefix somewhere in the product; then
     // rank by the strongest field the first token lands in (name > brand > type
     // > industry > surface > description). Word-prefix, never mid-word substring.
-    if (!ylPrefixMatch(ylProductWords(p), q)) return Infinity;
+    if (!ylPrefixMatch(ylProductWords(p, ylShortQuery(q)), q)) return Infinity;
     const name = norm(p.name);
     const brand = norm(brandName(p)), raw = norm(p.brand || "");
     const t = q.split(" ")[0];
@@ -1502,8 +1506,9 @@ function initSearchTypeahead() {
   // (A1: no huge empty dropdown). Runs alongside the live-filter listener.
   input.addEventListener("input", () => {
     const q = input.value.trim();
-    // A single character is too broad to suggest usefully; wait for 2+.
-    if (q.replace(/\s+/g, "").length < 2) { items = []; lastQuery = ""; close(); return; }
+    // Suggest from the first character (a single letter matches name/brand
+    // initials via scoreProduct); only an empty box shows nothing.
+    if (q.replace(/\s+/g, "").length < 1) { items = []; lastQuery = ""; close(); return; }
     lastQuery = q;
     items = computeItems(q);
     highlight = -1;

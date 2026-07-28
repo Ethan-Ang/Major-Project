@@ -467,10 +467,17 @@
     setTimeout(() => {
       hideTyping();
       // Clickable starter prompts so first-time visitors know what to ask.
-      // Localised inline (the click sends the text straight to the advisor).
-      var starters = (window.ylLang === "zh")
-        ? ["为我的作业推荐胶粘剂", "可以出口到海外吗？", "你们公司在哪里？"]
-        : ["Recommend an adhesive for my job", "Do you ship overseas?", "Where are you located?"];
+      // A pool (localised) is sampled 3-at-random each open, so the greeting
+      // feels fresh and shows off Ava's range. Clicking one sends it to Ava.
+      var pool = (window.ylLang === "zh")
+        ? ["为我的作业推荐胶粘剂", "泡棉粘金属用什么胶？", "哪款胶防水？",
+           "可以出口到海外吗？", "你们公司在哪里？", "可以定制胶粘剂吗？", "交货需要多久？"]
+        : ["Recommend an adhesive for my job", "What bonds foam to metal?", "Which glue is waterproof?",
+           "Do you ship overseas?", "Where are you located?", "Can you make a custom adhesive?", "What is your lead time?"];
+      var idx = pool.map(function (_, i) { return i; }), starters = [];
+      for (var k = 0; k < 3 && idx.length; k++) {
+        starters.push(pool[idx.splice(Math.floor(Math.random() * idx.length), 1)[0]]);
+      }
       addMessage("assistant",
         cbT("advisor.greeting", "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive."),
         starters);
