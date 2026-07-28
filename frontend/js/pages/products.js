@@ -265,6 +265,32 @@ function ylSearchNorm(s) {
     .replace(/[-‐-―]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// ─── Search matching (word-prefix, not naive substring) ───────────
+// Real product search matches the START of a word, not any letter anywhere:
+// "a" must not match "brand", but "pre" should match "Premier". A query is only
+// active at 2+ non-space characters, so a lone letter never dumps the catalogue.
+function ylWords(s) { return ylSearchNorm(s).split(" ").filter(Boolean); }
+
+function ylProductWords(p) {
+  return ylWords([
+    p.name, p.brand, brandDisplay(p.brand), productType(p),
+    p.shortDescription, (p.industries || []).join(" "), (p.surfaces || []).join(" ")
+  ].join(" "));
+}
+
+// Every query token must be a PREFIX of some word (AND across tokens), so
+// "wood glue" needs a word starting with each of "wood" and "glue".
+function ylPrefixMatch(words, query) {
+  const toks = ylSearchNorm(query).split(" ").filter(Boolean);
+  if (!toks.length) return true;
+  return toks.every(t => words.some(w => w.startsWith(t)));
+}
+
+// A search only kicks in at 2+ real characters (research-backed minimum).
+function ylSearchIsActive(query) {
+  return ylSearchNorm(query).replace(/\s+/g, "").length >= 2;
+}
+
 // Canonical slug for URL state (SEARCH-001 A10): lowercase, ™/® dropped,
 // non-alphanumerics collapse to "-". "Lift & Escalator" → "lift-escalator".
 function ylSlug(s) {
@@ -459,14 +485,11 @@ function applyFilters(opts = {}) {
     // Note: does not match against p.features. Those are internal spec bullets
     // (e.g. "lab-tested", "Low VOC") — matching them let short, generic words
     // like "test" surface unrelated products via substrings such as "tested".
-    const matchesQuery = !query ||
-      ylSearchNorm(p.name).includes(query) ||
-      ylSearchNorm(p.brand).includes(query) ||
-      ylSearchNorm(brandDisplay(p.brand)).includes(query) ||
-      ylSearchNorm(productType(p)).includes(query) ||
-      ylSearchNorm(p.shortDescription).includes(query) ||
-      p.industries.some(i => ylSearchNorm(i).includes(query)) ||
-      p.surfaces.some(s => ylSearchNorm(s).includes(query));
+    // Word-prefix match on all searchable fields; a query under 2 characters is
+    // treated as no search (the grid stays unfiltered) rather than matching a
+    // common letter across the whole catalogue.
+    const matchesQuery = !ylSearchIsActive(query) ||
+      ylPrefixMatch(ylProductWords(p), query);
 
     const matchesType = activeFilters.productTypes.length === 0 ||
       activeFilters.productTypes.includes(productType(p));
@@ -1230,18 +1253,23 @@ function initSearchTypeahead() {
   // Lower score = more relevant. Name-prefix beats name-substring beats brand
   // beats type/industry/surface beats best-for description (A2 field list).
   function scoreProduct(p, q) {
+    // Must match every token as a word-prefix somewhere in the product; then
+    // rank by the strongest field the first token lands in (name > brand > type
+    // > industry > surface > description). Word-prefix, never mid-word substring.
+    if (!ylPrefixMatch(ylProductWords(p), q)) return Infinity;
     const name = norm(p.name);
     const brand = norm(brandName(p)), raw = norm(p.brand || "");
+    const t = q.split(" ")[0];
+    const pre = w => w.startsWith(t);
     if (name === q) return -1;
-    if (name.startsWith(q)) return 0;
-    if (name.includes(q)) return 1;
-    if (brand.startsWith(q) || raw.startsWith(q)) return 2;
-    if (brand.includes(q) || raw.includes(q)) return 3;
-    if (norm(productType(p)).includes(q)) return 4;
-    if ((p.industries || []).some(i => norm(i).includes(q))) return 5;
-    if ((p.surfaces || []).some(s => norm(s).includes(q))) return 6;
-    if (norm(p.shortDescription).includes(q)) return 7;
-    return Infinity;
+    if (name.startsWith(q) || name.startsWith(t)) return 0;
+    if (ylWords(name).some(pre)) return 1;
+    if (brand.startsWith(t) || raw.startsWith(t)) return 2;
+    if (ylWords(brand).some(pre) || ylWords(raw).some(pre)) return 3;
+    if (ylWords(productType(p)).some(pre)) return 4;
+    if ((p.industries || []).some(i => ylWords(i).some(pre))) return 5;
+    if ((p.surfaces || []).some(s => ylWords(s).some(pre))) return 6;
+    return 7;
   }
 
   // 0 exact label, 1 prefix, 2 contains, 3 reviewed synonym, Infinity no match.
@@ -1249,7 +1277,7 @@ function initSearchTypeahead() {
     const l = norm(label);
     if (l === q) return 0;
     if (l.startsWith(q)) return 1;
-    if (l.includes(q)) return 2;
+    if (ylWords(l).some(w => w.startsWith(q))) return 2; // word-prefix, not substring
     if (syn && l === syn) return 3;
     return Infinity;
   }
@@ -1474,7 +1502,8 @@ function initSearchTypeahead() {
   // (A1: no huge empty dropdown). Runs alongside the live-filter listener.
   input.addEventListener("input", () => {
     const q = input.value.trim();
-    if (q.length < 1) { items = []; lastQuery = ""; close(); return; }
+    // A single character is too broad to suggest usefully; wait for 2+.
+    if (q.replace(/\s+/g, "").length < 2) { items = []; lastQuery = ""; close(); return; }
     lastQuery = q;
     items = computeItems(q);
     highlight = -1;
