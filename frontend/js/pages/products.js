@@ -1129,12 +1129,17 @@ function renderGrid(products) {
 // none (e.g. wallpaper or acrylic adhesives that map to no industry, or the
 // spray-gun accessories), fall back to surfaces, then accessory/category, so
 // the card never shows a blank "Best for" area.
+// "Best for" answers "what job is this product for", so only real industry or
+// surface data can fill it. It used to fall back to "Accessory", the category,
+// or the invented string "General Adhesive Use" — none of which are jobs. On the
+// two spray guns (the only products with no industries and no surfaces) that
+// rendered "Best for: Accessory", a classification sitting where a use case
+// belongs, directly under the ACCESSORY chip already on the card. Returning ""
+// makes the caller drop the row, exactly as the "Works on" row already does.
 function bestForText(p) {
   if (p.industries && p.industries.length) return p.industries.slice(0, 2).join(", ");
   if (p.surfaces && p.surfaces.length)     return p.surfaces.slice(0, 2).join(", ");
-  if (p.brand === "Others & Accessories" || p.category === "Others") return "Accessory";
-  if (p.category) return p.category;
-  return "General Adhesive Use";
+  return "";
 }
 
 // Derive a short model code from the product name for the card meta line
@@ -1246,11 +1251,12 @@ function productCardHTML(p) {
           ${bondFinderExplanationHTML(p)}
         </div>
         <div class="pcard-rows">
+          ${primaryApps ? `
           <div class="card-application">
             <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
             <span class="card-application-label">${ylTr("common.best_for", "Best for")}</span>
             <span class="card-application-val">${primaryApps}</span>
-          </div>
+          </div>` : `<div class="card-workson-spacer" aria-hidden="true"></div>`}
           ${worksOn ? `
           <div class="card-application card-workson">
             <span class="card-application-ic" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 13 12 19.5 22 13"/></svg></span>
