@@ -2,6 +2,16 @@
 let activeFilters  = { productTypes: [], brands: [], industries: [], surfaces: [] };
 let currentResults = [];
 let initialLoadDone = false;
+let bondFinderState = {
+  active: false,
+  materialOne: "",
+  materialTwo: "",
+  industry: "",
+  method: "",
+  productIds: [],
+  scores: {},
+  reasons: {}
+};
 
 // ─── Catalogue return state (for Product Detail's "Back to Products") ──
 // Every part of the catalogue view that matters — free-text query, sort order
@@ -130,6 +140,7 @@ async function initProductsPage() {
   updateBasketCount();
   if (typeof renderCompareTray === "function") renderCompareTray();
   initSearchTypeahead();
+  initBondFinder();
 
   // Set before the render so a restored scroll offset is not overwritten by the
   // deep-link scroll below (arriving via "Back to Products" is not a deep link).
@@ -217,6 +228,395 @@ async function initProductsPage() {
   });
 }
 ylReady(initProductsPage);
+
+// ─── Yee Lim Bond Finder V3 ─────────────────────────────────────
+// Uses live products and admin-managed taxonomies. Two surface matches are
+// required for a direct recommendation; industry and method refine the ranking.
+function bondText(en, zh) {
+  return window.ylLang === "zh" ? zh : en;
+}
+
+function bondDisplayTerm(value) {
+  return window.ylTerm ? window.ylTerm(value) : value;
+}
+
+function bondEscape(value) {
+  return escapeHTML(String(value == null ? "" : value));
+}
+
+function initBondFinder() {
+  const first = document.getElementById("bondMaterialOne");
+  const second = document.getElementById("bondMaterialTwo");
+  const industry = document.getElementById("bondIndustry");
+  const method = document.getElementById("bondMethod");
+  const submit = document.getElementById("bondFinderSubmit");
+  const clear = document.getElementById("bondFinderClear");
+  if (!first || !second || !industry || !method || !submit || !clear) return;
+
+  const selected = {
+    first: bondFinderState.materialOne,
+    second: bondFinderState.materialTwo,
+    industry: bondFinderState.industry,
+    method: bondFinderState.method
+  };
+
+  const surfaceOptions = ['<option value="">' +
+    bondEscape(bondText("Select a surface", "请选择表面")) + '</option>']
+    .concat((SURFACES || []).map(surface =>
+      `<option value="${bondEscape(surface)}">${bondEscape(bondDisplayTerm(surface))}</option>`
+    )).join("");
+  first.innerHTML = surfaceOptions;
+  second.innerHTML = surfaceOptions;
+
+  industry.innerHTML = ['<option value="">' +
+    bondEscape(bondText("No preference", "不限")) + '</option>']
+    .concat((INDUSTRIES || []).map(item =>
+      `<option value="${bondEscape(item)}">${bondEscape(bondDisplayTerm(item))}</option>`
+    )).join("");
+
+  const methodLabels = {
+    Spray: "喷涂", Brush: "刷涂", Roll: "滚涂",
+    Scrape: "刮涂", Dip: "浸涂", Injection: "注入"
+  };
+  method.innerHTML = ['<option value="">' +
+    bondEscape(bondText("No preference", "不限")) + '</option>']
+    .concat(Object.keys(methodLabels).map(item =>
+      `<option value="${item}">${bondEscape(bondText(item, methodLabels[item]))}</option>`
+    )).join("");
+
+  first.value = (SURFACES || []).includes(selected.first) ? selected.first : "";
+  second.value = (SURFACES || []).includes(selected.second) ? selected.second : "";
+  industry.value = (INDUSTRIES || []).includes(selected.industry) ? selected.industry : "";
+  method.value = selected.method || "";
+
+  [first, second, industry, method].forEach(select => {
+    if (typeof enhanceCustomSelect === "function") enhanceCustomSelect(select);
+    if (typeof refreshCustomSelect === "function") refreshCustomSelect(select);
+  });
+
+  submit.addEventListener("click", runBondFinder);
+  clear.addEventListener("click", resetBondFinder);
+
+  if (bondFinderState.active && first.value && second.value) {
+    updateBondFinderResult();
+  } else if (bondFinderState.active) {
+    resetBondFinder({ render: false });
+  }
+}
+
+function bondNormal(value) {
+  return String(value || "").trim().toLowerCase()
+    .replace(/[™®]/g, "").replace(/\s+/g, " ");
+}
+
+function productHasBondSurface(product, surface) {
+  const wanted = bondNormal(surface);
+  return !!wanted && Array.isArray(product.surfaces) &&
+    product.surfaces.some(item => bondNormal(item) === wanted);
+}
+
+function productHasBondIndustry(product, industry) {
+  const wanted = bondNormal(industry);
+  return !!wanted && Array.isArray(product.industries) &&
+    product.industries.some(item => bondNormal(item) === wanted);
+}
+
+function productHasBondMethod(product, method) {
+  const wanted = bondNormal(method);
+  if (!wanted) return false;
+  return (product.features || []).some(feature => {
+    const text = bondNormal(feature);
+    if (!text.includes("application")) return false;
+    const applicationPart = text.split(":").slice(1).join(":") || text;
+    return applicationPart.split(/[,/]| or /).some(part => bondNormal(part) === wanted);
+  });
+}
+
+function isAvailableBondAdhesive(product) {
+  if (bondNormal(product.status) !== "available") return false;
+
+  const typeLabel = productType(product);
+  const typeSlug = typeof taxonomySlug === "function"
+    ? taxonomySlug("product_type", typeLabel)
+    : ylSlug(typeLabel);
+
+  // The original immutable taxonomy slug remains "adhesives" after label renames.
+  if (typeSlug === "adhesives") return true;
+
+  // Safe fallback for legacy/demo data when taxonomy metadata is unavailable.
+  if (/spray|accessor|equipment/.test(typeSlug)) return false;
+  if (bondNormal(product.brand) === "others & accessories") return false;
+  if (bondNormal(product.category) === "others") return false;
+  return /adhesive/.test(typeSlug);
+}
+
+function scoreBondFinderProduct(product, answers) {
+  let score = 0;
+  let possible = 60;
+  const reasons = [];
+
+  const firstMatch = productHasBondSurface(product, answers.materialOne);
+  const secondMatch = productHasBondSurface(product, answers.materialTwo);
+
+  if (firstMatch) {
+    score += 30;
+    reasons.push(bondText(
+      `Suitable for ${answers.materialOne}`,
+      `适用于${bondDisplayTerm(answers.materialOne)}`
+    ));
+  }
+  if (secondMatch) {
+    score += 30;
+    reasons.push(bondText(
+      `Suitable for ${answers.materialTwo}`,
+      `适用于${bondDisplayTerm(answers.materialTwo)}`
+    ));
+  }
+
+  if (answers.industry) {
+    possible += 20;
+    if (productHasBondIndustry(product, answers.industry)) {
+      score += 20;
+      reasons.push(bondText(
+        `Used in ${answers.industry}`,
+        `适用于${bondDisplayTerm(answers.industry)}行业`
+      ));
+    }
+  }
+
+  if (answers.method) {
+    possible += 10;
+    if (productHasBondMethod(product, answers.method)) {
+      score += 10;
+      reasons.push(bondText(
+        `Supports ${answers.method.toLowerCase()} application`,
+        `支持${bondDisplayTerm(answers.method)}施工`
+      ));
+    }
+  }
+
+  return {
+    score,
+    percent: possible ? Math.round((score / possible) * 100) : 0,
+    reasons,
+    bothSurfaces: firstMatch && secondMatch
+  };
+}
+
+function getBondFinderMatches(answers) {
+  const ranked = PRODUCTS
+    .filter(isAvailableBondAdhesive)
+    .map(product => ({ product, match: scoreBondFinderProduct(product, answers) }))
+    .filter(item => item.match.score > 0)
+    .sort((a, b) =>
+      Number(b.match.bothSurfaces) - Number(a.match.bothSurfaces) ||
+      b.match.percent - a.match.percent ||
+      b.match.score - a.match.score ||
+      a.product.name.localeCompare(b.product.name)
+    );
+
+  const direct = ranked.filter(item => item.match.bothSurfaces);
+  return direct.length ? direct : ranked;
+}
+
+function bondFinderMatchLabel(percent, bothSurfaces) {
+  if (bothSurfaces && percent >= 80) {
+    return bondText("Strong catalogue match", "高度匹配");
+  }
+  if (bothSurfaces) return bondText("Good catalogue match", "良好匹配");
+  return bondText("Related product", "相关产品");
+}
+
+function runBondFinder() {
+  const first = document.getElementById("bondMaterialOne");
+  const second = document.getElementById("bondMaterialTwo");
+  const industry = document.getElementById("bondIndustry");
+  const method = document.getElementById("bondMethod");
+  const result = document.getElementById("bondFinderResult");
+  const title = document.getElementById("bondFinderResultTitle");
+  const text = document.getElementById("bondFinderResultText");
+  if (!first || !second || !industry || !method || !result || !title || !text) return;
+
+  if (!first.value || !second.value) {
+    result.hidden = false;
+    result.classList.add("is-warning");
+    title.textContent = bondText("Select both surfaces", "请选择两种表面");
+    text.textContent = bondText(
+      "Choose the first and second surface before searching.",
+      "搜索前，请先选择第一种和第二种表面。"
+    );
+    first.focus();
+    return;
+  }
+
+  const answers = {
+    materialOne: first.value,
+    materialTwo: second.value,
+    industry: industry.value,
+    method: method.value
+  };
+  const ranked = getBondFinderMatches(answers);
+  const scores = {};
+  const reasons = {};
+
+  ranked.forEach(item => {
+    const id = String(item.product.id);
+    scores[id] = {
+      percent: item.match.percent,
+      bothSurfaces: item.match.bothSurfaces,
+      label: bondFinderMatchLabel(item.match.percent, item.match.bothSurfaces)
+    };
+    reasons[id] = item.match.reasons;
+  });
+
+  bondFinderState = {
+    active: true,
+    ...answers,
+    productIds: ranked.map(item => String(item.product.id)),
+    scores,
+    reasons
+  };
+
+  updateBondFinderResult();
+  applyFilters({ skipUrlWrite: true });
+  scrollToCatalogue();
+}
+
+function buildBondFinderWhatsAppLink() {
+  const wa = document.getElementById("bondFinderWhatsapp");
+  if (!wa || !bondFinderState.active) return;
+
+  const names = bondFinderState.productIds.slice(0, 3).map(id => {
+    const p = PRODUCTS.find(product => String(product.id) === String(id));
+    return p ? `- ${p.name}` : "";
+  }).filter(Boolean);
+
+  const lines = window.ylLang === "zh" ? [
+    "您好 Yee Lim，我使用了粘合方案查找器。",
+    "",
+    `表面 1：${bondDisplayTerm(bondFinderState.materialOne)}`,
+    `表面 2：${bondDisplayTerm(bondFinderState.materialTwo)}`,
+    `行业：${bondFinderState.industry ? bondDisplayTerm(bondFinderState.industry) : "不限"}`,
+    `施工方法：${bondFinderState.method || "不限"}`,
+    "",
+    "推荐产品：",
+    ...(names.length ? names : ["- 暂无记录匹配"]),
+    "",
+    "请问可以帮我确认哪一款产品最合适吗？"
+  ] : [
+    "Hello Yee Lim, I used the Bond Finder.",
+    "",
+    `Surface 1: ${bondFinderState.materialOne}`,
+    `Surface 2: ${bondFinderState.materialTwo}`,
+    `Industry: ${bondFinderState.industry || "No preference"}`,
+    `Application method: ${bondFinderState.method || "No preference"}`,
+    "",
+    "Recommended products:",
+    ...(names.length ? names : ["- No recorded match"]),
+    "",
+    "Could you confirm which product is most suitable?"
+  ];
+
+  wa.href = `https://wa.me/6588755786?text=${encodeURIComponent(lines.join("\n"))}`;
+}
+
+function updateBondFinderResult() {
+  const result = document.getElementById("bondFinderResult");
+  const title = document.getElementById("bondFinderResultTitle");
+  const text = document.getElementById("bondFinderResultText");
+  if (!result || !title || !text || !bondFinderState.active) return;
+
+  // Remove deleted/unavailable products from a recommendation restored in-memory.
+  bondFinderState.productIds = bondFinderState.productIds.filter(id => {
+    const product = PRODUCTS.find(item => String(item.id) === String(id));
+    return product && isAvailableBondAdhesive(product);
+  });
+
+  const count = bondFinderState.productIds.length;
+  const pairEn = `${bondFinderState.materialOne} + ${bondFinderState.materialTwo}`;
+  const pairZh = `${bondDisplayTerm(bondFinderState.materialOne)} + ${bondDisplayTerm(bondFinderState.materialTwo)}`;
+  const hasDirect = bondFinderState.productIds.some(id =>
+    bondFinderState.scores[id] && bondFinderState.scores[id].bothSurfaces
+  );
+
+  result.hidden = false;
+  result.classList.toggle("is-warning", !hasDirect);
+
+  if (hasDirect) {
+    title.textContent = window.ylLang === "zh"
+      ? `${pairZh} 找到 ${count} 项排序匹配`
+      : `${count} ranked ${count === 1 ? "match" : "matches"} for ${pairEn}`;
+    text.textContent = bondText(
+      "Products are ordered by surface, industry and application-method fit. Each card explains why it was recommended.",
+      "产品按表面、行业及施工方法的匹配程度排序。每张产品卡都会说明推荐原因。"
+    );
+  } else if (count) {
+    title.textContent = bondText(
+      `No direct two-surface match for ${pairEn}`,
+      `${pairZh} 暂无直接双表面匹配`
+    );
+    text.textContent = window.ylLang === "zh"
+      ? `现显示 ${count} 款相关产品。它们至少匹配一种所选表面，使用前需要技术确认。`
+      : `${count} related ${count === 1 ? "product is" : "products are"} shown. These match at least one selected surface and require technical confirmation.`;
+  } else {
+    title.textContent = bondText(
+      `No recorded match for ${pairEn}`,
+      `${pairZh} 暂无记录匹配`
+    );
+    text.innerHTML = window.ylLang === "zh"
+      ? '目前有货的胶粘剂中没有符合所选目录标签的产品。请<a href="/contact">联系 Yee Lim 获取技术建议</a>。'
+      : 'No currently available adhesive matches the selected catalogue tags. <a href="/contact">Contact Yee Lim for technical advice</a>.';
+  }
+
+  buildBondFinderWhatsAppLink();
+}
+
+function bondFinderExplanationHTML(product) {
+  if (!bondFinderState.active) return "";
+  const id = String(product.id);
+  const meta = bondFinderState.scores[id];
+  const reasons = bondFinderState.reasons[id] || [];
+  if (!meta) return "";
+
+  return `
+    <div class="bond-match-box">
+      <div class="bond-match-head">
+        <span class="bond-match-label">${bondEscape(meta.label)}</span>
+        <strong>${meta.percent}%</strong>
+      </div>
+      <ul>${reasons.slice(0, 4).map(reason => `<li>${bondEscape(reason)}</li>`).join("")}</ul>
+    </div>`;
+}
+
+function resetBondFinder(opts = {}) {
+  bondFinderState = {
+    active: false,
+    materialOne: "",
+    materialTwo: "",
+    industry: "",
+    method: "",
+    productIds: [],
+    scores: {},
+    reasons: {}
+  };
+
+  ["bondMaterialOne", "bondMaterialTwo", "bondIndustry", "bondMethod"].forEach(id => {
+    const select = document.getElementById(id);
+    if (!select) return;
+    select.value = "";
+    if (typeof refreshCustomSelect === "function") refreshCustomSelect(select);
+  });
+
+  const result = document.getElementById("bondFinderResult");
+  if (result) {
+    result.hidden = true;
+    result.classList.remove("is-warning");
+  }
+
+  if (opts.render !== false && document.getElementById("productGrid")) {
+    applyFilters({ skipUrlWrite: true });
+  }
+}
 
 // ─── Hero search submit ───────────────────────────────────────────
 // Called by the hero Search button and the Enter key. Applies the current
@@ -509,6 +909,12 @@ function applyFilters(opts = {}) {
 
     return matchesQuery && matchesType && matchesBrand && matchesIndustry && matchesSurface;
   });
+
+
+  if (bondFinderState.active) {
+    const allowed = new Set(bondFinderState.productIds.map(String));
+    results = results.filter(product => allowed.has(String(product.id)));
+  }
 
   if (sortVal === "az")    results.sort((a, b) => a.name.localeCompare(b.name));
   else if (sortVal === "za") results.sort((a, b) => b.name.localeCompare(a.name));
@@ -837,6 +1243,7 @@ function productCardHTML(p) {
         <div class="product-card-body">
           <h3><a class="product-card-title-link" href="${detailHref}">${escapeHTML(p.name)}</a></h3>
           <p class="pcard-subtype">${escapeHTML(window.ylTerm ? window.ylTerm(subtype) : subtype)}</p>
+          ${bondFinderExplanationHTML(p)}
         </div>
         <div class="pcard-rows">
           <div class="card-application">

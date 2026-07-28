@@ -8,9 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=97">
+  <link rel="stylesheet" href="/css/products.css?v=102">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=9">
-  <script src="/js/i18n.js?v=4"></script>
+  <script src="/js/i18n.js?v=5"></script>
   <script src="/js/i18n-products.js?v=2"></script>
   <script src="/js/widgets/navbar.js?v=23"></script>
   <script src="/js/widgets/footer.js?v=24"></script>
@@ -26,16 +26,16 @@
     <source
       media="(min-width: 641px)"
       type="image/webp"
-      srcset="/images/hero/precision-bonding-application-960.webp 960w, /images/hero/precision-bonding-application-1600.webp 1600w"
+      srcset="/images/hero/contact-adhesive-lamination-960.webp 960w, /images/hero/contact-adhesive-lamination-1536.webp 1536w"
       sizes="(max-width: 900px) 68vw, (max-width: 1444px) 54vw, 780px">
     <source
       media="(min-width: 641px)"
       type="image/jpeg"
-      srcset="/images/hero/precision-bonding-application-960.jpg 960w, /images/hero/precision-bonding-application-1600.jpg 1600w"
+      srcset="/images/hero/contact-adhesive-lamination-960.jpg 960w, /images/hero/contact-adhesive-lamination-1536.jpg 1536w"
       sizes="(max-width: 900px) 68vw, (max-width: 1444px) 54vw, 780px">
     <img
       src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
-      width="1600" height="533" alt="" loading="eager" decoding="async" fetchpriority="high" draggable="false">
+      width="1536" height="668" alt="" loading="eager" decoding="async" fetchpriority="high" draggable="false">
   </picture>
   <div class="page-hero-inner">
     <span class="hero-eyebrow" data-i18n="products.eyebrow">Product Catalogue</span>
@@ -56,6 +56,70 @@
   </div>
 </section>
 
+
+<!-- Yee Lim Bond Finder V3: guided catalogue recommendation -->
+<section class="bond-finder-section" id="bondFinder" aria-labelledby="bondFinderTitle">
+  <div class="bond-finder-shell">
+    <div class="bond-finder-copy">
+      <span class="bond-finder-eyebrow" data-i18n="bond.eyebrow">Guided Product Selector</span>
+      <h2 id="bondFinderTitle" data-i18n="bond.title">Yee Lim Bond Finder</h2>
+      <p data-i18n="bond.lead">Choose two surfaces, then optionally refine by industry and application method. We will rank currently available adhesives using the latest catalogue data.</p>
+    </div>
+
+    <div class="bond-finder-controls">
+      <div class="bond-finder-field">
+        <label for="bondMaterialOne" data-i18n="bond.surface_one">First surface *</label>
+        <select id="bondMaterialOne" aria-label="Choose the first bonding surface">
+          <option value="" data-i18n="bond.select_surface">Select a surface</option>
+        </select>
+      </div>
+
+      <div class="bond-finder-field">
+        <label for="bondMaterialTwo" data-i18n="bond.surface_two">Second surface *</label>
+        <select id="bondMaterialTwo" aria-label="Choose the second bonding surface">
+          <option value="" data-i18n="bond.select_surface">Select a surface</option>
+        </select>
+      </div>
+
+      <div class="bond-finder-field">
+        <label for="bondIndustry" data-i18n="bond.industry">Industry</label>
+        <select id="bondIndustry" aria-label="Choose an industry">
+          <option value="" data-i18n="bond.no_preference">No preference</option>
+        </select>
+      </div>
+
+      <div class="bond-finder-field">
+        <label for="bondMethod" data-i18n="bond.method">Application method</label>
+        <select id="bondMethod" aria-label="Choose an application method">
+          <option value="" data-i18n="bond.no_preference">No preference</option>
+          <option value="Spray">Spray</option>
+          <option value="Brush">Brush</option>
+          <option value="Roll">Roll</option>
+          <option value="Scrape">Scrape</option>
+          <option value="Dip">Dip</option>
+          <option value="Injection">Injection</option>
+        </select>
+      </div>
+
+      <button type="button" class="bond-finder-submit" id="bondFinderSubmit">
+        <span data-i18n="bond.find">Find suitable adhesives</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
+    <div class="bond-finder-result" id="bondFinderResult" role="status" aria-live="polite" hidden>
+      <div class="bond-finder-result-copy">
+        <strong id="bondFinderResultTitle"></strong>
+        <span id="bondFinderResultText"></span>
+        <small data-i18n="bond.disclaimer">Catalogue matches are guidance only. Confirm final suitability, surface preparation and operating conditions with Yee Lim before purchase or large-scale use.</small>
+      </div>
+      <div class="bond-finder-result-actions">
+        <a class="bond-finder-whatsapp" id="bondFinderWhatsapp" href="https://wa.me/6588755786" target="_blank" rel="noopener" data-i18n="bond.whatsapp">Confirm on WhatsApp</a>
+        <button type="button" class="bond-finder-clear" id="bondFinderClear" data-i18n="bond.clear">Clear recommendation</button>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- Catalogue Layout -->
 <div class="catalogue-layout" id="catalogue">
@@ -227,11 +291,11 @@
 </div>
 
 <script src="/js/vendor/swup.umd.js?v=1"></script>
-<script src="/js/data.js?v=9"></script>
+<script src="/js/data.js?v=10"></script>
 <script src="/js/core/app.js?v=5"></script>
 <script src="/js/widgets/compare.js?v=22"></script>
 <script src="/js/widgets/custom-select.js?v=6"></script>
-<script src="/js/pages/products.js?v=52"></script>
+<script src="/js/pages/products.js?v=53"></script>
 <script src="/js/pages/product-detail.js?v=39"></script>
 <script src="/js/pages/compare-page.js?v=20"></script>
 <script src="/js/pages/enquiry.js?v=8"></script>
