@@ -120,11 +120,15 @@
     "contact.route_lead":  { en: "For pricing, samples or technical questions, add the products you are interested in to an enquiry and send them in one go. It reaches the same team, with the product details already attached.", zh: "如需报价、样品或技术咨询，请将您感兴趣的产品加入询价单，一次性发送给我们。信息会送达同一团队，并已附上产品详情。" },
     "contact.route_s1":    { en: "Browse the catalogue and add products to your enquiry.", zh: "浏览产品目录，将产品加入询价单。" },
     "contact.route_s2":    { en: "Add your details and any notes on your application.", zh: "填写您的联系资料，并说明使用需求。" },
-    "contact.route_s3":    { en: "We reply within 1-2 business days.", zh: "我们将在 1-2 个工作日内回复。" },
+    "contact.route_s3":    { en: "Send it as one enquiry and our team takes it from there.", zh: "一次性提交询价，我们的团队将接手处理。" },
     "contact.route_cta":   { en: "Start a Product Enquiry", zh: "开始产品询价" },
     "contact.route_browse":{ en: "Browse the catalogue", zh: "浏览产品目录" },
     "contact.email_link":  { en: "contact us by email", zh: "通过电子邮件联系我们" },
-    "contact.reply_time":  { en: "We aim to reply within 1-2 business days.", zh: "我们将在 1-2 个工作日内回复。" },
+    /* contact.reply_time is retired: it said "we reply within 1-2 business days"
+       directly above the Response time note that says the same thing. The note
+       keeps the claim (it also carries the WhatsApp escalation); the email row
+       now describes what the channel is for, mirroring the WhatsApp row. */
+    "contact.email_sub":   { en: "Best for detailed enquiries and documents.", zh: "适合详细询价与文件往来。" },
     "contact.phone_wa":    { en: "Phone / WhatsApp",   zh: "电话 / WhatsApp" },
     "contact.wa_sub":      { en: "Chat with our team on WhatsApp.", zh: "通过 WhatsApp 与我们的团队沟通。" },
     "contact.talk_wa":     { en: "Talk to Yee Lim on WhatsApp", zh: "通过 WhatsApp 联系 Yee Lim" },
