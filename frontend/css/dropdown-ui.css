@@ -84,15 +84,19 @@
   white-space: nowrap;
 }
 
-/* Fixed box so rotating the chevron cannot shift anything around it. */
+/* Fixed box so rotating the chevron cannot shift anything around it.
+   Sized and coloured to match .fg-chev, the filter-group chevron, so every
+   disclosure control on the site reads as the same control. The colour falls
+   back to the literal warm grey because the admin pages load this stylesheet
+   without products.css, so the token is not defined there. */
 .custom-select-chevron {
   flex-shrink: 0;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--muted-2, #767066);
   transition: transform 0.18s ease;
 }
 

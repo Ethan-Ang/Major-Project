@@ -18,7 +18,10 @@
     const span = document.createElement("span");
     span.className = "custom-select-chevron";
     span.setAttribute("aria-hidden", "true");
-    span.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    // Matches .fg-chev (the filter-group chevron) exactly: 18px at stroke-width
+    // 2. It used to be 14px at 2.5, which is proportionally ~60% heavier stroke
+    // and read as a bolder, different control sitting next to the filter ones.
+    span.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
     return span;
   }
 
