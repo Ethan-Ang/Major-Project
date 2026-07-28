@@ -466,8 +466,14 @@
     showTyping();
     setTimeout(() => {
       hideTyping();
+      // Clickable starter prompts so first-time visitors know what to ask.
+      // Localised inline (the click sends the text straight to the advisor).
+      var starters = (window.ylLang === "zh")
+        ? ["为我的作业推荐胶粘剂", "可以出口到海外吗？", "你们公司在哪里？"]
+        : ["Recommend an adhesive for my job", "Do you ship overseas?", "Where are you located?"];
       addMessage("assistant",
-        cbT("advisor.greeting", "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive."));
+        cbT("advisor.greeting", "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive."),
+        starters);
     }, 750);
   }
 
