@@ -9,23 +9,56 @@ require_once __DIR__ . "/auth.php";
 // already sends the bearer token on this request, so nothing else changes.
 requireAdmin($pdo);
 
-$productId = $_POST["product_id"] ?? "";
+// Integer id: safer than sanitising a string into a path, and it matches the
+// column type. upload_product_document.php does the same.
+$productId = isset($_POST["product_id"]) ? (int) $_POST["product_id"] : 0;
 
-if ($productId === "") {
+if ($productId <= 0) {
+    http_response_code(400);
     echo json_encode([
         "success" => false,
-        "message" => "Missing product ID."
+        "message" => "Missing or invalid product ID."
     ]);
     exit;
 }
 
-$safeProductId = preg_replace("/[^a-zA-Z0-9_-]/", "", $productId);
+// The product must exist before anything is written to disk. Without this a bad
+// product_id silently leaves an orphan uploads/products/product-<id>/ folder.
+// Mirrors the same guard in upload_product_document.php.
+try {
+    $productStmt = $pdo->prepare("SELECT id FROM products WHERE id = ?");
+    $productStmt->execute([$productId]);
 
-$baseDir = __DIR__ . "/../uploads/products/product-" . $safeProductId;
-$baseUrl = "/uploads/products/product-" . $safeProductId;
+    if (!$productStmt->fetch()) {
+        http_response_code(404);
+        echo json_encode([
+            "success" => false,
+            "message" => "Product not found."
+        ]);
+        exit;
+    }
+} catch (PDOException $e) {
+    error_log("upload-product-images.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Something went wrong. Please try again later."
+    ]);
+    exit;
+}
+
+$baseDir = dirname(__DIR__) . "/uploads/products/product-" . $productId;
+$baseUrl = "/uploads/products/product-" . $productId;
 
 if (!is_dir($baseDir)) {
-    mkdir($baseDir, 0755, true);
+    if (!mkdir($baseDir, 0755, true)) {
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "Unable to create the upload folder."
+        ]);
+        exit;
+    }
 }
 
 $allowedTypes = [
