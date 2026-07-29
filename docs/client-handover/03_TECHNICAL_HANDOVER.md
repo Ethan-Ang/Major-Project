@@ -478,10 +478,16 @@ Allowed MIME types `image/jpeg`, `image/png`, `image/webp`, detected with
 `uploads/products/product-<id>/<main|extra>-<time>-<rand>.<ext>` and the public path is
 returned. Errors return 400 with a message.
 
-> **Security finding.** This endpoint does **not** call `requireAdmin($pdo)`, unlike every
-> other write endpoint, and it does not sanitise `product_id` beyond stripping non
-> alphanumeric characters. Anyone who can reach the URL can write image files into the
-> uploads tree. See section 13, Urgent. *(Verified from code)*
+> **Fixed on 29 July 2026, commit `30ae9d6`.** This endpoint previously did **not** call
+> `requireAdmin($pdo)`, unlike every other write endpoint, so anyone who could reach the
+> URL could write image files into the uploads tree. It now requires a valid admin bearer
+> token. Verified: unauthenticated requests return 401, authenticated requests return 200
+> and upload normally.
+>
+> **Still open:** unlike `upload_product_document.php`, this endpoint does not verify that
+> the product actually exists before creating `uploads/products/product-<id>/`. A typo in
+> `product_id` creates an orphan folder. Low severity now that the endpoint is admin only.
+> *(Verified from code and by local testing)*
 
 ### `upload_product_document.php`
 
@@ -652,8 +658,12 @@ From `DEPLOYMENT_CPANEL.md` *(Verified from code)*:
 - Extensions: `pdo_mysql`, `mbstring`, `curl`, `json`.
   `curl` is only exercised when the AI advisor has a provider configured; it is harmless
   otherwise.
-- `fileinfo` is required by the document uploader, which constructs `new finfo(...)`.
-  *(Verified from code; not listed in the deployment guide, so confirm it is enabled.)*
+- **`fileinfo` is required by BOTH upload endpoints** and is **missing from the deployment
+  guide's extension list**. `upload_product_document.php` constructs `new finfo(...)` and
+  `upload-product-images.php` calls `mime_content_type()`. Without the extension both die
+  with an uncaught fatal error and return a 500 with an empty response body, which is
+  exactly how it presented during local verification on 29 July 2026 until the extension
+  was enabled. *(Verified by local testing.)* `[DEVELOPER TO VERIFY]` on the live host.
 - Outbound HTTPS is required only for the optional AI advisor.
 - Email uses PHP `mail()`.
 
@@ -803,6 +813,20 @@ Current coverage:
 | `products-search-chinese-copy.test.mjs` | Search Chinese strings |
 | `public-catalogue-ui-consistency.test.mjs` | Shared catalogue UI invariants across CSS and the navbar |
 | `swup-i18n.test.mjs` | Translation surviving Swup page swaps |
+| `helpers/asset-version.mjs` | Not a test. Shared `?v=` assertions used by the files above. |
+
+**Status: 37 of 37 passing** as of 29 July 2026, commit `30ae9d6`.
+
+Ten of these were failing before that commit. Nine were failing because they pinned an
+**exact** `?v=` number, for example "products.html must request products.js v50", so every
+legitimate cache bump broke tests unrelated to the change. The intent was never "must
+always be v50", it was "must not regress below the version that fixed the bug", so they now
+assert a floor through `assertAssetAtLeast()` in `tests/helpers/asset-version.mjs`. Nothing
+is lost: `qa/check-cache-versions.js` still enforces the other half of the rule, that a
+changed file must be bumped and that a shared file must carry the same version everywhere.
+
+**When adding a test that cares about an asset version, use the floor helper. Do not pin an
+exact number**, or you are signing up to edit that test on every future cache bump.
 
 ## 10.2 End to end and QA, `qa/`
 
@@ -962,14 +986,13 @@ every deployment**, because this repository is shared and they move.
 
 **Admin bundle:** `admin.css?v=30`, `admin.js?v=20`, `admin-spa.js?v=1`,
 `admin-nav.js?v=6`, `overview.js?v=10`, `enquiries.js?v=12`, `filters.js?v=9`,
-`settings.js?v=2`, `downloads.js?v=5`, `login.js?v=4`, and the admin's own
-`data.js?v=9`.
+`settings.js?v=2`, `downloads.js?v=5`, `login.js?v=4`, and the shared `js/data.js?v=11`.
 
-> Note two inconsistencies visible in the working tree, worth resolving before the next
-> deployment: `admin/login.html` still references `admin.css?v=18` while every other admin
-> page references `admin.css?v=30`; and the admin pages load `js/data.js?v=9` while the
-> public pages load `js/data.js?v=11`. The shared file rule says a file should carry the
-> same `?v=` everywhere it is referenced. `[DEVELOPER TO VERIFY]`
+> Two inconsistencies were found here and **fixed on 29 July 2026, commit `30ae9d6`**:
+> `admin/login.html` was still on `admin.css?v=18` while every other admin page was on
+> `v=30`, and the admin pages loaded `js/data.js?v=9` while the public pages loaded `v=11`,
+> so an admin browser could run a stale copy of a shared file. Both now match, and
+> `node qa/check-cache-versions.js` passes. **Committed but not yet deployed.**
 
 Admin HTML is separately protected: `frontend/admin/.htaccess` sends no-cache headers for
 `.html` in that folder only, so admin edits appear immediately.
@@ -1061,11 +1084,12 @@ Presented honestly. Items in "Urgent" are defects or gaps, not enhancements.
 
 | # | Item | Why |
 | --- | --- | --- |
-| 1 | **Add `requireAdmin($pdo)` to `api/upload-product-images.php`.** | It is the only write endpoint with no authentication check. Anyone who can reach the URL can write image files into `uploads/products/product-<id>/`. Every other upload and write endpoint already calls it, so this is a one line fix consistent with the rest of the codebase. |
-| 2 | **Confirm which database migrations are applied on live.** | Several were prepared and applied locally but the live state is unconfirmed. Deploying code that assumes a missing table would break the affected admin page. |
-| 3 | **Repair the "Suitable for" delimiters in the live product data.** | Product pages currently render some suitable use lists as a run on sentence. This is a data fix, and the code deliberately will not paper over it. |
-| 4 | **Confirm SSL and enable the HTTPS redirect in `.htaccess`.** | The proxy safe redirect block is written and commented out, pending confirmation. Until it is enabled the site can be served over plain HTTP. |
-| 5 | **Change every credential handed over, and delete the temporary FTP account.** | Standard handover hygiene. See [06_SECURITY_AND_ACCESS_GUIDE.md](06_SECURITY_AND_ACCESS_GUIDE.md). |
+| 1 | ~~Add `requireAdmin($pdo)` to `api/upload-product-images.php`.~~ **Done, commit `30ae9d6`, 29 July 2026.** Still needs deploying to live. | It was the only write endpoint with no authentication check. Now fixed and verified locally. **The fix is committed but not deployed**, so the live server still carries the unauthenticated version until the next deployment. |
+| 2 | **Confirm `fileinfo` is enabled on the live PHP install.** | Both upload endpoints call it (`mime_content_type()` and `new finfo(...)`). Without it they die with an uncaught fatal error and return a 500 with an empty body, which is exactly how it presented locally on 29 July 2026 before the extension was enabled. It is **not** listed in `DEPLOYMENT_CPANEL.md`. *(Verified by local testing)* |
+| 3 | **Confirm which database migrations are applied on live.** | Several were prepared and applied locally but the live state is unconfirmed. Deploying code that assumes a missing table would break the affected admin page. |
+| 4 | **Repair the "Suitable for" delimiters in the live product data.** | Product pages currently render some suitable use lists as a run on sentence. This is a data fix, and the code deliberately will not paper over it. |
+| 5 | **Confirm SSL and enable the HTTPS redirect in `.htaccess`.** | The proxy safe redirect block is written and commented out, pending confirmation. Until it is enabled the site can be served over plain HTTP. |
+| 6 | **Change every credential handed over, and delete the temporary FTP account.** | Standard handover hygiene. See [06_SECURITY_AND_ACCESS_GUIDE.md](06_SECURITY_AND_ACCESS_GUIDE.md). |
 
 ## 13.2 Recommended
 

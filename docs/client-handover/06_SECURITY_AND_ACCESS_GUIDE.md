@@ -341,7 +341,7 @@ Recorded honestly. Detail and remediation are in
 
 | Gap | Severity | Status |
 | --- | --- | --- |
-| `api/upload-product-images.php` does **not** check the admin token, unlike every other write endpoint. Anyone reaching the URL could write image files into the uploads tree. | **High** | Fix recommended before or shortly after handover. One line, consistent with the rest of the codebase. |
+| ~~`api/upload-product-images.php` does **not** check the admin token~~ | **High** | **Fixed 29 July 2026, commit `30ae9d6`.** It now calls `requireAdmin($pdo)` like every other write endpoint. Verified: unauthenticated returns 401, authenticated still uploads normally. **Committed but not yet deployed**, so the live server carries the old version until the next deployment. |
 | No self service password change in the admin portal. | Medium | A developer must change passwords, which discourages routine rotation. |
 | No two factor authentication on the admin portal. | Medium | Not implemented. |
 | No role model. Every admin is a full administrator. | Medium | By design in the current build. Mitigate by limiting who has an account. |
