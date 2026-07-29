@@ -485,9 +485,15 @@ returned. Errors return 400 with a message.
 > 200 and uploads normally) and again against the live site after deployment
 > (unauthenticated returns 401).
 >
-> **Still open:** unlike `upload_product_document.php`, this endpoint does not verify that
-> the product actually exists before creating `uploads/products/product-<id>/`. A typo in
-> `product_id` creates an orphan folder. Low severity now that the endpoint is admin only.
+> **Also fixed and deployed 29 July 2026, commit `b710e90`.** The endpoint previously
+> created `uploads/products/product-<id>/` from whatever `product_id` it was given, without
+> checking the product existed, so a typo left an orphan folder behind. It now casts
+> `product_id` to an integer (rather than sanitising a string into a path with a regex),
+> rejects `<= 0` with a 400, returns 404 when the row does not exist, and only then creates
+> the folder, reporting a 500 if `mkdir` fails instead of failing later inside
+> `move_uploaded_file`. Same guard, same order, as `upload_product_document.php`.
+> Verified: `999999` returns 404, `"abc"` and `"../evil"` return 400, a valid id uploads
+> normally, and **no folder is created in any rejected case**.
 > *(Verified from code and by local testing)*
 
 ### `upload_product_document.php`
