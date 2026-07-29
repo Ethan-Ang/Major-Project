@@ -131,6 +131,10 @@ function buildCompanyKnowledge() {
          . "- Delivery: offered for orders above a minimum quantity; smaller orders needing delivery can be arranged for a small fee; buyers may also collect from the office.\n"
          . "- Stock and lead time: smaller quantities are usually ready stock; larger quantities typically need about 3 to 5 days from order to delivery. Confirm exact timing via an enquiry.\n"
          . "- Pricing, minimum order quantity and exact lead times are NOT published; always direct these to an enquiry.\n"
+         . "- Environment: low VOC and low formaldehyde solutions are available; housekeeping, procedures and controls are in place to reduce resource use, waste and environmental impact.\n"
+         . "- Business hours: Monday to Friday 8:00 AM to 5:00 PM; Saturday 8:00 AM to 12:00 PM; Sunday closed. "
+         . "Hours may vary on public holidays, so advise contacting us before visiting on one. "
+         . "These are the hours published on the contact page; do not invent different ones.\n"
          . "- Contact: 1 Ang Mo Kio Street 65, #03-17, Singapore 569063. Phone +65 8875 5786. WhatsApp 6588755786. "
          . "Email contact@yeelimadhesives.com.sg. Enquiry form at /enquiry, contact page at /contact.";
 }
@@ -313,6 +317,15 @@ function companyFactReply($q) {
         || preg_match('/where.*(you|located|shop|office|factory|find|based)/', $q)) {
         return "Yee Lim Adhesives Industries is at 1 Ang Mo Kio Street 65, #03-17, Singapore 569063. "
              . "Phone +65 8875 5786, WhatsApp 6588755786, email contact@yeelimadhesives.com.sg. See our [contact page](/contact).";
+    }
+    // Hours were never published on the old yeelim.com.sg site; these mirror the
+    // Business Operating Hours block on /contact so the bot and the page cannot
+    // drift apart. Update both together.
+    if (preg_match('/\b(hours?|open|opening|close|closing|closed)\b/', $q)
+        || preg_match('/what time|when.*(open|close)|operating/', $q)) {
+        return "We're open Monday to Friday, 8:00 AM to 5:00 PM, and Saturday, 8:00 AM to 12:00 PM. "
+             . "We're closed on Sunday, and hours may vary on public holidays, so it's worth contacting us before visiting on one. "
+             . "See our [contact page](/contact).";
     }
     if (preg_match('/\b(contact|phone|call|email|whatsapp|reach)\b/', $q)) {
         return "You can reach us on +65 8875 5786, WhatsApp 6588755786, or email contact@yeelimadhesives.com.sg. "
