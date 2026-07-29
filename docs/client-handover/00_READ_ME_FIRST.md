@@ -58,7 +58,7 @@ described in full in [03_TECHNICAL_HANDOVER.md](03_TECHNICAL_HANDOVER.md), secti
 | --- | --- |
 | Home page and About page | Not part of this repository. They are maintained directly on the live server by a separate contributor. The deployment scripts are hard coded to refuse to touch them. *(Verified from code)* |
 | Simplified Chinese translation | The interface is translated. Product descriptions have first pass Chinese drafts that a native speaker still needs to review. Product "Suitable for" lists remain in English by design. *(Verified from code)* |
-| Product image upload endpoint | Previously did not check the admin login token on the server side. **Fixed on 29 July 2026 (commit `30ae9d6`), committed but not yet deployed to the live server.** *(Verified from code and by local testing)* |
+| Product image upload endpoint | Previously did not check the admin login token on the server side. **Fixed and deployed on 29 July 2026 (commit `30ae9d6`). Closed.** Re-verified against the live site: an unauthenticated upload now returns 401. *(Verified from code, by local testing, and against live)* |
 | `fileinfo` PHP extension | Required by both upload endpoints. Without it, image and document uploads fail with a server error. Confirmed by local testing, and it is missing from the deployment guide's extension list. Must be confirmed on the live host. `[DEVELOPER TO VERIFY]` |
 | "Suitable for" product data | Some product records lost their separators in the live database, so the list can render as one run on sentence. A data cleanup is outstanding. *(Verified from code and project notes)* |
 | Hosting provider, domain registrar, analytics | Not asserted anywhere in this pack. They must be confirmed at handover. `[CLIENT TO CONFIRM]` |

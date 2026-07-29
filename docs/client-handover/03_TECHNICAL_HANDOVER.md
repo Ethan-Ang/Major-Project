@@ -478,11 +478,12 @@ Allowed MIME types `image/jpeg`, `image/png`, `image/webp`, detected with
 `uploads/products/product-<id>/<main|extra>-<time>-<rand>.<ext>` and the public path is
 returned. Errors return 400 with a message.
 
-> **Fixed on 29 July 2026, commit `30ae9d6`.** This endpoint previously did **not** call
-> `requireAdmin($pdo)`, unlike every other write endpoint, so anyone who could reach the
-> URL could write image files into the uploads tree. It now requires a valid admin bearer
-> token. Verified: unauthenticated requests return 401, authenticated requests return 200
-> and upload normally.
+> **Fixed on 29 July 2026, commit `30ae9d6`, deployed to live the same day.** This endpoint
+> previously did **not** call `requireAdmin($pdo)`, unlike every other write endpoint, so
+> anyone who could reach the URL could write image files into the uploads tree. It now
+> requires a valid admin bearer token. Verified locally (unauthenticated 401, authenticated
+> 200 and uploads normally) and again against the live site after deployment
+> (unauthenticated returns 401).
 >
 > **Still open:** unlike `upload_product_document.php`, this endpoint does not verify that
 > the product actually exists before creating `uploads/products/product-<id>/`. A typo in
@@ -992,7 +993,7 @@ every deployment**, because this repository is shared and they move.
 > `admin/login.html` was still on `admin.css?v=18` while every other admin page was on
 > `v=30`, and the admin pages loaded `js/data.js?v=9` while the public pages loaded `v=11`,
 > so an admin browser could run a stale copy of a shared file. Both now match, and
-> `node qa/check-cache-versions.js` passes. **Committed but not yet deployed.**
+> `node qa/check-cache-versions.js` passes. **Deployed to live on 29 July 2026.**
 
 Admin HTML is separately protected: `frontend/admin/.htaccess` sends no-cache headers for
 `.html` in that folder only, so admin edits appear immediately.
@@ -1084,7 +1085,7 @@ Presented honestly. Items in "Urgent" are defects or gaps, not enhancements.
 
 | # | Item | Why |
 | --- | --- | --- |
-| 1 | ~~Add `requireAdmin($pdo)` to `api/upload-product-images.php`.~~ **Done, commit `30ae9d6`, 29 July 2026.** Still needs deploying to live. | It was the only write endpoint with no authentication check. Now fixed and verified locally. **The fix is committed but not deployed**, so the live server still carries the unauthenticated version until the next deployment. |
+| 1 | ~~Add `requireAdmin($pdo)` to `api/upload-product-images.php`.~~ **Done, commit `30ae9d6`, deployed 29 July 2026. Closed.** | It was the only write endpoint with no authentication check. Fixed, verified locally, deployed, and re-verified against the live site: an unauthenticated upload now returns 401. Pre-deployment backup at `ftp_backup/2026-07-29T190016_predeploy_authfix/`. |
 | 2 | **Confirm `fileinfo` is enabled on the live PHP install.** | Both upload endpoints call it (`mime_content_type()` and `new finfo(...)`). Without it they die with an uncaught fatal error and return a 500 with an empty body, which is exactly how it presented locally on 29 July 2026 before the extension was enabled. It is **not** listed in `DEPLOYMENT_CPANEL.md`. *(Verified by local testing)* |
 | 3 | **Confirm which database migrations are applied on live.** | Several were prepared and applied locally but the live state is unconfirmed. Deploying code that assumes a missing table would break the affected admin page. |
 | 4 | **Repair the "Suitable for" delimiters in the live product data.** | Product pages currently render some suitable use lists as a run on sentence. This is a data fix, and the code deliberately will not paper over it. |

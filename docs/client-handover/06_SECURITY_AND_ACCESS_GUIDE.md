@@ -341,7 +341,7 @@ Recorded honestly. Detail and remediation are in
 
 | Gap | Severity | Status |
 | --- | --- | --- |
-| ~~`api/upload-product-images.php` does **not** check the admin token~~ | **High** | **Fixed 29 July 2026, commit `30ae9d6`.** It now calls `requireAdmin($pdo)` like every other write endpoint. Verified: unauthenticated returns 401, authenticated still uploads normally. **Committed but not yet deployed**, so the live server carries the old version until the next deployment. |
+| ~~`api/upload-product-images.php` does **not** check the admin token~~ | ~~High~~ **Closed** | **Fixed and deployed 29 July 2026, commit `30ae9d6`.** It now calls `requireAdmin($pdo)` like every other write endpoint. Verified locally (unauthenticated 401, authenticated still uploads normally) and re-verified against the live site after deployment (unauthenticated 401). Pre-deployment backup at `ftp_backup/2026-07-29T190016_predeploy_authfix/`. |
 | No self service password change in the admin portal. | Medium | A developer must change passwords, which discourages routine rotation. |
 | No two factor authentication on the admin portal. | Medium | Not implemented. |
 | No role model. Every admin is a full administrator. | Medium | By design in the current build. Mitigate by limiting who has an account. |
