@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { assertAssetAtLeast } from "./helpers/asset-version.mjs";
 import vm from "node:vm";
 
 const comparePagePath = new URL(
@@ -52,6 +53,8 @@ const englishCopy = {
   productLabel: "Product",
   disclaimer:
     "Product information is provided for general guidance only. Contact Yee Lim for full technical details.",
+  caption:
+    "Side-by-side comparison of {count} products. Each column is a product; each row is a specification.",
 };
 
 const chineseCopy = {
@@ -74,6 +77,7 @@ const chineseCopy = {
   browseProducts: "浏览产品",
   productLabel: "产品",
   disclaimer: "产品信息仅供一般参考。如需完整技术资料，请联系 Yee Lim。",
+  caption: "{count} 款产品并排对比。每一列为一款产品，每一行为一项规格。",
 };
 
 const compareCopyIntegrations = [
@@ -207,10 +211,6 @@ test("under-two and table-corner render sites cannot regress to hardcoded copy",
 });
 
 test("compare.html requests the localized compare-page asset version", () => {
-  assert.match(
-    compareHtml,
-    /src="\/js\/pages\/compare-page\.js\?v=20"/,
-    "compare.html must request compare-page.js v20"
-  );
-  assert.doesNotMatch(compareHtml, /compare-page\.js\?v=19/);
+  // v20 is the version that shipped the localized copy; anything later is fine.
+  assertAssetAtLeast(compareHtml, "/js/pages/compare-page.js", 20, "compare.html");
 });

@@ -1,6 +1,14 @@
 <?php
 header("Content-Type: application/json");
 
+require_once __DIR__ . "/db.php";
+require_once __DIR__ . "/auth.php";
+
+// Admin-only, exactly like every other write endpoint. Without this an
+// unauthenticated caller could write files into the uploads tree. The admin UI
+// already sends the bearer token on this request, so nothing else changes.
+requireAdmin($pdo);
+
 $productId = $_POST["product_id"] ?? "";
 
 if ($productId === "") {

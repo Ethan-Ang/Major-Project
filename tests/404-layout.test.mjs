@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { assertAssetAtLeast } from "./helpers/asset-version.mjs";
 
 const pageSource = fs.readFileSync(
   new URL("../frontend/404.html", import.meta.url),
@@ -118,14 +119,14 @@ test("404 page uses the shared application shell", () => {
   assert.ok(skipLinkMarkup, "404 page must include the skip link");
   assert.match(skipLinkMarkup[1], /\bdata-skip-link\b/i);
   assert.match(skipLinkMarkup[1], /\bhref=["']#mainContent["']/i);
-  for (const asset of [
-    "/css/404.css?v=1",
-    "/js/i18n.js?v=4",
-    "/js/pages/not-found.js?v=1",
-    "/js/widgets/navbar.js?v=24",
-    "/js/widgets/footer.js?v=24",
-    "/js/core/app.js?v=5",
-  ]) assert.ok(pageSource.includes(asset), `404 page must load ${asset}`);
+  for (const [asset, minVersion] of [
+    ["/css/404.css", 1],
+    ["/js/i18n.js", 4],
+    ["/js/pages/not-found.js", 1],
+    ["/js/widgets/navbar.js", 24],
+    ["/js/widgets/footer.js", 24],
+    ["/js/core/app.js", 5],
+  ]) assertAssetAtLeast(pageSource, asset, minVersion, "404 page");
 });
 
 test("404 help section uses natural responsive document flow", () => {

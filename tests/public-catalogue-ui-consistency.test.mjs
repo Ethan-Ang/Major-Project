@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { assertAssetAtLeast } from "./helpers/asset-version.mjs";
 import vm from "node:vm";
 
 const cssPath = new URL("../frontend/css/products.css", import.meta.url);
@@ -214,15 +215,9 @@ test("catalogue pages request the corrected asset versions", () => {
       new URL(`../frontend/${page}`, import.meta.url),
       "utf8"
     );
-    assert.match(
-      html,
-      /href="\/css\/products\.css\?v=97"/,
-      `${page} must request products.css v97`
-    );
-    assert.match(
-      html,
-      /src="\/js\/widgets\/navbar\.js\?v=23"/,
-      `${page} must request navbar.js v23`
-    );
+    // Floors, not exact pins: v97 / v23 are the versions that shipped the
+    // corrected catalogue UI, and every later bump keeps those corrections.
+    assertAssetAtLeast(html, "/css/products.css", 97, page);
+    assertAssetAtLeast(html, "/js/widgets/navbar.js", 23, page);
   }
 });

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { assertAssetAtLeast } from "./helpers/asset-version.mjs";
 import vm from "node:vm";
 
 const publicConsumers = [
@@ -88,35 +89,15 @@ function runAfterSwap(swupRoot) {
   return { calls, documentStub };
 }
 
-test("all public Swup consumers request compare-page.js v20", () => {
+test("all public Swup consumers request compare-page.js v20 or later", () => {
   for (const page of publicConsumers) {
-    const html = consumerHtml(page);
-    assert.match(
-      html,
-      /src="\/js\/pages\/compare-page\.js\?v=20"/,
-      `${page} must request compare-page.js v20`
-    );
-    assert.doesNotMatch(
-      html,
-      /src="\/js\/pages\/compare-page\.js\?v=19"/,
-      `${page} must not request stale compare-page.js v19`
-    );
+    assertAssetAtLeast(consumerHtml(page), "/js/pages/compare-page.js", 20, page);
   }
 });
 
-test("all public Swup consumers request compare.js v22", () => {
+test("all public Swup consumers request compare.js v22 or later", () => {
   for (const page of publicConsumers) {
-    const html = consumerHtml(page);
-    assert.match(
-      html,
-      /src="\/js\/widgets\/compare\.js\?v=22"/,
-      `${page} must request compare.js v22`
-    );
-    assert.doesNotMatch(
-      html,
-      /src="\/js\/widgets\/compare\.js\?v=21"/,
-      `${page} must not request stale compare.js v21`
-    );
+    assertAssetAtLeast(consumerHtml(page), "/js/widgets/compare.js", 22, page);
   }
 });
 
@@ -141,18 +122,8 @@ test("afterSwap reapplies static i18n before ready callbacks", () => {
   );
 });
 
-test("all public Swup consumers request page-transitions.js v6", () => {
+test("all public Swup consumers request page-transitions.js v6 or later", () => {
   for (const page of publicConsumers) {
-    const html = consumerHtml(page);
-    assert.match(
-      html,
-      /src="\/js\/widgets\/page-transitions\.js\?v=6"/,
-      `${page} must request page-transitions.js v6`
-    );
-    assert.doesNotMatch(
-      html,
-      /src="\/js\/widgets\/page-transitions\.js\?v=5"/,
-      `${page} must not request stale page-transitions.js v5`
-    );
+    assertAssetAtLeast(consumerHtml(page), "/js/widgets/page-transitions.js", 6, page);
   }
 });
