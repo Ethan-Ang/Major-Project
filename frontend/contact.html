@@ -107,7 +107,16 @@
         </span>
         <div>
           <strong data-i18n="footer.email">Email</strong>
-          <span><a class="contact-email-link" data-yl-email="text" data-user="contact" data-domain="yeelimadhesives.com.sg" href="/enquiry" data-i18n="contact.email_link">contact us by email</a></span>
+          <!-- LANG-008: this link is owned by ONE system only. It carried both
+               data-yl-email (app.js writes the real address in at runtime, so it
+               is not sitting in the markup for scrapers) and data-i18n (which
+               writes a translated phrase). Both set textContent, so they fought:
+               English showed the address, Chinese replaced it with the phrase,
+               and returning to English left the phrase behind — the address was
+               simply gone. An email address is data, not copy: it is identical
+               in every language, exactly like the phone number beside it. The
+               settings injector owns it; i18n does not touch it. -->
+          <span><a class="contact-email-link" data-yl-email="text" data-user="contact" data-domain="yeelimadhesives.com.sg" href="/enquiry">contact us by email</a></span>
           <span class="contact-detail-sub" data-i18n="contact.email_sub">Best for detailed enquiries and documents.</span>
         </div>
       </div>

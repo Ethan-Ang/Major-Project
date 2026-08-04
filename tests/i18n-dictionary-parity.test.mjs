@@ -333,6 +333,33 @@ test("the Product Advisor restarts its conversation on a language change", () =>
     "the language switch must call it");
 });
 
+test("no element is owned by both the settings injector and i18n", () => {
+  // FIELD BUG: the contact email link carried data-yl-email (app.js writes the
+  // real address in at runtime) AND data-i18n (writes a translated phrase).
+  // Both set textContent, so whichever ran last won: English showed the
+  // address, Chinese replaced it with the phrase, and coming back to English
+  // left the phrase — the address vanished entirely.
+  // Contact details are DATA, identical in every language. One owner only.
+  const pages = ["index.html", "about.html", "products.html", "product-detail.html",
+                 "compare.html", "enquiry.html", "contact.html", "404.html"];
+  const clashes = [];
+  for (const page of pages) {
+    const html = fs.readFileSync(new URL(`../frontend/${page}`, import.meta.url), "utf8")
+      .replace(/<!--[\s\S]*?-->/g, "");   // comments quote the markup they replaced
+    for (const tag of html.matchAll(/<[a-z][^>]*>/gi)) {
+      const t = tag[0];
+      // data-yl-email/address take a "text" mode that rewrites textContent;
+      // data-yl-wa/phone only rewrite href/text via the same pass.
+      const writesText = /data-yl-(email|address|phone)\b/.test(t);
+      if (writesText && /data-i18n="/.test(t)) {
+        clashes.push(`${page}: ${t.slice(0, 110)}`);
+      }
+    }
+  }
+  assert.deepEqual(clashes, [],
+    `these elements have two owners writing textContent:\n  ${clashes.join("\n  ")}`);
+});
+
 test("every data-i18n attribute in the public pages resolves to a real key", () => {
   // The other direction: markup asking for a key that does not exist renders
   // the raw key string to the visitor.
