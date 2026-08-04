@@ -5,20 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Commercial &amp; Industrial Adhesives Singapore | Yee Lim Products</title>
   <meta name="description" content="Browse Yee Lim's commercial and industrial adhesive products by brand, industry, surface, or application. Submit a product enquiry for advice or quotation.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="canonical" href="https://yeelimadhesives.com/products">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Yee Lim Adhesives Industries">
+  <meta property="og:locale" content="en_SG">
+  <meta property="og:title" content="Commercial & Industrial Adhesives Singapore | Yee Lim Products">
+  <meta property="og:description" content="Browse Yee Lim's commercial and industrial adhesive products by brand, industry, surface, or application. Submit a product enquiry for advice or quotation.">
+  <meta property="og:url" content="https://yeelimadhesives.com/products">
+  <meta property="og:image" content="https://yeelimadhesives.com/images/hero/contact-adhesive-lamination-1536.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Commercial & Industrial Adhesives Singapore | Yee Lim Products">
+  <meta name="twitter:description" content="Browse Yee Lim's commercial and industrial adhesive products by brand, industry, surface, or application. Submit a product enquiry for advice or quotation.">
+  <meta name="twitter:image" content="https://yeelimadhesives.com/images/hero/contact-adhesive-lamination-1536.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=113">
+  <link rel="stylesheet" href="/css/products.css?v=119">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=10">
-  <script src="/js/i18n.js?v=12"></script>
+  <script src="/js/i18n.js?v=19"></script>
   <script src="/js/i18n-products.js?v=2"></script>
-  <script src="/js/widgets/navbar.js?v=25"></script>
-  <script src="/js/widgets/footer.js?v=24"></script>
+  <script src="/js/widgets/navbar.js?v=28"></script>
+  <script src="/js/widgets/footer.js?v=27"></script>
 </head>
 <body>
 
+<a class="skip-link" href="#mainContent" data-skip-link data-i18n="common.skip">Skip to main content</a>
+
 <div id="swup" class="transition-fade">
-<main id="mainContent">
+<main id="mainContent" tabindex="-1">
 <!-- Catalogue hero: warm cream band, industrial photo treatment right,
      search + typeahead. Locked final design. -->
 <section class="page-hero products-hero" aria-labelledby="catalogueHeading">
@@ -45,7 +63,7 @@
       <div class="search-bar" role="search">
         <label for="searchInput" class="sr-only">Search products by name, number, brand or keyword</label>
         <span class="search-bar-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-        <input type="text" id="searchInput" placeholder="Search by product name, number, brand or keyword&hellip;" data-i18n-attr="placeholder:products.search_ph" autocomplete="off"
+        <input type="text" id="searchInput" placeholder="Search by product name, number, brand or keyword&hellip;" data-ph-short="Search products&hellip;" data-i18n-attr="placeholder:products.search_ph" autocomplete="off"
           role="combobox" aria-expanded="false" aria-controls="searchTypeahead" aria-autocomplete="list" aria-haspopup="listbox">
         <button onclick="submitHeroSearch()" aria-label="Search">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -226,7 +244,11 @@
           <span class="mfb-count" id="mobileFilterCount"></span>
         </button>
         <div class="mfb-sort-wrap">
-          <select id="mobileSortSelect" class="mfb-sort-sel" onchange="onMobileSortChange(this)" aria-label="Sort products" data-trigger-label="Sort">
+          <!-- No data-trigger-label on mobile: the bar is narrow and a "SORT"
+               prefix in front of "Default order" ate the room the value needs,
+               while saying nothing the value does not. The accessible name is
+               still carried by aria-label. -->
+          <select id="mobileSortSelect" class="mfb-sort-sel" onchange="onMobileSortChange(this)" aria-label="Sort products">
             <option value="default" data-i18n="products.sort_default">Default order</option>
             <option value="az" data-i18n="products.sort_az">Name A–Z</option>
             <option value="za" data-i18n="products.sort_za">Name Z–A</option>
@@ -277,12 +299,27 @@
         <span class="compare-tray-title"><span data-i18n="common.compare">Compare</span> <span id="compareTrayFull">(0/3)</span></span>
         <span class="compare-tray-sub" data-i18n="detail.add3">Add up to 3 products</span>
       </div>
-      <div class="compare-tray-slots" id="compareTraySlots"></div>
+      <div class="compare-tray-slots" id="compareTraySlots">
+        <!-- CMP-006: three PERMANENT outer slot containers. They are never
+             created or destroyed -- only their inner content and state class
+             change -- so removing a product cannot alter the row geometry and
+             "Add a product" fills the vacated slot instead of being appended as
+             a fourth element. -->
+        <div class="compare-slot is-empty" data-slot="0"></div>
+        <div class="compare-slot is-empty" data-slot="1"></div>
+        <div class="compare-slot is-empty" data-slot="2"></div>
+      </div>
       <div class="compare-tray-actions" id="compareTrayActions">
-        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison" data-i18n="products.clear_all">Clear all</button>
-        <button class="compare-tray-btn" id="compareBtn" onclick="location.href='/compare'" disabled aria-label="Open comparison view"><span data-i18n="detail.compare_now">Compare now</span>
+        <button class="compare-tray-clear" onclick="clearCompare()" aria-label="Clear all products from comparison" data-i18n-attr="aria-label:cmp.a11y.clear_all" data-i18n="products.clear_all">Clear all</button>
+        <!-- SWUP-001: this was <button onclick="location.href='/compare'">, which
+             is a hard browser navigation — Swup's link handler never saw it, so
+             Compare now was the one internal route that fully reloaded the page.
+             A real same-origin anchor participates in the SPA like every other
+             link. compare.js toggles .is-disabled + aria-disabled in place of
+             the old `disabled` property, which anchors do not have. -->
+        <a class="compare-tray-btn is-disabled" id="compareBtn" href="/compare" role="button" aria-disabled="true" aria-label="Open comparison view" data-i18n-attr="aria-label:common.cmp_hint_open"><span data-i18n="detail.compare_now">Compare now</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </button>
+        </a>
       </div>
     </div>
   </div>
@@ -292,15 +329,15 @@
 
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=11"></script>
-<script src="/js/core/app.js?v=5"></script>
-<script src="/js/widgets/compare.js?v=22"></script>
+<script src="/js/core/app.js?v=6"></script>
+<script src="/js/widgets/compare.js?v=29"></script>
 <script src="/js/widgets/custom-select.js?v=7"></script>
-<script src="/js/pages/products.js?v=55"></script>
-<script src="/js/pages/product-detail.js?v=39"></script>
+<script src="/js/pages/products.js?v=57"></script>
+<script src="/js/pages/product-detail.js?v=40"></script>
 <script src="/js/pages/compare-page.js?v=21"></script>
-<script src="/js/pages/enquiry.js?v=9"></script>
+<script src="/js/pages/enquiry.js?v=10"></script>
 <script src="/js/pages/contact.js?v=6"></script>
-<script src="/js/widgets/chatbot.js?v=29"></script>
-<script src="/js/widgets/page-transitions.js?v=6"></script>
+<script src="/js/widgets/chatbot.js?v=30"></script>
+<script src="/js/widgets/page-transitions.js?v=9"></script>
 </body>
 </html>

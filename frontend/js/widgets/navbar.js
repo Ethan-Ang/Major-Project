@@ -310,6 +310,61 @@
     }
     .nav-lang-btn:hover { color: #fff; }
     .nav-lang-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 4px; }
+
+    /* ─── Shared shell (SHELL-001) ──────────────────────────────
+       These belong to the shared header/shell, not to any one page's
+       stylesheet, so they live here — the one file every public page already
+       loads. That is what lets the teammate-owned Home and About join the
+       shell without pulling in css/products.css, whose .btn rule (4px radius,
+       inline-flex) would otherwise override their 30px pill buttons and
+       restyle their body. Previously .skip-link lived in products.css and so
+       only existed on the six user-owned pages.
+       Values are literal because styles.css does not define the design tokens. */
+    .skip-link,
+    .nf-skip-link {
+      position: fixed;
+      top: 0.75rem;
+      left: 0.75rem;
+      z-index: 1200;
+      transform: translateY(-180%);
+      padding: 0.65rem 0.9rem;
+      border: 1px solid #dad5c8;
+      border-radius: 4px;
+      background: #ffffff;
+      color: #1e1c17;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 150ms ease-out;
+    }
+    .skip-link:focus,
+    .nf-skip-link:focus {
+      transform: translateY(0);
+      outline: 2px solid #CC2929;
+      outline-offset: 2px;
+    }
+    #mainContent:focus { outline: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .skip-link, .nf-skip-link { transition: none; }
+    }
+
+    /* Swup shell. The transition itself is the cross-document View Transition
+       declared in the page stylesheets; this only guarantees the container is a
+       normal block on pages whose own stylesheet has never heard of it. */
+    #swup.transition-fade { display: block; }
+
+    /* ANCHOR-001: the navbar is position:sticky and 60px tall, and native
+       fragment navigation (/about#heritage typed in, or arriving from a footer
+       link) parks the target flush with the viewport top — straight underneath
+       it. The section heading was invisible on arrival.
+       scroll-margin-top fixes every route at once: the browser's own fragment
+       scroll, scrollIntoView, and Swup's restoreScroll all honour it, so they
+       cannot disagree. Declared here because the navbar imposes the offset, and
+       because Home/About do not load css/products.css. */
+    main [id],
+    section[id],
+    [id][data-anchor] { scroll-margin-top: 68px; }
   `;
   document.head.appendChild(style);
 
@@ -351,10 +406,10 @@
   var altLangLabel = altLang === "zh" ? "中文" : "EN";
   var altLangAria = altLang === "zh" ? "切换到中文 (Switch to Chinese)" : "Switch to English";
   const links = [
-    { name: "home",     label: T("nav.home", "Home"),         href: "/" },
-    { name: "products", label: T("nav.products", "Products"), href: "/products" },
-    { name: "about",    label: T("nav.about", "About"),       href: "/about" },
-    { name: "contact",  label: T("nav.contact", "Contact"),   href: "/contact" },
+    { name: "home",     label: T("nav.home", "Home"),         href: "/", key: "nav.home" },
+    { name: "products", label: T("nav.products", "Products"), href: "/products", key: "nav.products" },
+    { name: "about",    label: T("nav.about", "About"),       href: "/about", key: "nav.about" },
+    { name: "contact",  label: T("nav.contact", "Contact"),   href: "/contact", key: "nav.contact" },
   ];
 
   const navEl = document.createElement("nav");
@@ -365,15 +420,15 @@
     </a>
     <ul class="nav-links">
       ${links.map(l => `
-        <li><a href="${l.href}" data-nav="${l.name}" ${isActive(l.name) ? 'class="nav-active" aria-current="page"' : ""}>${l.label}</a></li>
+        <li><a href="${l.href}" data-nav="${l.name}" data-i18n="${l.key}" ${isActive(l.name) ? 'class="nav-active" aria-current="page"' : ""}>${l.label}</a></li>
       `).join("")}
     </ul>
     <div class="nav-right">
       <button type="button" class="nav-lang-btn" data-lang="${altLang}" lang="${altLang === "zh" ? "zh-Hans" : "en"}" aria-label="${altLangAria}">${altLangLabel}</button>
-      <a href="/enquiry" class="nav-basket" aria-label="${T("nav.enquiry", "Product Enquiry")}">
+      <a href="/enquiry" class="nav-basket" data-i18n-attr="aria-label:nav.enquiry" aria-label="${T("nav.enquiry", "Product Enquiry")}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
-        <span class="nav-basket-label nav-basket-label-full">${T("nav.enquiry", "Product Enquiry")}</span>
-        <span class="nav-basket-label nav-basket-label-short" aria-hidden="true">${T("nav.enquiry_short", "Enquiry")}</span>
+        <span class="nav-basket-label nav-basket-label-full" data-i18n="nav.enquiry">${T("nav.enquiry", "Product Enquiry")}</span>
+        <span class="nav-basket-label nav-basket-label-short" aria-hidden="true" data-i18n="nav.enquiry_short">${T("nav.enquiry_short", "Enquiry")}</span>
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
       <button type="button" class="nav-hamburger" id="_navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="_navDrawer" aria-haspopup="dialog">&#9776;</button>
@@ -391,7 +446,7 @@
   // No language control inside the drawer: it now lives in the header at every
   // width, and duplicating it here would give the same global utility two homes.
   drawerEl.innerHTML = links.map(l =>
-    `<a href="${l.href}" data-nav="${l.name}" ${isActive(l.name) ? 'class="nav-active" aria-current="page"' : ""}>${l.label}</a>`
+    `<a href="${l.href}" data-nav="${l.name}" data-i18n="${l.key}" ${isActive(l.name) ? 'class="nav-active" aria-current="page"' : ""}>${l.label}</a>`
   ).join("");
 
   const backdropEl = document.createElement("div");
@@ -594,6 +649,22 @@
   // re-applied by page-transitions.js after every Swup content swap. It covers
   // BOTH the desktop link row and the mobile drawer, so the open menu always
   // shows where the visitor is.
+  // LANG-003: flip the language switcher after an in-place language change.
+  // The button advertises the language you are NOT in, so its label, lang,
+  // aria-label and data-lang must all invert. Nothing else can do this: the
+  // value is derived from state, not translated from a key.
+  window.ylSyncNavLang = function () {
+    var btn = document.querySelector(".nav-lang-btn");
+    if (!btn) return;
+    var now = (typeof window.ylLang === "string") ? window.ylLang : "en";
+    var alt = now === "zh" ? "en" : "zh";
+    btn.dataset.lang = alt;
+    btn.textContent = alt === "zh" ? "中文" : "EN";
+    btn.setAttribute("lang", alt === "zh" ? "zh-Hans" : "en");
+    btn.setAttribute("aria-label", alt === "zh"
+      ? "切换到中文 (Switch to Chinese)" : "Switch to English");
+  };
+
   window.ylSyncNavActive = function () {
     var current = resolveCurrentPage(window.location.pathname, document.documentElement.getAttribute("data-nav-page"));
     document.querySelectorAll(".nav-links a[data-nav], .nav-mobile-drawer a[data-nav]").forEach(function (a) {

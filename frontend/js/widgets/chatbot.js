@@ -385,9 +385,9 @@
         <div class="yl-adv-mark"><img src="/images/logos/ylai-seal.png" alt="Yee Lim Adhesives"></div>
         <div class="yl-adv-header-text">
           <div class="yl-adv-title">Ava</div>
-          <div class="yl-adv-subtitle">${cbT("advisor.subtitle", "Yee Lim Product Advisor")}</div>
+          <div class="yl-adv-subtitle" data-i18n="advisor.subtitle">${cbT("advisor.subtitle", "Yee Lim Product Advisor")}</div>
         </div>
-        <button class="yl-adv-close" onclick="closeProductAdvisor()" aria-label="${cbT("advisor.aria_close", "Close product advisor")}">
+        <button class="yl-adv-close" onclick="closeProductAdvisor()" data-i18n-attr="aria-label:advisor.aria_close" aria-label="${cbT("advisor.aria_close", "Close product advisor")}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -398,10 +398,11 @@
       <div class="yl-adv-footer">
         <div class="yl-adv-input-row">
           <input class="yl-adv-input" id="ylAdvInput" type="text"
+            data-i18n-attr="aria-label:advisor.aria_input,placeholder:advisor.placeholder"
             aria-label="${cbT("advisor.aria_input", "Ask the product advisor a question")}"
             placeholder="${cbT("advisor.placeholder", "Message…")}"
             maxlength="400" autocomplete="off" />
-          <button class="yl-adv-send" id="ylAdvSend" aria-label="${cbT("advisor.aria_send", "Send message")}" disabled>
+          <button class="yl-adv-send" id="ylAdvSend" data-i18n-attr="aria-label:advisor.aria_send" aria-label="${cbT("advisor.aria_send", "Send message")}" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/>
@@ -409,7 +410,7 @@
             </svg>
           </button>
         </div>
-        <div class="yl-adv-note">${cbT("advisor.note", "Guidance only. Our team confirms suitability.")}</div>
+        <div class="yl-adv-note" data-i18n="advisor.note">${cbT("advisor.note", "Guidance only. Our team confirms suitability.")}</div>
       </div>
     </div>
   `;

@@ -51,6 +51,7 @@ const englishCopy = {
   removeAria: "Remove {product} from comparison",
   addAria: "Add {product} to comparison",
   fullAria: "Comparison full: remove one to add another",
+  limitMessage: "Maximum of 3 products selected. Remove one to choose another.",
 };
 
 const chineseCopy = {
@@ -74,6 +75,7 @@ const chineseCopy = {
   removeAria: "从对比中移除 {product}",
   addAria: "将 {product} 添加至对比",
   fullAria: "对比列表已满：请先移除一款产品再添加",
+  limitMessage: "最多可选择 3 款产品。请先移除一款，再选择其他产品。",
 };
 
 test("comparePickerCopy preserves English and supplies professional Simplified Chinese", () => {
@@ -175,6 +177,7 @@ test("picker panel and list render every localized copy surface", () => {
     "removeAria",
     "addAria",
     "fullAria",
+    "limitMessage",
   ]) {
     assert.ok(
       listSource.includes(`copy.${key}`),

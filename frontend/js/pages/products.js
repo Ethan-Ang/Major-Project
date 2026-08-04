@@ -759,13 +759,20 @@ function writeStateToURL(opts = {}) {
   // on replace so a Swup-owned entry keeps its `source` marker.
   const cur = history.state || {};
   const changed = location.search !== (queryStr ? `?${queryStr}` : "");
+  // HIST-001: Swup stores the entry's own address in history.state.url and, on
+  // popstate, navigates to `state.url ?? location.href`. Carrying a Swup state
+  // object forward unchanged therefore pinned the entry to the bare "/products"
+  // it was created with, so Back out of a filtered catalogue silently dropped
+  // every filter. Any state we write now also restates the address it belongs
+  // to, keeping Swup's record and the visible URL the same thing.
+  const keep = extra => Object.assign({}, cur, { url: newUrl }, extra);
   if (opts.push) {
     if (changed) history.pushState({ ylFilters: true, ylCommitted: true }, "", newUrl);
-    else history.replaceState(Object.assign({}, cur, { ylFilters: true, ylCommitted: true }), "", newUrl);
+    else history.replaceState(keep({ ylFilters: true, ylCommitted: true }), "", newUrl);
   } else if (cur.ylCommitted && changed) {
     history.pushState({ ylFilters: true }, "", newUrl);
   } else {
-    history.replaceState(Object.assign({}, cur, { ylFilters: true }), "", newUrl);
+    history.replaceState(keep({ ylFilters: true }), "", newUrl);
   }
 }
 
@@ -1273,7 +1280,7 @@ function productCardHTML(p) {
           aria-pressed="${inBasket ? "true" : "false"}"
           onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')"
           aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
-          ${inBasket ? PCARD_ENQ_ADDED_HTML : PCARD_ENQ_ADD_HTML}
+          ${inBasket ? pcardEnqAddedHtml() : pcardEnqAddHtml()}
         </button>
         <a href="${detailHref}" class="btn btn-outline pcard-view">${ylTr("common.view_details", "View details")}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
@@ -1291,8 +1298,18 @@ function brandSlug(brand) {
 // i18n helper: window.ylT returns the current-language string (English matches
 // the source text, so this is a no-op visually in English).
 var ylTr = function (key, fb) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb; };
-const PCARD_ENQ_ADD_HTML = ylTr("common.add_enquiry", "Add to Enquiry");
-const PCARD_ENQ_ADDED_HTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>${ylTr("common.in_enquiry", "In Enquiry")}</span>`;
+// LANG-004: these were module-level consts, so they captured whatever language
+// was active the ONE time this script was evaluated. That was invisible while
+// switching language did a full reload (which re-evaluated the script), but the
+// switch is now a Swup visit — the script is not re-run, and the card buttons
+// kept rendering in the previous language. Evaluated per render instead; the
+// lookup is a plain object read, so there is nothing to cache.
+function pcardEnqAddHtml() {
+  return ylTr("common.add_enquiry", "Add to Enquiry");
+}
+function pcardEnqAddedHtml() {
+  return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>${ylTr("common.in_enquiry", "In Enquiry")}</span>`;
+}
 
 // ─── Sync enquiry button states without rebuilding the grid ────────
 // Add/remove flips only the affected buttons (state, label, aria) in place:
@@ -1306,7 +1323,7 @@ function syncEnquiryButtons() {
     btn.classList.toggle("btn-added", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
     btn.setAttribute("aria-label", on ? "Remove from Product Enquiry" : "Add to Product Enquiry");
-    btn.innerHTML = on ? PCARD_ENQ_ADDED_HTML : PCARD_ENQ_ADD_HTML;
+    btn.innerHTML = on ? pcardEnqAddedHtml() : pcardEnqAddHtml();
   });
 }
 

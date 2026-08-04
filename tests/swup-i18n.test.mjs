@@ -102,13 +102,23 @@ test("all public Swup consumers request compare.js v22 or later", () => {
 });
 
 test("afterSwap reapplies static i18n before ready callbacks", () => {
+  // SCOPE CHANGE (LANG-003): this used to assert i18n was applied to the #swup
+  // container only. That was wrong once language could change without a page
+  // reload — the navbar and footer are injected OUTSIDE the swap container, so
+  // a #swup-scoped pass left them in the previous language. afterSwap now
+  // translates the whole document; re-applying to already-correct elements is
+  // a no-op, and it is the only scope that reaches the persistent shell.
   const swupRoot = { id: "swup" };
   const withRoot = runAfterSwap(swupRoot);
   assert.deepEqual(
     withRoot.calls.map(call => call.name),
     ["i18n", "ready", "nav", "scroll"]
   );
-  assert.equal(withRoot.calls[0].root, swupRoot);
+  assert.equal(
+    withRoot.calls[0].root,
+    withRoot.documentStub,
+    "i18n must be applied document-wide so the persistent navbar/footer retranslate"
+  );
 
   const withoutRoot = runAfterSwap(null);
   assert.deepEqual(
@@ -118,7 +128,7 @@ test("afterSwap reapplies static i18n before ready callbacks", () => {
   assert.equal(
     withoutRoot.calls[0].root,
     withoutRoot.documentStub,
-    "afterSwap must fall back to document when #swup is unavailable"
+    "…and still document when #swup is unavailable"
   );
 });
 

@@ -190,4 +190,32 @@
 
   window.ylReady(applySiteSettings); // re-apply cached values on each page + swap
   loadSiteSettings();                // fetch once at startup
+
+  // RESP-002: the search placeholder is written for desktop ("Search by product
+  // name, number, brand or keyword…") and was being cut off mid-word on every
+  // phone width — "…product name, numl". Any input carrying data-ph-short swaps
+  // to that shorter wording below 640px and back above it. The <label
+  // class="sr-only"> still carries the full accessible name either way, so
+  // nothing is lost for assistive tech. i18n runs first and rewrites the
+  // attributes, so both values are re-read on every apply.
+  var narrow = window.matchMedia("(max-width: 640px)");
+  function syncShortPlaceholders() {
+    var inputs = document.querySelectorAll("[data-ph-short]");
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i];
+      if (!el.dataset.phLong) el.dataset.phLong = el.getAttribute("placeholder") || "";
+      var short = el.getAttribute("data-ph-short");
+      var wanted = narrow.matches ? short : el.dataset.phLong;
+      if (el.getAttribute("placeholder") !== wanted) el.setAttribute("placeholder", wanted);
+    }
+  }
+  window.ylSyncShortPlaceholders = syncShortPlaceholders;
+  window.ylReady(function () {
+    // Re-capture the long value after i18n has had its pass at the markup.
+    var inputs = document.querySelectorAll("[data-ph-short]");
+    for (var i = 0; i < inputs.length; i++) delete inputs[i].dataset.phLong;
+    syncShortPlaceholders();
+  });
+  if (narrow.addEventListener) narrow.addEventListener("change", syncShortPlaceholders);
+  else if (narrow.addListener) narrow.addListener(syncShortPlaceholders);
 })();

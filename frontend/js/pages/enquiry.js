@@ -182,7 +182,10 @@ async function submitEnquiry() {
     const inline = document.getElementById(fid + "Err");
     if (inline) inline.hidden = true;
   });
-  if (privacy) privacy.removeAttribute("aria-invalid");
+  if (privacy) {
+    privacy.removeAttribute("aria-invalid");
+    privacy.removeAttribute("aria-describedby");
+  }
   if (privacyErr) privacyErr.hidden = true;
 
   // Inline validation: each invalid field gets its own message + aria link;
@@ -214,6 +217,9 @@ async function submitEnquiry() {
   // Consent gate (frontend validation only; the API payload is unchanged).
   if (privacy && !privacy.checked) {
     privacy.setAttribute("aria-invalid", "true");
+    // A11Y-003: the consent box was the one required control whose inline
+    // message was not wired to it, so its error was shown but never announced.
+    if (privacyErr) privacy.setAttribute("aria-describedby", privacyErr.id);
     if (privacyErr) privacyErr.hidden = false;
     errorEl.textContent   = eqT("enquiry.err_privacy", "Please agree to the use of your information so we can process your enquiry.");
     errorEl.style.display = "block";
@@ -229,8 +235,15 @@ async function submitEnquiry() {
     .filter(Boolean)
     .map(p => p.name);
 
-  btn.disabled    = true;
-  btn.textContent = eqT("enquiry.sending", "Sending…");
+  // UX-006: the send/restore cycle used to write btn.textContent, which threw
+  // away the paper-plane <svg> permanently — after one failed send the button
+  // came back as bare text for the rest of the session. Swap only the label
+  // span so the icon and the button's structure survive a retry.
+  const btnLabel = btn.querySelector("span") || btn;
+  const btnLabelText = btnLabel.textContent;
+  btn.disabled = true;
+  btn.setAttribute("aria-busy", "true");
+  btnLabel.textContent = eqT("enquiry.sending", "Sending…");
 
   try {
     let res;
@@ -253,8 +266,12 @@ async function submitEnquiry() {
     // Success — clear the basket and show the confirmation screen
     localStorage.removeItem("enquiryBasket");
     window.dispatchEvent(new Event("basketUpdated"));
-    document.getElementById("mainContent").style.display = "none";
-    document.getElementById("confirmation").style.display = "block";
+    // #enquiryContent is the form/basket block. #mainContent is the <main>
+    // landmark (skip-link target) and must stay visible — the confirmation
+    // lives inside it.
+    document.getElementById("enquiryContent").style.display = "none";
+    const confirmation = document.getElementById("confirmation");
+    confirmation.style.display = "block";
 
     // Show the reference number and the "we emailed you a copy" note.
     if (result.reference) {
@@ -266,11 +283,23 @@ async function submitEnquiry() {
       document.getElementById("confirmationNote").style.display = "block";
     }
 
+    // A11Y-004: success was purely visual — the page simply swapped underneath
+    // a screen-reader user with no announcement and focus still on a button
+    // that no longer exists. Move focus to the confirmation heading (which the
+    // reference number and follow-up copy sit under) and scroll it into view.
+    const heading = confirmation.querySelector("h2");
+    if (heading) {
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
   } catch (err) {
     errorEl.textContent   = err.message;
     errorEl.style.display = "block";
-    btn.disabled    = false;
-    btn.textContent = eqT("enquiry.submit", "Submit Enquiry");
+    btn.disabled = false;
+    btn.removeAttribute("aria-busy");
+    btnLabel.textContent = btnLabelText;
     // Move focus to the message so screen readers announce the failure
     errorEl.focus();
     window.scrollTo({ top: errorEl.offsetTop - 100, behavior: "smooth" });

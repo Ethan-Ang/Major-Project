@@ -23,6 +23,7 @@
     "common.add_enquiry":  { en: "Add to Enquiry",  zh: "加入询价" },
     "common.in_enquiry":   { en: "In Enquiry",      zh: "已加入询价" },
     "common.compare":      { en: "Compare",         zh: "对比" },
+    "common.skip":         { en: "Skip to main content", zh: "跳转到主要内容" },
     "common.in_compare":   { en: "In Comparison",   zh: "已加入对比" },
     "common.talk":         { en: "Talk to Yee Lim", zh: "联系 Yee Lim" },
     "common.available":    { en: "Available",       zh: "有货" },
@@ -38,6 +39,22 @@
     "common.added_enquiry":  { en: "was added to your product enquiry.", zh: "已加入您的产品询价。" },
     "common.removed_enquiry":{ en: "was removed from your product enquiry.", zh: "已从您的产品询价中移除。" },
     "common.back_products":  { en: "Back to Products",  zh: "返回产品列表" },
+
+    // ── Compare: screen-reader-only announcements and labels ──
+    //    A11Y-007: these are invisible to sighted users, which is exactly why
+    //    they were the last strings left in English — nothing on screen showed
+    //    the gap. A Chinese screen-reader user was hearing English.
+    "cmp.a11y.added":      { en: "added to compare.",   zh: "已加入对比。" },
+    "cmp.a11y.removed":    { en: "removed from compare.", zh: "已从对比中移除。" },
+    "cmp.a11y.cleared":    { en: "Comparison cleared.", zh: "对比已清空。" },
+    "cmp.a11y.full":       { en: "Compare is full ({max} products). Remove one to add another.", zh: "对比列表已满（{max} 款产品）。请先移除一款再添加。" },
+    "cmp.a11y.none":       { en: "Compare products; no products selected", zh: "产品对比；尚未选择产品" },
+    "cmp.a11y.expand":     { en: "Expand comparison tray, {count} selected", zh: "展开对比栏，已选 {count} 款" },
+    "cmp.a11y.collapse":   { en: "Collapse comparison tray, {count} selected", zh: "收起对比栏，已选 {count} 款" },
+    "cmp.a11y.collapse_short": { en: "Collapse compare", zh: "收起对比" },
+    "cmp.a11y.sheet":      { en: "Selected products to compare", zh: "已选择的对比产品" },
+    "cmp.a11y.remove_one": { en: "Remove {product} from comparison", zh: "将 {product} 从对比中移除" },
+    "cmp.a11y.clear_all":  { en: "Clear all products from comparison", zh: "清除对比中的所有产品" },
 
     // ── Footer (shared) ──
     "footer.blurb":        { en: "One of Singapore's earliest and largest adhesive manufacturers. For over 50 years we have formulated commercial and industrial adhesive solutions engineered to the job, not off the shelf.", zh: "新加坡历史最悠久、规模最大的胶粘剂制造商之一。五十多年来，我们专注于研发针对具体工序定制的工商业胶粘剂解决方案，而非现成产品。" },
@@ -89,7 +106,6 @@
     "products.empty_body": { en: "Try removing a filter or clearing your search, or describe your job to the Product Advisor.", zh: "请尝试移除某个筛选条件或清除搜索，或向产品顾问描述您的需求。" },
     "products.empty_clear": { en: "Clear all filters", zh: "清除所有筛选" },
     "products.empty_advisor": { en: "Ask the Product Advisor", zh: "询问产品顾问" },
-    "products.count_suffix": { en: "", zh: " 款产品" },
     "products.count_word_one": { en: "product",     zh: "款产品" },
     "products.count_word_many": { en: "products",   zh: "款产品" },
     "products.of":         { en: "of",              zh: "／共" },
@@ -287,7 +303,78 @@
     "advisor.note":        { en: "Guidance only. Our team confirms suitability.", zh: "仅供参考，具体适用性以我们团队确认为准。" },
     "advisor.greeting":    { en: "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive.", zh: "您好，我是 Ava，您的 Yee Lim 产品顾问。请告诉我您要粘合的材料以及使用环境，我会为您推荐合适的胶粘剂。" },
     "advisor.fallback":    { en: "I couldn't find an answer for that. Please [submit an enquiry](/enquiry) and our team will help.", zh: "我暂时无法为此找到答案。请[提交询价](/enquiry)，我们的团队将为您提供帮助。" },
-    "advisor.error":       { en: "Sorry, I can't connect right now. Please [submit an enquiry](/enquiry) directly.", zh: "抱歉，我暂时无法连接。请直接[提交询价](/enquiry)。" }
+    "advisor.error":       { en: "Sorry, I can't connect right now. Please [submit an enquiry](/enquiry) directly.", zh: "抱歉，我暂时无法连接。请直接[提交询价](/enquiry)。" },
+
+    /* ── Home (teammate-owned page) ────────────────────────────────
+       The `en` values are the teammate's approved copy, transcribed
+       character-for-character from the live page — they are the fallback the
+       engine returns in English, so any drift here would silently rewrite
+       their page. Do not "improve" this wording.
+       Statistics (40+, 500+, 1000+, SG) and brand names stay as digits/Latin
+       in both languages and carry no key. The zh values are DRAFTS pending
+       native review (see the same caveat on the rest of the dictionary). */
+    "home.tagline":        { en: "Industrial Adhesive Solutions", zh: "工业胶粘解决方案" },
+    "home.title":          { en: "Trusted Adhesives for Every Industry", zh: "值得信赖的胶粘剂，服务各行各业" },
+    "home.lead":           { en: "Supplying quality adhesives for woodworking, packaging, construction, furniture, and industrial applications.", zh: "为木工、包装、建筑、家具及工业应用提供优质胶粘剂。" },
+    "home.browse":         { en: "Browse Products",   zh: "浏览产品" },
+    "home.contact_sales":  { en: "Contact Sales",     zh: "联系销售" },
+    "home.stat_years":     { en: "Years Experience",  zh: "年经验" },
+    "home.stat_products":  { en: "Products",          zh: "产品" },
+    "home.stat_customers": { en: "Customers Served",  zh: "服务客户" },
+    "home.stat_local":     { en: "Local Supplier",    zh: "本地供应商" },
+    "home.cats_title":     { en: "Our Product Categories", zh: "产品类别" },
+    "home.cats_lead":      { en: "Find the right adhesive for your business needs.", zh: "找到适合您业务需求的胶粘剂。" },
+    "home.cat_plastics":   { en: "Plastics & Acrylics", zh: "塑料与亚克力" },
+    "home.cat_plastics_d": { en: "Adhesives for furniture, plywood, and timber applications.", zh: "适用于家具、胶合板及木材应用的胶粘剂。" },
+    "home.cat_laminates":  { en: "Laminates",         zh: "层压板" },
+    "home.cat_laminates_d":{ en: "Reliable bonding solutions for cartons, paper, and packaging lines.", zh: "适用于纸箱、纸张及包装生产线的可靠粘接方案。" },
+    "home.cat_flooring":   { en: "Flooring",          zh: "地板" },
+    "home.cat_flooring_d": { en: "Reliable bonding solutions for cartons, paper, and packaging lines.", zh: "适用于纸箱、纸张及包装生产线的可靠粘接方案。" },
+    "home.cat_packaging":  { en: "Laminates",         zh: "层压板" },
+    "home.cat_packaging_d":{ en: "High-performance adhesives for manufacturing operations.", zh: "适用于生产制造作业的高性能胶粘剂。" },
+    "home.why_title":      { en: "Why Choose Yee Lim?", zh: "为什么选择 Yee Lim？" },
+    "home.why_lead":       { en: "With decades of experience, Yee Lim provides dependable adhesive solutions backed by technical knowledge and consistent product quality.", zh: "凭借数十年经验，Yee Lim 以专业技术知识和稳定的产品品质，提供可靠的胶粘解决方案。" },
+    "home.why_1":          { en: "✔ Consistent adhesive quality", zh: "✔ 稳定的胶粘品质" },
+    "home.why_2":          { en: "✔ Technical support",  zh: "✔ 技术支持" },
+    "home.why_3":          { en: "✔ Wide product range", zh: "✔ 丰富的产品系列" },
+    "home.why_4":          { en: "✔ Custom solutions",   zh: "✔ 定制解决方案" },
+    "home.why_5":          { en: "✔ Fast local delivery", zh: "✔ 本地快速配送" },
+    "home.why_6":          { en: "✔ Trusted by businesses", zh: "✔ 深受企业信赖" },
+    "home.brands_title":   { en: "Our Brands",         zh: "我们的品牌" },
+    "home.brands_lead":    { en: "Click a brand to see its products", zh: "点击品牌查看其产品" },
+    "home.cta_title":      { en: "Looking for the Right Adhesive Solution?", zh: "正在寻找合适的胶粘解决方案？" },
+    "home.cta_lead":       { en: "Speak to our team and get product recommendations for your business.", zh: "联系我们的团队，获取适合您业务的产品建议。" },
+    "home.contact_us":     { en: "Contact Us",         zh: "联系我们" },
+
+    /* ── About (teammate-owned page) ───────────────────────────────
+       Same rule: `en` is the approved copy verbatim. The Aristotle quotation
+       and its attribution deliberately carry no key — an attributed quote is
+       not ours to translate. "50+" stays as digits. */
+    "about.tagline":       { en: "About Yee Lim Adhesives", zh: "关于 Yee Lim Adhesives" },
+    "about.title":         { en: "Built on Experience, Quality and Trust", zh: "以经验、品质与信任为基石" },
+    "about.lead":          { en: "One of Singapore’s established adhesive manufacturers, providing reliable glue and adhesive solutions for commercial and industrial applications.", zh: "新加坡历史悠久的胶粘剂制造商之一，为商业与工业应用提供可靠的胶水及胶粘解决方案。" },
+    "about.who_title":     { en: "Who We Are",        zh: "关于我们" },
+    "about.who_p1":        { en: "Yee Lim Adhesives Industries has grown from humble beginnings into a trusted adhesive manufacturer with over 50 years of experience. From commercial uses to industrial applications, we continue to develop practical adhesive solutions for a wide range of industries.", zh: "Yee Lim Adhesives Industries 从小规模起步，发展成为拥有超过 50 年经验、值得信赖的胶粘剂制造商。从商业用途到工业应用，我们持续为各行各业开发实用的胶粘解决方案。" },
+    "about.who_p2":        { en: "Today, our products support industries such as construction, carpentry, furniture, marine, hardware, leather, craft, OEM services and more.", zh: "如今，我们的产品服务于建筑、木工、家具、船舶、五金、皮革、手工艺、OEM 代工等众多行业。" },
+    "about.years_card":    { en: "Years of adhesive manufacturing experience", zh: "年胶粘剂制造经验" },
+    "about.mission_title": { en: "Our Mission",       zh: "我们的使命" },
+    "about.mission_lead":  { en: "To produce quality adhesives while providing dependable service and support to every customer.", zh: "生产优质胶粘剂，并为每一位客户提供可靠的服务与支持。" },
+    "about.m1_title":      { en: "Quality",           zh: "品质" },
+    "about.m1_body":       { en: "We strive to deliver consistent adhesive quality that customers can trust for their business operations.", zh: "我们致力于提供稳定一致的胶粘品质，让客户在业务运营中安心依赖。" },
+    "about.m2_title":      { en: "Customer Trust",    zh: "客户信任" },
+    "about.m2_body":       { en: "Customer satisfaction and long-term relationships remain key drivers behind our growth and reputation.", zh: "客户满意度与长期合作关系，始终是我们成长与声誉的核心动力。" },
+    "about.m3_title":      { en: "Innovation",        zh: "创新" },
+    "about.m3_body":       { en: "We continuously create and improve adhesive solutions tailored to different industrial applications.", zh: "我们不断针对不同工业应用创造并改进胶粘解决方案。" },
+    "about.values_title":  { en: "Our Values",        zh: "我们的价值观" },
+    "about.v1_title":      { en: "Reliable Products", zh: "可靠的产品" },
+    "about.v1_body":       { en: "We focus on efficiency, consistency and product performance across our adhesive range.", zh: "我们专注于整个胶粘剂系列的效率、一致性与产品性能。" },
+    "about.v2_title":      { en: "Environmental Responsibility", zh: "环境责任" },
+    "about.v2_body":       { en: "We consider the environmental impact of our products and manufacturing processes through proper housekeeping, procedures and controls.", zh: "我们通过规范的现场管理、作业程序与控制措施，关注产品及生产过程的环境影响。" },
+    "about.v3_title":      { en: "Low VOC Solutions", zh: "低 VOC 解决方案" },
+    "about.v3_body":       { en: "Low V.O.C. and low formaldehyde adhesive solutions are available for customers who require safer and more environmentally conscious options.", zh: "我们为需要更安全、更环保选择的客户提供低 V.O.C. 及低甲醛胶粘解决方案。" },
+    "about.cta_title":     { en: "Need a Reliable Adhesive Partner?", zh: "需要可靠的胶粘合作伙伴？" },
+    "about.cta_lead":      { en: "Speak to our team to find the right adhesive solution for your business.", zh: "联系我们的团队，为您的业务找到合适的胶粘解决方案。" },
+    "about.contact_us":    { en: "Contact Us",         zh: "联系我们" }
   };
 
   function getLang() {
@@ -304,30 +391,115 @@
     return e[window.ylLang] || e.en || key;
   };
 
+  // The authoritative English for a key, regardless of the active language.
+  // Restoring English must NOT be done from a DOM snapshot: markup built by JS
+  // (the navbar, the footer) renders in whatever language was active when it
+  // was built, so on a page loaded in Chinese that snapshot IS Chinese.
+  window.ylTEn = function (key) {
+    var e = DICT[key];
+    return e ? e.en : undefined;
+  };
+
   // Switch language and reload so every script re-renders in the new language.
+  // LANG-001: switching language used to call window.location.reload(), which
+  // made it the only action on the site that hard-refreshed — white flash,
+  // scroll jumped to the top, and every asset re-evaluated. It reloaded because
+  // JS-rendered content (product cards, the compare tray, the picker, the
+  // detail page) bakes in the language at render time, and ylApplyI18n only
+  // re-translates static [data-i18n] markup.
+  //
+  // It runs as a Swup visit to the current URL, so changing language gets the
+  // same cross-fade as moving between pages — deliberate, and what the design
+  // calls for: the page really is being re-rendered, and showing that reads
+  // better than the text silently mutating underneath the reader.
+  //
+  // The visit does the heavy lifting for free: it replaces #swup, then
+  // afterSwap() re-applies i18n AND re-runs every ylReady callback, which is
+  // what re-renders the JS-built content (product grid, compare tray, detail
+  // page) in the new language.
+  //
+  // history: "replace" because a language change is not a new destination —
+  // Back must still leave the page, not undo the language.
+  //
+  // Falls back to a reload wherever Swup is unavailable (the 404 page does not
+  // load it, and any page where it failed to initialise).
   window.ylSetLang = function (lang) {
     lang = lang === "zh" ? "zh" : "en";
+    if (lang === window.ylLang) return;
     try { localStorage.setItem("ylLang", lang); } catch (e) {}
-    if (lang !== window.ylLang) window.location.reload();
+    window.ylLang = lang; // must be live BEFORE anything re-renders
+
+    var swup = window.ylSwup;
+    if (!swup || typeof swup.navigate !== "function") {
+      window.location.reload();
+      return;
+    }
+    // Hold the reading position: the transition is welcome, being thrown back
+    // to the top of the page is not.
+    var y = window.pageYOffset;
+    try {
+      swup.navigate(window.location.href, { history: "replace" });
+    } catch (e) {
+      window.location.reload();
+      return;
+    }
+    var restore = function () {
+      window.scrollTo(0, y);
+      // The navbar and footer live OUTSIDE #swup, so a visit never replaces
+      // them. Retranslate them in place and flip the switcher itself.
+      window.ylApplyI18n(document);
+      if (typeof window.ylSyncNavLang === "function") window.ylSyncNavLang();
+      swup.hooks.off("page:view", restore);
+    };
+    swup.hooks.on("page:view", restore);
   };
 
   // Apply translations to any [data-i18n] / [data-i18n-attr] elements in root.
   // English is the source-of-truth HTML, so we only swap text when in Chinese;
   // in English the original markup is left untouched (no need for en to match).
+  // LANG-002: this used to `return` immediately whenever the language was not
+  // Chinese, because English was assumed to BE the markup. That holds on a cold
+  // load, but not once the language can change in place: after translating to
+  // Chinese, switching back to English found no English left to restore and the
+  // page stayed Chinese. The original English is now cached on the element the
+  // first time it is replaced, and restored on the way back.
   window.ylApplyI18n = function (root) {
     document.documentElement.lang = window.ylLang === "zh" ? "zh-Hans" : "en";
-    if (window.ylLang !== "zh") return;
+    var zh = window.ylLang === "zh";
     var scope = root || document;
+
     scope.querySelectorAll("[data-i18n]").forEach(function (el) {
-      var t = window.ylT(el.getAttribute("data-i18n"));
-      if (t) el.textContent = t;
+      var key = el.getAttribute("data-i18n");
+      // Cache the markup's own text ONLY as a last resort for keys the
+      // dictionary does not carry. The dictionary is the source of truth.
+      if (el.dataset.i18nEn === undefined) el.dataset.i18nEn = el.textContent;
+      if (zh) {
+        var t = window.ylT(key);
+        if (t) el.textContent = t;
+      } else {
+        var en = window.ylTEn(key);
+        el.textContent = (en !== undefined) ? en : el.dataset.i18nEn;
+      }
     });
+
     scope.querySelectorAll("[data-i18n-attr]").forEach(function (el) {
       el.getAttribute("data-i18n-attr").split(",").forEach(function (pair) {
         var bits = pair.split(":");
         var attr = (bits[0] || "").trim();
         var key = (bits[1] || "").trim();
-        if (attr && key) { var t = window.ylT(key); if (t) el.setAttribute(attr, t); }
+        if (!attr || !key) return;
+        var cache = "i18nEnAttr" + attr.replace(/[^a-z0-9]/gi, "");
+        if (el.dataset[cache] === undefined) el.dataset[cache] = el.getAttribute(attr) || "";
+        if (zh) {
+          var t = window.ylT(key);
+          if (t) el.setAttribute(attr, t);
+        } else {
+          // Same rule as textContent: dictionary first, DOM snapshot only as a
+          // fallback, since a JS-built attribute may have been written in zh.
+          var enAttr = window.ylTEn(key);
+          if (enAttr === undefined) enAttr = el.dataset[cache];
+          if (enAttr) el.setAttribute(attr, enAttr);
+        }
       });
     });
   };

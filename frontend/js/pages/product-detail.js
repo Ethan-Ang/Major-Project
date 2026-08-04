@@ -27,6 +27,17 @@ function renderDetailSkeleton() {
     '<div class="skeleton-line"></div>' +
     '<div class="skeleton-line skeleton-line-mid"></div>' +
     '</div>';
+  // PERF-004: the gallery and summary reserved their space, but the tab panels
+  // did not — the spec table arrived into a zero-height box and shoved the
+  // advice block, related grid and footer down the page (measured CLS 0.23 on
+  // this page alone, against ~0.03 everywhere else). is-loading holds a
+  // representative height until the real content lands.
+  document.body.classList.add("yl-detail-loading");
+}
+
+// Release the reserved height once real panel content has been written.
+function clearDetailSkeleton() {
+  document.body.classList.remove("yl-detail-loading");
 }
 
 // ─── Init ────────────────────────────────────────────────────────
@@ -55,13 +66,27 @@ var _ylTrackedIds = new Set(); // one ping per product per page-load session
 function ylTrackView(productId) {
   if (!productId || _ylTrackedIds.has(String(productId))) return;
   _ylTrackedIds.add(String(productId));
+  // PERF-003: this used fetch({ keepalive: true }). The ping worked (the server
+  // answered 204 and the row was written) but Chromium then reported the
+  // request as net::ERR_ABORTED, so every product page left a red failed
+  // request in the Network panel that looked like a broken endpoint.
+  // sendBeacon is the API built for exactly this: fire-and-forget, survives the
+  // page being navigated away from, and no phantom failure. The endpoint reads
+  // php://input and ignores Content-Type, so the payload is unchanged.
+  const url = `${API_BASE_URL}/api/track_view.php`;
+  const payload = JSON.stringify({ product_id: Number(productId), session: ylSessionId() });
   try {
-    fetch(`${API_BASE_URL}/api/track_view.php`, {
+    if (navigator.sendBeacon &&
+        navigator.sendBeacon(url, new Blob([payload], { type: "application/json" }))) {
+      return;
+    }
+    // Older browsers only: tracking must never affect the page.
+    fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: Number(productId), session: ylSessionId() }),
+      body: payload,
       keepalive: true
-    }).catch(() => {}); // tracking must never affect the page
+    }).catch(() => {});
   } catch (e) {}
 }
 
@@ -112,10 +137,12 @@ async function initDetailPage() {
     if (advice) advice.innerHTML = "";
     const related = document.getElementById("relatedSection");
     if (related) related.style.display = "none";
+    clearDetailSkeleton();
     return;
   }
 
   document.title = `${product.name} | Yee Lim Adhesives Industries`;
+  ylSyncDetailMeta(product);
 
   // Feed the compare picker's "Recently viewed" tab (compare.js owns the key).
   if (typeof ylPushRecentlyViewed === "function") ylPushRecentlyViewed(product.id);
@@ -126,6 +153,7 @@ async function initDetailPage() {
   const tabsSection = document.querySelector(".detail-tabs");
   if (tabsSection) tabsSection.style.display = "";
 
+  clearDetailSkeleton();
   renderGallery(product);
   renderSummary(product);
   renderSpecTable(product);
@@ -216,6 +244,51 @@ ylReady(ylSyncBackToCatalogue);
 // real <button>s (click + keyboard) and never fabricated. Broken/missing
 // images fall back via ylImageFallback().
 let galleryState = { images: [], index: 0, label: "", name: "" };
+
+// SEO-002: every product shares one product-detail.html, so the static head
+// described "a product" generically and every variant of ?id= looked like the
+// same document. Point the canonical (and the social card) at the specific
+// product actually being shown, and describe it from its own real copy — no
+// invented text, and no structured data beyond what the catalogue already
+// states. Re-run on each Swup render so an in-place product change updates it.
+function ylSyncDetailMeta(product) {
+  const origin = location.origin;
+  const url = `${origin}/product-detail?id=${encodeURIComponent(product.id)}`;
+  const desc = (product.shortDescription || product.fullDescription || "")
+    .replace(/\s+/g, " ").trim().slice(0, 300);
+  const image = (product.images && product.images[0])
+    ? (/^https?:/i.test(product.images[0]) ? product.images[0] : origin + product.images[0])
+    : "";
+
+  const head = document.head;
+  const set = (selector, create, attr, value) => {
+    if (!value) return;
+    let el = head.querySelector(selector);
+    if (!el) { el = create(); head.appendChild(el); }
+    el.setAttribute(attr, value);
+    return el;
+  };
+
+  set('link[rel="canonical"]', () => {
+    const l = document.createElement("link"); l.rel = "canonical"; return l;
+  }, "href", url);
+
+  const meta = (key, keyAttr, value) => set(
+    `meta[${keyAttr}="${key}"]`,
+    () => { const m = document.createElement("meta"); m.setAttribute(keyAttr, key); return m; },
+    "content", value
+  );
+
+  const descEl = document.getElementById("metaDescription");
+  if (descEl && desc) descEl.setAttribute("content", desc);
+  meta("og:title", "property", `${product.name} | Yee Lim Adhesives Industries`);
+  meta("og:description", "property", desc);
+  meta("og:url", "property", url);
+  meta("og:image", "property", image);
+  meta("twitter:title", "name", `${product.name} | Yee Lim Adhesives Industries`);
+  meta("twitter:description", "name", desc);
+  meta("twitter:image", "name", image);
+}
 
 function renderGallery(product) {
   const el = document.getElementById("detailGallery");

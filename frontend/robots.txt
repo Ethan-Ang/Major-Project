@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Admin console and the API it talks to are not content.
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+
+# Task pages built from the visitor's own localStorage selection: they hold no
+# stable content of their own and must not compete with the catalogue.
+Disallow: /compare
+Disallow: /enquiry
+
+# Filter permutations are the same catalogue in a different order. The clean
+# /products URL is the one that should rank.
+Disallow: /products?
+
+Sitemap: https://yeelimadhesives.com/sitemap.xml

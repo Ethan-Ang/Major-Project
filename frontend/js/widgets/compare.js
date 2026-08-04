@@ -24,6 +24,15 @@ function cmpT(key, fallback) {
   return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fallback) : fallback;
 }
 
+// A11Y-007: same lookup with {placeholder} interpolation, for the
+// screen-reader-only compare strings. The parity test asserts that the
+// placeholders in each key match across both languages.
+function cmpTf(key, fallback, vars) {
+  return String(cmpT(key, fallback)).replace(/\{(\w+)\}/g, function (m, k) {
+    return Object.prototype.hasOwnProperty.call(vars || {}, k) ? String(vars[k]) : m;
+  });
+}
+
 let _compareTrayObserver = null;
 let _compareObservedTray = null;
 let _compareMeasureFrame = 0;
@@ -60,12 +69,12 @@ function addToCompare(productId) {
     // Card buttons disable at the limit, but this path can still be reached
     // (e.g. stale UI after a swap) — never fail silently for AT users.
     if (typeof window.announce === "function")
-      window.announce(`Compare is full (${COMPARE_MAX} products). Remove one to add another.`);
+      window.announce(cmpTf("cmp.a11y.full", "Compare is full ({max} products). Remove one to add another.", { max: COMPARE_MAX }));
     return;
   }
   list.push(id);
   saveCompareList(list);
-  cmpAnnounce(id, "added to compare.");
+  cmpAnnounce(id, cmpT("cmp.a11y.added", "added to compare."));
   ylKeepCompareSourceClear(id);
 }
 
@@ -73,7 +82,7 @@ function removeFromCompare(productId) {
   const restoreWithinTray = document.activeElement &&
     document.activeElement.closest(".cmp-slot-x");
   saveCompareList(getCompareList().map(String).filter(id => id !== String(productId)));
-  cmpAnnounce(productId, "removed from compare.");
+  cmpAnnounce(productId, cmpT("cmp.a11y.removed", "removed from compare."));
   if (restoreWithinTray) requestAnimationFrame(ylFocusNextCompareControl);
 }
 
@@ -83,7 +92,7 @@ function clearCompare() {
     document.activeElement.closest(".compare-tray");
   saveCompareList([]);
   if (hadItems && typeof window.announce === "function") {
-    window.announce("Comparison cleared.");
+    window.announce(cmpT("cmp.a11y.cleared", "Comparison cleared."));
   }
   if (restoreFromTray) requestAnimationFrame(ylFocusCompareFallback);
 }
@@ -111,17 +120,31 @@ function renderCompareTray() {
   if (rawList.length === 0) {
     tray.classList.remove("visible");
     // Reset to the collapsed (default) state so the tray reappears as the
-    // quiet trigger next time something is added.
+    // quiet trigger next time something is added. Any in-flight open/close is
+    // abandoned with it, so a Clear all mid-animation cannot leave the drawer
+    // stuck in a transient class.
+    ylCancelCompareClose(tray);
     tray.classList.remove("is-expanded");
     const toggle = document.getElementById("compareTrayToggle");
     if (toggle) {
       toggle.setAttribute("aria-expanded", "false");
-      toggle.setAttribute("aria-label", "Compare products; no products selected");
+      toggle.setAttribute("aria-label", cmpT("cmp.a11y.none", "Compare products; no products selected"));
     }
     const panel = document.getElementById("compareTrayPanel");
-    if (panel) panel.setAttribute("aria-hidden", "true");
+    if (panel) {
+      panel.setAttribute("aria-hidden", "true");
+      panel.setAttribute("inert", "");
+    }
+    // CMP-006: empty the three permanent shells, do NOT remove them. A
+    // replaceChildren() here would delete the fixed outer containers and the
+    // row would have to rebuild its geometry from scratch next time.
     const slots = document.getElementById("compareTraySlots");
-    if (slots) slots.replaceChildren();
+    if (slots) ensureCompareSlotShells(slots).forEach(shell => clearShell(shell, false));
+    // CMP-005: Clear all left "Compare now" enabled. The tray is hidden so it
+    // was invisible, but it stayed a live control pointing at an empty
+    // comparison — reachable again the instant the tray reappeared, before the
+    // next render had run.
+    ylSetCompareNowEnabled(false);
     document.body.classList.remove("compare-open");
     // Tear down an open mobile sheet (e.g. Clear all emptied the list while the
     // sheet was showing) so no backdrop/scroll-lock is left behind.
@@ -172,43 +195,267 @@ function renderCompareTray() {
   document.body.classList.add("compare-open");
   ylEnsureSheetCloseBtn();
 
-  const slotHTML = list.map(p => {
-    const name = ylEscapeHtml(p.name);
-    const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
-    const hasImg = p.images && p.images.length > 0;
-    const img = hasImg
-      ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
-      : `<span class="no-image-mark" aria-hidden="true">${brandLabel}</span>`;
-    return `
-      <div class="cmp-slot">
-        <span class="cmp-slot-img">${img}</span>
-        <span class="cmp-slot-name" title="${name}">${name}</span>
-        <button type="button" class="cmp-slot-x" onclick="removeFromCompare('${p.id}')" aria-label="Remove ${name} from comparison">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>`;
-  }).join("");
+  reconcileCompareSlots(list);
 
-  const addSlot = list.length < COMPARE_MAX ? `
-    <button type="button" class="cmp-slot cmp-slot-add" onclick="ylCompareAddMore()" aria-label="${cmpT("common.add_product", "Add a product")}">
-      <span class="cmp-slot-add-icon" aria-hidden="true">+</span>
-      <span class="cmp-slot-add-text"><strong>${cmpT("common.add_product", "Add a product")}</strong><small>${cmpT("common.search_browse", "Search or browse")}</small></span>
-    </button>` : "";
-
-  const slotsEl = document.getElementById("compareTraySlots");
-  if (slotsEl) slotsEl.innerHTML = slotHTML + addSlot;
-
-  const btn = document.getElementById("compareBtn");
-  if (btn) {
-    const notEnough = list.length < 2;
-    btn.disabled = notEnough;
-    // Explain why the button is inactive instead of leaving a silent greyed button.
-    const hint = notEnough ? cmpT("common.cmp_hint_min", "Select at least 2 products to compare") : cmpT("common.cmp_hint_open", "Open comparison view");
-    btn.title = hint;
-    btn.setAttribute("aria-label", hint);
-  }
+  ylSetCompareNowEnabled(list.length >= 2);
   ylSyncCompareTrayA11y(list.length);
   scheduleCompareTrayHeight();
+}
+
+// SWUP-001: "Compare now" is an <a href="/compare"> so it travels through Swup
+// like every other internal link. Anchors have no `disabled` property, so the
+// inactive state is expressed with aria-disabled + a class, and clicks are
+// swallowed while inactive (an anchor would otherwise still navigate). The
+// keyboard path matters too: role="button" means Space activates it, and a
+// disabled control must not respond to either key.
+function ylSetCompareNowEnabled(enabled) {
+  const btn = document.getElementById("compareBtn");
+  if (!btn) return;
+  const hint = enabled
+    ? cmpT("common.cmp_hint_open", "Open comparison view")
+    : cmpT("common.cmp_hint_min", "Select at least 2 products to compare");
+  btn.classList.toggle("is-disabled", !enabled);
+  btn.setAttribute("aria-disabled", enabled ? "false" : "true");
+  btn.title = hint;
+  btn.setAttribute("aria-label", hint);
+  // Keep it out of the tab order while inactive so keyboard users are not sent
+  // to a control that refuses to do anything.
+  if (enabled) btn.removeAttribute("tabindex");
+  else btn.setAttribute("tabindex", "-1");
+}
+
+if (typeof ylOnce === "function") {
+  ylOnce("compareNow:guard", () => {
+    const blocked = (e) => {
+      const btn = e.target && e.target.closest && e.target.closest("#compareBtn");
+      if (!btn) return false;
+      return btn.getAttribute("aria-disabled") === "true";
+    };
+    // Capture phase so the click never reaches Swup's link handler.
+    document.addEventListener("click", (e) => {
+      if (!blocked(e)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+      if (!blocked(e)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+  });
+}
+
+// ─── Slot reconciliation ────────────────────────────────────────
+// CMP-003: the tray used to rebuild every slot with one innerHTML write on each
+// compareUpdated. Adding a third product therefore re-created the two already
+// on screen — images reloaded, the action buttons jumped, and the whole
+// component flashed. Now only the delta is touched: the affected empty slot is
+// filled, removed products animate out, and survivors are FLIPped into their
+// new positions. Nothing else in the drawer is rewritten.
+const CMP_SLOT_IN_MS  = 200; // 180-240ms fade + 6px rise
+const CMP_SLOT_OUT_MS = 170; // 150-200ms exit
+const CMP_SLOT_FLIP_MS = 200;
+
+function buildCompareSlot(p) {
+  const name = ylEscapeHtml(p.name);
+  const brandLabel = ylEscapeHtml(p.brand.replace(/™ Brand$/, "™").replace(/™$/, "").toUpperCase());
+  const hasImg = p.images && p.images.length > 0;
+  const img = hasImg
+    ? `<img src="${encodeURI(p.images[0])}" alt="" loading="lazy" onerror="ylImageFallback(this,'${brandLabel}')">`
+    : `<span class="no-image-mark" aria-hidden="true">${brandLabel}</span>`;
+  const el = document.createElement("div");
+  el.className = "cmp-slot";
+  el.dataset.cmpId = String(p.id);
+  el.innerHTML =
+    `<span class="cmp-slot-img">${img}</span>` +
+    `<span class="cmp-slot-name" title="${name}">${name}</span>` +
+    `<button type="button" class="cmp-slot-x" onclick="removeFromCompare('${p.id}')" aria-label="${cmpTf("cmp.a11y.remove_one", "Remove {product} from comparison", { product: name })}">` +
+    `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>` +
+    `</button>`;
+  return el;
+}
+
+function buildCompareAddSlot() {
+  const el = document.createElement("button");
+  el.type = "button";
+  el.className = "cmp-slot cmp-slot-add";
+  el.dataset.cmpAdd = "1";
+  el.setAttribute("aria-label", cmpT("common.add_product", "Add a product"));
+  el.onclick = ylCompareAddMore;
+  el.innerHTML =
+    `<span class="cmp-slot-add-icon" aria-hidden="true">+</span>` +
+    `<span class="cmp-slot-add-text"><strong>${cmpT("common.add_product", "Add a product")}</strong>` +
+    `<small>${cmpT("common.search_browse", "Search or browse")}</small></span>`;
+  return el;
+}
+
+function cmpMotionOK() {
+  return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+// CMP-006: guarantee the three permanent outer containers exist. They ship in
+// the page markup; this only backfills them if a page (or a Swup swap) somehow
+// arrives without them. They are never removed after this.
+function ensureCompareSlotShells(slotsEl) {
+  const shells = [];
+  for (let i = 0; i < COMPARE_MAX; i++) {
+    let shell = slotsEl.querySelector(`.compare-slot[data-slot="${i}"]`);
+    if (!shell) {
+      shell = document.createElement("div");
+      shell.className = "compare-slot is-empty";
+      shell.dataset.slot = String(i);
+      slotsEl.appendChild(shell);
+    }
+    shells.push(shell);
+  }
+  return shells;
+}
+
+function reconcileCompareSlots(list) {
+  const slotsEl = document.getElementById("compareTraySlots");
+  if (!slotsEl) return;
+  const animate = cmpMotionOK();
+  const shells = ensureCompareSlotShells(slotsEl);
+
+  // CMP-014: products COMPACT to the front. Selections used to keep whichever
+  // shell they already occupied, so removing the middle of three left
+  // [P1][Add][P3] — a hole in the row with the third product stranded past it.
+  // On desktop that read as slack space; stacked vertically on a phone it just
+  // looked broken. Remaining products now close up in list order and "Add a
+  // product" always trails them, which is what the row is describing: the
+  // products you have chosen, then the way to choose another.
+  const wantedIds = list.map(p => String(p.id));
+  const placement = new Array(COMPARE_MAX).fill(null);
+  wantedIds.forEach((id, i) => { placement[i] = id; });
+  const addIndex = list.length < COMPARE_MAX ? list.length : -1;
+
+  // Compacting means a product can change shell. Its rendered card is MOVED
+  // between the permanent shells rather than rebuilt, so the thumbnail is not
+  // re-fetched and nothing flickers — appendChild relocates a live node.
+  const existing = new Map();
+  shells.forEach(shell => {
+    const id = shell.dataset.cmpId;
+    const node = shell.firstElementChild;
+    if (id && node && !node.classList.contains("cmp-slot-add")) existing.set(id, node);
+  });
+  // FLIP: where each surviving card sits before anything moves.
+  const first = new Map();
+  if (animate) existing.forEach((node, id) => { first.set(id, node.getBoundingClientRect().left); });
+
+  shells.forEach((shell, i) => {
+    const id = placement[i];
+    const product = id ? list.find(p => String(p.id) === id) : null;
+    if (product) {
+      // No early return here: applyShell owns the "already correct" decision
+      // via the single cmpState marker. A second check on a sub-attribute is
+      // what allowed a shell to be skipped while its state was actually stale.
+      renderFilledShell(shell, product, animate, existing.get(id));
+    } else if (i === addIndex) {
+      renderAddShell(shell, animate);
+    } else {
+      clearShell(shell, animate);
+    }
+  });
+
+  // FLIP: slide the moved cards from where they were to where they now are.
+  if (!animate) return;
+  existing.forEach((node, id) => {
+    if (!first.has(id) || !node.isConnected) return;
+    const delta = first.get(id) - node.getBoundingClientRect().left;
+    if (!delta) return;
+    node.style.transition = "none";
+    node.style.transform = `translate3d(${delta}px, 0, 0)`;
+    requestAnimationFrame(() => {
+      node.style.transition = `transform ${CMP_SLOT_FLIP_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+      node.style.transform = "";
+    });
+  });
+}
+
+function shellSwap(shell, node, animate) {
+  const outgoing = shell.firstElementChild;
+  // Each swap claims the shell. A swap still waiting out its exit animation is
+  // abandoned if a newer one starts, so a fast add-remove-add cannot let a
+  // stale timer write old content over the current state.
+  const token = (Number(shell.dataset.cmpSwap || 0) + 1) % 1000;
+  shell.dataset.cmpSwap = String(token);
+  const finish = () => {
+    if (shell.dataset.cmpSwap !== String(token)) return; // superseded
+    // BUGFIX: replaceChildren(null) does NOT empty the element — it stringifies
+    // the argument and inserts a text node reading "null", which showed up as
+    // literal "null" text in the tray. Call it with no arguments to clear.
+    if (node) shell.replaceChildren(node);
+    else shell.replaceChildren();
+    if (!animate || !node) return;
+    node.style.opacity = "0";
+    node.style.transform = "translate3d(0, 6px, 0)";
+    requestAnimationFrame(() => {
+      node.style.transition = `opacity ${CMP_SLOT_IN_MS}ms ease, transform ${CMP_SLOT_IN_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+      node.style.opacity = "";
+      node.style.transform = "";
+    });
+  };
+  if (!outgoing || !animate) { finish(); return; }
+  // The outgoing content leaves inside the shell, so the shell's own box — and
+  // therefore the row — never changes size during the swap.
+  outgoing.style.transition = `opacity ${CMP_SLOT_OUT_MS}ms ease, transform ${CMP_SLOT_OUT_MS}ms ease`;
+  outgoing.style.opacity = "0";
+  outgoing.style.transform = "translate3d(0, 4px, 0)";
+  setTimeout(finish, CMP_SLOT_OUT_MS);
+}
+
+// BUGFIX: these three used to each keep their own partial marker (cmpId on
+// filled, cmpRole on add) and early-return on it. Nothing ever cleared cmpRole
+// when a shell became filled, so any shell that had once been the "Add a
+// product" slot stayed permanently stamped role="add" — and renderAddShell's
+// `if (role === "add") return` then refused to rebuild it. The visible symptom
+// was that removing a product left its card on screen: storage updated, the
+// slot did not. Slot 0 looked fine only because it had never been the add slot.
+//
+// There is now ONE authoritative marker per shell describing its complete
+// desired state, so a stale sub-attribute cannot make a shell think it is
+// already correct.
+function shellState(shell) { return shell.dataset.cmpState || ""; }
+
+function applyShell(shell, state, node, animate) {
+  if (shellState(shell) === state) return; // genuinely already correct
+  shell.dataset.cmpState = state;
+  const filled = state.startsWith("filled:");
+  if (filled) shell.dataset.cmpId = state.slice(7);
+  else delete shell.dataset.cmpId;
+  if (state === "add") shell.dataset.cmpRole = "add";
+  else delete shell.dataset.cmpRole;
+  shell.classList.toggle("is-filled", filled);
+  shell.classList.toggle("is-empty", !filled);
+  shellSwap(shell, node, animate);
+}
+
+// `existingNode` is this product's already-rendered card, if it is currently in
+// another shell. Reusing it means a compaction MOVES the card instead of
+// rebuilding it: the image is not re-requested and there is no flash.
+function renderFilledShell(shell, product, animate, existingNode) {
+  const state = "filled:" + String(product.id);
+  if (existingNode && existingNode.parentElement !== shell) {
+    // Relocating a live node — no entrance animation, the FLIP pass handles
+    // the movement, so skip shellSwap's fade-in entirely.
+    shell.dataset.cmpState = state;
+    shell.dataset.cmpId = String(product.id);
+    delete shell.dataset.cmpRole;
+    shell.classList.add("is-filled");
+    shell.classList.remove("is-empty");
+    shell.replaceChildren(existingNode);
+    return;
+  }
+  applyShell(shell, state, existingNode || buildCompareSlot(product), animate);
+}
+
+function renderAddShell(shell, animate) {
+  applyShell(shell, "add", buildCompareAddSlot(), animate);
+}
+
+function clearShell(shell, animate) {
+  applyShell(shell, "empty", null, animate);
 }
 
 // A newly revealed fixed bar must not land on top of the card action that just
@@ -256,7 +503,7 @@ function ylCompareAddMore() {
       ? document.getElementById("compareTrayToggle")
       : document.activeElement;
     if (CMP_MOBILE_QUERY.matches && document.body.classList.contains("cmp-sheet-open")) {
-      if (tray) tray.classList.remove("is-expanded");
+      if (tray) { ylCancelCompareClose(tray); tray.classList.remove("is-expanded"); }
       ylSyncCompareTrayA11y(getCompareList().length);
       ylCloseCompareSheet(false);
       scheduleCompareTrayHeight();
@@ -278,9 +525,11 @@ function ylReopenCompareSheetIfPending() {
   if (!CMP_MOBILE_QUERY.matches) return;
   const tray = document.getElementById("compareTray");
   if (!tray || !tray.classList.contains("visible")) return;
-  tray.classList.add("is-expanded");
+  ylCancelCompareClose(tray);
+  tray.classList.add("is-expanded", "cmp-opening");
   ylSyncCompareTrayA11y(getCompareList().length);
   ylOpenCompareSheet();
+  requestAnimationFrame(() => requestAnimationFrame(() => tray.classList.remove("cmp-opening")));
   scheduleCompareTrayHeight();
 }
 
@@ -317,14 +566,26 @@ function updateCompareTrayHeight() {
     return;
   }
   if (CMP_MOBILE_QUERY.matches) {
-    // Collapsed compare is now a left-edge side-tab and expanded is a modal
+    // Collapsed compare is a left-edge side-tab and expanded is a modal
     // sheet — neither occupies bottom page flow, so reserve nothing here.
+    tray.style.setProperty("--cmp-panel-h", "0px");
     document.documentElement.style.setProperty("--compare-tray-height", "0px");
     document.documentElement.style.removeProperty("--compare-filter-max-height");
     if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
     return;
   }
-  const h = Math.ceil(tray.getBoundingClientRect().height || 0);
+  // The panel is always laid out at full height now (it is hidden by being
+  // translated below the fold, not by being collapsed), so its measured height
+  // IS the collapsed offset the wrapper travels. Publish it as --cmp-panel-h,
+  // which the single CSS transform reads.
+  const panel = document.getElementById("compareTrayPanel");
+  const trigger = document.getElementById("compareTrayToggle");
+  const panelH = panel ? Math.ceil(panel.getBoundingClientRect().height || 0) : 0;
+  const triggerH = trigger ? Math.ceil(trigger.getBoundingClientRect().height || 0) : 0;
+  tray.style.setProperty("--cmp-panel-h", panelH + "px");
+  // Reserve only what is actually on screen: the tab alone when collapsed,
+  // tab + panel when the drawer is open.
+  const h = tray.classList.contains("is-expanded") ? panelH + triggerH : triggerH;
   document.documentElement.style.setProperty("--compare-tray-height", h + "px");
   updateCompareFilterMaxHeight(h);
   if (typeof updateFilterScrollFade === "function") updateFilterScrollFade();
@@ -351,10 +612,20 @@ function ylSyncCompareTrayA11y(count) {
     toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
     toggle.setAttribute(
       "aria-label",
-      `${expanded ? "Collapse" : "Expand"} comparison tray, ${count} ${count === 1 ? "product" : "products"} selected`
+      cmpTf(expanded ? "cmp.a11y.collapse" : "cmp.a11y.expand",
+        expanded ? "Collapse comparison tray, {count} selected" : "Expand comparison tray, {count} selected",
+        { count: count })
     );
   }
-  if (panel) panel.setAttribute("aria-hidden", expanded ? "false" : "true");
+  if (panel) {
+    panel.setAttribute("aria-hidden", expanded ? "false" : "true");
+    // The panel is now permanently laid out (below the fold when collapsed), so
+    // visibility:hidden no longer keeps its Clear all / Compare now buttons out
+    // of the tab order. `inert` does that job, and also blocks pointer hits on
+    // the strip of panel that sits under the viewport edge.
+    if (expanded) panel.removeAttribute("inert");
+    else panel.setAttribute("inert", "");
+  }
 }
 
 function ylSafeFocus(target) {
@@ -387,17 +658,87 @@ function ylFocusCompareFallback() {
 // with a dimmed backdrop, focus trap and scroll lock (Canyon-inspired). Esc /
 // backdrop / close-button all collapse it. Re-measures so any reserved space
 // follows the tray's new state.
+// CMP-004: the drawer is a four-state machine — collapsed, opening, expanded,
+// closing — and every transition between them is ONE transform. No timers guess
+// when motion has finished; the close completes on transitionend (with a
+// generous safety net in case the event is swallowed, e.g. the tab is
+// backgrounded mid-animation). Because both directions animate the same
+// property on the same element, an interrupted transition simply re-targets
+// from wherever it is: rapid clicking cannot strand the drawer halfway.
+let _cmpCloseToken = 0;
+
+function ylCancelCompareClose(tray) {
+  _cmpCloseToken++;
+  tray.classList.remove("cmp-closing", "cmp-opening");
+}
+
 function toggleCompareTray() {
   const tray = document.getElementById("compareTray");
   if (!tray) return;
-  const willExpand = !tray.classList.contains("is-expanded");
-  tray.classList.toggle("is-expanded", willExpand);
-  ylSyncCompareTrayA11y(getCompareList().length);
+  // While a close is in flight the tray still carries .is-expanded, so read the
+  // intent from the animation state, not just the class.
+  const closing = tray.classList.contains("cmp-closing");
+  const willExpand = closing || !tray.classList.contains("is-expanded");
+  ylCancelCompareClose(tray);
 
-  if (CMP_MOBILE_QUERY.matches) {
-    if (willExpand) ylOpenCompareSheet(); else ylCloseCompareSheet();
+  if (willExpand) {
+    if (CMP_MOBILE_QUERY.matches) {
+      // Park the sheet below the fold for exactly one frame, then release it so
+      // the browser has two distinct transform values to interpolate between.
+      tray.classList.add("is-expanded", "cmp-opening");
+      ylOpenCompareSheet();
+      requestAnimationFrame(() => requestAnimationFrame(() => tray.classList.remove("cmp-opening")));
+    } else {
+      tray.classList.add("is-expanded");
+    }
+    ylSyncCompareTrayA11y(getCompareList().length);
+    scheduleCompareTrayHeight();
+    return;
   }
-  scheduleCompareTrayHeight();
+
+  // Closing. Panel controls leave the tab order immediately; the pixels follow.
+  ylSyncCompareTrayA11y__collapsing(tray);
+  if (!CMP_MOBILE_QUERY.matches) {
+    // Desktop: dropping .is-expanded is itself the close animation (the wrapper
+    // transitions back to its collapsed offset), so nothing to wait for.
+    tray.classList.remove("is-expanded");
+    ylSyncCompareTrayA11y(getCompareList().length);
+    scheduleCompareTrayHeight();
+    return;
+  }
+
+  // Mobile: run the sheet out, then tear the modal down when it has landed.
+  const token = ++_cmpCloseToken;
+  const panel = document.getElementById("compareTrayPanel");
+  const finish = () => {
+    if (token !== _cmpCloseToken) return; // superseded by a re-open
+    tray.classList.remove("is-expanded", "cmp-closing");
+    ylCloseCompareSheet();
+    ylSyncCompareTrayA11y(getCompareList().length);
+    scheduleCompareTrayHeight();
+  };
+  if (!panel || !cmpMotionOK()) { finish(); return; }
+  tray.classList.add("cmp-closing");
+  const onEnd = (e) => {
+    if (e.target !== panel || e.propertyName !== "transform") return;
+    panel.removeEventListener("transitionend", onEnd);
+    finish();
+  };
+  panel.addEventListener("transitionend", onEnd);
+  // Safety net only: a backgrounded tab never fires transitionend.
+  setTimeout(() => { panel.removeEventListener("transitionend", onEnd); finish(); }, 420);
+}
+
+// Take the panel out of the tab order the moment a close begins, so focus can
+// never land inside a drawer that is on its way off screen.
+function ylSyncCompareTrayA11y__collapsing(tray) {
+  const panel = document.getElementById("compareTrayPanel");
+  const toggle = document.getElementById("compareTrayToggle");
+  if (panel) {
+    panel.setAttribute("aria-hidden", "true");
+    panel.setAttribute("inert", "");
+  }
+  if (toggle) toggle.setAttribute("aria-expanded", "false");
 }
 
 // Inject the mobile sheet's close control into the panel once. Hidden by CSS on
@@ -412,7 +753,7 @@ function ylEnsureSheetCloseBtn() {
   btn.className = "cmp-sheet-close";
   // This control COLLAPSES the sheet back to the compact compare tab; it never
   // clears the selection (only a row × or Clear all do). The name says so.
-  btn.setAttribute("aria-label", "Collapse compare");
+  btn.setAttribute("aria-label", cmpT("cmp.a11y.collapse_short", "Collapse compare"));
   btn.onclick = toggleCompareTray;
   btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   inner.insertBefore(btn, inner.firstChild);
@@ -476,7 +817,7 @@ function ylOpenCompareSheet() {
   if (panel) {
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
-    panel.setAttribute("aria-label", "Selected products to compare");
+    panel.setAttribute("aria-label", cmpT("cmp.a11y.sheet", "Selected products to compare"));
   }
   if (typeof ylFocusTrap === "function" && panel) {
     // No onEscape here: the lifetime Esc listener below already collapses the
@@ -510,6 +851,9 @@ function ylCloseCompareSheet(restoreFocus = true) {
 // desktop releases them while leaving the expanded desktop tray intact.
 function ylReconcileCompareMode(event) {
   const tray = document.getElementById("compareTray");
+  // A breakpoint change is not an interaction: drop any transient open/close
+  // classes so the drawer settles into the new mode's resting state at once.
+  if (tray) ylCancelCompareClose(tray);
   if (!tray || !tray.classList.contains("is-expanded")) {
     if (!event.matches && document.body.classList.contains("cmp-sheet-open")) {
       ylCloseCompareSheet(false);
@@ -585,7 +929,8 @@ function comparePickerCopy(lang) {
       added: "Added",
       removeAria: "Remove {product} from comparison",
       addAria: "Add {product} to comparison",
-      fullAria: "Comparison full: remove one to add another"
+      fullAria: "Comparison full: remove one to add another",
+      limitMessage: "Maximum of 3 products selected. Remove one to choose another."
     },
     zh: {
       eyebrow: "产品对比",
@@ -607,7 +952,8 @@ function comparePickerCopy(lang) {
       added: "已添加",
       removeAria: "从对比中移除 {product}",
       addAria: "将 {product} 添加至对比",
-      fullAria: "对比列表已满：请先移除一款产品再添加"
+      fullAria: "对比列表已满：请先移除一款产品再添加",
+      limitMessage: "最多可选择 3 款产品。请先移除一款，再选择其他产品。"
     }
   };
   return lang === "zh" ? copy.zh : copy.en;
@@ -634,6 +980,25 @@ function ylPushRecentlyViewed(productId) {
   const list = ylGetRecentlyViewed().filter(x => x !== id);
   list.unshift(id);
   try { localStorage.setItem(YL_RECENT_KEY, JSON.stringify(list.slice(0, 8))); } catch (e) {}
+}
+
+// CMP-010: locking the page with overflow:hidden removes the scrollbar, and on
+// Windows/Linux the reclaimed ~15px shifts the whole page (and the fixed
+// compare bar) sideways. Measure the real gutter at lock time and hand it back
+// as padding, so the layout does not move. Measured per lock rather than
+// assumed, because the width differs by platform and by user setting, and is 0
+// wherever scrollbars are overlays (macOS, mobile).
+function ylLockPageScroll() {
+  const gutter = window.innerWidth - document.documentElement.clientWidth;
+  if (gutter > 0) document.documentElement.style.setProperty("--yl-sb", gutter + "px");
+  document.body.classList.add("yl-scroll-locked");
+  document.body.style.overflow = "hidden";
+}
+
+function ylUnlockPageScroll() {
+  document.body.style.overflow = "";
+  document.body.classList.remove("yl-scroll-locked");
+  document.documentElement.style.removeProperty("--yl-sb");
 }
 
 let _pickerState = null; // { tab, query, release, opener }
@@ -681,11 +1046,17 @@ function openComparePicker(opener) {
         <input type="text" id="ylCmpPickerSearch" placeholder="${copy.searchPlaceholder}" autocomplete="off">
       </div>
     </div>
+    <!-- CMP-009: the maximum-limit explanation. It is a single shared message
+         referenced by every disabled row's aria-describedby, so the limit is
+         announced once on demand rather than repeated for all 28 disabled
+         results. role=status announces it when it appears without stealing
+         focus; it is removed again the moment the count drops below 3. -->
+    <p class="cmp-picker-limit" id="compareLimitMessage" role="status" hidden></p>
     <div class="cmp-picker-list" id="ylCmpPickerList" aria-live="polite"></div>`;
 
   document.body.appendChild(backdrop);
   document.body.appendChild(panel);
-  document.body.style.overflow = "hidden";
+  ylLockPageScroll();
 
   backdrop.addEventListener("click", closeComparePicker);
   panel.querySelector("#ylCmpPickerSearch").addEventListener("input", (e) => {
@@ -713,7 +1084,7 @@ function closeComparePicker(restoreFocus = true) {
   const backdrop = document.getElementById("ylCmpPickerBackdrop");
   if (panel) panel.remove();
   if (backdrop) backdrop.remove();
-  document.body.style.overflow = "";
+  ylUnlockPageScroll();
   if (state && typeof state.release === "function") state.release(false);
   _pickerState = null;
   // restoreFocus === false marks a forced teardown (another modal is taking
@@ -743,18 +1114,25 @@ function ylCmpPickerTab(tab) {
   renderComparePickerList();
 }
 
+// CMP-008: reaching the maximum used to close the picker after 350ms.
+// Selecting a third product is not the same thing as finishing the comparison
+// task, and the auto-close also released the picker's scroll lock, which on any
+// platform with classic scrollbars restored the scrollbar gutter and shifted
+// the whole page (and the fixed compare bar) sideways. That is the reported
+// "the bar shifts / a scrollbar appears".
+//
+// The picker now closes ONLY on Back, Close, Escape, Compare now or an explicit
+// navigation. Count, drawer state and picker state are separate values: at 3/3
+// the valid state is compareCount=3, drawer=expanded, picker=open.
 function ylCmpPickerAdd(productId) {
   toggleCompare(productId);
-  // Slots full: the job is done — close so the tray shows the result.
-  if (getCompareList().length >= COMPARE_MAX) {
-    setTimeout(closeComparePicker, 350);
-  } else {
-    requestAnimationFrame(() => {
-      const target = Array.from(document.querySelectorAll("#ylCmpPicker .cmp-picker-add"))
-        .find(button => String(button.dataset.productId) === String(productId));
-      ylSafeFocus(target);
-    });
-  }
+  // Keep focus on the row the visitor just acted on, whichever direction it
+  // went, so selecting and unselecting feel like one continuous interaction.
+  requestAnimationFrame(() => {
+    const target = Array.from(document.querySelectorAll("#ylCmpPicker .cmp-picker-add"))
+      .find(button => String(button.dataset.productId) === String(productId));
+    ylSafeFocus(target);
+  });
 }
 
 // Search normalisation for the picker: the shared ylSearchNorm treatment
@@ -825,6 +1203,15 @@ function renderComparePickerList() {
     });
   }
 
+  // CMP-009: show the limit explanation only while the selection is actually
+  // full. Unselecting one product hides it again on the same render that
+  // re-enables the rows, so the two never disagree.
+  const limitEl = panel.querySelector("#compareLimitMessage");
+  if (limitEl) {
+    limitEl.textContent = copy.limitMessage;
+    limitEl.hidden = !full;
+  }
+
   // Both segments stay clickable at all times; an empty Recently viewed shows
   // a designed empty state below instead of a disabled control + tooltip.
   const recents = ylGetRecentlyViewed();
@@ -889,7 +1276,7 @@ function renderComparePickerList() {
     const addAria = formatComparePickerCopy(copy.addAria, { product: name });
     const btn = inCmp
       ? `<button class="cmp-picker-add is-added" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd(this.dataset.productId)" aria-pressed="true" aria-label="${removeAria}">&#10003; ${copy.added}</button>`
-      : `<button class="cmp-picker-add" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd(this.dataset.productId)" ${disabled ? "disabled" : ""} aria-pressed="false" aria-label="${disabled ? copy.fullAria : addAria}">+ ${copy.add}</button>`;
+      : `<button class="cmp-picker-add" type="button" data-product-id="${dataId}" onclick="ylCmpPickerAdd(this.dataset.productId)" ${disabled ? `disabled aria-describedby="compareLimitMessage"` : ""} aria-pressed="false" aria-label="${disabled ? copy.fullAria : addAria}">+ ${copy.add}</button>`;
     return `
       <div class="cmp-picker-row">
         <span class="cmp-picker-thumb" aria-hidden="true">${img}</span>

@@ -56,6 +56,11 @@
   --red-on-dark:#e79a9a;  /* eyebrow label on dark backgrounds */
   --red-tint:  #fbe9e4;
   --red-tint-bdr: #f0cfc9;
+  /* Validation error red. Deliberately NOT --red: an error must not read as a
+     brand accent, and the two sit side by side on the enquiry form. One token,
+     used by every inline message and summary, so this never drifts into a
+     third red. */
+  --error:     #c0392b;
   --green:     #16803a;
   --green-tint: #eaf5ec;
   --green-tint-bdr: #cfe8d5;
@@ -134,6 +139,49 @@ body .site-footer-contact dt { color: #a49d90; }
 
 ::selection { background: var(--red); color: #fff; }
 
+/* PERF-004: hold the product-detail tab panel's height while the catalogue
+   fetch is still in flight, so the spec table does not land in a zero-height
+   box and shove everything below it (advice block, related grid, footer) down
+   the page. product-detail.js adds this class in its skeleton and removes it
+   the moment real content is written.
+
+   The values are the MODAL real specifications-panel heights measured across
+   the whole catalogue at each breakpoint (desktop 217px of 104-255, tablet
+   348px of 148-367, phone 530px of 205-570). Reserving the typical height
+   rather than the minimum is what actually cuts the shift: nearly every
+   product lands on it exactly, so there is no movement at all, and the handful
+   of outliers move a fraction of the distance they used to. */
+body.yl-detail-loading .detail-tabpanel:not([hidden]) { min-height: 217px; }
+/* The advice card and the related-products grid are the other two blocks that
+   arrive late, and both are effectively a fixed height per breakpoint (advice
+   103/204/233, related 242/449/288 across the whole catalogue). #relatedSection
+   ships with an inline display:none that renderRelated() clears, so the reserve
+   has to out-rank it — hence the !important, which only ever applies while the
+   loading class is on the body. */
+body.yl-detail-loading #detailAdvice { min-height: 103px; }
+/* NOTE: the gallery and summary cells are deliberately NOT reserved here. They
+   were tried and removed. .detail-top changes between a two-column grid and a
+   stack across these widths, so a pixel reserve that helped one breakpoint hurt
+   another (a fixed tablet height took 768px from 0.11 to 0.43). Their skeletons
+   already occupy the area; the remaining variance is a genuine known issue,
+   and the honest fix is a skeleton built from the real summary's structure
+   rather than more magic numbers. */
+body.yl-detail-loading #relatedSection {
+  display: block !important;
+  visibility: hidden;
+  min-height: 242px;
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  body.yl-detail-loading .detail-tabpanel:not([hidden]) { min-height: 348px; }
+  body.yl-detail-loading #detailAdvice { min-height: 204px; }
+  body.yl-detail-loading #relatedSection { min-height: 449px; }
+}
+@media (max-width: 640px) {
+  body.yl-detail-loading .detail-tabpanel:not([hidden]) { min-height: 530px; }
+  body.yl-detail-loading #detailAdvice { min-height: 233px; }
+  body.yl-detail-loading #relatedSection { min-height: 288px; }
+}
+
 /* Screen-reader only utility */
 .sr-only {
   position: absolute;
@@ -146,6 +194,13 @@ body .site-footer-contact dt { color: #a49d90; }
   white-space: nowrap;
   border: 0;
 }
+
+/* A11Y-001: the shared "Skip to main content" link and the #mainContent focus
+   reset MOVED to js/widgets/navbar.js (SHELL-001). They are shell concerns, and
+   navbar.js is the one file every public page loads — including the
+   teammate-owned Home and About, which deliberately do NOT load this
+   stylesheet. Defining them here left those two pages without a skip link.
+   There is exactly one definition, and it is in the navbar component. */
 
 /* Belt-and-braces against the thin cream edge-slivers some mobile browsers
    render beside full-bleed sections (footer, trust strip, toolbar) when the
@@ -160,6 +215,17 @@ html, body {
      the footer instead of over-pulling to reveal the cream page background. */
   overscroll-behavior-y: none;
 }
+/* CMP-010: overlay scroll-lock gutter compensation.
+   Every overlay here locks the page with `overflow:hidden` (compare picker,
+   mobile filter drawer, nav drawer). On Windows/Linux that reclaims the
+   scrollbar's ~15px, so the page and the fixed compare bar jump sideways.
+   This was first tried as `scrollbar-gutter: stable` on <html>, which was
+   wrong: it reserved the gutter on EVERY page load, narrowing the layout and
+   exposing the near-black html background as a strip down the right edge.
+   The compensation belongs to the lock, not the document — JS measures the
+   real scrollbar width and publishes it as --yl-sb only while locked. */
+body.yl-scroll-locked { padding-right: var(--yl-sb, 0px); }
+
 html {
   /* Fallback for browsers that still bounce despite the above: the exposed sliver
      shows THIS near-black (matches the dark nav + footer), never the cream page. */
@@ -874,8 +940,14 @@ h1, h2, h3,
   height: 100%;
   text-decoration: none;
 }
-.product-card-image-link img { transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1); }
-.product-card:hover .product-card-image-link img { transform: scale(1.04); }
+/* Same hover treatment and timing as .related-card-img: one product photo
+   should not behave differently depending on which grid it is in. */
+.product-card-image-link img { transition: transform 0.26s cubic-bezier(0.23, 1, 0.32, 1); }
+.product-card:hover .product-card-image-link img { transform: scale(1.03); }
+@media (prefers-reduced-motion: reduce) {
+  .product-card-image-link img { transition: none; }
+  .product-card:hover .product-card-image-link img { transform: none; }
+}
 
 /* Soften the imagery of unavailable products so the state reads at a glance */
 .product-card.is-unavailable .product-card-image img {
@@ -918,6 +990,11 @@ h1, h2, h3,
 
 /* Clickable product title -> product detail. */
 .product-card-title-link {
+  /* A11Y-006: the product name is the card's primary link, not inline prose, so
+     it needs its own 24px target (WCAG 2.2 SC 2.5.8). inline-block + min-height
+     supplies it without changing the type size or the card's rhythm. */
+  display: inline-block;
+  min-height: 24px;
   color: inherit;
   text-decoration: none;
   transition: color 0.15s;
@@ -1118,13 +1195,23 @@ h1, h2, h3,
 .empty-state .btn { padding: 0.6rem 1.25rem; }
 .empty-state-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
 
-/* Inline field validation message (enquiry form). Matches the summary error
-   red (#c0392b) so genuine errors stay visually distinct from brand red. */
+/* Inline field validation message (enquiry form). Shares the --error token with
+   the form summary so genuine errors stay visually distinct from brand red. */
 .field-error {
-  color: #c0392b;
+  color: var(--error);
   font-size: 0.8rem;
   margin: 0.35rem 0 0;
 }
+
+/* Form-level error summary above the submit button. Was an inline style block
+   on the enquiry page; centralised here so the error red comes from one token
+   and the two error surfaces can never drift apart. */
+.form-error-summary {
+  color: var(--error);
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem;
+}
+.form-error-summary:focus { outline: none; }
 
 /* ─── Toast Notification ──────────────────────────────────────── */
 .toast {
@@ -1139,8 +1226,14 @@ h1, h2, h3,
   z-index: var(--z-toast);
   opacity: 0;
   transform: translateY(10px);
-  transition: all 0.3s;
+  /* Named properties, not `all`: `all` also animated the `bottom` offset the
+     compare tray sets on this element, so the toast crawled up the screen
+     instead of appearing in place. */
+  transition: opacity 0.28s ease, transform 0.28s var(--ease);
   pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast { transition: none; }
 }
 
 .toast.show {
@@ -1650,6 +1743,9 @@ body.detail-has-cta .toast {
 .related-view-all {
   display: inline-flex;
   align-items: center;
+  /* A11Y-006: standalone navigational link, so the WCAG 2.2 "inline" target
+     exception does not apply to it — give it a real 24px box. */
+  min-height: 24px;
   gap: 0.25rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -1732,10 +1828,17 @@ body.detail-has-cta .toast {
   object-fit: contain;
   padding: 0.45rem;
   box-sizing: border-box;
-  transition: transform 0.4s var(--ease);
+  /* Trimmed from 0.4s/1.05: a 400ms 5% zoom on a product photo read as a slow
+     decorative effect rather than feedback. 260ms and 3% is the same signal
+     without the drift, and sits inside the site's 120-320ms motion band. */
+  transition: transform 0.26s var(--ease);
 }
 
-.related-card:hover .related-card-img img { transform: scale(1.05); }
+.related-card:hover .related-card-img img { transform: scale(1.03); }
+@media (prefers-reduced-motion: reduce) {
+  .related-card-img img { transition: none; }
+  .related-card:hover .related-card-img img { transform: none; }
+}
 
 .related-card-img.no-image .no-image-mark {
   font-family: 'Space Grotesk', sans-serif;
@@ -1775,7 +1878,9 @@ body.detail-has-cta .toast {
   overflow: hidden;
 }
 
-.related-card-name a { color: inherit; text-decoration: none; }
+/* A11Y-006: same treatment as .product-card-title-link — the product name is
+   the card's primary link, not inline prose, so it carries its own 24px box. */
+.related-card-name a { display: inline-block; min-height: 24px; color: inherit; text-decoration: none; }
 .related-card-name a:hover { color: var(--red); }
 .related-card-name a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
 
@@ -3293,6 +3398,15 @@ body.detail-has-cta .toast {
    reveals only when the tab is deliberately expanded, and collapses back to
    the quiet tab. body.compare-open reserves the tray's live measured height
    (see updateCompareTrayHeight in compare.js). */
+/* CMP-DRAWER: the tray is ONE fixed wrapper holding the tab and the panel, and
+   only the wrapper ever moves. Collapsed, it is pushed down by exactly the
+   panel's height (--cmp-panel-h, measured by compare.js) so the tab alone stays
+   on screen, still physically attached to the panel below it. Expanded, the
+   wrapper returns to 0 and tab + panel arrive together as one object.
+   Nothing animates height, padding or bottom any more, and the tab is never
+   swapped for a second tab — there is only one, and it is the drawer's handle.
+
+   Off-state (nothing selected) pushes the whole thing clear of the viewport. */
 .compare-tray {
   position: fixed;
   left: 0;
@@ -3305,17 +3419,29 @@ body.detail-has-cta .toast {
   background: none;
   border: none;
   pointer-events: none; /* the trigger/panel re-enable their own hit areas */
-  transform: translateY(110%);
+  --cmp-panel-h: 0px;
+  transform: translate3d(0, 110%, 0);
   visibility: hidden; /* fully out of paint once the slide-out ends */
   transition: transform 0.26s var(--ease), visibility 0s linear 0.26s;
+  will-change: transform;
 }
+/* Visible but collapsed: only the tab clears the bottom edge. */
 .compare-tray.visible {
-  transform: translateY(0);
+  transform: translate3d(0, var(--cmp-panel-h), 0);
   visibility: visible;
-  transition: transform 0.26s var(--ease), visibility 0s;
+  /* Closing is a shade quicker than opening and uses an ease-in curve, so the
+     drawer leaves decisively instead of drifting. */
+  transition: transform 0.24s cubic-bezier(0.4, 0, 0.6, 1), visibility 0s;
+}
+/* Expanded: the same single transform, back to rest. Opening curve per spec. */
+.compare-tray.visible.is-expanded {
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
 }
 @media (prefers-reduced-motion: reduce) {
   .compare-tray,
+  .compare-tray.visible,
+  .compare-tray.visible.is-expanded,
   .compare-tray-panel,
   .compare-tray.is-expanded .compare-tray-panel,
   .compare-tray-inner { transition: none; }
@@ -3342,15 +3468,24 @@ body.detail-has-cta .toast {
   line-height: 1.1;
   color: var(--text);
   cursor: pointer;
-  box-shadow: 0 -5px 16px -8px rgba(32, 30, 24, 0.15);
-  transition: box-shadow 0.18s, border-color 0.18s;
+  /* CMP-012: no drop shadow. The soft grey lift smudged a halo around the tab
+     against the white product cards behind it, so a surface that is #ffffff
+     everywhere still read as grey at its edges. The tab is defined by its
+     shape, its hairline border and its rounded top corners — it does not need
+     elevation to separate from the page. */
+  box-shadow: none;
+  transition: border-color 0.18s;
 }
 /* Hover expresses interactivity through elevation only — NOT a warm fill.
    A darker/off-white tab beside the white panel read as two unrelated
    components (the reported mismatch); trigger and panel now share one white
-   surface in every state, differing only by a subtle lift. */
-.compare-tray-trigger:hover { box-shadow: 0 -7px 20px -8px rgba(32, 30, 24, 0.22); }
-.compare-tray.is-expanded .compare-tray-trigger:hover { box-shadow: inset 0 2px 0 var(--red); }
+   surface in every state, differing only by a subtle lift.
+   CMP-002: there is deliberately NO red top rule, red outline, gradient or glow
+   in any state. The tab is white with the shared neutral hairline; the only red
+   on it is the compare icon, which is brand colour enough. Hover and expanded
+   both keep the identical surface so the tab does not restyle itself mid-slide. */
+/* Hover is now carried by the border alone, for the same reason. */
+.compare-tray-trigger:hover { border-color: var(--line-2); }
 .compare-tray-trigger:focus-visible { outline: 2px solid var(--red); outline-offset: -3px; }
 .compare-tray-trigger svg { flex-shrink: 0; }
 .compare-tray-trigger .ctt-ic { color: var(--red); }
@@ -3377,26 +3512,24 @@ body.detail-has-cta .toast {
   pointer-events: auto;
   width: 100%;
   background: var(--card);
-  display: grid;
-  grid-template-rows: 0fr;
-  visibility: hidden;
-  pointer-events: none;
-  overflow: hidden;
-  box-shadow: none;
-  transition: grid-template-rows 0.24s var(--ease), box-shadow 0.2s ease,
-    visibility 0s linear 0.24s;
+  /* Always laid out at its natural height — that height IS the collapsed
+     translate distance. It is hidden by being below the fold, not by being
+     collapsed to 0, so nothing animates height and the panel never reflows
+     while it moves. compare.js marks it `inert` while collapsed, which is what
+     keeps its controls out of the tab order. */
 }
+/* CMP-013: the lift belongs ONLY to the open drawer. While collapsed the panel
+   sits flush below the viewport edge and this shadow points UPWARD, so it was
+   bleeding soft grey back into the bottom of the page — painting a dark band
+   behind and around the tab on every page with something in compare. THAT band
+   was the "darker" area; the tab itself was already pure white. */
 .compare-tray.is-expanded .compare-tray-panel {
-  grid-template-rows: 1fr;
-  visibility: visible;
-  pointer-events: auto;
   box-shadow: 0 -10px 30px -14px rgba(32, 30, 24, 0.2);
-  transition: grid-template-rows 0.24s var(--ease), box-shadow 0.2s ease,
-    visibility 0s;
 }
 /* Tab merges into the drawer when open — drop its own lift shadow so there is no
-   doubled shadow where the two surfaces meet. */
-.compare-tray.is-expanded .compare-tray-trigger { box-shadow: inset 0 2px 0 var(--red); }
+   doubled shadow where the two surfaces meet. No colour change, no added rule:
+   the surface stays identical, only the elevation resolves. */
+.compare-tray.is-expanded .compare-tray-trigger { box-shadow: none; }
 
 .compare-tray-inner {
   width: 100%;
@@ -3404,16 +3537,10 @@ body.detail-has-cta .toast {
   margin: 0 auto;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
-  padding: 0 1.5rem;
+  padding: 0.78rem 1.5rem calc(0.78rem + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: padding-top 0.24s var(--ease), padding-bottom 0.24s var(--ease);
-}
-.compare-tray.is-expanded .compare-tray-inner {
-  padding-top: 0.78rem;
-  padding-bottom: calc(0.78rem + env(safe-area-inset-bottom, 0px));
 }
 
 .compare-tray-head {
@@ -3440,22 +3567,52 @@ body.detail-has-cta .toast {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  /* CMP-007 (corrected): this was briefly `clip`, on the assumption that three
+     slots always fit beside the head and actions on "desktop". They do not —
+     the row only has room from roughly 1100px up. Below that, `clip` silently
+     cut the third slot off with no way to reach it (measured: only 1 of 3
+     reachable at 768px, 2 of 3 at 1024px). `auto` is correct: the row scrolls
+     when it genuinely cannot fit, and shows nothing when it can. */
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   scrollbar-width: thin;
   padding: 4px;
 }
+@media (max-width: 640px) {
+  .compare-tray-slots {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain; /* never chain to a full-page horizontal scroll */
+  }
+}
 
-/* Selected slot and add-slot share one silhouette (same height, radius and
-   inner rhythm) so the row reads as one component family. */
+/* CMP-006: the OUTER slot. Three of these are permanent children of
+   .compare-tray-slots and are never added or removed — only .is-filled /
+   .is-empty and their inner content change. All box metrics live here, on the
+   container, so a filled slot and an empty one are geometrically identical by
+   construction: swapping a product for "Add a product" cannot reflow the row,
+   change the tray width, or push the row into overflow.
+   min-width:0 lets a long product name shrink inside the slot instead of
+   forcing the track wider (the classic flex overflow cause). */
+.compare-slot {
+  flex: 1 0 180px;
+  min-width: 0;
+  max-width: 220px;
+  height: 60px;
+  box-sizing: border-box;
+  border-radius: var(--radius);
+}
+
+/* Inner content fills the outer slot exactly. Selected and add states share one
+   silhouette so the row reads as one component family. */
 .cmp-slot {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex: 1 0 180px;
-  min-width: 180px;
-  max-width: 220px;
-  height: 60px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   box-sizing: border-box;
   background: #fff;
   border: 1px solid var(--border);
@@ -3499,7 +3656,9 @@ body.detail-has-cta .toast {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  height: 60px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   box-sizing: border-box;
   background: transparent;
   border: 1px dashed var(--line-2);
@@ -3510,6 +3669,9 @@ body.detail-has-cta .toast {
   text-align: left;
   transition: border-color 0.15s, background 0.15s;
 }
+/* An empty slot with no add-control (only possible at 3/3 for a heartbeat)
+   still occupies its track, so the row never reflows. */
+.compare-slot.is-empty:empty { visibility: hidden; }
 .cmp-slot-add:hover { border-color: var(--red); background: var(--red-tint); }
 .cmp-slot-add-icon {
   width: 28px;
@@ -3566,9 +3728,15 @@ body.detail-has-cta .toast {
   font-family: inherit;
   white-space: nowrap;
 }
-.compare-tray-btn:disabled { background: #d8d3c9; color: #6f695f; opacity: 1; cursor: not-allowed; }
-.compare-tray-btn:not(:disabled):hover { background: var(--red-dark); }
-.compare-tray-btn:not(:disabled):active { transform: scale(0.97); }
+/* SWUP-001: Compare now is an <a>, not a <button>, so it can travel through
+   Swup. Anchors have no :disabled, so the inactive state is .is-disabled +
+   aria-disabled (compare.js also swallows clicks and Enter/Space on it).
+   :disabled is retained so any remaining button instance still greys out. */
+.compare-tray-btn { text-decoration: none; }
+.compare-tray-btn:disabled,
+.compare-tray-btn.is-disabled { background: #d8d3c9; color: #6f695f; opacity: 1; cursor: not-allowed; }
+.compare-tray-btn:not(:disabled):not(.is-disabled):hover { background: var(--red-dark); }
+.compare-tray-btn:not(:disabled):not(.is-disabled):active { transform: scale(0.97); }
 
 /* Tablet band (641-860px): keep the slot row single-line by scrolling it
    horizontally rather than wrapping, so the head and actions stay pinned
@@ -3583,20 +3751,36 @@ body.detail-has-cta .toast {
   /* COLLAPSED — a vertical side-tab pinned to the left edge (Canyon-style), so
      compare no longer stacks on top of / duplicates the bottom enquiry CTA.
      Tapping it opens the same modal comparison sheet below. */
-  .compare-tray:not(.is-expanded) {
+  /* Phones keep the side-tab + modal-sheet model rather than the desktop
+     bottom drawer: the tab is anchored to the LEFT edge (so compare never
+     stacks on the product-detail bottom CTA) while the sheet is a bottom
+     modal, and those two anchors cannot be one translating unit. The motion
+     rules are the same as desktop though — one transform per element, the
+     spec's open/close curves, and transitionend-driven state changes. The
+     desktop wrapper offset is neutralised here. */
+  .compare-tray:not(.is-expanded),
+  .compare-tray.visible:not(.is-expanded) {
     top: auto;
     bottom: calc(92px + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: auto;
     width: auto;
     align-items: flex-start;
-    transform: translateX(-101%);
-    transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 0.32s;
+    --cmp-panel-h: 0px;
+  }
+  .compare-tray:not(.is-expanded) {
+    transform: translate3d(-101%, 0, 0);
+    transition: transform 0.24s cubic-bezier(0.4, 0, 0.6, 1), visibility 0s linear 0.24s;
   }
   .compare-tray.visible:not(.is-expanded) {
-    transform: translateX(0);
-    transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s;
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
   }
+  /* Desktop parks the panel below the fold and leaves it laid out. Phones have
+     nowhere to park it — the collapsed wrapper is a small side-tab at the left
+     edge — so the sheet is taken out of layout entirely until it is opened.
+     It is re-inserted parked at translateY(100%) for the opening frame. */
+  .compare-tray:not(.is-expanded) .compare-tray-panel { display: none; }
   .compare-tray:not(.is-expanded) .compare-tray-trigger {
     writing-mode: vertical-rl;
     align-items: center;
@@ -3621,7 +3805,11 @@ body.detail-has-cta .toast {
     .compare-tray.visible:not(.is-expanded) { transition: none; }
   }
 
-  /* EXPANDED — bottom sheet, raised above the product-detail sticky CTA (900). */
+  /* EXPANDED — bottom sheet, raised above the product-detail sticky CTA (900).
+     The wrapper itself no longer translates here: with the tab hidden the
+     wrapper IS the sheet, so the single transform lives on the panel and
+     carries it from fully below the fold to rest. */
+  .compare-tray.visible.is-expanded,
   .compare-tray.is-expanded {
     top: auto;
     bottom: 0;
@@ -3629,6 +3817,7 @@ body.detail-has-cta .toast {
     right: 0;
     width: auto;
     transform: none;
+    transition: none;
     z-index: var(--z-compare-sheet);
   }
   .compare-tray.is-expanded .compare-tray-trigger { display: none; }
@@ -3636,19 +3825,34 @@ body.detail-has-cta .toast {
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -14px 34px -14px rgba(32, 30, 24, 0.34);
     max-height: min(88dvh, calc(100dvh - 24px));
-    animation: cmpSheetUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  @keyframes cmpSheetUp { from { transform: translateY(22px); } to { transform: translateY(0); } }
-  @media (prefers-reduced-motion: reduce) { .compare-tray.is-expanded .compare-tray-panel { animation: none; } }
+  /* First frame of the open (compare.js removes .cmp-opening on the next rAF)
+     and the whole of the close: sheet parked fully below the viewport. */
+  .compare-tray.is-expanded.cmp-opening .compare-tray-panel {
+    transform: translate3d(0, 100%, 0);
+    transition: none;
+  }
+  .compare-tray.is-expanded.cmp-closing .compare-tray-panel {
+    transform: translate3d(0, 100%, 0);
+    transition: transform 0.24s cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .compare-tray.is-expanded .compare-tray-panel,
+    .compare-tray.is-expanded.cmp-opening .compare-tray-panel,
+    .compare-tray.is-expanded.cmp-closing .compare-tray-panel {
+      transform: none;
+      transition: none;
+    }
+  }
 
   .compare-tray-inner {
     flex-wrap: wrap;
-    padding: 0 1rem;
+    padding: 0.6rem 1rem calc(0.95rem + env(safe-area-inset-bottom, 0px));
     gap: 0.65rem;
   }
   .compare-tray.is-expanded .compare-tray-inner {
-    padding-top: 0.6rem;
-    padding-bottom: calc(0.95rem + env(safe-area-inset-bottom, 0px));
     max-height: min(88dvh, calc(100dvh - 24px));
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -3663,6 +3867,20 @@ body.detail-has-cta .toast {
     gap: 0.5rem;
     overflow: visible;
     padding: 0;
+  }
+  /* CMP-015: the OUTER shell must be released here too. When the permanent
+     .compare-slot container was introduced, the box metrics moved onto it —
+     including `max-width: 220px`, which only ever made sense for three slots
+     side by side on a desktop row. This override still targeted the inner
+     .cmp-slot, so on a phone every row stayed pinned to 220px inside a ~358px
+     sheet and left a dead gap down the right-hand side. Stacked one per row,
+     a slot should simply be as wide as the sheet. */
+  .compare-tray-slots .compare-slot {
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 64px;
   }
   .compare-tray-slots .cmp-slot {
     width: 100%;
@@ -3880,6 +4098,21 @@ body.detail-has-cta .toast {
 }
 .cmp-picker-search:focus-within { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
 
+/* CMP-009: the maximum-limit explanation, shown only at 3/3. Sits between the
+   tools and the results so it explains the disabled rows before the visitor
+   reaches them. Neutral, not an alarm: hitting the cap is normal use. */
+.cmp-picker-limit {
+  margin: 0;
+  padding: 0.6rem 1.25rem;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.cmp-picker-limit[hidden] { display: none; }
+
 .cmp-picker-list {
   flex: 1;
   overflow-y: auto;
@@ -3939,9 +4172,21 @@ body.detail-has-cta .toast {
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.cmp-picker-add:hover { background: var(--red); color: #fff; }
+/* CMP-011: :not(:disabled) matters. The hover rule used to apply to disabled
+   buttons too (equal specificity, declared first), so at 3/3 every unavailable
+   product still filled solid red under the cursor and read as clickable. */
+.cmp-picker-add:not(:disabled):hover { background: var(--red); color: #fff; }
 .cmp-picker-add.is-added { background: var(--red-tint); border-color: var(--red-tint-bdr); color: var(--red); }
-.cmp-picker-add:disabled { border-color: var(--line-2); color: var(--muted-2); background: #fff; cursor: not-allowed; }
+/* Unavailable at the limit: dropped out of the red system entirely, onto the
+   neutral well, so "cannot add this" is legible at a glance rather than only on
+   attempted interaction. The shared #compareLimitMessage above the list says
+   why. Selected rows keep their .is-added treatment and stay operable. */
+.cmp-picker-add:disabled {
+  border-color: var(--line);
+  color: var(--muted-2);
+  background: var(--panel-2);
+  cursor: not-allowed;
+}
 .cmp-picker-add:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .cmp-picker-empty { padding: 1.5rem 1rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
 
@@ -4673,7 +4918,14 @@ body.cmp-rotate-open { overflow: hidden; }
 /* ─── Toast offset when compare tray is open ─────────────────── */
 body:has(.compare-tray.visible) .toast {
   bottom: calc(var(--compare-tray-height) + 1.5rem);
-  transition: bottom 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  /* Must restate the base opacity/transform transitions: declaring only
+     `bottom` here replaced the whole shorthand, so while the compare tray was
+     open the toast snapped in with no fade at all. */
+  transition: opacity 0.28s ease, transform 0.28s var(--ease),
+    bottom 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  body:has(.compare-tray.visible) .toast { transition: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -4827,8 +5079,20 @@ body:has(.compare-tray.visible) .toast {
   .detail-skeleton-summary { min-height: 550px; }
 }
 
+/* Same correction one band up: .detail-top is still stacked here, and 440px
+   over-reserved against the real 300-340px summary. */
 @media (min-width: 769px) and (max-width: 1100px) {
-  .detail-skeleton-summary { min-height: 440px; }
+  .detail-skeleton-summary { min-height: 330px; }
+}
+
+/* PERF-004: in the tablet band .detail-top is a single-column stack, so the
+   summary skeleton's height lands directly on the page height. At 550px it was
+   roughly 280px TALLER than every real summary that replaced it (measured
+   262-316px across the catalogue), and the whole page snapped upward on load.
+   Phones keep the 550px rule above: there the shift happens below the fold and
+   measures 0, and shortening it there would pull the collapse into view. */
+@media (min-width: 641px) and (max-width: 768px) {
+  .detail-skeleton-summary { min-height: 300px; }
 }
 
 html[data-compare-count="1"] #compareSelectPanel:empty,
@@ -5065,6 +5329,18 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
    same job), so this is a single centred card rather than a two-column grid.
    The Business Operating Hours and Find Us sections below it carry the rest of
    the page, so the card does not need a second column beside it. */
+/* VIS-001: the Contact hero used the shared 1400px container while everything
+   below it is capped at 880px, so the page title started ~260px to the left of
+   the cards it introduced — two competing left edges on one page. The hero now
+   shares the content container (the Enquiry page already does this via
+   .hero-inner-narrow), so heading, lead and cards line up on one edge. The hero
+   photograph is absolutely positioned and stays full-bleed. */
+.contact-hero .page-hero-inner {
+  max-width: 880px;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
 .contact-page {
   max-width: 880px;
   margin: 1.25rem auto 3.5rem;
@@ -5086,7 +5362,9 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   flex-direction: column;
   padding: 2rem 2.25rem;
 }
-.contact-info-card .contact-whatsapp { margin-top: 1rem; }
+/* ~28px of air above the CTA, and align-self:start so the fit-content button
+   keeps the card's left edge instead of stretching across the flex column. */
+.contact-info-card .contact-whatsapp { margin-top: 1.75rem; align-self: flex-start; }
 .contact-info-card .contact-detail-list { margin-bottom: 0; }
 
 
@@ -5112,7 +5390,13 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 @media (min-width: 720px) {
   .contact-detail-list { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; }
   .contact-detail:first-child { grid-column: 1 / -1; }
-  .contact-info-card .contact-whatsapp { max-width: 360px; }
+}
+
+/* Narrow phones: a fit-content button leaves an awkward stub beside a
+   full-width card, so the CTA takes the full column there. The icon and label
+   stay centred as one group inside it. */
+@media (max-width: 480px) {
+  .contact-info-card .contact-whatsapp { width: 100%; align-self: stretch; }
 }
 
 /* ── Response time, Business Operating Hours, Find Us map ────────
@@ -5375,6 +5659,11 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 }
 
 .contact-detail a {
+  /* A11Y-006: the email and phone links are standalone actions in their own
+     rows, not links inside a sentence, so the WCAG 2.2 inline exception does
+     not cover them — each gets a real 24px target. */
+  display: inline-block;
+  min-height: 24px;
   color: var(--text);
   text-decoration: none;
   font-weight: 500;
@@ -5383,29 +5672,42 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 
 .contact-detail a:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
 
-/* Outlined WhatsApp row (locked design: quiet functional control, not a
-   full-green banner). */
+/* WA-001: primary WhatsApp CTA on the Contact page.
+   Yee Lim red, never WhatsApp green — a dominant green button here competed
+   with the brand system on the one page where the identity has to be
+   strongest. The glyph and label are one centred group inside a width-fitted
+   button (no absolute positioning, no manual offsets), and the button's left
+   edge aligns with the contact rows above it because it is a normal block-level
+   flow child of the same card padding — inline-flex + fit-content, not
+   margin:auto. */
 .contact-whatsapp {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  width: 100%;
+  justify-content: center;
+  gap: 0.7rem;              /* ~11px */
+  width: fit-content;
+  min-height: 55px;
   margin-top: 0;
-  padding: 0.85rem 1rem;
-  background: #fff;
-  border: 1px solid var(--border);
-  color: var(--text);
+  padding: 0 1.75rem;       /* ~28px */
+  background: var(--red);
+  border: 1px solid var(--red);
+  color: #fff;
   text-decoration: none;
-  font-size: 0.92rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.2;
   border-radius: var(--radius);
-  transition: border-color 0.18s, background 0.18s;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
-.contact-whatsapp:hover { border-color: #16a34a; background: #f2faf4; }
-.contact-whatsapp:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.contact-whatsapp svg:first-child { flex-shrink: 0; color: #25D366; }
-.contact-whatsapp-go { margin-left: auto; color: var(--muted); }
+.contact-whatsapp:hover,
+.contact-whatsapp:focus-visible { background: var(--red-hover); border-color: var(--red-hover); }
+.contact-whatsapp:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+/* White glyph: the icon is part of the label group, not a green brand badge. */
+.contact-whatsapp svg { flex-shrink: 0; color: #fff; }
+/* The trailing chevron is gone: with a fit-content button there is no gap for
+   it to be pushed into, and it split the icon+label into two visual groups. */
+.contact-whatsapp-go { display: none; }
 
 .contact-form {
   margin-top: 1rem;
@@ -5464,11 +5766,11 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 .contact-form-status:empty { margin: 0; }
 
 .contact-form-status.success {
-  color: #16803a;
+  color: var(--green);
 }
 
 .contact-form-status.error {
-  color: #c0392b;
+  color: var(--error);
 }
 
 @media (max-width: 860px) {

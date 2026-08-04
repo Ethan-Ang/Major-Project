@@ -1,25 +1,6 @@
-/* 404-specific layout overrides loaded after the shared product stylesheet. */
-.nf-skip-link {
-  position: fixed;
-  top: .75rem;
-  left: .75rem;
-  z-index: 200;
-  transform: translateY(-180%);
-  padding: .65rem .9rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--card);
-  color: var(--text);
-  font-weight: 700;
-  text-decoration: none;
-  transition: transform 150ms ease-out;
-}
-
-.nf-skip-link:focus {
-  transform: translateY(0);
-  outline: 2px solid var(--red);
-  outline-offset: 2px;
-}
+/* 404-specific layout overrides loaded after the shared product stylesheet.
+   The skip link itself now lives in products.css (.skip-link/.nf-skip-link) so
+   every public page shares one definition instead of the 404 owning its own. */
 
 /* Use the warehouse photo while retaining a JPEG fallback. */
 .nf-hero .page-hero-img {
@@ -77,6 +58,3 @@
   .nf-help-grid { gap: .75rem; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .nf-skip-link { transition: none; }
-}
