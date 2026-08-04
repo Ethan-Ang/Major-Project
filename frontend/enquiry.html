@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Product Enquiry | Yee Lim Adhesives Industries</title>
-  <meta name="description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
+  <title>Enquiry | Yee Lim Adhesives Industries</title>
+  <meta name="description" content="Enquire about a Yee Lim adhesive, request a recommendation, or send our team a general question. Attaching products is optional.">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -13,22 +13,22 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Yee Lim Adhesives Industries">
   <meta property="og:locale" content="en_SG">
-  <meta property="og:title" content="Product Enquiry | Yee Lim Adhesives Industries">
-  <meta property="og:description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
+  <meta property="og:title" content="Enquiry | Yee Lim Adhesives Industries">
+  <meta property="og:description" content="Enquire about a Yee Lim adhesive, request a recommendation, or send our team a general question. Attaching products is optional.">
   <meta property="og:url" content="https://yeelimadhesives.com/enquiry">
   <meta property="og:image" content="https://yeelimadhesives.com/images/hero/adhesive-pails-warehouse-1536.jpg">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Product Enquiry | Yee Lim Adhesives Industries">
-  <meta name="twitter:description" content="Review your selected Yee Lim adhesive products and send one product enquiry to our team for advice or quotation.">
+  <meta name="twitter:title" content="Enquiry | Yee Lim Adhesives Industries">
+  <meta name="twitter:description" content="Enquire about a Yee Lim adhesive, request a recommendation, or send our team a general question. Attaching products is optional.">
   <meta name="twitter:image" content="https://yeelimadhesives.com/images/hero/adhesive-pails-warehouse-1536.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=119">
+  <link rel="stylesheet" href="/css/products.css?v=120">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=10">
-  <script src="/js/i18n.js?v=19"></script>
+  <script src="/js/i18n.js?v=20"></script>
   <script src="/js/i18n-products.js?v=2"></script>
-  <script src="/js/widgets/navbar.js?v=28"></script>
+  <script src="/js/widgets/navbar.js?v=29"></script>
   <script src="/js/widgets/footer.js?v=27"></script>
 </head>
 <body>
@@ -42,11 +42,11 @@
 <section class="page-hero enquiry-hero" aria-labelledby="enquiryHeading">
   <div class="page-hero-img" aria-hidden="true"></div>
   <div class="page-hero-inner hero-inner-narrow">
-    <!-- No breadcrumb: Product Enquiry is a top-level destination reached from
-         the persistent Enquiry action in the header, so "Home › Product Enquiry"
-         added a strip of redundant text above the page title on every width. -->
-    <h1 id="enquiryHeading" data-i18n="enquiry.title">Product Enquiry</h1>
-    <p class="hero-lead" data-i18n="enquiry.lead">Review your selected products and submit an enquiry. Our team will respond with expert advice and recommendations.</p>
+    <!-- No breadcrumb: Enquiry is a top-level destination reached from the
+         persistent Enquiry action in the header, so "Home › Enquiry" added a
+         strip of redundant text above the page title on every width. -->
+    <h1 id="enquiryHeading" data-i18n="enquiry.title">Enquiry</h1>
+    <p class="hero-lead" data-i18n="enquiry.lead">Enquire about a product, request a recommendation, or send our team a general question.</p>
   </div>
 </section>
 
@@ -56,19 +56,36 @@
 <div class="page-content" id="enquiryContent">
   <div class="enquiry-grid">
 
-    <!-- LEFT: enquiry basket -->
-    <section class="enquiry-col-left">
+    <!-- LEFT: products attached to the enquiry.
+         Products are an OPTIONAL attachment, so this panel is always present and
+         always compact. It never grows into a full-page empty state and it never
+         controls whether the form on the right is shown. -->
+    <section class="enquiry-col-left" aria-labelledby="attachedHeading">
       <div class="enquiry-basket-card">
-        <div class="enquiry-col-head" id="enquiryColHead" style="display:none">
+        <div class="enquiry-col-head" id="enquiryColHead">
           <div>
-            <h2 data-i18n="enquiry.basket">Your Enquiry Basket</h2>
-            <p class="enquiry-basket-sub" data-i18n="enquiry.basket_sub">Review the products you&rsquo;ve selected.</p>
+            <h2 id="attachedHeading">
+              <span data-i18n="enquiry.basket">Products attached</span>
+              <span class="enquiry-optional-tag" data-i18n="enquiry.optional_tag">Optional</span>
+            </h2>
+            <p class="enquiry-basket-sub" id="enquiryBasketSub" data-i18n="enquiry.basket_sub">Review the products you&rsquo;ve attached.</p>
           </div>
-          <button type="button" class="enquiry-clear-all" id="clearAllBtn" onclick="clearAllBasket()" data-i18n="enquiry.clear_all">Clear all</button>
+          <!-- Only meaningful once something is attached; hidden at zero. -->
+          <button type="button" class="enquiry-clear-all" id="clearAllBtn" onclick="clearAllBasket()" data-i18n="enquiry.clear_all" hidden>Clear all</button>
         </div>
 
-        <!-- Basket list -->
+        <!-- Attached products (or the compact "none attached" note) -->
         <div class="basket-list" id="basketList"></div>
+
+        <!-- Secondary attachment actions. Real internal anchors so Swup handles
+             them; never styled to compete with Submit enquiry. The Bond Finder
+             entry is a link to the teammate-owned section on /products — it does
+             not modify that feature in any way. -->
+        <div class="enquiry-attach-actions">
+          <a href="/products" class="enquiry-quiet-btn" id="enquiryBrowseLink" data-i18n="enquiry.browse">Browse products</a>
+          <a href="/products#bondFinder" class="enquiry-quiet-btn" data-i18n="enquiry.use_bond_finder">Use Bond Finder</a>
+        </div>
+        <p class="enquiry-optional-note" data-i18n="enquiry.products_optional">Products are optional.</p>
 
         <!-- Total + Product Advice summary: two explicit groups preserve the
              desktop split and provide a clean mobile stack. The complete advisor
@@ -78,7 +95,7 @@
             <span class="enquiry-total-ic" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
             </span>
-            <span class="enquiry-total-text"><strong data-i18n="enquiry.total">Total Products</strong><span id="enquiryTotalCount"></span></span>
+            <span class="enquiry-total-text"><strong data-i18n="enquiry.total">Attached</strong><span id="enquiryTotalCount"></span></span>
           </div>
           <button type="button" class="enquiry-total-advice" aria-haspopup="dialog" onclick="if(window.openProductAdvisor){window.openProductAdvisor()}else{window.location.href='/contact'}">
             <span class="enquiry-advice-helper" data-i18n="enquiry.need_help">Need help finding the right product?</span>
@@ -90,9 +107,12 @@
       </div>
     </section>
 
-    <!-- RIGHT: details form (shown only if products are selected) -->
+    <!-- RIGHT: details form. ALWAYS visible — zero attached products is a valid
+         submission state, so nothing here is gated on the basket. It also never
+         moves or re-renders when products are added or removed, which is what
+         keeps typed-in details safe. -->
     <aside class="enquiry-col-right">
-      <div class="enquiry-form" id="enquiryFormSection" style="display:none">
+      <div class="enquiry-form" id="enquiryFormSection">
         <div class="enquiry-form-body">
           <div class="enquiry-form-head">
             <h2 data-i18n="enquiry.your_details">Your Details</h2>
@@ -130,19 +150,34 @@
               <input type="tel" id="ePhone" autocomplete="tel" placeholder="+65 9123 4567">
             </div>
           </div>
+          <!-- Enquiry topic. Required: with no products attached it is the only
+               structured signal of what the enquiry is about, so the team needs
+               it to route the lead. -->
           <div class="form-group">
-            <label for="eSubject" data-i18n="enquiry.f_subject">Subject</label>
-            <select id="eSubject" aria-label="Enquiry subject">
-              <option value="" selected data-i18n="enquiry.opt_select">Select enquiry subject</option>
-              <option data-i18n="enquiry.opt_general">General product enquiry</option>
-              <option data-i18n="enquiry.opt_quote">Request a quotation</option>
-              <option data-i18n="enquiry.opt_tech">Technical / application advice</option>
-              <option data-i18n="enquiry.opt_bulk">Bulk or distributor enquiry</option>
+            <label for="eSubject" data-i18n="enquiry.f_subject">Enquiry topic *</label>
+            <!-- aria-label is required here, not decorative: enhanceCustomSelect
+                 copies it onto the visible trigger button, which is what
+                 assistive tech actually reaches (the native select is
+                 aria-hidden once enhanced). -->
+            <select id="eSubject" required aria-required="true" aria-label="Enquiry topic" data-i18n-attr="aria-label:enquiry.f_subject_plain">
+              <option value="" selected data-i18n="enquiry.opt_select">Select enquiry topic</option>
+              <option data-i18n="enquiry.opt_recommend">Product recommendation</option>
+              <option data-i18n="enquiry.opt_quote">Pricing or bulk order</option>
+              <option data-i18n="enquiry.opt_tech">Technical support</option>
+              <option data-i18n="enquiry.opt_custom">Custom or OEM solution</option>
+              <option data-i18n="enquiry.opt_docs">Product documentation</option>
+              <option data-i18n="enquiry.opt_bulk">Distributor or partnership</option>
+              <option data-i18n="enquiry.opt_general">General enquiry</option>
               <option data-i18n="enquiry.opt_other">Other</option>
             </select>
+            <p class="field-error" id="eSubjectErr" hidden data-i18n="enquiry.err_subject">Please choose an enquiry topic.</p>
+            <!-- Prompt for the details a recommendation needs. Deliberately one
+                 hint, not six required fields. -->
+            <p class="field-hint" id="eSubjectHint" hidden data-i18n="enquiry.recommend_help">Tell us the materials you are bonding, application method, operating conditions and estimated quantity.</p>
           </div>
           <div class="form-group">
-            <label for="eMessage" data-i18n="enquiry.f_message">Message</label>
+            <!-- Label adapts to whether products are attached (see enquiry.js). -->
+            <label for="eMessage" id="eMessageLabel" data-i18n="enquiry.f_message_general">How can we help?</label>
             <textarea id="eMessage" maxlength="1000" placeholder="Tell us the surfaces you are bonding, your application, and the quantity you need…" data-i18n-attr="placeholder:enquiry.ph_message"></textarea>
             <span class="ta-counter" id="eMessageCount" aria-hidden="true">0 / 1000</span>
           </div>
@@ -180,6 +215,10 @@
   <div class="check" aria-hidden="true">&check;</div>
   <h2 data-i18n="enquiry.sent">Enquiry Sent</h2>
   <p data-i18n="enquiry.sent_body">Thank you for your enquiry. Our team will get back to you within 1&ndash;2 business days.</p>
+  <!-- Exactly one of these is unhidden on success, so the confirmation never
+       implies products were attached when none were. -->
+  <p class="confirmation-detail" id="confirmationProducts" hidden data-i18n="enquiry.sent_with_products">The products you attached were included with your enquiry.</p>
+  <p class="confirmation-detail" id="confirmationGeneral" hidden data-i18n="enquiry.sent_general">Our team will review your request and respond to you directly.</p>
   <p class="confirmation-ref" id="confirmationRef" style="display:none;font-weight:600;color:var(--text)"></p>
   <p class="confirmation-note" id="confirmationNote" style="display:none;font-size:0.85rem;color:var(--muted)" data-i18n="enquiry.sent_email">We've emailed a copy to you for your records.</p>
   <a href="/products" class="btn btn-primary" style="margin-top:1.5rem;padding:0.75rem 1.5rem;display:inline-block" data-i18n="enquiry.browse_more">
@@ -193,15 +232,15 @@
 
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=11"></script>
-<script src="/js/core/app.js?v=6"></script>
+<script src="/js/core/app.js?v=7"></script>
 <script src="/js/widgets/compare.js?v=29"></script>
 <script src="/js/widgets/custom-select.js?v=7"></script>
-<script src="/js/pages/products.js?v=57"></script>
-<script src="/js/pages/product-detail.js?v=40"></script>
+<script src="/js/pages/products.js?v=58"></script>
+<script src="/js/pages/product-detail.js?v=41"></script>
 <script src="/js/pages/compare-page.js?v=21"></script>
-<script src="/js/pages/enquiry.js?v=10"></script>
+<script src="/js/pages/enquiry.js?v=11"></script>
 <script src="/js/pages/contact.js?v=6"></script>
-<script src="/js/widgets/chatbot.js?v=30"></script>
-<script src="/js/widgets/page-transitions.js?v=9"></script>
+<script src="/js/widgets/chatbot.js?v=31"></script>
+<script src="/js/widgets/page-transitions.js?v=10"></script>
 </body>
 </html>

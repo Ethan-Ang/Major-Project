@@ -16,8 +16,12 @@
     "nav.products":        { en: "Products",        zh: "产品" },
     "nav.about":           { en: "About",           zh: "关于我们" },
     "nav.contact":         { en: "Contact",         zh: "联系我们" },
-    "nav.enquiry":         { en: "Product Enquiry", zh: "产品询价" },
+    // "Enquiry", not "Product Enquiry": products are an OPTIONAL attachment to
+    // an enquiry, so the public label must not imply one is required. The count
+    // badge beside it is what communicates "n products attached".
+    "nav.enquiry":         { en: "Enquiry",         zh: "询价" },
     "nav.enquiry_short":   { en: "Enquiry",         zh: "询价" },
+    "nav.enquiry_count":   { en: "Enquiry, {count} {unit} attached", zh: "询价，已附加 {count} 件产品" },
 
     // ── Common actions / labels ──
     "common.add_enquiry":  { en: "Add to Enquiry",  zh: "加入询价" },
@@ -36,8 +40,12 @@
     "common.search_browse":{ en: "Search or browse", zh: "搜索或浏览" },
     "common.cmp_hint_min": { en: "Select at least 2 products to compare", zh: "请至少选择 2 款产品进行对比" },
     "common.cmp_hint_open":{ en: "Open comparison view", zh: "打开对比视图" },
-    "common.added_enquiry":  { en: "was added to your product enquiry.", zh: "已加入您的产品询价。" },
-    "common.removed_enquiry":{ en: "was removed from your product enquiry.", zh: "已从您的产品询价中移除。" },
+    // Accessible names for the product-card enquiry toggle. Previously
+    // hardcoded English reading "Add to Product Enquiry".
+    "common.aria_add_enquiry":    { en: "Add to Enquiry",      zh: "加入询价" },
+    "common.aria_remove_enquiry": { en: "Remove from Enquiry", zh: "从询价中移除" },
+    "common.added_enquiry":  { en: "was attached to your enquiry.", zh: "已附加到您的询价。" },
+    "common.removed_enquiry":{ en: "was removed from your enquiry.", zh: "已从您的询价中移除。" },
     "common.back_products":  { en: "Back to Products",  zh: "返回产品列表" },
 
     // ── Compare: screen-reader-only announcements and labels ──
@@ -55,6 +63,9 @@
     "cmp.a11y.sheet":      { en: "Selected products to compare", zh: "已选择的对比产品" },
     "cmp.a11y.remove_one": { en: "Remove {product} from comparison", zh: "将 {product} 从对比中移除" },
     "cmp.a11y.clear_all":  { en: "Clear all products from comparison", zh: "清除对比中的所有产品" },
+    "products.grid_heading": { en: "Products",        zh: "产品" },
+    "detail.wa_aria":      { en: "Talk to Yee Lim about this product on WhatsApp", zh: "通过 WhatsApp 就此产品联系 Yee Lim" },
+    "detail.wa_aria_doc":  { en: "Chat about this product on WhatsApp", zh: "通过 WhatsApp 咨询此产品" },
 
     // ── Footer (shared) ──
     "footer.blurb":        { en: "One of Singapore's earliest and largest adhesive manufacturers. For over 50 years we have formulated commercial and industrial adhesive solutions engineered to the job, not off the shelf.", zh: "新加坡历史最悠久、规模最大的胶粘剂制造商之一。五十多年来，我们专注于研发针对具体工序定制的工商业胶粘剂解决方案，而非现成产品。" },
@@ -235,12 +246,20 @@
     "compare.key_features":{ en: "Key Features",       zh: "主要特性" },
 
     // ── Enquiry page ──
-    "enquiry.title":       { en: "Product Enquiry",    zh: "产品询价" },
-    "enquiry.lead":        { en: "Review your selected products and submit an enquiry. Our team will respond with expert advice and recommendations.", zh: "查看您选择的产品并提交询价，我们的团队将为您提供专业建议与推荐。" },
-    "enquiry.basket":      { en: "Your Enquiry Basket", zh: "您的询价清单" },
-    "enquiry.basket_sub":  { en: "Review the products you've selected.", zh: "查看您已选择的产品。" },
+    // Products are OPTIONAL attachments: every string here must work for a
+    // general enquiry with nothing attached as well as a product enquiry.
+    "enquiry.title":       { en: "Enquiry",            zh: "询价" },
+    "enquiry.lead":        { en: "Enquire about a product, request a recommendation, or send our team a general question.", zh: "您可以就某款产品询价、索取选型建议，或向我们的团队提出一般问题。" },
+    "enquiry.basket":      { en: "Products attached",  zh: "已附加产品" },
+    "enquiry.optional_tag":{ en: "Optional",           zh: "选填" },
+    "enquiry.basket_sub":  { en: "Review the products you've attached.", zh: "查看您已附加的产品。" },
     "enquiry.clear_all":   { en: "Clear all",          zh: "清除全部" },
-    "enquiry.total":       { en: "Total Products",     zh: "产品总数" },
+    "enquiry.products_optional": { en: "Products are optional.", zh: "附加产品为选填项。" },
+    "enquiry.add_another": { en: "Add another product", zh: "添加其他产品" },
+    // Terminology matched to the teammate-owned "bond.title" so the two places
+    // that name the feature agree. This is a link only; Bond Finder is untouched.
+    "enquiry.use_bond_finder": { en: "Use Bond Finder", zh: "使用粘合方案查找器" },
+    "enquiry.total":       { en: "Attached",           zh: "已附加" },
     "enquiry.need_help":   { en: "Need help finding the right product?", zh: "需要帮助挑选合适的产品？" },
     "enquiry.get_advice":  { en: "Get Product Advice", zh: "获取产品建议" },
     "enquiry.your_details":{ en: "Your Details",       zh: "您的信息" },
@@ -250,38 +269,61 @@
     "enquiry.f_company":   { en: "Company Name *",     zh: "公司名称 *" },
     "enquiry.f_email":     { en: "Email Address *",    zh: "电子邮箱 *" },
     "enquiry.f_phone":     { en: "Phone Number",       zh: "电话号码" },
-    "enquiry.f_subject":   { en: "Subject",            zh: "主题" },
+    "enquiry.f_subject":   { en: "Enquiry topic *",    zh: "询价主题 *" },
+    // Bare label (no asterisk) for the "Enquiry topic: ..." line folded into the
+    // message body and for error copy, where a "*" would read as a typo.
+    "enquiry.f_subject_plain": { en: "Enquiry topic",  zh: "询价主题" },
     "enquiry.f_message":   { en: "Message",            zh: "留言" },
+    // The Message label adapts to what the enquiry is about.
+    "enquiry.f_message_products": { en: "Tell us about your requirements", zh: "请告诉我们您的需求" },
+    "enquiry.f_message_general":  { en: "How can we help?", zh: "我们能为您做些什么？" },
     "enquiry.f_notes":     { en: "Enquiry Notes",      zh: "询价备注" },
     "enquiry.optional":    { en: "(Optional)",         zh: "（选填）" },
     "enquiry.ph_name":     { en: "John Tan",           zh: "您的姓名" },
     "enquiry.ph_company":  { en: "ABC Pte Ltd",        zh: "贵公司名称" },
     "enquiry.ph_message":  { en: "Tell us the surfaces you are bonding, your application, and the quantity you need…", zh: "请告诉我们您要粘合的表面、应用场景以及所需数量……" },
     "enquiry.ph_notes":    { en: "Any additional information that may help our team…", zh: "任何有助于我们团队的补充信息……" },
-    "enquiry.opt_select":  { en: "Select enquiry subject", zh: "请选择询价主题" },
-    "enquiry.opt_general": { en: "General product enquiry", zh: "一般产品询价" },
-    "enquiry.opt_quote":   { en: "Request a quotation", zh: "申请报价" },
-    "enquiry.opt_tech":    { en: "Technical / application advice", zh: "技术 / 应用咨询" },
-    "enquiry.opt_bulk":    { en: "Bulk or distributor enquiry", zh: "批量或经销商询价" },
-    "enquiry.opt_other":   { en: "Other",              zh: "其他" },
+    "enquiry.opt_select":  { en: "Select enquiry topic", zh: "请选择询价主题" },
+    "enquiry.opt_recommend": { en: "Product recommendation", zh: "产品选型建议" },
+    "enquiry.opt_quote":   { en: "Pricing or bulk order", zh: "价格或批量订购" },
+    "enquiry.opt_tech":    { en: "Technical support",   zh: "技术支持" },
+    "enquiry.opt_custom":  { en: "Custom or OEM solution", zh: "定制或代工方案" },
+    "enquiry.opt_docs":    { en: "Product documentation", zh: "产品资料文件" },
+    "enquiry.opt_bulk":    { en: "Distributor or partnership", zh: "经销或合作洽谈" },
+    "enquiry.opt_general": { en: "General enquiry",     zh: "一般询价" },
+    "enquiry.opt_other":   { en: "Other",               zh: "其他" },
+    // Shown only under "Product recommendation": prompts for the details our
+    // team needs, WITHOUT turning any of them into separate required fields.
+    "enquiry.recommend_help": { en: "Tell us the materials you are bonding, application method, operating conditions and estimated quantity.", zh: "请告诉我们需要粘合的材料、施工方法、使用环境条件以及预计用量。" },
     "enquiry.err_name":    { en: "Please enter your full name.", zh: "请输入您的姓名。" },
     "enquiry.err_company": { en: "Please enter your company name.", zh: "请输入您的公司名称。" },
     "enquiry.err_email":   { en: "Please enter a valid email address.", zh: "请输入有效的电子邮箱地址。" },
+    "enquiry.err_subject": { en: "Please choose an enquiry topic.", zh: "请选择询价主题。" },
     "enquiry.err_privacy": { en: "Please agree to the use of your information so we can process your enquiry.", zh: "请同意我们使用您的信息以处理您的询价。" },
     "enquiry.privacy_agree": { en: "I agree to the collection and use of my information to process this enquiry.", zh: "我同意收集并使用我的信息以处理本次询价。" },
     "enquiry.submit":      { en: "Submit Enquiry",     zh: "提交询价" },
     "enquiry.sending":     { en: "Sending…",           zh: "提交中……" },
     "enquiry.reassurance": { en: "We'll reply within 1-2 business days with advice or a quotation.", zh: "我们将在 1-2 个工作日内回复建议或报价。" },
     "enquiry.security":    { en: "Your information is secure and will only be used to process your enquiry.", zh: "您的信息将被安全保存，仅用于处理您的询价。" },
-    "enquiry.empty_title": { en: "No products selected yet", zh: "尚未选择任何产品" },
-    "enquiry.empty_body":  { en: "Browse the catalogue and add adhesives to build a single enquiry for our team.", zh: "浏览产品目录并添加胶粘剂，即可为我们的团队创建一份询价。" },
-    "enquiry.browse":      { en: "Browse Products",    zh: "浏览产品" },
+    "enquiry.empty_title": { en: "No products selected", zh: "尚未选择产品" },
+    "enquiry.empty_body":  { en: "That's okay. You can still submit a general enquiry or ask us for a product recommendation.", zh: "这没有关系。您仍然可以提交一般询价，或请我们为您推荐合适的产品。" },
+    "enquiry.browse":      { en: "Browse products",    zh: "浏览产品" },
     "enquiry.browse_more": { en: "Browse More Products", zh: "浏览更多产品" },
     "enquiry.remove":      { en: "Remove",             zh: "移除" },
+    "enquiry.remove_aria": { en: "Remove {product} from your enquiry", zh: "将 {product} 从您的询价中移除" },
     "enquiry.item":        { en: "item",               zh: "件" },
     "enquiry.items":       { en: "items",              zh: "件" },
+    // Screen-reader announcements when the attached list changes. The zero case
+    // must reassure, not alarm: the enquiry is still submittable.
+    "enquiry.a11y_removed":      { en: "{product} removed. {count} {unit} still attached.", zh: "已移除 {product}。仍附加 {count} 件产品。" },
+    "enquiry.a11y_removed_last": { en: "{product} removed. No products attached. You can still submit your enquiry.", zh: "已移除 {product}。目前没有附加产品。您仍然可以提交询价。" },
+    "enquiry.a11y_cleared":      { en: "All products removed. No products attached. You can still submit your enquiry.", zh: "已移除全部产品。目前没有附加产品。您仍然可以提交询价。" },
     "enquiry.your_ref":    { en: "Your reference:",    zh: "您的参考编号：" },
     "enquiry.sent_body":   { en: "Thank you for your enquiry. Our team will get back to you within 1-2 business days.", zh: "感谢您的询价。我们的团队将在 1-2 个工作日内与您联系。" },
+    // Success detail. Only ONE of these is shown, so the confirmation never
+    // claims products were attached when none were.
+    "enquiry.sent_with_products": { en: "The products you attached were included with your enquiry.", zh: "您附加的产品已随询价一并发送。" },
+    "enquiry.sent_general": { en: "Our team will review your request and respond to you directly.", zh: "我们的团队将审阅您的请求并直接回复您。" },
     "enquiry.sent_email":  { en: "We've emailed a copy to you for your records.", zh: "我们已将副本发送至您的邮箱以供存档。" },
     "enquiry.send_fail":   { en: "We could not send your enquiry right now. Please try again shortly, or contact Yee Lim directly via the Contact page.", zh: "我们暂时无法提交您的询价。请稍后重试，或通过“联系我们”页面直接联系 Yee Lim。" },
     "enquiry.send_wrong":  { en: "Something went wrong. Please try again.", zh: "出现问题，请重试。" },
@@ -449,6 +491,9 @@
       // them. Retranslate them in place and flip the switcher itself.
       window.ylApplyI18n(document);
       if (typeof window.ylSyncNavLang === "function") window.ylSyncNavLang();
+      // The Product Advisor lives outside #swup and holds a conversation, which
+      // cannot be retranslated — it restarts in the new language instead.
+      if (typeof window.ylAdvisorLanguageChanged === "function") window.ylAdvisorLanguageChanged();
       swup.hooks.off("page:view", restore);
     };
     swup.hooks.on("page:view", restore);

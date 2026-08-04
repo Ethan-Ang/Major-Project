@@ -425,9 +425,9 @@
     </ul>
     <div class="nav-right">
       <button type="button" class="nav-lang-btn" data-lang="${altLang}" lang="${altLang === "zh" ? "zh-Hans" : "en"}" aria-label="${altLangAria}">${altLangLabel}</button>
-      <a href="/enquiry" class="nav-basket" data-i18n-attr="aria-label:nav.enquiry" aria-label="${T("nav.enquiry", "Product Enquiry")}">
+      <a href="/enquiry" class="nav-basket" data-i18n-attr="aria-label:nav.enquiry" aria-label="${T("nav.enquiry", "Enquiry")}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path></svg>
-        <span class="nav-basket-label nav-basket-label-full" data-i18n="nav.enquiry">${T("nav.enquiry", "Product Enquiry")}</span>
+        <span class="nav-basket-label nav-basket-label-full" data-i18n="nav.enquiry">${T("nav.enquiry", "Enquiry")}</span>
         <span class="nav-basket-label nav-basket-label-short" aria-hidden="true" data-i18n="nav.enquiry_short">${T("nav.enquiry_short", "Enquiry")}</span>
         <span class="nav-basket-count" id="basketCount">${getBasketCount()}</span>
       </a>
@@ -675,6 +675,11 @@
     });
   };
 
+  // Exposed so page-transitions.js can re-run it after a Swup swap: applying
+  // static i18n resets the link's aria-label from data-i18n-attr, which would
+  // otherwise drop the attached-product count from the accessible name.
+  window.ylSyncNavCounts = updateCounts;
+
   function updateCounts() {
     const n = getBasketCount();
 
@@ -686,9 +691,18 @@
 
     const basketLinkEl = document.querySelector(".nav-basket");
     if (basketLinkEl) {
-      basketLinkEl.setAttribute("aria-label", n > 0
-        ? `Product Enquiry, ${n} ${n === 1 ? "item" : "items"}`
-        : "Product Enquiry");
+      // The count describes ATTACHED products, which are optional — at zero the
+      // name is just "Enquiry", with no wording implying something is missing.
+      // Previously hardcoded English; now translated like every other label.
+      var label;
+      if (n > 0) {
+        var unit = (window.ylLang === "zh") ? "件" : (n === 1 ? "item" : "items");
+        label = T("nav.enquiry_count", "Enquiry, {count} {unit} attached")
+          .replace("{count}", n).replace("{unit}", unit);
+      } else {
+        label = T("nav.enquiry", "Enquiry");
+      }
+      basketLinkEl.setAttribute("aria-label", label);
     }
 
     const compareCountEl = document.getElementById("navCompareCount");

@@ -1279,7 +1279,7 @@ function productCardHTML(p) {
           data-product-id="${p.id}"
           aria-pressed="${inBasket ? "true" : "false"}"
           onclick="toggleBasket('${p.id}', '${ylTxt(p.name)}')"
-          aria-label="${inBasket ? "Remove from Product Enquiry" : "Add to Product Enquiry"}">
+          aria-label="${inBasket ? ylTr("common.aria_remove_enquiry", "Remove from Enquiry") : ylTr("common.aria_add_enquiry", "Add to Enquiry")}">
           ${inBasket ? pcardEnqAddedHtml() : pcardEnqAddHtml()}
         </button>
         <a href="${detailHref}" class="btn btn-outline pcard-view">${ylTr("common.view_details", "View details")}
@@ -1322,7 +1322,9 @@ function syncEnquiryButtons() {
     if (on === was) return;
     btn.classList.toggle("btn-added", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
-    btn.setAttribute("aria-label", on ? "Remove from Product Enquiry" : "Add to Product Enquiry");
+    btn.setAttribute("aria-label", on
+      ? ylTr("common.aria_remove_enquiry", "Remove from Enquiry")
+      : ylTr("common.aria_add_enquiry", "Add to Enquiry"));
     btn.innerHTML = on ? pcardEnqAddedHtml() : pcardEnqAddHtml();
   });
 }

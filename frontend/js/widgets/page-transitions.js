@@ -125,6 +125,10 @@
       window.ylApplyI18n(document);
     }
     if (typeof window.ylSyncNavLang === "function") window.ylSyncNavLang();
+    // Must follow ylApplyI18n: that call rewrites the Enquiry link's aria-label
+    // from its data-i18n-attr, which drops the attached-product count. This puts
+    // the count back so the accessible name after a swap matches a fresh load.
+    if (typeof window.ylSyncNavCounts === "function") window.ylSyncNavCounts();
     if (typeof window.ylRunReady === "function") window.ylRunReady();
 
     // Tidy up chrome that some pages inject into <body> but others must not show.

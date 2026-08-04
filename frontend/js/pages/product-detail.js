@@ -423,9 +423,9 @@ function renderSummary(product) {
           ? `&#10003; ${ylTr("common.in_compare", "In Comparison")}`
           : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg> ${ylTr("common.compare", "Compare")}`}
       </button>
-      <a class="btn-whatsapp-sidebar" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Talk to Yee Lim about this product on WhatsApp">
+      <a class="btn-whatsapp-sidebar" href="${waHref}" target="_blank" rel="noopener noreferrer" data-i18n-attr="aria-label:detail.wa_aria" aria-label="${ylTr("detail.wa_aria", "Talk to Yee Lim about this product on WhatsApp")}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>
-        ${ylTr("common.talk", "Talk to Yee Lim")}
+        <span data-i18n="common.talk">${ylTr("common.talk", "Talk to Yee Lim")}</span>
       </a>
     </div>`;
 }
@@ -629,9 +629,9 @@ function renderDownloads(product) {
           <span class="doc-empty-sub">${ylTr("detail.no_downloads_sub", "Contact Yee Lim for technical documentation.")}</span>
         </span>
       </div>
-      <a class="btn-whatsapp-sidebar doc-empty-wa" href="${waHref}" target="_blank" rel="noopener noreferrer" aria-label="Chat about this product on WhatsApp">
+      <a class="btn-whatsapp-sidebar doc-empty-wa" href="${waHref}" target="_blank" rel="noopener noreferrer" data-i18n-attr="aria-label:detail.wa_aria_doc" aria-label="${ylTr("detail.wa_aria_doc", "Chat about this product on WhatsApp")}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 1.8c2.17 0 4.2.85 5.74 2.38a8.06 8.06 0 0 1 2.38 5.73c0 4.47-3.64 8.11-8.12 8.11a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.11.82.83-3.03-.2-.31a8.06 8.06 0 0 1-1.24-4.31c0-4.47 3.64-8.1 8.11-8.1Zm4.68 11.53c-.19-.29-.75-.46-1.57-.86-.3-.15-.7-.36-1-.1-.19.16-.46.5-.62.68-.11.13-.23.14-.42.05a6.6 6.6 0 0 1-1.95-1.2 7.34 7.34 0 0 1-1.35-1.68c-.14-.24-.02-.37.1-.49.11-.11.24-.28.37-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.19 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14Z"/></svg>
-        Talk to Yee Lim
+        <span data-i18n="common.talk">${ylTr("common.talk", "Talk to Yee Lim")}</span>
       </a>`;
 
   el.innerHTML = `
@@ -1256,12 +1256,12 @@ function syncDetailBasketButtons(product) {
   }
 }
 
-// Bottom "Send Product Enquiry" CTA: the visitor is already looking at a
+// Bottom "Send Enquiry" CTA: the visitor is already looking at a
 // specific product, so add it to the enquiry first (no duplicates), then let
 // the link's href carry them to enquiry.html where it will be pre-selected.
 // localStorage writes are synchronous, so the basket is saved before the
 // default navigation runs — no preventDefault needed. Works for unavailable
-// products too. The navbar Product Enquiry link is untouched (navigation only).
+// products too. The navbar Enquiry link is untouched (navigation only).
 function enquireAboutProduct(productId) {
   const id = String(productId);
   const basket = getBasket();

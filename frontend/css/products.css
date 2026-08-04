@@ -1203,6 +1203,16 @@ h1, h2, h3,
   margin: 0.35rem 0 0;
 }
 
+/* Quiet guidance under a field (not an error). Used by the "Product
+   recommendation" topic, where the team needs specifics to answer at all. */
+.field-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0.4rem 0 0;
+}
+.field-hint[hidden] { display: none; }
+
 /* Form-level error summary above the submit button. Was an inline style block
    on the enquiry page; centralised here so the error red comes from one token
    and the two error surfaces can never drift apart. */
@@ -1983,25 +1993,44 @@ body.detail-has-cta .toast {
   align-items: start;
 }
 
-/* Empty basket: the form (right column) is hidden, so collapse to one full-width
-   column. The empty state reads as one deliberate panel spanning the content
-   width, with its own centred Browse CTA — so the separate "continue browsing"
-   link below it is redundant and hidden here. */
-.enquiry-grid.is-empty { grid-template-columns: 1fr; }
-.enquiry-grid.is-empty .enquiry-col-right { display: none; }
-.enquiry-grid.is-empty .enquiry-col-left { width: 100%; text-align: center; }
+/* NOTE: there is deliberately no "empty" variant of this grid. Attaching
+   products is optional, so the layout does NOT change shape when the list is
+   empty — the form stays exactly where it is, in the same column, at the same
+   width. The old `.is-empty` rules hid the right column and collapsed the grid,
+   which is what made a general enquiry impossible to send. */
 
 .enquiry-col-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .enquiry-col-head h2 {
   font-size: 20px;
   font-weight: 700;
   margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* "Optional" says in WORDS, not colour alone, that products can be left off.
+   Deliberately neutral: it is a statement of fact, not a warning. */
+.enquiry-optional-tag {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  border-radius: 3px;
+  padding: 2px 7px;
+  white-space: nowrap;
 }
 
 /* Clear all: quiet text control — light at rest, red underline on intent. */
@@ -2019,6 +2048,85 @@ body.detail-has-cta .toast {
 
 .enquiry-clear-all:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
 .enquiry-clear-all:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
+.enquiry-clear-all[hidden] { display: none; }
+.enquiry-basket-sub[hidden] { display: none; }
+
+/* Secondary attachment actions (Browse products / Add another product / Use
+   Bond Finder). Outlined and quiet ON PURPOSE: the one primary red action on
+   this page is Submit enquiry, and nothing here may compete with it. */
+.enquiry-attach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.enquiry-quiet-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  background: var(--card);
+  color: var(--body);
+  font-size: 0.83rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.18s, color 0.18s;
+}
+
+.enquiry-quiet-btn:hover { border-color: var(--red); color: var(--red); }
+.enquiry-quiet-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+/* Restates in text that products can be left off, for anyone who reads the
+   panel bottom-up or misses the "Optional" tag. */
+.enquiry-optional-note {
+  margin: 10px 0 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* The zero-attached state: one compact row INSIDE the panel. Not a full-bleed
+   card, not a call to action, and never a blocker — the form beside it stays
+   completely usable. */
+.basket-none {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 0 0.2rem;
+  border-top: 1px solid var(--line);
+}
+
+.basket-none-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.basket-none-copy strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.15rem;
+}
+
+.basket-none-copy p {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 46ch;
+}
 
 /* White basket card wrapping the head + item rows (locked design). The
    Total Products summary band below fuses onto this card's bottom edge
@@ -2032,13 +2140,9 @@ body.detail-has-cta .toast {
   box-shadow: var(--shadow);
   overflow: hidden; /* clip the full-bleed summary footer to the card's radius */
 }
-/* The empty state renders its own full panel inside the card shell. */
-.enquiry-grid.is-empty .enquiry-basket-card {
-  background: none;
-  border: none;
-  padding: 0;
-  box-shadow: none;
-}
+/* (The `.enquiry-grid.is-empty .enquiry-basket-card` override that used to sit
+   here is gone with the empty state it served: zero attached products is now a
+   compact row inside this same card — see .basket-none.) */
 
 .enquiry-basket-sub {
   font-size: 0.82rem;
@@ -2262,56 +2366,10 @@ body.detail-has-cta .toast {
   }
 }
 
-/* Full-width, deliberate empty panel — generous vertical rhythm and a soft warm
-   wash so it reads as an intentional state, not a lonely box in a sea of cream. */
-.basket-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 4.5rem 2rem;
-  color: var(--muted);
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-}
-
-.basket-empty-icon {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid var(--line-2);
-  box-shadow: 0 1px 3px rgba(32, 30, 24, 0.06);
-  color: var(--red);
-  margin-bottom: 1.35rem;
-}
-
-.basket-empty-icon svg { width: 30px; height: 30px; }
-
-.basket-empty h2 {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text);
-  margin: 0 0 0.5rem;
-}
-
-.basket-empty p {
-  font-size: 0.98rem;
-  color: var(--body);
-  line-height: 1.6;
-  max-width: 44ch;
-  margin: 0 0 1.75rem;
-}
-
-.basket-empty .btn { padding: 0.85rem 1.8rem; font-size: 0.95rem; }
-
+/* (The `.basket-empty` full-page panel that used to live here is gone. The
+   zero-attached state is now `.basket-none`, a compact row inside the panel,
+   because hiding the form behind a full-bleed empty card is exactly what made
+   a general enquiry impossible to send.) */
 /* Right-column sticky card: "Enquiring about" strip + padded form body. */
 .enquiry-form {
   display: block;
@@ -5130,8 +5188,11 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
    here were removed with the breadcrumbs themselves — see the
    ".detail-backrow / .detail-back" component above for what replaced them.) */
 
-/* Enquiry grid: collapse to one column, form drops below the product list,
-   sticky positioning is meaningless once stacked so it's turned off. */
+/* Enquiry grid: collapse to one column, form drops directly below the compact
+   "Products attached — Optional" panel, sticky positioning is meaningless once
+   stacked so it's turned off. The form is never collapsed behind an accordion
+   and never pushed below a full-screen empty state: on every width the order is
+   attached-products panel, then the complete form. */
 @media (max-width: 900px) {
   .enquiry-grid { grid-template-columns: 1fr; }
   .enquiry-form { position: static; }
@@ -5159,6 +5220,10 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 @media (max-width: 480px) {
   .basket-item-thumb { width: 64px; height: 64px; }
   .enquiry-col-head { flex-wrap: wrap; gap: 8px; }
+  /* Full-width secondary actions so both stay comfortably tappable rather than
+     squeezing onto one cramped row. */
+  .enquiry-attach-actions { flex-direction: column; align-items: stretch; }
+  .enquiry-quiet-btn { min-height: 44px; }
 }
 
 /* ─── Compare page polish ─────────────────────────────────────── */

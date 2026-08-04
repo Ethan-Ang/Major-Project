@@ -663,4 +663,24 @@
     window.visualViewport.addEventListener("scroll", ylAdvKeyboardSync);
   }
 
+  // LANG-007: the panel's CHROME (subtitle, note, placeholder, close label)
+  // carries data-i18n and retranslates in place. The transcript cannot: a
+  // visitor's own question and Ava's reply are content, not UI, and there is no
+  // honest way to render them in a language they were never written in. So a
+  // language change starts the conversation again in the new language rather
+  // than leaving a half-Chinese, half-English thread on screen.
+  //
+  // Only the greeting is regenerated. If a real exchange has happened, the
+  // transcript is cleared first — losing it is better than leaving it stranded
+  // in a language the visitor has just told us they do not want.
+  window.ylAdvisorLanguageChanged = function () {
+    var messages = document.getElementById("ylAdvMessages");
+    if (!messages) return;
+    messages.replaceChildren();
+    greeted = false;
+    // Re-greet only if the panel is actually on screen; otherwise the next
+    // open() does it, already in the new language.
+    if (panel && panel.classList.contains("open")) showGreeting();
+  };
+
 })();

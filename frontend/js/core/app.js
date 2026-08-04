@@ -79,8 +79,8 @@
     var zh = (window.ylLang === "zh" && window.ylT);
     var name = (productName && String(productName).trim()) ? String(productName).trim() : (zh ? "产品" : "Product");
     window.announce(adding
-      ? name + (zh ? " " + (window.ylT("common.added_enquiry") || "") : " was added to your product enquiry.")
-      : name + (zh ? " " + (window.ylT("common.removed_enquiry") || "") : " was removed from your product enquiry."));
+      ? name + (zh ? " " + (window.ylT("common.added_enquiry") || "") : " was attached to your enquiry.")
+      : name + (zh ? " " + (window.ylT("common.removed_enquiry") || "") : " was removed from your enquiry."));
   };
 
   window.updateBasketCount = function () {
