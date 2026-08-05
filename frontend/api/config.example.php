@@ -52,7 +52,11 @@ define("DB_PASS", "your_db_password");
 //   2. Uncomment and fill in:
 //        define("LLM_PROVIDER", "gemini");
 //        define("LLM_API_KEY",  "paste-your-gemini-key-here");
-//        define("LLM_MODEL",    "gemini-2.0-flash");   // optional
+//        define("LLM_MODEL",    "gemini-flash-latest");   // optional
+//
+//   Leave LLM_MODEL out to get gemini-flash-latest, which is the default here.
+//   Do NOT use gemini-2.0-flash: this project's key has no free-tier quota for
+//   it and every call comes back 429.
 //
 // Other options (same pattern, pick ONE provider):
 //   Groq  (free, very fast):
@@ -71,3 +75,22 @@ define("DB_PASS", "your_db_password");
 //        define("LLM_MODEL",    "claude-haiku-4-5");
 //
 // Requires PHP cURL + outbound HTTPS (standard on Vodien cPanel).
+//
+// Each of these four settings can instead come from a server environment
+// variable of the same name, which is preferable where the host supports it
+// (cPanel → Setup Python/Node App, or a SetEnv line). A define here wins if both
+// are present. Either way the value stays on the server: it is read only by
+// api/advisor_ai.php, is never echoed into a response, and is never logged.
+//
+// ── What the model is and is not allowed to do ─────────────────────
+// Turning this on does NOT hand the chatbot over to the model. api/advisor.php
+// answers pricing, stock, delivery, lead time, bulk/MOQ, SDS and TDS
+// availability, safety suitability, partnership requests and prompt-injection
+// attempts from fixed approved copy, and never contacts the model for them.
+// The model only handles product and company questions, and its answer is
+// discarded unless every product id and every claim it makes is verified back
+// against the catalogue. Any failure, timeout or bad key silently falls back to
+// the built-in matcher, so the chatbot keeps working either way.
+//
+// To check a key end-to-end without deploying:
+//   LLM_PROVIDER=gemini LLM_API_KEY=... node tests/product-advisor-live-provider.manual.mjs

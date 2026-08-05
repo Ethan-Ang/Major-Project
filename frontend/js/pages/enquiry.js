@@ -9,6 +9,42 @@
 // Chinese label helpers (English fallback when zh is not active).
 function eqT(key, fb) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb; }
 function eqItemWord(n) { return window.ylLang === "zh" ? "件" : (n !== 1 ? "items" : "item"); }
+const ADVISOR_ENQUIRY_SUMMARY_KEY = "ylProductAdvisorEnquirySummary";
+const ADVISOR_ENQUIRY_SUMMARY_TTL_MS = 12 * 60 * 60 * 1000;
+let enquiryBasketRepairEventQueued = false;
+
+// Treat localStorage as untrusted input. core/app.js intentionally exposes the
+// parsed value, which means valid JSON can still be the wrong type. Every
+// Enquiry consumer uses this bounded canonical list so corrupt storage cannot
+// crash the page or create an attacker-sized skeleton with String#repeat.
+function enquiryBasketIds() {
+  let value = [];
+  try { value = typeof getBasket === "function" ? getBasket() : []; } catch (error) {}
+  const knownIds = typeof PRODUCTS !== "undefined" && Array.isArray(PRODUCTS) && PRODUCTS.length
+    ? new Set(PRODUCTS.map(function (product) { return String(product.id); }))
+    : null;
+  const ids = Array.isArray(value)
+    ? Array.from(new Set(value.filter(function (id) {
+        const stringId = String(id);
+        return (typeof id === "string" || typeof id === "number") && /^\d{1,12}$/.test(stringId)
+          && (!knownIds || knownIds.has(stringId));
+      }).map(String))).slice(0, 100)
+    : [];
+  try {
+    const canonical = JSON.stringify(ids);
+    if (localStorage.getItem("enquiryBasket") !== canonical) {
+      localStorage.setItem("enquiryBasket", canonical);
+      if (!enquiryBasketRepairEventQueued) {
+        enquiryBasketRepairEventQueued = true;
+        queueMicrotask(function () {
+          enquiryBasketRepairEventQueued = false;
+          window.dispatchEvent(new Event("basketUpdated"));
+        });
+      }
+    }
+  } catch (error) {}
+  return ids;
+}
 
 // Fill {placeholders} in a translated string.
 function eqFill(str, vars) {
@@ -22,7 +58,7 @@ function eqFill(str, vars) {
 function renderBasketSkeleton() {
   const list = document.getElementById("basketList");
   if (!list) return;
-  const count = getBasket().length;
+  const count = enquiryBasketIds().length;
   if (!count) {
     renderBasket();
     return;
@@ -42,6 +78,7 @@ function initEnquiryPage() {
   const list = document.getElementById("basketList");
   if (!list) return;
   initEnquiryCounters();
+  applyAdvisorEnquirySummary();
   // Subject uses the same accessible custom dropdown as the catalogue sort,
   // replacing the native browser option list. The native <select> stays in the
   // DOM as the value source, so submitEnquiry is unchanged. Safe to re-run
@@ -56,6 +93,75 @@ function initEnquiryPage() {
     .finally(renderBasket);
 }
 ylReady(initEnquiryPage);
+
+// The Advisor handoff is deliberately a concise structured summary, never a
+// transcript. It is appended to the editable message field and marked on this
+// particular textarea node so repeated ylReady runs cannot duplicate it. The
+// session record remains until a successful enquiry, allowing a fresh Swup DOM
+// or same-tab refresh to recover the explicit handoff.
+function applyAdvisorEnquirySummary() {
+  const eMessage = document.getElementById("eMessage");
+  if (!eMessage) return;
+  try {
+    const raw = sessionStorage.getItem(ADVISOR_ENQUIRY_SUMMARY_KEY);
+    if (!raw) return;
+    const handoff = JSON.parse(raw);
+    const now = Date.now();
+    if (!handoff || handoff.schemaVersion !== 1 || typeof handoff.id !== "string" || !handoff.id
+        || typeof handoff.summaryText !== "string" || !handoff.summaryText.trim()
+        || !Number.isFinite(handoff.updatedAt) || handoff.updatedAt > now + 300000
+        || now - handoff.updatedAt > ADVISOR_ENQUIRY_SUMMARY_TTL_MS
+        || handoff.summaryText.length > 900
+        || !Array.isArray(handoff.productIds) || !Array.isArray(handoff.productNames)) {
+      return;
+    }
+    if (eMessage.dataset.advisorSummaryId === handoff.id) return;
+
+    const existing = eMessage.value;
+    const summary = handoff.summaryText.trim();
+    const separator = existing.trim() ? "\n\n" : "";
+    const maxLength = Number(eMessage.getAttribute("maxlength")) || 1000;
+    if (!existing.includes(summary) && existing.length + separator.length + summary.length > maxLength) {
+      let notice = document.getElementById("eAdvisorSummaryFitNotice");
+      if (!notice) {
+        notice = document.createElement("p");
+        notice.id = "eAdvisorSummaryFitNotice";
+        notice.className = "field-hint";
+        notice.setAttribute("role", "status");
+        eMessage.insertAdjacentElement("afterend", notice);
+      }
+      const needed = existing.length + separator.length + summary.length - maxLength;
+      notice.textContent = eqFill(eqT(
+        "enquiry.advisor_summary_no_space",
+        "Your Product Advisor summary is ready, but the Message field needs {count} more characters. Shorten your message to include the complete editable summary."
+      ), { count: needed });
+      const describedBy = new Set((eMessage.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+      describedBy.add(notice.id);
+      eMessage.setAttribute("aria-describedby", Array.from(describedBy).join(" "));
+      if (!eMessage._ylAdvisorSummaryRetryBound) {
+        eMessage._ylAdvisorSummaryRetryBound = true;
+        eMessage.addEventListener("input", applyAdvisorEnquirySummary);
+      }
+      return;
+    }
+    if (!existing.includes(summary)) {
+      eMessage.value = existing + separator + summary;
+    }
+    eMessage.dataset.advisorSummaryId = handoff.id;
+    const notice = document.getElementById("eAdvisorSummaryFitNotice");
+    if (notice) notice.remove();
+    const describedBy = (eMessage.getAttribute("aria-describedby") || "").split(/\s+/)
+      .filter(function (id) { return id && id !== "eAdvisorSummaryFitNotice"; });
+    eMessage.setAttribute("aria-describedby", describedBy.join(" "));
+    eMessage.dispatchEvent(new Event("input", { bubbles: true }));
+  } catch (error) {}
+}
+
+ylOnce("advisor-enquiry-basket-sync", function () {
+  window.addEventListener("basketUpdated", function () {
+    if (document.getElementById("basketList")) renderBasket();
+  });
+});
 
 // Live "n / 1000" counters under the Message and Enquiry Notes textareas.
 // Bound per page view (the swap replaces the fields), guarded so re-running
@@ -115,7 +221,7 @@ function syncAttachedChrome(count) {
 }
 
 function renderBasket() {
-  const ids = getBasket();
+  const ids = enquiryBasketIds();
   const products = ids.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
   const list = document.getElementById("basketList");
   if (!list) return;
@@ -185,7 +291,7 @@ function restoreFocusAfterRemove(index) {
 }
 
 function removeFromBasket(id) {
-  const before = getBasket().map(String);
+  const before = enquiryBasketIds();
   const index = before.indexOf(String(id));
   const removed = PRODUCTS.find(p => String(p.id) === String(id));
   const name = removed ? removed.name : eqT("enquiry.remove", "Remove");
@@ -305,7 +411,7 @@ async function submitEnquiry() {
   // An empty basket sends an empty array — a truthful "nothing attached". It
   // must never be padded with a placeholder name or a fake id to keep some
   // downstream code happy; every consumer handles [] explicitly instead.
-  const ids = getBasket();
+  const ids = enquiryBasketIds();
   const products = ids
     .map(id => PRODUCTS.find(p => String(p.id) === String(id)))
     .filter(Boolean)
@@ -342,6 +448,7 @@ async function submitEnquiry() {
 
     // Success — clear the basket and show the confirmation screen
     localStorage.removeItem("enquiryBasket");
+    sessionStorage.removeItem(ADVISOR_ENQUIRY_SUMMARY_KEY);
     window.dispatchEvent(new Event("basketUpdated"));
     // #enquiryContent is the form/basket block. #mainContent is the <main>
     // landmark (skip-link target) and must stay visible — the confirmation

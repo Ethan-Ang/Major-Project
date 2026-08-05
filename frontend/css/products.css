@@ -2095,7 +2095,21 @@ body.detail-has-cta .toast {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  /* Side by side gets a 10px column gap; when the labels force a stack the rows
+     sit tighter, so the card does not grow taller than the two rows need. */
+  column-gap: 10px;
+  row-gap: 8px;
+}
+
+/* Each action takes a share of the row when it fits beside its sibling, and the
+   full width when it does not. The labels never wrap (white-space: nowrap), so a
+   flex item's automatic minimum size is its whole label: the pair sits side by
+   side exactly when both labels fit comfortably and drops to a stack otherwise.
+   That decision is made by the labels themselves, so it stays correct at 320px
+   and at 430px, and in Chinese where the labels are much shorter, without a
+   breakpoint that has to be kept in sync with the copy. */
+.basket-empty-actions > .enquiry-quiet-btn {
+  flex: 1 1 auto;
 }
 
 /* Secondary actions (Browse products / Open Product Advisor / Add another
@@ -5004,7 +5018,15 @@ body:has(.compare-tray.visible) .toast {
   cursor: pointer;
   border-radius: 6px;
 }
-.fg-more-btn:hover { background: var(--red-tint); }
+/* Hover is a pointing-device affordance only. On touch, WebKit and Blink leave
+   :hover stuck on the element that was tapped, so an unguarded rule here left a
+   pale-red rectangle sitting under "Show more"/"Show less" for as long as the
+   sheet stayed open (mobile QA 03/04). The control is meant to read as plain
+   red text (mobile QA 02), so the tint is gated to hover-capable pointers.
+   Keyboard focus keeps its own outline below and is unaffected. */
+@media (hover: hover) and (pointer: fine) {
+  .fg-more-btn:hover { background: var(--red-tint); }
+}
 .fg-more-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 /* Short desktop viewports: a tiny nested scroll area is worse than letting the
    page scroll the sidebar naturally (FILTER-001 fallback). */
@@ -7404,21 +7426,49 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 1.6rem 1.4rem 1.4rem;
+  align-items: flex-start;
+  padding: 1.8rem 1.6rem 1.6rem;
   background: var(--card);
   border: 1px solid var(--border);
-  border-top: 2px solid var(--red);
   border-radius: var(--radius);
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+  overflow: hidden;
+}
+
+.yl-static .mission-card::after {
+  content: "";
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 90px;
+  height: 90px;
+  background: rgba(198, 40, 40, 0.06);
+  border-radius: 50%;
 }
 
 .yl-static .mission-card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--line-2);
-  border-top-color: var(--red);
+  transform: translateY(-4px);
+}
+
+.yl-static .mission-card-image {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.4rem;
+  overflow: visible;
+}
+
+.yl-static .mission-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .yl-static .mission-number {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -7433,21 +7483,16 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   border-radius: var(--radius);
 }
 
-.yl-static .mission-card-image {
-  width: 2.4rem;
-  height: 2.4rem;
-  margin-bottom: 1rem;
-  object-fit: contain;
-}
-
 .yl-static .mission-card h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
+  position: relative;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--text);
   margin-bottom: 0.55rem;
 }
 
 .yl-static .mission-card p {
+  position: relative;
   font-size: 0.92rem;
   line-height: 1.7;
   color: var(--muted);

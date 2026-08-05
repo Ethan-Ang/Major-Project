@@ -459,10 +459,20 @@ test("Home/About copy integrity is covered by its own suite", () => {
 test("About's broken CTA was repaired and the anchors point at real sections", () => {
   const about = read("about.html");
   assert.doesNotMatch(about, /contact-us\.html/, "that href returned 404 on live");
-  assert.match(about, /<section class="about-intro" id="heritage">/);
-  assert.match(about, /<section class="values-section" id="quality">/);
-  assert.match(footerJs, /href="\/about#heritage"/);
-  assert.match(footerJs, /href="\/about#quality"/);
+  // The Company column's deep links now name the sections About actually has
+  // (#mission, #values) instead of #heritage / #quality. Every fragment the
+  // footer emits must resolve to a real section.
+  for (const fragment of new Set(
+    [...footerJs.matchAll(/href="\/about#([A-Za-z0-9_-]+)"/g)].map((m) => m[1])
+  )) {
+    assert.match(
+      about,
+      new RegExp(`<section[^>]*\\sid="${fragment}"`),
+      `the footer links /about#${fragment} but About has no such section`
+    );
+  }
+  assert.match(footerJs, /href="\/about#mission"/);
+  assert.match(footerJs, /href="\/about#values"/);
 });
 
 test("Home and About join the Swup shell without duplicate containers", () => {

@@ -321,16 +321,18 @@
       <nav class="site-footer-col" aria-label="Company">
         <p class="site-footer-col-title" data-i18n="footer.company">${T("footer.company", "Company")}</p>
         <ul class="site-footer-links">
-          <!-- FBL-002: these three used to be the same bare /about link three
-               times over. The About page now carries real IDs on the matching
-               sections — #heritage on "Who We Are" (the company-history block)
-               and #quality on "Our Values" (Reliable Products / Environmental
-               Responsibility / Low VOC). The IDs were added to sections that
-               already existed; nothing was invented to justify an anchor. -->
+          <!-- FBL-002: these used to be the same bare /about link repeated, then
+               #heritage and #quality — names the About page never actually used.
+               They now name the sections that are really there: #mission on the
+               mission section and #values on "Our Values". Both IDs sit on
+               sections that already existed; nothing was invented, reworded or
+               reordered to justify an anchor. navbar.js gives every section[id]
+               a 68px scroll-margin-top (ANCHOR-001), so these land clear of the
+               fixed navbar on a direct load and through Swup alike. -->
           <li><a href="/about" data-i18n="footer.about">${T("footer.about", "About Yee Lim")}</a></li>
-          <li><a href="/about#heritage" data-i18n="footer.heritage">${T("footer.heritage", "Our Heritage")}</a></li>
-          <li><a href="/about#quality" data-i18n="footer.quality">${T("footer.quality", "Quality & Environment")}</a></li>
-          <li><a href="/contact" data-i18n="nav.contact">${T("nav.contact", "Contact")}</a></li>
+          <li><a href="/about#mission" data-i18n="about.mission_title">${T("about.mission_title", "Our Mission")}</a></li>
+          <li><a href="/about#values" data-i18n="about.values_title">${T("about.values_title", "Our Values")}</a></li>
+          <li><a href="/contact" data-i18n="footer.contact_us">${T("footer.contact_us", "Contact Us")}</a></li>
         </ul>
       </nav>
 
@@ -402,8 +404,9 @@
           <ul class="site-footer-links">
             <li><a href="/products" data-i18n="footer.all_products">${T("footer.all_products", "All Products")}</a></li>
             <li><a href="/about" data-i18n="footer.about">${T("footer.about", "About Yee Lim")}</a></li>
-            <li><a href="/about#heritage" data-i18n="footer.heritage">${T("footer.heritage", "Our Heritage")}</a></li>
-            <li><a href="/contact" data-i18n="nav.contact">${T("nav.contact", "Contact")}</a></li>
+            <li><a href="/about#mission" data-i18n="about.mission_title">${T("about.mission_title", "Our Mission")}</a></li>
+            <li><a href="/about#values" data-i18n="about.values_title">${T("about.values_title", "Our Values")}</a></li>
+            <li><a href="/contact" data-i18n="footer.contact_us">${T("footer.contact_us", "Contact Us")}</a></li>
           </ul>
         </nav>
       </div>

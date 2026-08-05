@@ -76,8 +76,11 @@
     "footer.cert_lowvoc":  { en: "Low-VOC / Low-Formaldehyde", zh: "低 VOC / 低甲醛" },
     "footer.company":      { en: "Company",         zh: "公司" },
     "footer.about":        { en: "About Yee Lim",   zh: "关于 Yee Lim" },
-    "footer.heritage":     { en: "Our Heritage",    zh: "企业历程" },
-    "footer.quality":      { en: "Quality & Environment", zh: "品质与环保" },
+    /* The Company column's Mission and Values links reuse about.mission_title and
+       about.values_title rather than duplicating those strings: they label the very
+       sections they scroll to, so the two can never drift apart. footer.heritage
+       and footer.quality were retired with the links that used them -- the About
+       page has no Heritage or Quality & Environment section. */
     "footer.products_brands": { en: "Products & Brands", zh: "产品与品牌" },
     "footer.all_products": { en: "All Products",    zh: "所有产品" },
     "footer.contact_enquiry": { en: "Contact & Enquiry", zh: "联系与询价" },
@@ -90,7 +93,7 @@
     "footer.mobile_blurb": { en: "Commercial & industrial adhesives, manufactured in Singapore since 1976.", zh: "工商业胶粘剂，自 1976 年起于新加坡制造。" },
     "footer.project":      { en: "Have a project in mind?", zh: "有项目需求？" },
     "footer.project_sub":  { en: "Enquiries & quotations within 1-2 business days.", zh: "询价与报价将在 1-2 个工作日内回复。" },
-    "footer.contact_us":   { en: "Contact us",      zh: "联系我们" },
+    "footer.contact_us":   { en: "Contact Us",      zh: "联系我们" },
     "footer.whatsapp_us":  { en: "WhatsApp us",     zh: "WhatsApp 联系我们" },
     "footer.whatsapp_aria":{ en: "Message Yee Lim on WhatsApp (opens WhatsApp)", zh: "通过 WhatsApp 联系 Yee Lim（将打开 WhatsApp）" },
 
@@ -348,7 +351,6 @@
     "advisor.fallback":    { en: "I couldn't find an answer for that. Please [submit an enquiry](/enquiry) and our team will help.", zh: "我暂时无法为此找到答案。请[提交询价](/enquiry)，我们的团队将为您提供帮助。" },
     "advisor.error":       { en: "Sorry, Ava can't connect right now. Please retry or submit an enquiry directly.", zh: "抱歉，Ava 暂时无法连接。请重试或直接提交询价。" },
     "advisor.submit_enquiry": { en: "Submit an enquiry", zh: "提交询价" },
-    "advisor.start_over":  { en: "Start over", zh: "重新开始" },
     "advisor.loading":     { en: "Ava is checking the catalogue", zh: "Ava 正在查找产品目录" },
     "advisor.retry":       { en: "Retry", zh: "重试" },
     "advisor.timeout":     { en: "Ava took too long to respond. Please retry or submit an enquiry.", zh: "Ava 响应时间过长。请重试或提交询价。" },
@@ -357,13 +359,16 @@
     "advisor.include_recommendation": { en: "Include this recommendation in my enquiry", zh: "将此推荐加入我的询价" },
     "advisor.recommendation_included": { en: "Included in enquiry", zh: "已加入询价" },
     "advisor.attach_error": { en: "The recommendation could not be added. Please try again.", zh: "无法将推荐加入询价，请重试。" },
-    "advisor.privacy": { en: "Your Product Advisor conversation is saved temporarily in this browser. It is only sent to Yee Lim if you include it with an enquiry.", zh: "您的产品顾问对话会暂时保存在此浏览器中。只有当您选择将其加入询价时，内容才会发送给 Yee Lim。" },
     "advisor.summary_title": { en: "Product Advisor summary", zh: "产品顾问摘要" },
     "advisor.summary_recommended": { en: "Recommended products:", zh: "推荐产品：" },
     "enquiry.advisor_summary_no_space": { en: "Your Product Advisor summary is ready, but the Message field needs {count} more characters. Shorten your message to include the complete editable summary.", zh: "产品顾问摘要已准备好，但“留言”栏还需要 {count} 个字符空间。请缩短现有留言，以加入完整且可编辑的摘要。" },
     "advisor.prompt_recommend": { en: "Recommend an adhesive for my job", zh: "为我的作业推荐胶粘剂" },
     "advisor.prompt_foam_metal": { en: "What bonds foam to metal?", zh: "泡棉粘金属用什么胶？" },
     "advisor.prompt_delivery": { en: "What is your lead time?", zh: "交货需要多久？" },
+    "advisor.prompt_waterproof": { en: "Which glue is waterproof?", zh: "哪款胶防水？" },
+    "advisor.prompt_export":    { en: "Do you ship overseas?",     zh: "可以出口到海外吗？" },
+    "advisor.prompt_location":  { en: "Where are you located?",    zh: "你们公司在哪里？" },
+    "advisor.prompt_custom":    { en: "Can you make a custom adhesive?", zh: "可以定制胶粘剂吗？" },
 
     /* ── Home (teammate-owned page) ────────────────────────────────
        The `en` values are the teammate's approved copy, transcribed

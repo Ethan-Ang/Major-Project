@@ -164,10 +164,30 @@ test("the shared shell is present and the broken links are gone", () => {
 });
 
 test("About's footer anchors point at real sections", () => {
+  // The Company column used to link #heritage and #quality -- names the About
+  // page never used as headings. It now links the sections that are really
+  // there. Rather than pinning specific IDs, every /about#fragment the footer
+  // emits must resolve to an element that exists on the page, so the two can
+  // never drift apart again.
   const about = read("about.html");
-  assert.match(about, /<section class="about-intro" id="heritage">/);
-  assert.match(about, /<section class="values-section" id="quality">/);
   const footer = read("js/widgets/footer.js");
-  assert.match(footer, /href="\/about#heritage"/);
-  assert.match(footer, /href="\/about#quality"/);
+
+  const fragments = [...footer.matchAll(/href="\/about#([A-Za-z0-9_-]+)"/g)].map((m) => m[1]);
+  assert.ok(fragments.length > 0, "the footer must deep-link into About");
+
+  for (const fragment of new Set(fragments)) {
+    assert.match(
+      about,
+      new RegExp(`<section[^>]*\\sid="${fragment}"`),
+      `the footer links /about#${fragment} but no section carries that id`
+    );
+  }
+
+  // The two the Company column is specified to offer.
+  assert.ok(fragments.includes("mission"), "Our Mission must deep-link to #mission");
+  assert.ok(fragments.includes("values"), "Our Values must deep-link to #values");
+
+  // The IDs sit on the sections whose headings they name.
+  assert.match(about, /<section class="mission-section" id="mission">/);
+  assert.match(about, /<section class="values-section" id="values">/);
 });
