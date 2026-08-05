@@ -101,6 +101,14 @@ function enquiryRecipient() {
     }
 }
 
+/* One canonical phrase for "this enquiry has no products attached", used by
+   both emails. Attaching products is OPTIONAL, so this is a normal, complete
+   enquiry — the wording says so plainly rather than leaving a bare "-" that
+   reads like a form that failed to submit properly. */
+function noProductsLabel() {
+    return "None - General enquiry";
+}
+
 /* Best-effort notification to the sales team. Returns true/false; never throws. */
 function notifySalesTeam($enq, $replyToken, $reference) {
     $to = enquiryRecipient();
@@ -108,13 +116,14 @@ function notifySalesTeam($enq, $replyToken, $reference) {
         return false; // not configured (e.g. local dev) — silently skip
     }
 
-    $products    = is_array($enq["products"]) ? implode(", ", $enq["products"]) : "";
+    $hasProducts = is_array($enq["products"]) && count($enq["products"]) > 0;
+    $products    = $hasProducts ? implode(", ", $enq["products"]) : noProductsLabel();
     $repliedLink = siteBaseUrl() . "/api/enquiries.php?action=replied&id=" . $enq["id"] . "&token=" . $replyToken;
     $subject     = "New enquiry " . $reference . " from " . $enq["name"]
                  . ($enq["company"] ? " (" . $enq["company"] . ")" : "");
 
     $lines = [
-        "You have a new product enquiry from the Yee Lim website.",
+        "You have a new enquiry from the Yee Lim website.",
         "",
         "Reference: " . $reference,
         "",
@@ -122,7 +131,7 @@ function notifySalesTeam($enq, $replyToken, $reference) {
         "Company:  " . ($enq["company"] ?: "-"),
         "Email:    " . $enq["email"],
         "Phone:    " . ($enq["phone"] ?: "-"),
-        "Products: " . ($products ?: "-"),
+        "Selected products: " . $products,
         "",
         "Message:",
         ($enq["message"] ?: "(none)"),
@@ -148,9 +157,7 @@ function confirmToCustomer($enq, $reference) {
     $to = trim($enq["email"] ?? "");
     if ($to === "") return false;
 
-    $products = (is_array($enq["products"]) && $enq["products"])
-        ? "\n  - " . implode("\n  - ", $enq["products"])
-        : " (none specified)";
+    $hasProducts = is_array($enq["products"]) && count($enq["products"]) > 0;
 
     $salesInbox = enquiryRecipient();
 
@@ -163,7 +170,11 @@ function confirmToCustomer($enq, $reference) {
         "",
         "Your reference: " . $reference,
         "",
-        "Products you asked about:" . $products,
+        // A general enquiry is a complete enquiry: no empty heading, no dangling
+        // list, and nothing suggesting the customer left something out.
+        ($hasProducts
+            ? "Products you asked about:\n  - " . implode("\n  - ", $enq["products"])
+            : "You did not attach any products, so we have logged this as a general enquiry."),
         "",
         ($enq["message"] ? "Your message:\n" . $enq["message"] . "\n" : ""),
         "If you need to add anything, just reply to this email.",
@@ -279,11 +290,17 @@ try {
         $email   = trim($data["email"] ?? "");
         $phone   = trim($data["phone"] ?? "");
         $message = trim($data["message"] ?? "");
+        // Attached products are OPTIONAL. An empty array, a missing key and a
+        // non-array all normalise to [] and are accepted as-is: a general
+        // enquiry is a valid enquiry. Nothing here substitutes a placeholder
+        // name or a fake product id to fill the gap — downstream consumers
+        // (emails, admin inbox, CSV) each render the empty case explicitly.
         $rawProducts = $data["products"] ?? [];
         $products = is_array($rawProducts) ? array_values(array_filter(array_map(function ($p) {
             return is_string($p) ? trim($p) : trim(strval($p));
         }, $rawProducts))) : [];
 
+        // Genuine customer requirements are unchanged and NOT relaxed.
         if ($name === "" || $email === "") {
             http_response_code(400);
             echo json_encode(["message" => "Name and email are required."]);

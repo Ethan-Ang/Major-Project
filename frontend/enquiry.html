@@ -24,11 +24,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=120">
+  <link rel="stylesheet" href="/css/products.css?v=131">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=10">
-  <script src="/js/i18n.js?v=20"></script>
+  <script src="/js/i18n.js?v=30"></script>
   <script src="/js/i18n-products.js?v=2"></script>
-  <script src="/js/widgets/navbar.js?v=29"></script>
+  <script src="/js/widgets/navbar.js?v=30"></script>
   <script src="/js/widgets/footer.js?v=27"></script>
 </head>
 <body>
@@ -44,9 +44,13 @@
   <div class="page-hero-inner hero-inner-narrow">
     <!-- No breadcrumb: Enquiry is a top-level destination reached from the
          persistent Enquiry action in the header, so "Home › Enquiry" added a
-         strip of redundant text above the page title on every width. -->
-    <h1 id="enquiryHeading" data-i18n="enquiry.title">Enquiry</h1>
-    <p class="hero-lead" data-i18n="enquiry.lead">Enquire about a product, request a recommendation, or send our team a general question.</p>
+         strip of redundant text above the page title on every width.
+         The eyebrow carries the page's NAME ("Enquiry") so the heading is free
+         to be a sentence — the destination is still labelled for anyone
+         scanning, and nothing on the page reads "Product Enquiry". -->
+    <span class="hero-eyebrow" data-i18n="enquiry.eyebrow">Enquiry</span>
+    <h1 id="enquiryHeading" data-i18n="enquiry.title">Tell us how we can help</h1>
+    <p class="hero-lead" data-i18n="enquiry.lead">Enquire about a product, request a recommendation, or send us a general question.</p>
   </div>
 </section>
 
@@ -56,48 +60,47 @@
 <div class="page-content" id="enquiryContent">
   <div class="enquiry-grid">
 
-    <!-- LEFT: products attached to the enquiry.
-         Products are an OPTIONAL attachment, so this panel is always present and
-         always compact. It never grows into a full-page empty state and it never
-         controls whether the form on the right is shown. -->
-    <section class="enquiry-col-left" aria-labelledby="attachedHeading">
-      <div class="enquiry-basket-card">
-        <div class="enquiry-col-head" id="enquiryColHead">
+    <!-- LEFT: the products attached to this enquiry. ONE card in both states, so
+         the column never reads as two disconnected boxes.
+         Products are an OPTIONAL attachment: this panel is always present, is
+         always compact, and never decides whether the form on the right shows.
+         Nothing in here competes with Submit enquiry, and exactly one advisor
+         control is on screen in either state — a quiet button in the empty note,
+         or the Get Product Advice group in the summary band once products are
+         attached. -->
+    <section class="enquiry-col-left" id="enquiryAttachSection" aria-labelledby="attachedHeadingEmpty">
+      <div class="enquiry-attach-card">
+        <!-- Attached state only. With nothing attached there is no section
+             heading at all: "No products selected" below IS the heading, so the
+             panel never announces a products section the visitor has not made. -->
+        <div class="enquiry-col-head" id="enquiryColHead" hidden>
           <div>
-            <h2 id="attachedHeading">
-              <span data-i18n="enquiry.basket">Products attached</span>
-              <span class="enquiry-optional-tag" data-i18n="enquiry.optional_tag">Optional</span>
-            </h2>
-            <p class="enquiry-basket-sub" id="enquiryBasketSub" data-i18n="enquiry.basket_sub">Review the products you&rsquo;ve attached.</p>
+            <h2 id="attachedHeadingFull" data-i18n="enquiry.basket">Products for this enquiry</h2>
+            <p class="enquiry-basket-sub" data-i18n="enquiry.basket_sub">Review the products you&rsquo;ve selected.</p>
           </div>
-          <!-- Only meaningful once something is attached; hidden at zero. -->
-          <button type="button" class="enquiry-clear-all" id="clearAllBtn" onclick="clearAllBasket()" data-i18n="enquiry.clear_all" hidden>Clear all</button>
+          <button type="button" class="enquiry-clear-all" id="clearAllBtn" onclick="clearAllBasket()" data-i18n="enquiry.clear_all">Clear all</button>
         </div>
 
-        <!-- Attached products (or the compact "none attached" note) -->
+        <!-- Attached products, or the compact "none selected" note -->
         <div class="basket-list" id="basketList"></div>
 
-        <!-- Secondary attachment actions. Real internal anchors so Swup handles
-             them; never styled to compete with Submit enquiry. The Bond Finder
-             entry is a link to the teammate-owned section on /products — it does
-             not modify that feature in any way. -->
-        <div class="enquiry-attach-actions">
-          <a href="/products" class="enquiry-quiet-btn" id="enquiryBrowseLink" data-i18n="enquiry.browse">Browse products</a>
-          <a href="/products#bondFinder" class="enquiry-quiet-btn" data-i18n="enquiry.use_bond_finder">Use Bond Finder</a>
-        </div>
-        <p class="enquiry-optional-note" data-i18n="enquiry.products_optional">Products are optional.</p>
-
-        <!-- Total + Product Advice summary: two explicit groups preserve the
-             desktop split and provide a clean mobile stack. The complete advisor
+        <!-- Total + Product Advice summary. Attached state only: at zero the
+             empty note carries its own actions, so showing this too would put
+             two advisor controls on screen. Two explicit groups preserve the
+             desktop split and give a clean mobile stack. The whole advisor
              group is one accessible action, with no nested interactive control. -->
-        <div class="enquiry-total-band" id="enquiryTotalBand" style="display:none">
+        <div class="enquiry-total-band" id="enquiryTotalBand" hidden>
           <div class="enquiry-total-count-group">
             <span class="enquiry-total-ic" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
             </span>
-            <span class="enquiry-total-text"><strong data-i18n="enquiry.total">Attached</strong><span id="enquiryTotalCount"></span></span>
+            <span class="enquiry-total-text"><strong data-i18n="enquiry.total">Total Products</strong><span id="enquiryTotalCount"></span></span>
           </div>
-          <button type="button" class="enquiry-total-advice" aria-haspopup="dialog" onclick="if(window.openProductAdvisor){window.openProductAdvisor()}else{window.location.href='/contact'}">
+          <!-- Opens the EXISTING advisor dialog in place. The Contact page is a
+               fallback only if the advisor script has not loaded, and it goes
+               through Swup rather than a full reload where possible. -->
+          <button type="button" class="enquiry-total-advice" aria-haspopup="dialog"
+            onclick="if(window.openProductAdvisor){window.openProductAdvisor()}else if(window.ylSwup){window.ylSwup.navigate('/contact')}else{window.location.href='/contact'}">
             <span class="enquiry-advice-helper" data-i18n="enquiry.need_help">Need help finding the right product?</span>
             <span class="enquiry-advice-link"><span data-i18n="enquiry.get_advice">Get Product Advice</span>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -150,16 +153,12 @@
               <input type="tel" id="ePhone" autocomplete="tel" placeholder="+65 9123 4567">
             </div>
           </div>
-          <!-- Enquiry topic. Required: with no products attached it is the only
-               structured signal of what the enquiry is about, so the team needs
-               it to route the lead. -->
           <div class="form-group">
-            <label for="eSubject" data-i18n="enquiry.f_subject">Enquiry topic *</label>
-            <!-- aria-label is required here, not decorative: enhanceCustomSelect
+            <label for="eSubject" data-i18n="enquiry.f_subject">Enquiry topic</label>
+            <!-- aria-label is load-bearing, not decorative: enhanceCustomSelect
                  copies it onto the visible trigger button, which is what
-                 assistive tech actually reaches (the native select is
-                 aria-hidden once enhanced). -->
-            <select id="eSubject" required aria-required="true" aria-label="Enquiry topic" data-i18n-attr="aria-label:enquiry.f_subject_plain">
+                 assistive tech reaches once the native select is aria-hidden. -->
+            <select id="eSubject" aria-label="Enquiry topic" data-i18n-attr="aria-label:enquiry.f_subject">
               <option value="" selected data-i18n="enquiry.opt_select">Select enquiry topic</option>
               <option data-i18n="enquiry.opt_recommend">Product recommendation</option>
               <option data-i18n="enquiry.opt_quote">Pricing or bulk order</option>
@@ -170,15 +169,13 @@
               <option data-i18n="enquiry.opt_general">General enquiry</option>
               <option data-i18n="enquiry.opt_other">Other</option>
             </select>
-            <p class="field-error" id="eSubjectErr" hidden data-i18n="enquiry.err_subject">Please choose an enquiry topic.</p>
-            <!-- Prompt for the details a recommendation needs. Deliberately one
-                 hint, not six required fields. -->
-            <p class="field-hint" id="eSubjectHint" hidden data-i18n="enquiry.recommend_help">Tell us the materials you are bonding, application method, operating conditions and estimated quantity.</p>
           </div>
           <div class="form-group">
-            <!-- Label adapts to whether products are attached (see enquiry.js). -->
-            <label for="eMessage" id="eMessageLabel" data-i18n="enquiry.f_message_general">How can we help?</label>
-            <textarea id="eMessage" maxlength="1000" placeholder="Tell us the surfaces you are bonding, your application, and the quantity you need…" data-i18n-attr="placeholder:enquiry.ph_message"></textarea>
+            <label for="eMessage" data-i18n="enquiry.f_message">Message</label>
+            <!-- Helper copy adapts to whether products are attached (enquiry.js).
+                 It PROMPTS for detail; none of it becomes a required field. -->
+            <p class="field-hint" id="eMessageHint" data-i18n="enquiry.msg_hint_general">Tell us what you need help with, including your application, materials or estimated quantity.</p>
+            <textarea id="eMessage" maxlength="1000" aria-describedby="eMessageHint" placeholder="Tell us the surfaces you are bonding, your application, and the quantity you need…" data-i18n-attr="placeholder:enquiry.ph_message"></textarea>
             <span class="ta-counter" id="eMessageCount" aria-hidden="true">0 / 1000</span>
           </div>
           <div class="form-group">
@@ -195,7 +192,7 @@
             <p class="form-error-summary" id="enquiryError" tabindex="-1" role="alert" style="display:none"></p>
             <button class="btn btn-primary enquiry-submit-btn" id="submitEnquiryBtn" onclick="submitEnquiry()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              <span data-i18n="enquiry.submit">Submit Enquiry</span>
+              <span data-i18n="enquiry.submit">Submit enquiry</span>
             </button>
             <p class="enquiry-reassurance" data-i18n="enquiry.reassurance">We'll reply within 1&ndash;2 business days with advice or a quotation.</p>
           </div>
@@ -232,15 +229,15 @@
 
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=11"></script>
-<script src="/js/core/app.js?v=7"></script>
+<script src="/js/core/app.js?v=8"></script>
 <script src="/js/widgets/compare.js?v=29"></script>
 <script src="/js/widgets/custom-select.js?v=7"></script>
-<script src="/js/pages/products.js?v=58"></script>
-<script src="/js/pages/product-detail.js?v=41"></script>
+<script src="/js/pages/products.js?v=60"></script>
+<script src="/js/pages/product-detail.js?v=42"></script>
 <script src="/js/pages/compare-page.js?v=21"></script>
-<script src="/js/pages/enquiry.js?v=11"></script>
+<script src="/js/pages/enquiry.js?v=18"></script>
 <script src="/js/pages/contact.js?v=6"></script>
 <script src="/js/widgets/chatbot.js?v=31"></script>
-<script src="/js/widgets/page-transitions.js?v=10"></script>
+<script src="/js/widgets/page-transitions.js?v=11"></script>
 </body>
 </html>

@@ -251,6 +251,7 @@ function initBondFinder() {
   const method = document.getElementById("bondMethod");
   const submit = document.getElementById("bondFinderSubmit");
   const clear = document.getElementById("bondFinderClear");
+  const toggle = document.getElementById("bondFinderToggle");
   if (!first || !second || !industry || !method || !submit || !clear) return;
 
   const selected = {
@@ -296,6 +297,7 @@ function initBondFinder() {
 
   submit.addEventListener("click", runBondFinder);
   clear.addEventListener("click", resetBondFinder);
+  if (toggle) toggle.addEventListener("click", toggleBondFinderCollapsed);
 
   if (bondFinderState.active && first.value && second.value) {
     updateBondFinderResult();
@@ -427,6 +429,42 @@ function bondFinderMatchLabel(percent, bothSurfaces) {
   return bondText("Related product", "相关产品");
 }
 
+function bondFinderBaseProducts() {
+  if (!bondFinderState.active) return PRODUCTS || [];
+  const allowed = new Set((bondFinderState.productIds || []).map(String));
+  return (PRODUCTS || []).filter(product => allowed.has(String(product.id)));
+}
+
+function setBondFinderCollapsed(collapsed) {
+  const shell = document.querySelector("#bondFinder .bond-finder-shell");
+  const toggle = document.getElementById("bondFinderToggle");
+  const label = document.getElementById("bondFinderToggleLabel");
+  if (!shell) return;
+
+  shell.classList.toggle("is-collapsed", !!collapsed);
+  if (toggle) toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  if (label) label.textContent = collapsed
+    ? bondText("Expand", "展开")
+    : bondText("Minimise", "收起");
+}
+
+function toggleBondFinderCollapsed() {
+  const shell = document.querySelector("#bondFinder .bond-finder-shell");
+  if (!shell) return;
+  setBondFinderCollapsed(!shell.classList.contains("is-collapsed"));
+}
+
+// Rebuild the filter rows from the correct catalogue scope. In normal mode the
+// scope is every product; in Bond Finder mode it is only the recommendation set.
+// Existing checked filters are restored immediately after rebuilding.
+function rebuildFilterCheckboxesForCurrentScope() {
+  buildFilterCheckboxes();
+  applyStateToCheckboxes();
+  syncShowMore();
+  updateFilterGroupBadges();
+  updateFilterScrollFade();
+}
+
 function runBondFinder() {
   const first = document.getElementById("bondMaterialOne");
   const second = document.getElementById("bondMaterialTwo");
@@ -478,7 +516,9 @@ function runBondFinder() {
   };
 
   updateBondFinderResult();
+  rebuildFilterCheckboxesForCurrentScope();
   applyFilters({ skipUrlWrite: true });
+  setBondFinderCollapsed(true);
   scrollToCatalogue();
 }
 
@@ -612,6 +652,9 @@ function resetBondFinder(opts = {}) {
     result.hidden = true;
     result.classList.remove("is-warning");
   }
+
+  setBondFinderCollapsed(false);
+  rebuildFilterCheckboxesForCurrentScope();
 
   if (opts.render !== false && document.getElementById("productGrid")) {
     applyFilters({ skipUrlWrite: true });
@@ -805,7 +848,7 @@ function buildFilterCheckboxes() {
 function buildCheckboxGroup(containerId, items, type, valueExtractor) {
   const container = document.getElementById(containerId);
   const counts = {};
-  PRODUCTS.forEach(p => {
+  bondFinderBaseProducts().forEach(p => {
     valueExtractor(p).forEach(v => { counts[v] = (counts[v] || 0) + 1; });
   });
 
@@ -990,11 +1033,7 @@ function clearFilters() {
     if (typeof refreshCustomSelect === "function") refreshCustomSelect(mobileSortSelect);
   }
   activeFilters = { productTypes: [], brands: [], industries: [], surfaces: [] };
-  renderFilterChips();
-  renderGrid(PRODUCTS);
-  writeStateToURL();
-  updateClearVisibility();
-  updateFilterGroupBadges();
+  applyFilters();
 }
 
 // ─── Active filters ────────────────────────────────────────────────
@@ -1090,12 +1129,24 @@ function renderGrid(products) {
   const grid    = document.getElementById("productGrid");
   const countEl = document.getElementById("resultCount");
 
-  const totalCount = (typeof PRODUCTS !== "undefined" && PRODUCTS) ? PRODUCTS.length : products.length;
-  const countNoun  = `product${products.length !== 1 ? "s" : ""}`;
-  // Show the narrowing ("8 of 31 products") whenever filters/search reduce the
-  // set, so buyers feel the effect. The "of N" span is revealed on mobile only.
-  // Bold count (locked ReBond reference: "31 products found", number leading).
-  if (window.ylLang === "zh") {
+  const catalogueTotal = (typeof PRODUCTS !== "undefined" && PRODUCTS) ? PRODUCTS.length : products.length;
+  const recommendationTotal = bondFinderState.active
+    ? bondFinderBaseProducts().length
+    : catalogueTotal;
+  const totalCount = recommendationTotal;
+  const countNoun = `product${products.length !== 1 ? "s" : ""}`;
+
+  if (bondFinderState.active) {
+    if (window.ylLang === "zh") {
+      countEl.innerHTML = products.length < totalCount
+        ? `<strong>${products.length}</strong> / ${totalCount} 款推荐产品`
+        : `共 <strong>${products.length}</strong> 款推荐产品`;
+    } else {
+      countEl.innerHTML = products.length < totalCount
+        ? `<strong>${products.length}</strong> of ${totalCount} recommended products`
+        : `<strong>${products.length}</strong> recommended product${products.length !== 1 ? "s" : ""}`;
+    }
+  } else if (window.ylLang === "zh") {
     countEl.innerHTML = (products.length < totalCount)
       ? `<strong>${products.length}</strong> <span class="rc-of">/ ${totalCount} </span>款产品`
       : `共 <strong>${products.length}</strong> 款产品`;

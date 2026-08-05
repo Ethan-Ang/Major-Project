@@ -197,7 +197,8 @@ function renderTable(animate = true) {
 
   tbody.innerHTML = filteredEnqs.map((e, i) => {
     const replied  = isReplied(e.id);
-    const products = e.products.join(", ");
+    const items    = productList(e);
+    const products = items.length ? items.join(", ") : NO_PRODUCTS_SHORT;
     const date     = new Date(e.date).toLocaleDateString("en-SG", {
       day: "numeric", month: "short", year: "numeric"
     });
@@ -215,7 +216,7 @@ function renderTable(animate = true) {
           <div class="enq-products">${escapeHtml(e.company)}</div>
         </td>
         <td data-label="Products">
-          <div class="enq-products">${escapeHtml(products)}</div>
+          <div class="enq-products${items.length ? "" : " enq-products-none"}">${escapeHtml(products)}</div>
         </td>
         <td data-label="Date" style="white-space:nowrap;color:var(--muted);font-size:0.82rem">${date}</td>
         <td data-label="Actions" onclick="event.stopPropagation()">
@@ -337,8 +338,10 @@ function openPanel(id) {
     day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
   });
 
-  const productPills = enq.products
-    .map(p => `<span class="product-tag-pill">${escapeHtml(p)}</span>`).join("");
+  const items = productList(enq);
+  const productPills = items.length
+    ? items.map(p => `<span class="product-tag-pill">${escapeHtml(p)}</span>`).join("")
+    : `<span class="detail-field-value" style="color:var(--muted)">${NO_PRODUCTS_LONG}</span>`;
 
   document.getElementById("detailPanelBody").innerHTML = `
     ${enq.reference ? `<div class="detail-field">
@@ -419,7 +422,8 @@ function exportEnquiriesCSV() {
   const rows = enquiries.map(e => [
     e.reference || "",
     e.name, e.company, e.email, e.phone || "",
-    e.products.join("; "), e.message,
+    productList(e).join("; ") || NO_PRODUCTS_LONG,
+    e.message,
     new Date(e.date).toLocaleDateString("en-SG"),
     isReplied(e.id) ? "Replied" : "New"
   ].map(csvCell));
@@ -460,6 +464,17 @@ function adminSkeletonRows(count, cols) {
     `);
   }
   return rows.join("");
+}
+
+// Attaching products is optional on the public form, so an enquiry with none is
+// normal, not broken. These two helpers are the ONLY place that decides how that
+// reads, so the table, the detail panel and the CSV can never drift apart or
+// fall back to a blank cell, "undefined" or an empty pill.
+const NO_PRODUCTS_SHORT = "No product selected";
+const NO_PRODUCTS_LONG  = "General enquiry - no product selected";
+
+function productList(enq) {
+  return Array.isArray(enq.products) ? enq.products.filter(p => String(p).trim() !== "") : [];
 }
 
 function escapeHtml(str) {

@@ -24,11 +24,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="stylesheet" href="/css/products.css?v=120">
+  <link rel="stylesheet" href="/css/products.css?v=131">
   <link rel="stylesheet" href="/css/dropdown-ui.css?v=10">
-  <script src="/js/i18n.js?v=20"></script>
+  <script src="/js/i18n.js?v=30"></script>
   <script src="/js/i18n-products.js?v=2"></script>
-  <script src="/js/widgets/navbar.js?v=29"></script>
+  <script src="/js/widgets/navbar.js?v=30"></script>
   <script src="/js/widgets/footer.js?v=27"></script>
 </head>
 <body>
@@ -79,10 +79,20 @@
 <section class="bond-finder-section" id="bondFinder" aria-labelledby="bondFinderTitle">
   <div class="bond-finder-shell">
     <div class="bond-finder-copy">
-      <span class="bond-finder-eyebrow" data-i18n="bond.eyebrow">Guided Product Selector</span>
-      <h2 id="bondFinderTitle" data-i18n="bond.title">Yee Lim Bond Finder</h2>
+      <div class="bond-finder-heading-row">
+        <div>
+          <span class="bond-finder-eyebrow" data-i18n="bond.eyebrow">Guided Product Selector</span>
+          <h2 id="bondFinderTitle" data-i18n="bond.title">Yee Lim Bond Finder</h2>
+        </div>
+        <button type="button" class="bond-finder-toggle" id="bondFinderToggle" aria-expanded="true" aria-controls="bondFinderBody">
+          <span id="bondFinderToggleLabel">Minimise</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
       <p data-i18n="bond.lead">Choose two surfaces, then optionally refine by industry and application method. We will rank currently available adhesives using the latest catalogue data.</p>
     </div>
+
+    <div class="bond-finder-body" id="bondFinderBody">
 
     <div class="bond-finder-controls">
       <div class="bond-finder-field">
@@ -135,6 +145,7 @@
         <a class="bond-finder-whatsapp" id="bondFinderWhatsapp" href="https://wa.me/6588755786" target="_blank" rel="noopener" data-i18n="bond.whatsapp">Confirm on WhatsApp</a>
         <button type="button" class="bond-finder-clear" id="bondFinderClear" data-i18n="bond.clear">Clear recommendation</button>
       </div>
+    </div>
     </div>
   </div>
 </section>
@@ -329,15 +340,15 @@
 
 <script src="/js/vendor/swup.umd.js?v=1"></script>
 <script src="/js/data.js?v=11"></script>
-<script src="/js/core/app.js?v=7"></script>
+<script src="/js/core/app.js?v=8"></script>
 <script src="/js/widgets/compare.js?v=29"></script>
 <script src="/js/widgets/custom-select.js?v=7"></script>
-<script src="/js/pages/products.js?v=58"></script>
-<script src="/js/pages/product-detail.js?v=41"></script>
+<script src="/js/pages/products.js?v=60"></script>
+<script src="/js/pages/product-detail.js?v=42"></script>
 <script src="/js/pages/compare-page.js?v=21"></script>
-<script src="/js/pages/enquiry.js?v=11"></script>
+<script src="/js/pages/enquiry.js?v=18"></script>
 <script src="/js/pages/contact.js?v=6"></script>
 <script src="/js/widgets/chatbot.js?v=31"></script>
-<script src="/js/widgets/page-transitions.js?v=10"></script>
+<script src="/js/widgets/page-transitions.js?v=11"></script>
 </body>
 </html>

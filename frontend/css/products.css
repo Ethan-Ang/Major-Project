@@ -1203,16 +1203,6 @@ h1, h2, h3,
   margin: 0.35rem 0 0;
 }
 
-/* Quiet guidance under a field (not an error). Used by the "Product
-   recommendation" topic, where the team needs specifics to answer at all. */
-.field-hint {
-  color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1.5;
-  margin: 0.4rem 0 0;
-}
-.field-hint[hidden] { display: none; }
-
 /* Form-level error summary above the submit button. Was an inline style block
    on the enquiry page; centralised here so the error red comes from one token
    and the two error surfaces can never drift apart. */
@@ -1986,10 +1976,17 @@ body.detail-has-cta .toast {
 
 /* Two-column body: selected products / details form. Collapses to one
    column (form below the list) on tablet and phone. */
+/* The form is the work; the attached-products panel is context for it. So the
+   form takes the wider track — the reverse of the old split, which gave the
+   basket more room than the thing the visitor actually has to fill in. */
 .enquiry-grid {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 32px;
+  /* The form still takes the wider track, but the attached-products column keeps
+     enough room for the existing basket rows and the Total Products summary to
+     sit on one line each — squeezing it further made "Clear all" and the advice
+     prompt wrap mid-phrase. */
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 28px;
   align-items: start;
 }
 
@@ -2004,33 +2001,24 @@ body.detail-has-cta .toast {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .enquiry-col-head h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   margin: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
 }
+/* No section heading at all with nothing attached: the empty note's own
+   heading takes over, so the panel never names a products section the visitor
+   has not created. */
+.enquiry-col-head[hidden] { display: none; }
 
-/* "Optional" says in WORDS, not colour alone, that products can be left off.
-   Deliberately neutral: it is a statement of fact, not a warning. */
-.enquiry-optional-tag {
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.enquiry-basket-sub {
+  font-size: 0.82rem;
+  line-height: 1.45;
   color: var(--muted);
-  background: var(--bg);
-  border: 1px solid var(--line-2);
-  border-radius: 3px;
-  padding: 2px 7px;
-  white-space: nowrap;
+  margin: 0.2rem 0 0;
 }
 
 /* Clear all: quiet text control — light at rest, red underline on intent. */
@@ -2044,110 +2032,218 @@ body.detail-has-cta .toast {
   cursor: pointer;
   padding: 0.35rem 0.1rem;
   min-height: 44px;
+  white-space: nowrap;
 }
 
 .enquiry-clear-all:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
 .enquiry-clear-all:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
-.enquiry-clear-all[hidden] { display: none; }
-.enquiry-basket-sub[hidden] { display: none; }
-
-/* Secondary attachment actions (Browse products / Add another product / Use
-   Bond Finder). Outlined and quiet ON PURPOSE: the one primary red action on
-   this page is Submit enquiry, and nothing here may compete with it. */
-.enquiry-attach-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+/* One card holding the attached list (or the empty note) and the advisor
+   footer, so the left column reads as a single component. */
+.enquiry-attach-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
 }
 
+/* Zero attached products: deliberately small. It states the fact, says the
+   enquiry can still be sent, and offers the two ways on. No tall blank card,
+   no minimum height, no centred void. */
+/* Centred: with the panel this short, a left-aligned icon over centred-width
+   copy read as three separate left edges. One axis is calmer. */
+.basket-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 6px 0 2px;
+}
+
+.basket-empty-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(204, 41, 41, 0.08);
+  color: var(--red);
+  margin-bottom: 0.7rem;
+}
+
+/* This IS the panel's heading with nothing attached — there is no separate
+   section title above it. */
+.basket-empty h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.3rem;
+}
+
+.basket-empty p {
+  margin: 0 auto 0.95rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 38ch;
+}
+
+/* Both routes on one row where the column allows it; they wrap rather than
+   shrink so neither label is ever clipped. */
+.basket-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Secondary actions (Browse products / Open Product Advisor / Add another
+   product). Outlined and quiet ON PURPOSE: Submit enquiry is the only primary
+   red action on the page, and nothing over here may compete with it. */
 .enquiry-quiet-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0.5rem 0.9rem;
   border: 1px solid var(--line-2);
   border-radius: 5px;
   background: var(--card);
   color: var(--body);
+  font-family: inherit;
   font-size: 0.83rem;
   font-weight: 600;
   text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
   transition: border-color 0.18s, color 0.18s;
 }
 
 .enquiry-quiet-btn:hover { border-color: var(--red); color: var(--red); }
 .enquiry-quiet-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
-/* Restates in text that products can be left off, for anyone who reads the
-   panel bottom-up or misses the "Optional" tag. */
-.enquiry-optional-note {
-  margin: 10px 0 4px;
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
-/* The zero-attached state: one compact row INSIDE the panel. Not a full-bleed
-   card, not a call to action, and never a blocker — the form beside it stays
-   completely usable. */
-.basket-none {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.9rem 0 0.2rem;
-  border-top: 1px solid var(--line);
-}
-
-.basket-none-icon {
-  flex: none;
-  width: 34px;
-  height: 34px;
+/* Total-products summary: one balanced horizontal strip, count on the left and
+   the advisor prompt on the right. Attached state only. */
+.enquiry-total-band {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line-2);
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--muted);
-}
-
-.basket-none-copy strong {
-  display: block;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 0.15rem;
-}
-
-.basket-none-copy p {
-  margin: 0;
-  font-size: 0.83rem;
-  line-height: 1.55;
-  color: var(--muted);
-  max-width: 46ch;
-}
-
-/* White basket card wrapping the head + item rows (locked design). The
-   Total Products summary band below fuses onto this card's bottom edge
-   (radius squared off here, rounded there) so basket + summary read as ONE
-   component with an internal divider, not two floating cards. */
-.enquiry-basket-card {
-  background: var(--card);
-  border: 1px solid var(--border);
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 16px 0 0;
+  min-height: 76px;
+  padding: 12px 18px;
+  background: #faf9f5;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 20px 20px 12px;
-  box-shadow: var(--shadow);
-  overflow: hidden; /* clip the full-bleed summary footer to the card's radius */
 }
-/* (The `.enquiry-grid.is-empty .enquiry-basket-card` override that used to sit
-   here is gone with the empty state it served: zero attached products is now a
-   compact row inside this same card — see .basket-none.) */
+/* `display: flex` above beats the browser default for [hidden], so the band
+   needs this to actually disappear at zero attached products. */
+.enquiry-total-band[hidden] { display: none; }
 
-.enquiry-basket-sub {
-  font-size: 0.82rem;
+.enquiry-total-count-group {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+}
+.enquiry-total-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--red-tint);
+  color: var(--red);
+  flex-shrink: 0;
+}
+.enquiry-total-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.15;
+}
+.enquiry-total-text strong {   /* quiet label on top */
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--muted);
-  margin: 0.2rem 0 0;
+  letter-spacing: 0.005em;
+}
+.enquiry-total-text span {     /* count line: emphasised number + quiet unit */
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.enquiry-total-text span b {   /* the number itself carries the weight */
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-right: 1px;
+}
+.enquiry-total-advice {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-height: 48px;
+  justify-content: center;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  padding: 0.35rem 0.25rem 0.35rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.76rem;
+  color: var(--muted);
+  text-align: right;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.enquiry-total-advice:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.enquiry-advice-helper { line-height: 1.3; }
+.enquiry-advice-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--red);
+}
+.enquiry-advice-link svg { transition: transform 0.18s ease; }
+/* Hover affordance lives on the "Get Product Advice" link only, not the whole
+   button: a full red-tint wash covered both lines and read as an awkward slab.
+   The button stays clickable everywhere, but only the link underlines and
+   nudges its arrow. */
+.enquiry-advice-link:hover { color: var(--red-hover); text-decoration: underline; text-underline-offset: 3px; }
+.enquiry-advice-link:hover svg { transform: translateX(3px); }
+@media (max-width: 640px) {
+  .enquiry-total-band {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+    padding: 14px;
+  }
+  .enquiry-total-advice {
+    margin-left: 0;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+    padding: 0.7rem 0 0.15rem;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+  }
+}
+
+/* Quiet guidance under a field (not an error): the adaptive Message helper. */
+.field-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  margin: 0 0 0.45rem;
 }
 
 /* Basket items: hairline-divided rows inside the one card (locked ReBond
@@ -2255,121 +2351,6 @@ body.detail-has-cta .toast {
 
 .basket-remove:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
-/* Total-products summary: one balanced horizontal strip, following the supplied
-   reference's count-left / advisor-right hierarchy without copying its brand. */
-.enquiry-total-band {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 16px 0 0;
-  min-height: 76px;
-  padding: 12px 18px;
-  background: #faf9f5;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-}
-.enquiry-total-count-group {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  min-width: 0;
-}
-.enquiry-total-ic {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--red-tint);
-  color: var(--red);
-  flex-shrink: 0;
-}
-.enquiry-total-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  line-height: 1.15;
-}
-.enquiry-total-text strong {   /* quiet label on top */
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.005em;
-}
-.enquiry-total-text span {     /* count line: emphasised number + quiet unit */
-  font-size: 0.86rem;
-  font-weight: 500;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.enquiry-total-text span b {   /* the number itself carries the weight */
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-right: 1px;
-}
-.enquiry-total-advice {
-  margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  min-height: 48px;
-  justify-content: center;
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: 5px;
-  padding: 0.35rem 0.25rem 0.35rem 0.8rem;
-  font-family: inherit;
-  font-size: 0.76rem;
-  color: var(--muted);
-  text-align: right;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.enquiry-total-advice:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.enquiry-advice-helper { line-height: 1.3; }
-.enquiry-advice-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--red);
-}
-.enquiry-advice-link svg { transition: transform 0.18s ease; }
-/* Hover affordance lives on the "Get Product Advice" link only, not the whole
-   button: the old full red-tint wash covered both lines and read as an awkward
-   slab. The button stays clickable everywhere, but only the link underlines and
-   nudges its arrow. */
-.enquiry-advice-link:hover { color: var(--red-hover); text-decoration: underline; text-underline-offset: 3px; }
-.enquiry-advice-link:hover svg { transform: translateX(3px); }
-@media (max-width: 640px) {
-  .enquiry-total-band {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.7rem;
-    padding: 14px;
-  }
-  .enquiry-total-advice {
-    margin-left: 0;
-    align-items: flex-start;
-    text-align: left;
-    width: 100%;
-    padding: 0.7rem 0 0.15rem;
-    border-top: 1px solid var(--line);
-    border-radius: 0;
-  }
-}
-
-/* (The `.basket-empty` full-page panel that used to live here is gone. The
-   zero-attached state is now `.basket-none`, a compact row inside the panel,
-   because hiding the form behind a full-bleed empty card is exactly what made
-   a general enquiry impossible to send.) */
 /* Right-column sticky card: "Enquiring about" strip + padded form body. */
 .enquiry-form {
   display: block;
@@ -5197,6 +5178,10 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   .enquiry-grid { grid-template-columns: 1fr; }
   .enquiry-form { position: static; }
   .enquiry-form-body .form-row { grid-template-columns: 1fr; }
+  /* Once the columns stack, this is a touch layout: Remove gets a full touch
+     target here rather than only below 640, where the tablet range was leaving
+     it at 40px. */
+  .basket-remove { min-height: 44px; }
 }
 
 @media (max-width: 640px) {
@@ -5220,10 +5205,8 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 @media (max-width: 480px) {
   .basket-item-thumb { width: 64px; height: 64px; }
   .enquiry-col-head { flex-wrap: wrap; gap: 8px; }
-  /* Full-width secondary actions so both stay comfortably tappable rather than
-     squeezing onto one cramped row. */
-  .enquiry-attach-actions { flex-direction: column; align-items: stretch; }
-  .enquiry-quiet-btn { min-height: 44px; }
+  /* Give the empty panel back some horizontal room on the narrowest phones. */
+  .basket-empty { padding: 2px 0; }
 }
 
 /* ─── Compare page polish ─────────────────────────────────────── */
@@ -6729,6 +6712,8 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 }
 
 
+
+
 /* ═══════════════════════════════════════════════════════════════
    Yee Lim Bond Finder V3
    ═══════════════════════════════════════════════════════════════ */
@@ -6739,6 +6724,22 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--red);
   border-radius: 6px; box-shadow: var(--shadow);
 }
+.bond-finder-heading-row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.bond-finder-toggle {
+  display:inline-flex; align-items:center; justify-content:center; gap:.4rem; flex-shrink:0;
+  min-height:40px; padding:.45rem .7rem; border:1px solid var(--line-2); border-radius:5px;
+  background:#fff; color:var(--body); font:600 .78rem inherit; cursor:pointer;
+}
+.bond-finder-toggle:hover { border-color:var(--red); color:var(--red); background:var(--red-tint); }
+.bond-finder-toggle svg { transition:transform .18s var(--ease); }
+.bond-finder-toggle[aria-expanded="true"] svg { transform:rotate(180deg); }
+.bond-finder-body { display:contents; }
+.bond-finder-shell.is-collapsed {
+  grid-template-columns:1fr; align-items:center; padding-top:1rem; padding-bottom:1rem;
+}
+.bond-finder-shell.is-collapsed .bond-finder-copy { grid-column:1; }
+.bond-finder-shell.is-collapsed .bond-finder-copy > p,
+.bond-finder-shell.is-collapsed .bond-finder-body { display:none; }
 .bond-finder-eyebrow { display:block; margin-bottom:.45rem; font-family:var(--mono); font-size:.66rem; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--red); }
 .bond-finder-copy h2 { margin:0 0 .4rem; font-size:1.45rem; line-height:1.15; color:var(--text); }
 .bond-finder-copy p { margin:0; max-width:52ch; color:var(--muted); font-size:.88rem; line-height:1.55; }
@@ -6800,6 +6801,7 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 /* Bond Finder V3 final refinements */
 .bond-finder-submit:disabled { opacity:.62; cursor:wait; }
 .bond-finder-result a:focus-visible,
+.bond-finder-edit:focus-visible,
 .bond-finder-whatsapp:focus-visible,
 .bond-finder-clear:focus-visible {
   outline:2px solid var(--red);
@@ -6808,6 +6810,7 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 .bond-match-box { overflow-wrap:anywhere; }
 @media (prefers-reduced-motion: reduce) {
   .bond-finder-submit,
+  .bond-finder-edit,
   .bond-finder-whatsapp,
   .bond-finder-clear { transition:none; }
 }

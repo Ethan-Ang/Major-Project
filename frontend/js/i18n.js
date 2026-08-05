@@ -21,7 +21,9 @@
     // badge beside it is what communicates "n products attached".
     "nav.enquiry":         { en: "Enquiry",         zh: "询价" },
     "nav.enquiry_short":   { en: "Enquiry",         zh: "询价" },
-    "nav.enquiry_count":   { en: "Enquiry, {count} {unit} attached", zh: "询价，已附加 {count} 件产品" },
+    // {unit} is carried in BOTH languages (zh resolves it to the measure word
+    // 件) so the placeholder sets match and neither can render a literal brace.
+    "nav.enquiry_count":   { en: "Enquiry, {count} {unit} attached", zh: "询价，已附加 {count} {unit}产品" },
 
     // ── Common actions / labels ──
     "common.add_enquiry":  { en: "Add to Enquiry",  zh: "加入询价" },
@@ -246,22 +248,21 @@
     "compare.key_features":{ en: "Key Features",       zh: "主要特性" },
 
     // ── Enquiry page ──
-    // Products are OPTIONAL attachments: every string here must work for a
-    // general enquiry with nothing attached as well as a product enquiry.
-    "enquiry.title":       { en: "Enquiry",            zh: "询价" },
-    "enquiry.lead":        { en: "Enquire about a product, request a recommendation, or send our team a general question.", zh: "您可以就某款产品询价、索取选型建议，或向我们的团队提出一般问题。" },
-    "enquiry.basket":      { en: "Products attached",  zh: "已附加产品" },
-    "enquiry.optional_tag":{ en: "Optional",           zh: "选填" },
-    "enquiry.basket_sub":  { en: "Review the products you've attached.", zh: "查看您已附加的产品。" },
-    "enquiry.clear_all":   { en: "Clear all",          zh: "清除全部" },
-    "enquiry.products_optional": { en: "Products are optional.", zh: "附加产品为选填项。" },
-    "enquiry.add_another": { en: "Add another product", zh: "添加其他产品" },
-    // Terminology matched to the teammate-owned "bond.title" so the two places
-    // that name the feature agree. This is a link only; Bond Finder is untouched.
-    "enquiry.use_bond_finder": { en: "Use Bond Finder", zh: "使用粘合方案查找器" },
-    "enquiry.total":       { en: "Attached",           zh: "已附加" },
+    // Products are an OPTIONAL attachment, so every string here has to work for
+    // a general enquiry with nothing attached as well as a product enquiry.
+    // The eyebrow carries the page NAME so the h1 can be a sentence.
+    "enquiry.eyebrow":     { en: "Enquiry",            zh: "询价" },
+    "enquiry.title":       { en: "Tell us how we can help", zh: "告诉我们能为您做些什么" },
+    "enquiry.lead":        { en: "Enquire about a product, request a recommendation, or send us a general question.", zh: "您可以就某款产品询价、索取选型建议，或向我们提出一般问题。" },
+    // "Products attached", not "basket": products are an optional attachment to
+    // an enquiry, and shopping-cart language implies a checkout that does not
+    // exist here.
+    "enquiry.basket":      { en: "Products for this enquiry", zh: "本次询价的产品" },
+    "enquiry.basket_sub":  { en: "Review the products you've selected.", zh: "查看您已选择的产品。" },
+    "enquiry.total":       { en: "Total Products",     zh: "产品总数" },
     "enquiry.need_help":   { en: "Need help finding the right product?", zh: "需要帮助挑选合适的产品？" },
     "enquiry.get_advice":  { en: "Get Product Advice", zh: "获取产品建议" },
+    "enquiry.clear_all":   { en: "Clear all",          zh: "清除全部" },
     "enquiry.your_details":{ en: "Your Details",       zh: "您的信息" },
     "enquiry.required":    { en: "* Required fields",  zh: "* 必填项" },
     "enquiry.details_sub": { en: "Please provide your details so our team can respond accurately.", zh: "请填写您的信息，以便我们的团队准确回复。" },
@@ -269,14 +270,12 @@
     "enquiry.f_company":   { en: "Company Name *",     zh: "公司名称 *" },
     "enquiry.f_email":     { en: "Email Address *",    zh: "电子邮箱 *" },
     "enquiry.f_phone":     { en: "Phone Number",       zh: "电话号码" },
-    "enquiry.f_subject":   { en: "Enquiry topic *",    zh: "询价主题 *" },
-    // Bare label (no asterisk) for the "Enquiry topic: ..." line folded into the
-    // message body and for error copy, where a "*" would read as a typo.
-    "enquiry.f_subject_plain": { en: "Enquiry topic",  zh: "询价主题" },
+    "enquiry.f_subject":   { en: "Enquiry topic",      zh: "询价主题" },
     "enquiry.f_message":   { en: "Message",            zh: "留言" },
-    // The Message label adapts to what the enquiry is about.
-    "enquiry.f_message_products": { en: "Tell us about your requirements", zh: "请告诉我们您的需求" },
-    "enquiry.f_message_general":  { en: "How can we help?", zh: "我们能为您做些什么？" },
+    // Message helper copy, swapped by enquiry.js to match the attached state.
+    // It prompts for detail; none of it is a separate required field.
+    "enquiry.msg_hint_general":  { en: "Tell us what you need help with, including your application, materials or estimated quantity.", zh: "请告诉我们您需要哪方面的协助，包括应用场景、材料或预计用量。" },
+    "enquiry.msg_hint_products": { en: "Tell us about your requirements, quantity or any questions about the attached products.", zh: "请告诉我们您的需求、用量，或关于所附产品的任何疑问。" },
     "enquiry.f_notes":     { en: "Enquiry Notes",      zh: "询价备注" },
     "enquiry.optional":    { en: "(Optional)",         zh: "（选填）" },
     "enquiry.ph_name":     { en: "John Tan",           zh: "您的姓名" },
@@ -292,22 +291,23 @@
     "enquiry.opt_bulk":    { en: "Distributor or partnership", zh: "经销或合作洽谈" },
     "enquiry.opt_general": { en: "General enquiry",     zh: "一般询价" },
     "enquiry.opt_other":   { en: "Other",               zh: "其他" },
-    // Shown only under "Product recommendation": prompts for the details our
-    // team needs, WITHOUT turning any of them into separate required fields.
-    "enquiry.recommend_help": { en: "Tell us the materials you are bonding, application method, operating conditions and estimated quantity.", zh: "请告诉我们需要粘合的材料、施工方法、使用环境条件以及预计用量。" },
     "enquiry.err_name":    { en: "Please enter your full name.", zh: "请输入您的姓名。" },
     "enquiry.err_company": { en: "Please enter your company name.", zh: "请输入您的公司名称。" },
     "enquiry.err_email":   { en: "Please enter a valid email address.", zh: "请输入有效的电子邮箱地址。" },
-    "enquiry.err_subject": { en: "Please choose an enquiry topic.", zh: "请选择询价主题。" },
     "enquiry.err_privacy": { en: "Please agree to the use of your information so we can process your enquiry.", zh: "请同意我们使用您的信息以处理您的询价。" },
     "enquiry.privacy_agree": { en: "I agree to the collection and use of my information to process this enquiry.", zh: "我同意收集并使用我的信息以处理本次询价。" },
-    "enquiry.submit":      { en: "Submit Enquiry",     zh: "提交询价" },
+    "enquiry.submit":      { en: "Submit enquiry",     zh: "提交询价" },
     "enquiry.sending":     { en: "Sending…",           zh: "提交中……" },
     "enquiry.reassurance": { en: "We'll reply within 1-2 business days with advice or a quotation.", zh: "我们将在 1-2 个工作日内回复建议或报价。" },
     "enquiry.security":    { en: "Your information is secure and will only be used to process your enquiry.", zh: "您的信息将被安全保存，仅用于处理您的询价。" },
-    "enquiry.empty_title": { en: "No products selected", zh: "尚未选择产品" },
-    "enquiry.empty_body":  { en: "That's okay. You can still submit a general enquiry or ask us for a product recommendation.", zh: "这没有关系。您仍然可以提交一般询价，或请我们为您推荐合适的产品。" },
+    // No "yet" in either language: 尚未 carries the same "not yet" implication
+    // that selecting a product is expected, which it is not.
+    "enquiry.empty_title": { en: "No products selected", zh: "未选择产品" },
+    "enquiry.empty_body":  { en: "You can continue with a general enquiry, or add a product for more specific advice.", zh: "您可以直接提交一般询价，或添加产品以获得更具体的建议。" },
     "enquiry.browse":      { en: "Browse products",    zh: "浏览产品" },
+    // Product Advisor block. Opens the EXISTING advisor; nothing about that
+    // feature is changed here.
+    "enquiry.open_advisor":  { en: "Open Product Advisor", zh: "打开产品顾问" },
     "enquiry.browse_more": { en: "Browse More Products", zh: "浏览更多产品" },
     "enquiry.remove":      { en: "Remove",             zh: "移除" },
     "enquiry.remove_aria": { en: "Remove {product} from your enquiry", zh: "将 {product} 从您的询价中移除" },
@@ -315,7 +315,7 @@
     "enquiry.items":       { en: "items",              zh: "件" },
     // Screen-reader announcements when the attached list changes. The zero case
     // must reassure, not alarm: the enquiry is still submittable.
-    "enquiry.a11y_removed":      { en: "{product} removed. {count} {unit} still attached.", zh: "已移除 {product}。仍附加 {count} 件产品。" },
+    "enquiry.a11y_removed":      { en: "{product} removed. {count} {unit} still attached.", zh: "已移除 {product}。仍附加 {count} {unit}产品。" },
     "enquiry.a11y_removed_last": { en: "{product} removed. No products attached. You can still submit your enquiry.", zh: "已移除 {product}。目前没有附加产品。您仍然可以提交询价。" },
     "enquiry.a11y_cleared":      { en: "All products removed. No products attached. You can still submit your enquiry.", zh: "已移除全部产品。目前没有附加产品。您仍然可以提交询价。" },
     "enquiry.your_ref":    { en: "Your reference:",    zh: "您的参考编号：" },

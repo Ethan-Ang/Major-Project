@@ -761,6 +761,9 @@ input[type="checkbox"] { accent-color: var(--red); }
 .unread-dot { width: 7px; height: 7px; background: var(--red); display: inline-block; flex-shrink: 0; }
 .enq-name { font-weight: 600; color: var(--text); margin-bottom: 0.2rem; font-size: 0.88rem; }
 .enq-products { font-size: 0.8rem; color: var(--muted); max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* "No product selected" is a state, not a product name — italic so it never
+   reads as an actual entry in the Products column. */
+.enq-products-none { font-style: italic; opacity: 0.85; }
 
 .detail-panel { position: fixed; top: 0; right: 0; width: 440px; max-width: 92vw; height: 100vh; background: var(--card); border-left: 1px solid var(--line-2); box-shadow: var(--shadow-lg); z-index: 150; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.32s var(--ease); }
 .detail-panel.open { transform: translateX(0); }

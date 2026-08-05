@@ -23,15 +23,11 @@ function renderBasketSkeleton() {
   const list = document.getElementById("basketList");
   if (!list) return;
   const count = getBasket().length;
-  const totalBand = document.getElementById("enquiryTotalBand");
-  const totalCount = document.getElementById("enquiryTotalCount");
   if (!count) {
     renderBasket();
     return;
   }
   syncAttachedChrome(count);
-  if (totalBand) totalBand.style.display = "flex";
-  if (totalCount) totalCount.innerHTML = `<b>${count}</b> ${eqItemWord(count)}`;
   const row = '<div class="basket-item" aria-hidden="true" style="align-items:center">' +
     '<div class="skeleton-img" style="width:64px;height:64px;aspect-ratio:auto;border-radius:6px;flex:none"></div>' +
     '<div style="flex:1">' +
@@ -46,15 +42,13 @@ function initEnquiryPage() {
   const list = document.getElementById("basketList");
   if (!list) return;
   initEnquiryCounters();
-  // Enquiry topic uses the same accessible custom dropdown as the catalogue
-  // sort, replacing the native browser option list. The native <select> stays
-  // in the DOM as the value source, so reading .value below is unchanged. Safe
-  // to re-run across Swup swaps (enhanceCustomSelect guards against double
-  // enhancement).
+  // Subject uses the same accessible custom dropdown as the catalogue sort,
+  // replacing the native browser option list. The native <select> stays in the
+  // DOM as the value source, so submitEnquiry is unchanged. Safe to re-run
+  // across Swup swaps (enhanceCustomSelect guards against double enhancement).
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("eSubject"));
   }
-  initEnquiryTopic();
   if (PRODUCTS && PRODUCTS.length) { renderBasket(); return; }
   renderBasketSkeleton();
   loadProductsFromBackend()
@@ -79,76 +73,44 @@ function initEnquiryCounters() {
   });
 }
 
-// Panel chrome that depends on how many products are attached: the "Clear all"
-// control, the sub-line, the Browse/Add-another label and the Message label.
-// The FORM ITSELF IS NEVER TOUCHED HERE — only labels, so no field is re-created
-// and no typed value can be lost.
+// Panel chrome that depends on how many products are attached. THE FORM IS
+// NEVER TOUCHED HERE — this only toggles controls in the left column, which is
+// what makes removing the last product safe for anything already typed in.
 function syncAttachedChrome(count) {
-  const clearBtn = document.getElementById("clearAllBtn");
-  if (clearBtn) clearBtn.hidden = count === 0;
-
-  // Sub-line: only meaningful when there is something to review.
-  const sub = document.getElementById("enquiryBasketSub");
-  if (sub) sub.hidden = count === 0;
-
-  // One link, two jobs: the entry point to the catalogue reads "Browse products"
-  // when nothing is attached and "Add another product" once something is.
-  // data-i18n is updated too so a Swup swap or language switch re-applies the
-  // matching string rather than reverting to the other one.
-  const browse = document.getElementById("enquiryBrowseLink");
-  if (browse) {
-    const key = count === 0 ? "enquiry.browse" : "enquiry.add_another";
-    const fallback = count === 0 ? "Browse products" : "Add another product";
-    browse.setAttribute("data-i18n", key);
-    browse.textContent = eqT(key, fallback);
+  // With nothing attached there is no section heading and no footer: the empty
+  // note is the heading, and it carries its own actions. Showing the footer too
+  // would put two advisor controls on screen at once.
+  const head = document.getElementById("enquiryColHead");
+  if (head) head.hidden = count === 0;
+  const band = document.getElementById("enquiryTotalBand");
+  if (band) band.hidden = count === 0;
+  // Emphasised number + quiet unit. `count` is a number, so this innerHTML
+  // carries no untrusted text.
+  const totalCount = document.getElementById("enquiryTotalCount");
+  if (totalCount && count > 0) {
+    totalCount.innerHTML = `<b>${count}</b> ${eqItemWord(count)}`;
   }
 
-  // Message label follows what the enquiry is about.
-  const msgLabel = document.getElementById("eMessageLabel");
-  if (msgLabel) {
-    const key = count === 0 ? "enquiry.f_message_general" : "enquiry.f_message_products";
-    const fallback = count === 0 ? "How can we help?" : "Tell us about your requirements";
-    msgLabel.setAttribute("data-i18n", key);
-    msgLabel.textContent = eqT(key, fallback);
+  // Name the region after whichever heading is actually live, so assistive tech
+  // never labels it from a hidden element.
+  const section = document.getElementById("enquiryAttachSection");
+  if (section) {
+    section.setAttribute("aria-labelledby",
+      count === 0 ? "attachedHeadingEmpty" : "attachedHeadingFull");
   }
-}
 
-// The control assistive tech actually reaches for the topic field. Once
-// enhanceCustomSelect has run, the native <select> is aria-hidden and
-// unfocusable, so error state and focus belong on the trigger button.
-function subjectControl() {
-  const select = document.getElementById("eSubject");
-  if (!select) return null;
-  const wrap = select.closest(".custom-select-wrap");
-  return (wrap && wrap.querySelector(".custom-select-trigger")) || select;
-}
-
-// "Product recommendation" is the one topic where the team needs specifics to
-// answer at all, so it gets a hint. Bound once per page view; guarded so a
-// Swup re-init never stacks listeners.
-function initEnquiryTopic() {
-  const select = document.getElementById("eSubject");
-  if (!select || select._ylTopicBound) return;
-  select._ylTopicBound = true;
-  select.addEventListener("change", syncTopicHint);
-  syncTopicHint();
-}
-
-function syncTopicHint() {
-  const select = document.getElementById("eSubject");
-  const hint = document.getElementById("eSubjectHint");
-  if (!select || !hint) return;
-  // Match on the option's POSITION, not its text: the label is translated, so
-  // comparing against an English string would silently stop working in Chinese.
-  const isRecommendation = select.selectedIndex === 1;
-  hint.hidden = !isRecommendation;
-
-  // Only describe the field by the hint while the hint is actually showing, and
-  // never clobber an active error message.
-  const control = subjectControl();
-  if (control && control.getAttribute("aria-invalid") !== "true") {
-    if (isRecommendation) control.setAttribute("aria-describedby", "eSubjectHint");
-    else control.removeAttribute("aria-describedby");
+  // Message helper copy follows what the enquiry is about. data-i18n is updated
+  // alongside the text so a Swup swap or language switch re-applies the matching
+  // string rather than reverting to the other one. This touches a <p>, never a
+  // field — nothing the visitor has typed can be disturbed by it.
+  const hint = document.getElementById("eMessageHint");
+  if (hint) {
+    const key = count === 0 ? "enquiry.msg_hint_general" : "enquiry.msg_hint_products";
+    const fallback = count === 0
+      ? "Tell us what you need help with, including your application, materials or estimated quantity."
+      : "Tell us about your requirements, quantity or any questions about the attached products.";
+    hint.setAttribute("data-i18n", key);
+    hint.textContent = eqT(key, fallback);
   }
 }
 
@@ -157,35 +119,31 @@ function renderBasket() {
   const products = ids.map(id => PRODUCTS.find(p => String(p.id) === String(id))).filter(Boolean);
   const list = document.getElementById("basketList");
   if (!list) return;
-  const totalBand = document.getElementById("enquiryTotalBand");
-  const totalCount = document.getElementById("enquiryTotalCount");
-
   syncAttachedChrome(products.length);
 
   if (products.length === 0) {
-    // Zero attached products is NORMAL, not an error and not a dead end: a
-    // compact note inside the same panel, with the form still sitting beside it
-    // fully usable. No full-bleed empty card, no hidden form, no grid collapse.
-    // The document icon replaces the old shopping cart — this is a B2B enquiry,
-    // not a checkout.
+    // Zero attached products is NORMAL. A compact panel that states the fact,
+    // says plainly that an enquiry can still be sent, and offers one quiet way
+    // to the catalogue. No page takeover, no hidden form, no primary CTA — the
+    // Product Advisor entry point lives in its own card below, not repeated
+    // here. The document icon replaces the old shopping cart: this is a B2B
+    // enquiry with optional attachments, not a checkout.
     list.innerHTML = `
-      <div class="basket-none">
-        <span class="basket-none-icon" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div class="basket-empty">
+        <span class="basket-empty-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
         </span>
-        <div class="basket-none-copy">
-          <strong>${eqT("enquiry.empty_title", "No products selected")}</strong>
-          <p>${eqT("enquiry.empty_body", "That's okay. You can still submit a general enquiry or ask us for a product recommendation.")}</p>
+        <h2 id="attachedHeadingEmpty">${eqT("enquiry.empty_title", "No products selected")}</h2>
+        <p>${eqT("enquiry.empty_body", "You can continue with a general enquiry, or add a product for more specific advice.")}</p>
+        <div class="basket-empty-actions">
+          <a href="/products" class="enquiry-quiet-btn" id="enquiryBrowseLink" data-i18n="enquiry.browse">${eqT("enquiry.browse", "Browse products")}</a>
+          <button type="button" class="enquiry-quiet-btn" aria-haspopup="dialog"
+            onclick="if(window.openProductAdvisor){window.openProductAdvisor()}else if(window.ylSwup){window.ylSwup.navigate('/contact')}else{window.location.href='/contact'}"
+            data-i18n="enquiry.open_advisor">${eqT("enquiry.open_advisor", "Open Product Advisor")}</button>
         </div>
       </div>`;
-    if (totalBand) totalBand.style.display = "none";
     return;
   }
-
-  if (totalBand) totalBand.style.display = "flex";
-  // Emphasised number + quiet unit (target treatment). products.length is a
-  // number, so this innerHTML carries no untrusted text.
-  if (totalCount) totalCount.innerHTML = `<b>${products.length}</b> ${eqItemWord(products.length)}`;
 
   const subtype = p => (typeof productSubtype === "function") ? productSubtype(p) : (p.category || "");
 
@@ -278,15 +236,13 @@ async function submitEnquiry() {
   const subject = (document.getElementById("eSubject") || {}).value || "";
   const notes   = (document.getElementById("eNotes") || {}).value || "";
   const message = [
-    subject.trim() ? `${eqT("enquiry.f_subject_plain", "Enquiry topic")}: ${subject.trim()}` : "",
+    subject.trim() ? `${eqT("enquiry.f_subject", "Subject")}: ${subject.trim()}` : "",
     document.getElementById("eMessage").value.trim(),
     notes.trim() ? `${eqT("enquiry.f_notes", "Enquiry Notes")}: ${notes.trim()}` : "",
   ].filter(Boolean).join("\n\n");
 
   const privacy = document.getElementById("ePrivacy");
   const privacyErr = document.getElementById("ePrivacyErr");
-  const subjectErr = document.getElementById("eSubjectErr");
-  const subjectCtl = subjectControl();
 
   // Reset previous error state (summary + inline messages)
   ["eName", "eCompany", "eEmail"].forEach(fid => {
@@ -296,12 +252,6 @@ async function submitEnquiry() {
     const inline = document.getElementById(fid + "Err");
     if (inline) inline.hidden = true;
   });
-  if (subjectCtl) {
-    subjectCtl.removeAttribute("aria-invalid");
-    subjectCtl.removeAttribute("aria-describedby");
-  }
-  if (subjectErr) subjectErr.hidden = true;
-  syncTopicHint(); // restores the hint's aria-describedby if it is showing
   if (privacy) {
     privacy.removeAttribute("aria-invalid");
     privacy.removeAttribute("aria-describedby");
@@ -334,19 +284,8 @@ async function submitEnquiry() {
     return;
   }
 
-  // Enquiry topic gate. NOTE what is deliberately absent from this whole
-  // function: any check on how many products are attached. Zero is valid.
-  if (!subject.trim()) {
-    if (subjectCtl) {
-      subjectCtl.setAttribute("aria-invalid", "true");
-      if (subjectErr) subjectCtl.setAttribute("aria-describedby", subjectErr.id);
-    }
-    if (subjectErr) subjectErr.hidden = false;
-    errorEl.textContent   = eqT("enquiry.err_subject", "Please choose an enquiry topic.");
-    errorEl.style.display = "block";
-    if (subjectCtl) subjectCtl.focus();
-    return;
-  }
+  // NOTE what is deliberately absent from this whole function: any check on how
+  // many products are attached. Zero is a valid submission.
 
   // Consent gate (frontend validation only; the API payload is unchanged).
   if (privacy && !privacy.checked) {

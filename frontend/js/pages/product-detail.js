@@ -1256,12 +1256,12 @@ function syncDetailBasketButtons(product) {
   }
 }
 
-// Bottom "Send Enquiry" CTA: the visitor is already looking at a
+// Bottom "Send Product Enquiry" CTA: the visitor is already looking at a
 // specific product, so add it to the enquiry first (no duplicates), then let
 // the link's href carry them to enquiry.html where it will be pre-selected.
 // localStorage writes are synchronous, so the basket is saved before the
 // default navigation runs — no preventDefault needed. Works for unavailable
-// products too. The navbar Enquiry link is untouched (navigation only).
+// products too. The navbar Product Enquiry link is untouched (navigation only).
 function enquireAboutProduct(productId) {
   const id = String(productId);
   const basket = getBasket();
