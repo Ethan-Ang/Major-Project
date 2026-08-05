@@ -31,6 +31,11 @@
     "common.compare":      { en: "Compare",         zh: "对比" },
     "common.skip":         { en: "Skip to main content", zh: "跳转到主要内容" },
     "common.in_compare":   { en: "In Comparison",   zh: "已加入对比" },
+    /* The product-detail sticky bar had these three hardcoded in English, so a
+       Chinese visitor saw "Compare"/"Added" and heard English aria-labels. */
+    "common.added":        { en: "Added",           zh: "已加入" },
+    "common.aria_add_compare":    { en: "Add to comparison",      zh: "加入对比" },
+    "common.aria_remove_compare": { en: "Remove from comparison", zh: "从对比中移除" },
     "common.talk":         { en: "Talk to Yee Lim", zh: "联系 Yee Lim" },
     "common.available":    { en: "Available",       zh: "有货" },
     "common.view_all":     { en: "View all products", zh: "查看所有产品" },
@@ -89,6 +94,7 @@
     "footer.speak":        { en: "Speak to Yee Lim", zh: "联系 Yee Lim" },
     "footer.rights":       { en: "All rights reserved.", zh: "版权所有。" },
     "footer.tagline":      { en: "Commercial & Industrial Adhesive Solutions · Singapore", zh: "工商业胶粘剂解决方案 · 新加坡" },
+    "footer.singapore":    { en: "Singapore",       zh: "新加坡" },
     "footer.brands":       { en: "Brands",          zh: "品牌" },
     "footer.mobile_blurb": { en: "Commercial & industrial adhesives, manufactured in Singapore since 1976.", zh: "工商业胶粘剂，自 1976 年起于新加坡制造。" },
     "footer.project":      { en: "Have a project in mind?", zh: "有项目需求？" },
@@ -103,6 +109,7 @@
     "products.lead":       { en: "Explore adhesives and application equipment by brand, industry, material, or intended use.", zh: "按品牌、行业、材料或用途浏览胶粘剂与施工设备。" },
     "products.filters":    { en: "Filters",         zh: "筛选" },
     "products.search_ph":  { en: "Search products…", zh: "按产品名称、编号、品牌或关键词搜索……" },
+    "products.search_label": { en: "Search products by name, number, brand or keyword", zh: "按产品名称、编号、品牌或关键词搜索" },
     "products.active_filters": { en: "Active filters", zh: "已选筛选" },
     "products.clear_all":  { en: "Clear all",       zh: "清除全部" },
     "products.f_product_type": { en: "Product Type", zh: "产品类型" },

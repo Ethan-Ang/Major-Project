@@ -799,9 +799,15 @@ function updateSidebarCompareBtn(productId) {
   if (sticky) {
     sticky.classList.toggle("on", inCompare);
     sticky.setAttribute("aria-pressed", inCompare ? "true" : "false");
-    sticky.setAttribute("aria-label", inCompare ? "Remove from comparison" : "Add to comparison");
+    sticky.setAttribute("aria-label", inCompare
+      ? ylTr("common.aria_remove_compare", "Remove from comparison")
+      : ylTr("common.aria_add_compare", "Add to comparison"));
     const lbl = document.getElementById("stickyCompareLabel");
-    if (lbl) lbl.textContent = inCompare ? "Added" : "Compare";
+    if (lbl) {
+      lbl.textContent = inCompare
+        ? ylTr("common.added", "Added")
+        : ylTr("common.compare", "Compare");
+    }
   }
 }
 
@@ -833,9 +839,9 @@ function renderStickyCta(product) {
     <button class="sticky-cta-cmp${inCompare ? " on" : ""}" id="stickyCompareBtn"
       onclick="toggleCompare('${product.id}')"
       aria-pressed="${inCompare ? "true" : "false"}"
-      aria-label="${inCompare ? "Remove from comparison" : "Add to comparison"}">
+      aria-label="${inCompare ? ylTr("common.aria_remove_compare", "Remove from comparison") : ylTr("common.aria_add_compare", "Add to comparison")}">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="7" height="13" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg>
-      <span id="stickyCompareLabel">${inCompare ? "Added" : "Compare"}</span>
+      <span id="stickyCompareLabel">${inCompare ? ylTr("common.added", "Added") : ylTr("common.compare", "Compare")}</span>
     </button>
     <a class="sticky-cta-wa" href="${waHref}" target="_blank" rel="noopener noreferrer"
       aria-label="Chat about this product on WhatsApp">

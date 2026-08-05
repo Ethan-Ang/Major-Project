@@ -436,7 +436,7 @@
         </a>
       </div>
       <p class="sfm-address" data-yl-address>1 Ang Mo Kio Street 65, #03-17, Singapore 569063</p>
-      <div class="sfm-copyright">&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong> &middot; Singapore</div>
+      <div class="sfm-copyright">&copy; ${new Date().getFullYear()} <strong>Yee Lim Adhesives Industries Pte Ltd</strong> &middot; <span data-i18n="footer.singapore">${T("footer.singapore", "Singapore")}</span></div>
     </div>
   `;
 
