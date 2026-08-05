@@ -999,7 +999,14 @@ h1, h2, h3,
   text-decoration: none;
   transition: color 0.15s;
 }
-.product-card-title-link:hover { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
+/* No underline on hover: the title already turns red, which is the whole
+   affordance, and a full underline read as an unstyled browser link. The deeper
+   red is the hover step. Hover-capable pointers only, so a tap cannot leave the
+   state stuck (same reason as .fg-more-btn). Keyboard focus keeps the outline
+   below, which is what carries accessibility here. */
+@media (hover: hover) and (pointer: fine) {
+  .product-card-title-link:hover { color: var(--red-dark); }
+}
 .product-card-title-link:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; border-radius: 2px; }
 
 .product-card-body p {

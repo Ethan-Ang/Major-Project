@@ -712,7 +712,12 @@ function advisorProductsSupportingSurfaces(array $products, array $requestedSurf
 function advisorRecognisedSurfaces(string $query): array
 {
     $map = [
-        "Wood" => ['/\b(?:wood|timber|plywood|mdf)\b/i', '/(?:木材|木头|木板)/u'],
+        // 胶合板/夹板 are plywood and 密度板/中纤板/纤维板 are MDF. Without them a
+        // Chinese "laminate to plywood" question recognised only the laminate,
+        // so it asked for less than the English wording did and recommended
+        // products whose wood adhesion the catalogue never confirmed. The two
+        // languages have to be equally strict or they answer differently.
+        "Wood" => ['/\b(?:wood|timber|plywood|mdf)\b/i', '/(?:木材|木头|木板|木料|胶合板|夹板|密度板|中纤板|纤维板)/u'],
         "Metal" => ['/\b(?:metal|steel|aluminium|aluminum)\b/i', '/(?:金属|钢|铝)/u'],
         "Leather" => ['/\bleather\b/i', '/(?:皮革|真皮)/u'],
         "Rubber" => ['/\brubber\b/i', '/(?:橡胶)/u'],
@@ -723,7 +728,10 @@ function advisorRecognisedSurfaces(string $query): array
         "Stone Ceramics" => ['/\b(?:stone|ceramic|marble)\b/i', '/(?:石材|陶瓷|大理石)/u'],
         "Turf" => ['/\b(?:turf|artificial\s+grass)\b/i', '/(?:人造草|草坪)/u'],
         "Carpet" => ['/\b(?:carpet|carpeting)\b/i', '/(?:地毯|毯面)/u'],
-        "Foam & Sponge" => ['/\b(?:foam|sponge|styrofoam|polyfoam)\b/i', '/(?:泡沫|海绵|发泡)/u'],
+        // 泡棉 is the everyday word for foam and is what the Advisor's own
+        // starter chip asks ("泡棉粘金属用什么胶？"), so leaving it out meant that
+        // prompt recognised metal and nothing else.
+        "Foam & Sponge" => ['/\b(?:foam|sponge|styrofoam|polyfoam)\b/i', '/(?:泡沫|泡棉|海绵|发泡)/u'],
         "Plastics & Acrylics" => ['/\b(?:plastic|plastics|acrylic|pvc|perspex)\b/i', '/(?:塑料|亚克力|丙烯酸|有机玻璃)/u'],
         "Labels" => ['/\b(?:label|labels|sticker|stickers)\b/i', '/(?:标签|贴纸)/u'],
         "Fibreglass Wool" => ['/\b(?:fibreglass|fiberglass)(?:\s+wool)?\b/i', '/(?:玻璃纤维棉|玻璃棉|玻璃纤维)/u'],

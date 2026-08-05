@@ -96,14 +96,19 @@
       line-height: 24px;
       color: #b9b3a6;
       text-decoration: none;
-      transition: color 0.18s;
+      transition: color 0.18s, transform 0.18s;
     }
-    .site-footer-links a:hover,
-    .site-footer-contact a:hover {
-      color: #fff;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      text-decoration-color: rgba(255, 255, 255, 0.4);
+    /* No underline: on a dark footer a full underline reads as an untouched
+       browser default and is heavier than these quiet links want. Brand red
+       plus a 1px lift is enough of a signal. Gated to hover-capable pointers so
+       touch cannot leave the state stuck on the tapped link, the same trap the
+       filter's Show more control fell into. */
+    @media (hover: hover) and (pointer: fine) {
+      .site-footer-links a:hover,
+      .site-footer-contact a:hover {
+        color: #CC2929;
+        transform: translateY(-1px);
+      }
     }
     .site-footer-links a:focus-visible,
     .site-footer-contact a:focus-visible,

@@ -1763,3 +1763,54 @@ test("a commercial question keeps its stricter answer even when it names the com
   });
   assert.equal(response.intent, "pricing");
 });
+
+// ─── The two languages must recognise the same surfaces ───────────
+//
+// Found in production: "laminate to plywood" recognised Wood + Laminates in
+// English but only Laminates in Chinese, because 胶合板 (plywood) was missing
+// from the term list. Chinese therefore asked for LESS than English did and
+// recommended products whose wood adhesion the catalogue never confirms. The
+// asymmetry is the bug, in either direction.
+
+const surfacePairs = [
+  ["laminate to plywood", "层压板粘胶合板"],
+  ["decorative laminate to plywood for indoor furniture", "用于室内家具、将装饰层压板粘合到胶合板上"],
+  ["What bonds foam to metal?", "泡棉粘金属用什么胶？"],
+  ["wood to metal", "木材粘金属"],
+  ["mdf panel", "密度板"],
+  ["leather to rubber", "皮革粘橡胶"],
+  ["carpet to tiles", "地毯粘瓷砖"],
+  ["acrylic to stone", "亚克力粘石材"],
+];
+
+for (const [english, chinese] of surfacePairs) {
+  test(`"${english}" recognises the same surfaces in both languages`, () => {
+    const en = callAdvisor({
+      messages: [{ role: "user", content: english }],
+      requestedLanguage: "en",
+    });
+    const zh = callAdvisor({
+      messages: [{ role: "user", content: chinese }],
+      requestedLanguage: "zh",
+    });
+    const ids = (response) => response.recommendations.map((r) => String(r.id)).sort();
+    assert.deepEqual(
+      ids(zh), ids(en),
+      `"${english}" / "${chinese}" must reach the same catalogue answer; ` +
+      `en=${JSON.stringify(ids(en))} zh=${JSON.stringify(ids(zh))}`
+    );
+    assert.equal(zh.intent, en.intent, "both languages must reach the same intent");
+  });
+}
+
+test("the Advisor's own Chinese starter prompt recognises its surfaces", () => {
+  // advisor.prompt_foam_metal ships as "泡棉粘金属用什么胶？". If 泡棉 is not a
+  // recognised foam term, Ava's own suggestion chip asks a question she answers
+  // as though only metal had been mentioned.
+  const response = callAdvisor({
+    messages: [{ role: "user", content: "泡棉粘金属用什么胶？" }],
+    requestedLanguage: "zh",
+  });
+  assert.notEqual(response.intent, "unclear",
+    "the shipped Chinese starter prompt must be understood");
+});
