@@ -6719,14 +6719,24 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
    ═══════════════════════════════════════════════════════════════ */
 .bond-finder-section { max-width: 1400px; margin: 1.5rem auto 0; padding: 0 2rem; }
 .bond-finder-shell {
-  display: grid; grid-template-columns: minmax(250px,.65fr) minmax(620px,1.5fr);
-  gap: 1.5rem 2rem; align-items: end; padding: 1.5rem; overflow: visible;
-  background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--red);
-  border-radius: 6px; box-shadow: var(--shadow);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(250px,.65fr) minmax(620px,1.5fr);
+  gap: 1.5rem 2rem;
+  align-items: end;
+  padding: 1.8rem 1.5rem 1.5rem;
+  overflow: visible;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--red);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
 }
-.bond-finder-heading-row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.bond-finder-heading-row { display:block; }
+.bond-finder-copy { padding-right:6.75rem; }
 .bond-finder-toggle {
-  display:inline-flex; align-items:center; justify-content:center; gap:.4rem; flex-shrink:0;
+  position:absolute; top:.9rem; right:1rem; z-index:2;
+  display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
   min-height:40px; padding:.45rem .7rem; border:1px solid var(--line-2); border-radius:5px;
   background:#fff; color:var(--body); font:600 .78rem inherit; cursor:pointer;
 }
@@ -6782,7 +6792,7 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 @media (max-width:1050px) { .bond-finder-shell { grid-template-columns:1fr; align-items:stretch; } }
 @media (max-width:760px) {
   .bond-finder-section { padding:0 1.25rem; margin-top:1.25rem; }
-  .bond-finder-shell { padding:1.25rem; gap:1.15rem; }
+  .bond-finder-shell { padding:1.55rem 1.25rem 1.25rem; gap:1.15rem; }
   .bond-finder-controls { grid-template-columns:1fr 1fr; }
   .bond-finder-result { align-items:stretch; flex-direction:column; }
   .bond-finder-result-actions { width:100%; }
@@ -6790,7 +6800,9 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
 }
 @media (max-width:520px) {
   .bond-finder-section { padding:0 1rem; }
-  .bond-finder-shell { border-left-width:3px; padding:1rem; }
+  .bond-finder-shell { border-left-width:3px; padding:1.45rem 1rem 1rem; }
+  .bond-finder-copy { padding-right:5.8rem; }
+  .bond-finder-toggle { top:.75rem; right:.75rem; min-height:38px; padding:.4rem .6rem; }
   .bond-finder-copy h2 { font-size:1.3rem; }
   .bond-finder-controls { grid-template-columns:1fr; }
   .bond-finder-submit { width:100%; min-height:48px; }
@@ -6813,4 +6825,754 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   .bond-finder-edit,
   .bond-finder-whatsapp,
   .bond-finder-clear { transition:none; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOND FINDER — top-right toggle spacing polish
+   Keeps the Minimise / Expand control clear of the surface dropdowns.
+   ════════════════════════════════════════════════════════════════ */
+
+.bond-finder-toggle {
+  top: 1.1rem;
+  right: 1.25rem;
+  min-height: 40px;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--body);
+  box-shadow: 0 1px 2px rgba(32, 30, 24, 0.05);
+}
+
+.bond-finder-toggle:hover {
+  background: #fff;
+  border-color: var(--muted-2);
+}
+
+.bond-finder-toggle:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+@media (min-width: 901px) {
+  .bond-finder-controls {
+    padding-right: 9rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .bond-finder-toggle {
+    top: 0.9rem;
+    right: 1rem;
+  }
+
+  .bond-finder-controls {
+    padding-right: 0;
+  }
+}
+
+/* ==========================================================================
+   HOME + ABOUT
+   --------------------------------------------------------------------------
+   These lived in a separate /styles.css until 2026-08-05. That could not work
+   with Swup: Swup swaps only the #swup container and never touches <head>, so
+   whichever stylesheet loaded on the FIRST page view is the only one in effect
+   for the rest of the session. Landing on Home and navigating to Products gave
+   you the catalogue markup with products.css never loaded, and coming back gave
+   you Home with styles.css never loaded. A refresh "fixed" it because a full
+   load fetches the right <head>. Every participating page must therefore ship
+   the same stylesheet set, exactly as they already ship the same script bundle.
+
+   Everything here is scoped to .yl-static, the class on <main> for these two
+   pages only, so none of it can reach the catalogue, detail, compare, enquiry,
+   contact or 404 pages. The scope also settles the four class names that exist
+   on both sides (.btn, .product-card, .product-card-image, .product-card-body):
+   the scoped rule is one class more specific and wins, and where products.css
+   sets something these pages must not inherit (contained images, two-line
+   clamped card titles) it is reset explicitly below.
+
+   Tokens are NOT redefined. This file's :root is the single source of truth.
+   ========================================================================== */
+
+.yl-static {
+  --shell: 1400px;   /* matches .page-hero-inner */
+  --gutter: 2rem;
+}
+
+/* Display face + eyebrow ---------------------------------------------------- */
+.yl-static h1,
+.yl-static h2,
+.yl-static h3,
+.yl-static h4 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.yl-static .tagline {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.85rem;
+}
+
+/* Buttons ------------------------------------------------------------------
+   Same geometry as .btn, one step up in size: these are page-level calls to
+   action rather than in-card actions. */
+.yl-static .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.3rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s, transform 0.1s;
+}
+
+.yl-static .btn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.yl-static .btn:active { transform: scale(0.97); }
+
+.yl-static .primary {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+
+.yl-static .primary:hover {
+  background: var(--red-hover);
+  border-color: var(--red-hover);
+}
+
+.yl-static .secondary {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.yl-static .secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+
+/* Hero ---------------------------------------------------------------------- */
+.yl-static .hero {
+  min-height: 78vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: clamp(56px, 8vw, 96px) var(--gutter);
+  color: #fff;
+  background-image:
+    linear-gradient(100deg, rgba(20, 19, 16, 0.88) 0%, rgba(20, 19, 16, 0.62) 55%, rgba(20, 19, 16, 0.42) 100%),
+    url("/images/bg.png");
+  background-position: center;
+  background-size: cover;
+  border-bottom: 1px solid var(--ink);
+}
+
+.yl-static .hero-content {
+  max-width: var(--shell);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.yl-static .hero .tagline { color: var(--red-on-dark); }
+
+.yl-static .hero h1 {
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #fff;
+  margin-bottom: 1.1rem;
+  max-width: 20ch;
+  overflow-wrap: break-word;
+}
+
+.yl-static .hero p {
+  font-size: clamp(0.98rem, 1.3vw, 1.08rem);
+  color: var(--muted-on-dark);
+  max-width: 56ch;
+  margin-bottom: 2rem;
+}
+
+.yl-static .hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Stats --------------------------------------------------------------------
+   A measured band rather than a saturated red slab: red stays an accent on the
+   figures, which is the rule the rest of the site follows. */
+.yl-static .stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);   /* was repeat(4, 1): invalid, so the
+                                              declaration was dropped entirely
+                                              and the band stacked to one column */
+  gap: 0;
+  padding: clamp(32px, 4vw, 48px) var(--gutter);
+  max-width: var(--shell);
+  margin: 0 auto;
+  background: var(--bg);
+  text-align: center;
+}
+
+.yl-static .stats > div {
+  padding: 0.75rem 1rem;
+  border-right: 1px solid var(--line);
+  min-width: 0;
+}
+
+.yl-static .stats > div:last-child { border-right: none; }
+
+.yl-static .stats h2 {
+  font-family: var(--mono);
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--red);
+  margin-bottom: 0.35rem;
+}
+
+.yl-static .stats p {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Sections + titles --------------------------------------------------------- */
+.yl-static .section {
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.yl-static .light { background: var(--panel); }
+
+.yl-static .section-title {
+  max-width: var(--shell);
+  margin: 0 auto 2.6rem;
+  text-align: center;
+}
+
+.yl-static .section-title h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.12;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+
+.yl-static .section-title p {
+  font-size: 1rem;
+  color: var(--muted);
+  max-width: 56ch;
+  margin: 0 auto;
+}
+
+/* Card grids ---------------------------------------------------------------- */
+.yl-static .card-grid,
+.yl-static .brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.25rem;
+  max-width: var(--shell);
+  margin: 0 auto;
+}
+
+.yl-static .product-card,
+.yl-static .brand-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.yl-static .product-card:hover,
+.yl-static .brand-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--line-2);
+}
+
+.yl-static .product-card-image,
+.yl-static .brand-card-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+
+/* These are editorial category photographs, not product cut-outs, so they fill
+   the well. Resets the contained + padded treatment catalogue cards use. */
+.yl-static .product-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  padding: 0;
+  transition: transform 0.35s var(--ease);
+}
+
+/* Brand marks are line art on white and must sit inside the well. */
+.yl-static .brand-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1.1rem;
+  background: var(--card);
+}
+
+.yl-static .product-card:hover .product-card-image img { transform: scale(1.04); }
+
+.yl-static .product-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.1rem 1rem 1rem;
+}
+
+/* Catalogue titles clamp to two lines and reserve that height so every card
+   shares a baseline. These are single-line category names: reset it. */
+.yl-static .product-card-body h3 {
+  display: block;
+  -webkit-line-clamp: none;
+  min-height: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.yl-static .product-card-body p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 0.9rem;
+}
+
+.yl-static .view-link {
+  margin-top: auto;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.yl-static .product-card:hover .view-link,
+.yl-static .brand-card:hover .view-link { color: var(--red-hover); }
+
+/* Bond finder --------------------------------------------------------------- */
+.yl-static .bond-finder {
+  min-height: 46vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  text-align: center;
+  color: #fff;
+  background-image:
+    linear-gradient(180deg, rgba(20, 19, 16, 0.86), rgba(20, 19, 16, 0.72)),
+    url("/images/bond-finder.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.yl-static .bond-finder-title { max-width: 640px; }
+
+.yl-static .bond-finder-title h2 {
+  font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.7rem;
+}
+
+.yl-static .bond-finder-title p {
+  font-size: 1rem;
+  color: var(--muted-on-dark);
+  margin-bottom: 1.6rem;
+}
+
+/* Why choose ---------------------------------------------------------------- */
+.yl-static .why {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1.2fr);  /* the second
+      track was a bare 1, invalid, so both columns collapsed into one */
+  gap: 3rem;
+  align-items: center;
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  max-width: var(--shell);
+  margin: clamp(56px, 7vw, 88px) auto;
+  width: calc(100% - (var(--gutter) * 2));
+  background: var(--ink);
+  color: #fff;
+  border-radius: var(--radius);
+}
+
+.yl-static .why h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.8rem;
+}
+
+.yl-static .why p {
+  font-size: 1rem;
+  color: var(--muted-on-dark);
+}
+
+.yl-static .why-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));   /* was minmax(160px, 1) */
+  gap: 0.75rem;
+}
+
+.yl-static .why-list div {
+  padding: 0.9rem 1rem;
+  background: var(--ink-2);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.yl-static .why-list div:hover {
+  background: #262320;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Social embed -------------------------------------------------------------
+   An unwrapped 1000px iframe between two sections. A frame and a canvas make it
+   read as a panel while it loads instead of a void. */
+.yl-static > iframe {
+  display: block;
+  width: 100%;
+  max-width: calc(var(--shell) - (var(--gutter) * 2));
+  margin: 0 auto clamp(56px, 7vw, 88px);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* Closing CTA --------------------------------------------------------------- */
+.yl-static .cta {
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  background: var(--ink);
+  color: #fff;
+  text-align: center;
+}
+
+.yl-static .cta h2 {
+  font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.7rem;
+}
+
+.yl-static .cta p {
+  font-size: 1rem;
+  color: var(--muted-on-dark);
+  margin-bottom: 1.6rem;
+}
+
+/* About: hero --------------------------------------------------------------- */
+.yl-static .about-hero {
+  min-height: 62vh;
+  display: flex;
+  align-items: center;
+  padding: clamp(56px, 8vw, 96px) var(--gutter);
+  color: #fff;
+  background-image:
+    linear-gradient(100deg, rgba(20, 19, 16, 0.88) 0%, rgba(20, 19, 16, 0.6) 100%),
+    url("/images/handshake.jpg");
+  background-position: center;
+  background-size: cover;
+  border-bottom: 1px solid var(--ink);
+}
+
+.yl-static .about-hero-content {
+  max-width: var(--shell);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.yl-static .about-hero .tagline { color: var(--red-on-dark); }
+
+.yl-static .about-hero h1 {
+  font-size: clamp(1.9rem, 4.4vw, 3.1rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #fff;
+  margin-bottom: 1rem;
+  max-width: 22ch;
+}
+
+.yl-static .about-hero p {
+  font-size: clamp(0.98rem, 1.3vw, 1.08rem);
+  color: var(--muted-on-dark);
+  max-width: 60ch;
+}
+
+/* About: intro -------------------------------------------------------------- */
+.yl-static .about-intro {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.05fr);
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: center;
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  max-width: var(--shell);
+  margin: 0 auto;
+}
+
+.yl-static .about-text h2 {
+  font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+  line-height: 1.12;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.1rem;
+}
+
+.yl-static .about-text p {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--body);
+  margin-bottom: 1rem;
+}
+
+.yl-static .about-text p:last-child { margin-bottom: 0; }
+
+.yl-static .about-image { width: 100%; }
+
+.yl-static .intro-img {
+  width: 100%;
+  max-height: 460px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* About: mission ------------------------------------------------------------ */
+.yl-static .mission-section {
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.yl-static .mission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  max-width: var(--shell);
+  margin: 0 auto;
+}
+
+.yl-static .mission-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.6rem 1.4rem 1.4rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--red);
+  border-radius: var(--radius);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.yl-static .mission-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--line-2);
+  border-top-color: var(--red);
+}
+
+.yl-static .mission-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin-bottom: 1rem;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
+.yl-static .mission-card-image {
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-bottom: 1rem;
+  object-fit: contain;
+}
+
+.yl-static .mission-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.55rem;
+}
+
+.yl-static .mission-card p {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* About: quote -------------------------------------------------------------- */
+.yl-static .quote-section {
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  text-align: center;
+  color: #fff;
+  background-image:
+    linear-gradient(rgba(20, 19, 16, 0.84), rgba(20, 19, 16, 0.84)),
+    url("/images/aristotle.jpg");
+  background-position: center 15%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.yl-static .quote-section h2 {
+  max-width: 800px;
+  margin: 0 auto 0.8rem;
+  font-size: clamp(1.4rem, 2.8vw, 2.1rem);
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.35;
+  color: #fff;
+}
+
+.yl-static .quote-section p {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--red-on-dark);
+}
+
+/* About: values ------------------------------------------------------------- */
+.yl-static .values-section {
+  padding: clamp(56px, 7vw, 88px) var(--gutter);
+  background: var(--bg);
+}
+
+.yl-static .values-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.yl-static .value-item {
+  padding: 1.3rem 1.4rem;
+  margin-bottom: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: var(--radius);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.yl-static .value-item:last-child { margin-bottom: 0; }
+
+.yl-static .value-item:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--line-2);
+  border-left-color: var(--red);
+}
+
+.yl-static .value-item h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.45rem;
+}
+
+.yl-static .value-item p {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* Responsive ---------------------------------------------------------------
+   The bare `1` track values in the old breakpoints were invalid and silently
+   ignored, so these grids never actually collapsed. They are `1fr` now. */
+@media (max-width: 900px) {
+  .yl-static { --gutter: 1.5rem; }
+
+  .yl-static .about-intro,
+  .yl-static .why { grid-template-columns: 1fr; }
+
+  .yl-static .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
+
+  .yl-static .stats > div {
+    padding: 1rem;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .yl-static .stats > div:nth-child(2n) { border-right: none; }
+  .yl-static .stats > div:nth-last-child(-n + 2) { border-bottom: none; }
+
+  .yl-static .hero-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .yl-static { --gutter: 1.15rem; }
+
+  .yl-static .stats { grid-template-columns: 1fr; }
+
+  .yl-static .stats > div {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .yl-static .stats > div:last-child { border-bottom: none; }
+
+  .yl-static .card-grid,
+  .yl-static .brand-grid,
+  .yl-static .mission-grid { grid-template-columns: 1fr; }
+
+  .yl-static .why-list { grid-template-columns: 1fr; }
+
+  .yl-static .hero h1,
+  .yl-static .about-hero h1 { max-width: none; }
 }

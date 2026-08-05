@@ -143,7 +143,7 @@ test("the shared shell is present and the broken links are gone", () => {
   for (const page of ["index.html", "about.html"]) {
     const html = markup(page);
     assert.equal((html.match(/id="swup"/g) || []).length, 1, `${page}: one #swup`);
-    assert.match(html, /<main id="mainContent" tabindex="-1">/, page);
+    assert.match(html, /<main id="mainContent"[^>]* tabindex="-1">/, page);
     assert.equal((html.match(/class="skip-link/g) || []).length, 1, page);
     assert.equal((html.match(/<link rel="icon"/g) || []).length, 3, `${page}: favicon set`);
     assert.match(html, /rel="canonical" href="https:\/\/yeelimadhesives\.com/, page);
@@ -151,13 +151,15 @@ test("the shared shell is present and the broken links are gone", () => {
       `${page}: .html links 301-redirect and defeat Swup`);
     assert.doesNotMatch(html, /www\.yeelimadhesives\.com/, `${page}: non-www is canonical`);
   }
-  // One stylesheet, one version — requesting it at two ?v= values had the edge
+  // One stylesheet, one version. Requesting it at two ?v= values had the edge
   // serving one page a stale copy.
-  const v = (p) => /\/styles\.css\?v=(\d+)/.exec(markup(p))[1];
+  const v = (p) => /css\/products\.css\?v=(\d+)/.exec(markup(p))[1];
   assert.equal(v("index.html"), v("about.html"));
-  // and products.css must NOT be pulled in: its .btn would restyle their buttons
+  // Both pages load the SHARED stylesheet now. Keeping a separate styles.css
+  // was incompatible with Swup, which swaps #swup and never touches <head>.
   for (const page of ["index.html", "about.html"]) {
-    assert.doesNotMatch(markup(page), /css\/products\.css/, `${page} keeps its own stylesheet`);
+    assert.match(markup(page), /css\/products\.css/, `${page} loads the shared stylesheet`);
+    assert.match(markup(page), /class="yl-static"/, `${page} carries the scope its rules need`);
   }
 });
 

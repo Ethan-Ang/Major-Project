@@ -1,86 +1,121 @@
-// Home and About have their own stylesheet but must not have their own design
-// system. styles.css mirrors the token block from css/products.css; this fails
-// if the two ever disagree, which is the only way the seam can come back.
+// Home and About no longer have their own stylesheet. Their rules live in
+// css/products.css scoped to .yl-static, because Swup never swaps <head>: any
+// page loading a DIFFERENT stylesheet set renders unstyled the moment you
+// arrive there by client-side navigation instead of a full load.
 import assert from "node:assert/strict";
 import test from "node:test";
 import fs from "node:fs";
 
 const read = (p) => fs.readFileSync(new URL(`../frontend/${p}`, import.meta.url), "utf8");
 const products = read("css/products.css");
-const styles = read("styles.css");
 
-function tokens(css) {
-  // Comments must go FIRST. products.css explains why --error is not --red, and
-  // that prose contains a literal "--red:" which otherwise parses as a token
-  // whose value runs to the end of the sentence.
-  const clean = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  const root = /:root\s*\{([\s\S]*?)\n\}/.exec(clean);
-  assert.ok(root, "no :root block found");
-  const out = new Map();
-  for (const m of root[1].matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)) {
-    // Collapse spacing so `rgba(32, 30, 24, .05)` and `rgba(32,30,24,.05)`
-    // compare equal. We are guarding the design, not the formatting.
-    out.set(m[1], m[2].trim().toLowerCase().replace(/\s+/g, ""));
-  }
-  return out;
+const PAGES = ["index.html", "about.html", "products.html", "product-detail.html",
+               "compare.html", "enquiry.html", "contact.html", "404.html"];
+
+function sheets(html) {
+  return [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="(\/[^"]+)"/g)]
+    .map((m) => m[1])
+    .filter((h) => !h.startsWith("http"));
 }
 
-const canonical = tokens(products);
-const mirrored = tokens(styles);
+// Which pages Swup actually handles, read from the widget rather than repeated
+// here, so adding a route to the SPA cannot silently escape this check.
+const transitions = read("js/widgets/page-transitions.js");
+const participating = JSON.parse(
+  /PARTICIPATING\s*=\s*(\[[^\]]*\])/.exec(transitions)[1].replace(/'/g, '"'));
 
-test("every token Home/About mirrors has the same value in products.css", () => {
-  // styles.css only needs the subset it uses, and may add its own layout-only
-  // tokens (--shell, --gutter). But any name shared with products.css has to
-  // carry the identical value.
-  const drift = [];
-  for (const [name, value] of mirrored) {
-    if (!canonical.has(name)) continue;
-    if (canonical.get(name) !== value) {
-      drift.push(`${name}: styles.css=${value}  products.css=${canonical.get(name)}`);
+test("every Swup-handled page loads an identical set of local stylesheets", () => {
+  // This is the invariant the Home/About bug violated. Swup swaps #swup only,
+  // so the stylesheets from the FIRST page view are the only ones in effect.
+  const swupPages = PAGES.filter((p) => participating.includes("/" + p.replace(/\.html$/, "").replace(/^index$/, "")));
+  assert.ok(swupPages.length >= 7, `expected the SPA family, got ${swupPages.join(", ")}`);
+  const bySheet = new Map();
+  for (const p of swupPages) bySheet.set(p, sheets(read(p)).sort().join(" | "));
+  const distinct = new Set(bySheet.values());
+  assert.equal(distinct.size, 1,
+    "pages disagree on stylesheets, so client-side navigation between them will render unstyled:\n  " +
+    [...bySheet].map(([p, s]) => `${p.padEnd(20)} ${s}`).join("\n  "));
+});
+
+test("404 may carry an extra stylesheet only because Swup does not handle it", () => {
+  // A full load always fetches the right <head>, so a non-participating page is
+  // free to add its own sheet. If 404 ever joins the SPA this must be revisited.
+  assert.ok(!participating.includes("/404"),
+    "404 now participates in Swup, so 404.css must be loaded by every page too");
+  assert.match(read("404.html"), /css\/404\.css/);
+});
+
+test("Home and About no longer load a separate styles.css", () => {
+  for (const p of PAGES) {
+    assert.doesNotMatch(read(p), /href="\/styles\.css/, `${p} still links the retired styles.css`);
+  }
+  assert.equal(fs.existsSync(new URL("../frontend/styles.css", import.meta.url)), false,
+    "frontend/styles.css should be gone: its rules moved into products.css");
+});
+
+test("both static pages carry the .yl-static scope on <main>", () => {
+  for (const p of ["index.html", "about.html"]) {
+    assert.match(read(p), /<main id="mainContent" class="yl-static"/,
+      `${p}: without this class none of the scoped rules apply`);
+  }
+  // and no product page may claim it, or the Home rules would leak in.
+  for (const p of PAGES.filter((x) => !["index.html", "about.html"].includes(x))) {
+    assert.doesNotMatch(read(p), /yl-static/, `${p} must not use the static-page scope`);
+  }
+});
+
+test("every Home/About rule is scoped, so none of it reaches the product pages", () => {
+  const block = products.slice(products.indexOf("/* =====\n"), products.length);
+  const start = products.indexOf(".yl-static {");
+  assert.ok(start > 0, "the scoped block is missing from products.css");
+  const scoped = products.slice(start);
+  const unscoped = [];
+  for (const m of scoped.matchAll(/^(\.[a-z][^{]*)\{/gim)) {
+    const sel = m[1].trim();
+    // Every comma-separated part must mention the scope.
+    for (const part of sel.split(",")) {
+      if (part.trim() && !part.includes(".yl-static")) unscoped.push(part.trim());
     }
   }
-  assert.deepEqual(drift, [], `design tokens have drifted:\n  ${drift.join("\n  ")}`);
+  assert.deepEqual(unscoped, [],
+    `these selectors would apply site-wide: ${unscoped.join(" | ")}`);
+  void block;
 });
 
-test("the tokens Home/About actually need are all mirrored", () => {
-  const needed = ["--red", "--ink", "--bg", "--card", "--border", "--text", "--muted", "--radius"];
-  const missing = needed.filter((n) => !mirrored.has(n));
-  assert.deepEqual(missing, [], `styles.css is missing: ${missing.join(", ")}`);
+test("the four shared class names are explicitly re-specified under the scope", () => {
+  // .btn, .product-card, .product-card-image and .product-card-body mean
+  // different things on the two sides. The scoped rule is one class more
+  // specific and wins, but only for properties it actually sets, so the
+  // catalogue's contained images and two-line clamped titles need resetting.
+  const scoped = products.slice(products.indexOf(".yl-static {"));
+  assert.match(scoped, /\.yl-static \.product-card-image img \{[^}]*object-fit:\s*cover/,
+    "category photos must fill the well, not inherit the catalogue's contained treatment");
+  assert.match(scoped, /\.yl-static \.product-card-image img \{[^}]*padding:\s*0/,
+    "must reset the catalogue image padding");
+  assert.match(scoped, /\.yl-static \.product-card-body h3 \{[^}]*-webkit-line-clamp:\s*none/,
+    "category titles are one line and must not inherit the two-line clamp");
+  assert.match(scoped, /\.yl-static \.product-card-body h3 \{[^}]*min-height:\s*0/,
+    "must reset the reserved two-line title height");
 });
 
-test("no off-system colours are left in styles.css", () => {
-  // The old palette: #c62828/#d32f2f/#a81f1f reds that are not the brand red,
-  // the #1f2937/#111827 navies, and the cool greys.
+test("no off-system colours in the scoped block", () => {
+  const scoped = products.slice(products.indexOf(".yl-static {")).replace(/\/\*[\s\S]*?\*\//g, "");
   const banned = ["#c62828", "#d32f2f", "#a81f1f", "#8b0000", "#7a0f0f",
                   "#1f2937", "#111827", "#6b7280", "#9ca3af", "#4b5563",
                   "#d1d5db", "#f3f4f6", "#f8f9fa", "#e5e7eb"];
-  const body = styles.replace(/\/\*[\s\S]*?\*\//g, "");   // comments name them on purpose
-  const found = banned.filter((c) => body.toLowerCase().includes(c));
-  assert.deepEqual(found, [], `off-system colours still present: ${found.join(", ")}`);
+  const found = banned.filter((c) => scoped.toLowerCase().includes(c));
+  assert.deepEqual(found, [], `off-system colours: ${found.join(", ")}`);
 });
 
 test("no invalid bare grid track values", () => {
-  // `repeat(4, 1)` and `minmax(260px, 1)` are invalid: the whole declaration is
-  // dropped, which is why the stats band and Why Choose used to render as a
-  // single stacked column.
-  const body = styles.replace(/\/\*[\s\S]*?\*\//g, "");
+  // `repeat(4, 1)` and `minmax(260px, 1)` are invalid: the browser drops the
+  // whole declaration, which is why the stats band and Why Choose used to
+  // render as a single stacked column.
+  const scoped = products.slice(products.indexOf(".yl-static {")).replace(/\/\*[\s\S]*?\*\//g, "");
   const bad = [];
-  for (const m of body.matchAll(/grid-template-columns\s*:\s*([^;]+);/g)) {
+  for (const m of scoped.matchAll(/grid-template-columns\s*:\s*([^;]+);/g)) {
     const v = m[1].trim();
-    if (/repeat\(\s*\d+\s*,\s*\d+\s*\)/.test(v) ||
-        /minmax\([^)]*,\s*\d+\s*\)/.test(v) ||
-        /^\d+(\s+\d+)*$/.test(v)) bad.push(v);
+    if (/repeat\(\s*\d+\s*,\s*\d+\s*\)/.test(v) || /minmax\([^)]*,\s*\d+\s*\)/.test(v)) bad.push(v);
   }
   assert.deepEqual(bad, [], `invalid track values (missing fr): ${bad.join(" | ")}`);
-});
-
-test("styles.css only styles selectors Home/About actually use", () => {
-  const pages = read("index.html") + read("about.html");
-  const body = styles.replace(/\/\*[\s\S]*?\*\//g, "");
-  // Top-level class selectors this stylesheet defines.
-  const defined = new Set();
-  for (const m of body.matchAll(/^\.([a-z][a-z0-9-]*)/gim)) defined.add(m[1]);
-  const orphans = [...defined].filter((c) => !pages.includes(`"${c}"`) && !pages.includes(`${c} `) && !pages.includes(` ${c}"`));
-  assert.deepEqual(orphans, [],
-    `styles.css carries rules for classes neither page uses: ${orphans.join(", ")}`);
 });

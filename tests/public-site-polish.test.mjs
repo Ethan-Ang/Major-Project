@@ -426,17 +426,21 @@ test("the favicon is the brand red, not the previous teal", () => {
     "the red master must be present");
 });
 
-test("Home and About keep their own stylesheet and do NOT load products.css", () => {
-  // products.css .btn (4px radius, inline-flex) would override the teammate's
-  // 30px pill buttons. The shared shell reaches them through navbar.js instead.
+test("Home and About load products.css like every other Swup page", () => {
+  // Reversed on 2026-08-05. These pages used to keep a separate styles.css,
+  // which cannot work: Swup swaps the #swup container and never touches <head>,
+  // so arriving at Products from Home rendered the catalogue with products.css
+  // never loaded, and arriving back rendered Home with styles.css never loaded.
+  // Their rules now live in products.css scoped to .yl-static. The full
+  // invariant is enforced in tests/style-token-parity.test.mjs.
   for (const name of ["index.html", "about.html"]) {
     const html = read(name);
-    assert.doesNotMatch(html, /css\/products\.css/, `${name} must not load products.css`);
-    assert.match(html, /\/styles\.css\?v=\d+/, `${name} keeps its own stylesheet`);
+    assert.match(html, /css\/products\.css\?v=\d+/, `${name} must load the shared stylesheet`);
+    assert.doesNotMatch(html, /\/styles\.css\?v=/, `${name} must not load the retired styles.css`);
   }
   // and both must request it at the SAME version, or the edge serves two copies
-  const v = (n) => /\/styles\.css\?v=(\d+)/.exec(read(n))[1];
-  assert.equal(v("index.html"), v("about.html"), "styles.css version must match across both pages");
+  const v = (n) => /css\/products\.css\?v=(\d+)/.exec(read(n))[1];
+  assert.equal(v("index.html"), v("about.html"), "products.css version must match across both pages");
 });
 
 // NOTE: the Home/About copy assertions that used to live here pinned specific
@@ -466,7 +470,7 @@ test("Home and About join the Swup shell without duplicate containers", () => {
     const html = read(name);
     assert.equal((html.match(/id="swup"/g) || []).length, 1, `${name}: exactly one #swup`);
     assert.equal((html.match(/id="mainContent"/g) || []).length, 1, `${name}: exactly one main landmark`);
-    assert.match(html, /<main id="mainContent" tabindex="-1">/, name);
+    assert.match(html, /<main id="mainContent"[^>]* tabindex="-1">/, name);
     assert.match(html, /class="skip-link"/, `${name}: skip link`);
     assert.doesNotMatch(html, /href="(products|contact|contact-us)\.html"/,
       `${name}: .html links 301-redirect and defeat Swup`);
@@ -487,14 +491,15 @@ test("every user-owned page has one skip link pointing at its main landmark", ()
   for (const [name, html] of Object.entries(pages)) {
     const links = html.match(/class="skip-link[^"]*" href="#mainContent"/g) || [];
     assert.equal(links.length, 1, `${name}: exactly one skip link`);
-    assert.match(html, /<main id="mainContent" tabindex="-1">/, `${name}: focusable main landmark`);
+    assert.match(html, /<main id="mainContent"[^>]* tabindex="-1">/, `${name}: focusable main landmark`);
   }
 });
 
 test("the skip link is defined once, in the shared navbar component", () => {
-  // MOVED from css/products.css (SHELL-001): Home and About deliberately do not
+  // MOVED from css/products.css (SHELL-001): at the time, Home and About did not
   // load that stylesheet, so a definition there left them without a skip link.
-  // navbar.js is the one file every public page loads.
+  // They load it now, but navbar.js remains the right home for this: it is the
+  // one file every public page loads, including any future page.
   const nav = fs.readFileSync(new URL("js/widgets/navbar.js", root), "utf8");
   assert.match(nav, /\.skip-link,\s*\n\s*\.nf-skip-link \{/, "one shared definition, in the navbar");
   assert.doesNotMatch(css, /^\.skip-link,/m, "products.css must no longer define it");
