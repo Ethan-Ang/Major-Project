@@ -337,6 +337,7 @@
     "enquiry.sent":        { en: "Enquiry Sent",       zh: "询价已提交" },
 
     // ── Product Advisor (Ava chatbot) ──
+    "advisor.aria_dialog": { en: "Yee Lim Product Advisor", zh: "Yee Lim 产品顾问" },
     "advisor.subtitle":    { en: "Yee Lim Product Advisor", zh: "Yee Lim 产品顾问" },
     "advisor.aria_close":  { en: "Close product advisor", zh: "关闭产品顾问" },
     "advisor.aria_input":  { en: "Ask the product advisor a question", zh: "向产品顾问提问" },
@@ -345,19 +346,39 @@
     "advisor.note":        { en: "Guidance only. Our team confirms suitability.", zh: "仅供参考，具体适用性以我们团队确认为准。" },
     "advisor.greeting":    { en: "Hi, I'm Ava, your Yee Lim product advisor. Tell me what you're bonding and the conditions, and I'll suggest the right adhesive.", zh: "您好，我是 Ava，您的 Yee Lim 产品顾问。请告诉我您要粘合的材料以及使用环境，我会为您推荐合适的胶粘剂。" },
     "advisor.fallback":    { en: "I couldn't find an answer for that. Please [submit an enquiry](/enquiry) and our team will help.", zh: "我暂时无法为此找到答案。请[提交询价](/enquiry)，我们的团队将为您提供帮助。" },
-    "advisor.error":       { en: "Sorry, I can't connect right now. Please [submit an enquiry](/enquiry) directly.", zh: "抱歉，我暂时无法连接。请直接[提交询价](/enquiry)。" },
+    "advisor.error":       { en: "Sorry, Ava can't connect right now. Please retry or submit an enquiry directly.", zh: "抱歉，Ava 暂时无法连接。请重试或直接提交询价。" },
+    "advisor.submit_enquiry": { en: "Submit an enquiry", zh: "提交询价" },
+    "advisor.start_over":  { en: "Start over", zh: "重新开始" },
+    "advisor.loading":     { en: "Ava is checking the catalogue", zh: "Ava 正在查找产品目录" },
+    "advisor.retry":       { en: "Retry", zh: "重试" },
+    "advisor.timeout":     { en: "Ava took too long to respond. Please retry or submit an enquiry.", zh: "Ava 响应时间过长。请重试或提交询价。" },
+    "advisor.rate_limited": { en: "There are too many requests right now. Please wait a moment and retry.", zh: "当前请求较多。请稍候再重试。" },
+    "advisor.invalid_response": { en: "Ava returned an unexpected response. Please retry or submit an enquiry.", zh: "Ava 返回了异常响应。请重试或提交询价。" },
+    "advisor.include_recommendation": { en: "Include this recommendation in my enquiry", zh: "将此推荐加入我的询价" },
+    "advisor.recommendation_included": { en: "Included in enquiry", zh: "已加入询价" },
+    "advisor.attach_error": { en: "The recommendation could not be added. Please try again.", zh: "无法将推荐加入询价，请重试。" },
+    "advisor.privacy": { en: "Your Product Advisor conversation is saved temporarily in this browser. It is only sent to Yee Lim if you include it with an enquiry.", zh: "您的产品顾问对话会暂时保存在此浏览器中。只有当您选择将其加入询价时，内容才会发送给 Yee Lim。" },
+    "advisor.summary_title": { en: "Product Advisor summary", zh: "产品顾问摘要" },
+    "advisor.summary_recommended": { en: "Recommended products:", zh: "推荐产品：" },
+    "enquiry.advisor_summary_no_space": { en: "Your Product Advisor summary is ready, but the Message field needs {count} more characters. Shorten your message to include the complete editable summary.", zh: "产品顾问摘要已准备好，但“留言”栏还需要 {count} 个字符空间。请缩短现有留言，以加入完整且可编辑的摘要。" },
+    "advisor.prompt_recommend": { en: "Recommend an adhesive for my job", zh: "为我的作业推荐胶粘剂" },
+    "advisor.prompt_foam_metal": { en: "What bonds foam to metal?", zh: "泡棉粘金属用什么胶？" },
+    "advisor.prompt_delivery": { en: "What is your lead time?", zh: "交货需要多久？" },
 
     /* ── Home (teammate-owned page) ────────────────────────────────
        The `en` values are the teammate's approved copy, transcribed
-       character-for-character from the live page — they are the fallback the
-       engine returns in English, so any drift here would silently rewrite
-       their page. Do not "improve" this wording.
-       Statistics (40+, 500+, 1000+, SG) and brand names stay as digits/Latin
-       in both languages and carry no key. The zh values are DRAFTS pending
-       native review (see the same caveat on the rest of the dictionary). */
+       character-for-character from the live page. The engine restores English
+       FROM THIS DICTIONARY, so any drift here silently rewrites their page the
+       first time someone switches language and back. Do not "improve" this
+       wording; re-transcribe it when they change the page.
+       Statistics (50+, 500+, 1000+, SG), brand names and the "01/02/03" mission
+       numerals are figures or proper nouns and carry no key.
+       zh values are drafts pending native review. */
     "home.tagline":        { en: "Industrial Adhesive Solutions", zh: "工业胶粘解决方案" },
-    "home.title":          { en: "Trusted Adhesives for Every Industry", zh: "值得信赖的胶粘剂，服务各行各业" },
-    "home.lead":           { en: "Supplying quality adhesives for woodworking, packaging, construction, furniture, and industrial applications.", zh: "为木工、包装、建筑、家具及工业应用提供优质胶粘剂。" },
+    // Carries a <br>, so it is applied with data-i18n-html (see ylApplyI18n).
+    // Splitting the heading into spans instead changed where it could wrap.
+    "home.title":          { en: "Engineered Adhesives.<br> Trusted Performance.", zh: "精工胶粘剂。<br> 值得信赖的性能。" },
+    "home.lead":           { en: "For decades, we have been supplying high-performance adhesive solutions that empower businesses in the woodworking, packaging, furniture, construction, and industrial sectors with dependable products, exceptional quality, and outstanding customer support.", zh: "数十年来，我们持续为木工、包装、家具、建筑及工业领域的企业提供高性能胶粘解决方案，以可靠的产品、卓越的品质和出色的客户支持助力客户发展。" },
     "home.browse":         { en: "Browse Products",   zh: "浏览产品" },
     "home.contact_sales":  { en: "Contact Sales",     zh: "联系销售" },
     "home.stat_years":     { en: "Years Experience",  zh: "年经验" },
@@ -366,14 +387,18 @@
     "home.stat_local":     { en: "Local Supplier",    zh: "本地供应商" },
     "home.cats_title":     { en: "Our Product Categories", zh: "产品类别" },
     "home.cats_lead":      { en: "Find the right adhesive for your business needs.", zh: "找到适合您业务需求的胶粘剂。" },
+    "home.view_solutions": { en: "View Solutions →",  zh: "查看解决方案 →" },
     "home.cat_plastics":   { en: "Plastics & Acrylics", zh: "塑料与亚克力" },
-    "home.cat_plastics_d": { en: "Adhesives for furniture, plywood, and timber applications.", zh: "适用于家具、胶合板及木材应用的胶粘剂。" },
+    "home.cat_plastics_d": { en: "Adhesives for acrylic, PVC, plastic laminates and other synthetic surfaces.", zh: "适用于亚克力、PVC、塑料层压板及其他合成材料表面的胶粘剂。" },
     "home.cat_laminates":  { en: "Laminates",         zh: "层压板" },
-    "home.cat_laminates_d":{ en: "Reliable bonding solutions for cartons, paper, and packaging lines.", zh: "适用于纸箱、纸张及包装生产线的可靠粘接方案。" },
+    "home.cat_laminates_d":{ en: "Contact adhesives for decorative laminates, panels, furniture and interior fabrication.", zh: "适用于装饰层压板、面板、家具及室内加工的接触型胶粘剂。" },
     "home.cat_flooring":   { en: "Flooring",          zh: "地板" },
-    "home.cat_flooring_d": { en: "Reliable bonding solutions for cartons, paper, and packaging lines.", zh: "适用于纸箱、纸张及包装生产线的可靠粘接方案。" },
-    "home.cat_packaging":  { en: "Laminates",         zh: "层压板" },
-    "home.cat_packaging_d":{ en: "High-performance adhesives for manufacturing operations.", zh: "适用于生产制造作业的高性能胶粘剂。" },
+    "home.cat_flooring_d": { en: "Adhesive solutions for vinyl, rubber, carpet and other flooring installations.", zh: "适用于乙烯基、橡胶、地毯及其他地板铺装的胶粘解决方案。" },
+    "home.cat_packaging":  { en: "Packaging",         zh: "包装" },
+    "home.cat_packaging_d":{ en: "Reliable bonding solutions for cartons, paper products and packaging operations.", zh: "适用于纸箱、纸制品及包装作业的可靠粘接方案。" },
+    "home.bond_title":     { en: "Bond Finder",       zh: "粘合方案查找器" },
+    "home.bond_lead":      { en: "Let our Bond Finder do the work. Select your materials and discover the best adhesive for a strong, reliable bond.", zh: "让粘合方案查找器为您代劳。选择您的材料，即可找到实现牢固可靠粘接的最佳胶粘剂。" },
+    "home.bond_cta":       { en: "Try our Bond Finder →", zh: "试用粘合方案查找器 →" },
     "home.why_title":      { en: "Why Choose Yee Lim?", zh: "为什么选择 Yee Lim？" },
     "home.why_lead":       { en: "With decades of experience, Yee Lim provides dependable adhesive solutions backed by technical knowledge and consistent product quality.", zh: "凭借数十年经验，Yee Lim 以专业技术知识和稳定的产品品质，提供可靠的胶粘解决方案。" },
     "home.why_1":          { en: "✔ Consistent adhesive quality", zh: "✔ 稳定的胶粘品质" },
@@ -382,8 +407,9 @@
     "home.why_4":          { en: "✔ Custom solutions",   zh: "✔ 定制解决方案" },
     "home.why_5":          { en: "✔ Fast local delivery", zh: "✔ 本地快速配送" },
     "home.why_6":          { en: "✔ Trusted by businesses", zh: "✔ 深受企业信赖" },
-    "home.brands_title":   { en: "Our Brands",         zh: "我们的品牌" },
+    "home.brands_title":   { en: "Our Trusted Brands", zh: "我们信赖的品牌" },
     "home.brands_lead":    { en: "Click a brand to see its products", zh: "点击品牌查看其产品" },
+    "home.brand_general":  { en: "For general purposes", zh: "适用于通用用途" },
     "home.cta_title":      { en: "Looking for the Right Adhesive Solution?", zh: "正在寻找合适的胶粘解决方案？" },
     "home.cta_lead":       { en: "Speak to our team and get product recommendations for your business.", zh: "联系我们的团队，获取适合您业务的产品建议。" },
     "home.contact_us":     { en: "Contact Us",         zh: "联系我们" },
@@ -391,14 +417,12 @@
     /* ── About (teammate-owned page) ───────────────────────────────
        Same rule: `en` is the approved copy verbatim. The Aristotle quotation
        and its attribution deliberately carry no key — an attributed quote is
-       not ours to translate. "50+" stays as digits. */
+       not ours to translate. */
     "about.tagline":       { en: "About Yee Lim Adhesives", zh: "关于 Yee Lim Adhesives" },
     "about.title":         { en: "Built on Experience, Quality and Trust", zh: "以经验、品质与信任为基石" },
     "about.lead":          { en: "One of Singapore’s established adhesive manufacturers, providing reliable glue and adhesive solutions for commercial and industrial applications.", zh: "新加坡历史悠久的胶粘剂制造商之一，为商业与工业应用提供可靠的胶水及胶粘解决方案。" },
     "about.who_title":     { en: "Who We Are",        zh: "关于我们" },
-    "about.who_p1":        { en: "Yee Lim Adhesives Industries has grown from humble beginnings into a trusted adhesive manufacturer with over 50 years of experience. From commercial uses to industrial applications, we continue to develop practical adhesive solutions for a wide range of industries.", zh: "Yee Lim Adhesives Industries 从小规模起步，发展成为拥有超过 50 年经验、值得信赖的胶粘剂制造商。从商业用途到工业应用，我们持续为各行各业开发实用的胶粘解决方案。" },
-    "about.who_p2":        { en: "Today, our products support industries such as construction, carpentry, furniture, marine, hardware, leather, craft, OEM services and more.", zh: "如今，我们的产品服务于建筑、木工、家具、船舶、五金、皮革、手工艺、OEM 代工等众多行业。" },
-    "about.years_card":    { en: "Years of adhesive manufacturing experience", zh: "年胶粘剂制造经验" },
+    "about.who_body":      { en: "Established over 50 years ago, Yee Lim Adhesives Industries has grown from humble beginnings into one of Singapore's pioneering adhesive manufacturers. Originally operating as a shoe factory, the company recognised the growing demand for high-quality adhesive solutions and successfully transformed its business to focus on commercial and industrial adhesives. Through decades of innovation, continuous improvement, and an unwavering commitment to quality, Yee Lim expanded from a home-based operation into a fully equipped manufacturing facility with over 20,000 square feet of production space. Today, the company serves a wide range of industries—including construction, woodworking, furniture, marine, packaging, and OEM manufacturing—while continuing to uphold the values of reliability, innovation, and customer satisfaction that have shaped its success for generations.", zh: "Yee Lim Adhesives Industries 创立至今已逾五十年，从小规模起步，发展成为新加坡具有开创性的胶粘剂制造商之一。公司最初经营鞋厂，察觉到市场对高品质胶粘解决方案的需求不断增长，遂成功转型，专注于商业与工业胶粘剂。历经数十年的创新、持续改进以及对品质坚定不移的追求，Yee Lim 从家庭式作坊扩展为拥有超过 20,000 平方英尺生产空间的完备制造工厂。如今，公司服务于建筑、木工、家具、船舶、包装及 OEM 制造等众多行业，并始终秉持可靠、创新与客户满意的价值观，这些价值观造就了公司数代人的成功。" },
     "about.mission_title": { en: "Our Mission",       zh: "我们的使命" },
     "about.mission_lead":  { en: "To produce quality adhesives while providing dependable service and support to every customer.", zh: "生产优质胶粘剂，并为每一位客户提供可靠的服务与支持。" },
     "about.m1_title":      { en: "Quality",           zh: "品质" },
@@ -491,8 +515,9 @@
       // them. Retranslate them in place and flip the switcher itself.
       window.ylApplyI18n(document);
       if (typeof window.ylSyncNavLang === "function") window.ylSyncNavLang();
-      // The Product Advisor lives outside #swup and holds a conversation, which
-      // cannot be retranslated — it restarts in the new language instead.
+      // The Product Advisor lives outside #swup. Its controls are translated in
+      // place while the original transcript and structured context stay intact;
+      // only future requests use the new website language.
       if (typeof window.ylAdvisorLanguageChanged === "function") window.ylAdvisorLanguageChanged();
       swup.hooks.off("page:view", restore);
     };
@@ -524,6 +549,28 @@
       } else {
         var en = window.ylTEn(key);
         el.textContent = (en !== undefined) ? en : el.dataset.i18nEn;
+      }
+    });
+
+    // LANG-008: a handful of headings contain inline markup — the Home hero is
+    // "Engineered Adhesives.<br> Trusted Performance." — and textContent cannot
+    // carry that. Splitting the line into <span>s instead was NOT harmless: the
+    // heading sets overflow-wrap:break-word, and separate inline boxes changed
+    // where it could break, adding a line to the hero at 390px. So the value
+    // carries the markup and is written with innerHTML.
+    //
+    // These values come only from the static dictionary in this file — never
+    // from a user, a URL or the API — so this is not an injection surface. The
+    // parity test restricts them to a small allowlist of formatting tags.
+    scope.querySelectorAll("[data-i18n-html]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n-html");
+      if (el.dataset.i18nEnHtml === undefined) el.dataset.i18nEnHtml = el.innerHTML;
+      if (zh) {
+        var t = window.ylT(key);
+        if (t && t !== key) el.innerHTML = t;
+      } else {
+        var enHtml = window.ylTEn(key);
+        el.innerHTML = (enHtml !== undefined) ? enHtml : el.dataset.i18nEnHtml;
       }
     });
 

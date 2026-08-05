@@ -124,14 +124,23 @@ test("interpolation placeholders match across languages", () => {
 
 test("no raw HTML tags inside plain-text entries", () => {
   // These values are written with textContent, so a tag would be shown
-  // literally rather than rendered.
+  // literally rather than rendered. Keys applied with data-i18n-html are the
+  // documented exception (a heading whose copy contains a <br>); the allowlist
+  // for those lives in home-about-copy-integrity.test.mjs.
+  const htmlKeys = new Set();
+  for (const page of ["index.html", "about.html", "products.html", "product-detail.html",
+                      "compare.html", "enquiry.html", "contact.html", "404.html"]) {
+    const html = fs.readFileSync(new URL(`../frontend/${page}`, import.meta.url), "utf8");
+    for (const m of html.matchAll(/data-i18n-html="([a-z0-9_.]+)"/g)) htmlKeys.add(m[1]);
+  }
   const tagged = [];
   for (const [key, v] of entries) {
+    if (htmlKeys.has(key)) continue;
     for (const lang of ["en", "zh"]) {
       if (/<\/?[a-z][\s\S]*>/i.test(String(v[lang] ?? ""))) tagged.push(`${key}.${lang}`);
     }
   }
-  assert.deepEqual(tagged, [], `contains markup: ${tagged.join(", ")}`);
+  assert.deepEqual(tagged, [], `contains markup but is written with textContent: ${tagged.join(", ")}`);
 });
 
 test("Chinese values are actually Chinese where they should be", () => {
@@ -321,14 +330,21 @@ test("no render path emits a hardcoded English string the dictionary can transla
     `hardcoded English that has a translation:\n  ${offenders.join("\n  ")}`);
 });
 
-test("the Product Advisor restarts its conversation on a language change", () => {
-  // Panel chrome retranslates in place; a transcript cannot — a visitor's own
-  // question and Ava's reply are content, not UI. Restarting is the honest
-  // alternative to leaving a half-Chinese thread on screen.
+test("the Product Advisor preserves its conversation on a language change", () => {
+  // Original user and assistant messages are content, not chrome: they remain
+  // in their original language while controls retranslate and future requests
+  // use the newly selected website language.
   const chat = fs.readFileSync(new URL("../frontend/js/widgets/chatbot.js", import.meta.url), "utf8");
   assert.match(chat, /window\.ylAdvisorLanguageChanged = function/);
-  assert.match(chat, /messages\.replaceChildren\(\);\s*\n\s*greeted = false;/,
-    "clear the transcript and allow the greeting to run again");
+  const handler = /window\.ylAdvisorLanguageChanged\s*=\s*function[\s\S]*?\n\s*\};/.exec(chat)?.[0] || "";
+  assert.doesNotMatch(handler, /replaceChildren\(|messages\.(?:textContent|innerHTML)\s*=/,
+    "language switching must not clear or regenerate the transcript");
+  assert.match(handler, /advisorState\.interfaceLanguage\s*=\s*advisorLanguage\(\)/,
+    "record the new interface language without changing conversation content");
+  assert.match(chat, /const requestLanguage\s*=\s*advisorLanguage\(\)/,
+    "capture the live website language for each request");
+  assert.match(chat, /language:\s*requestLanguage/,
+    "future API requests must send the captured live website language");
   assert.match(src, /if \(typeof window\.ylAdvisorLanguageChanged === "function"\) window\.ylAdvisorLanguageChanged\(\);/,
     "the language switch must call it");
 });

@@ -53,12 +53,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
-  <!-- styles.css stays this page's OWN stylesheet. css/products.css is
-       deliberately NOT loaded here: its .btn rule would override the pill
-       buttons below. The shared navbar/footer/skip-link styling arrives from
-       the shared components themselves. -->
-  <link rel="stylesheet" href="/styles.css?v=39" />
-  <script src="/js/i18n.js?v=30"></script>
+  <!-- styles.css remains this page's OWN stylesheet; css/products.css is
+       deliberately not loaded (its .btn would override the pill buttons below).
+       Version matched to About: it is one file, and requesting it at two
+       different ?v= values had the edge serving one of the pages a stale copy. -->
+  <link rel="stylesheet" href="/styles.css?v=62" />
+  <script src="/js/i18n.js?v=32"></script>
+  <script src="/js/i18n-products.js?v=2"></script>
   <script src="/js/widgets/navbar.js?v=30"></script>
   <script src="/js/widgets/footer.js?v=27"></script>
 </head>
@@ -72,10 +73,9 @@
 <section class="hero">
   <div class="hero-content">
     <span class="tagline" data-i18n="home.tagline">Industrial Adhesive Solutions</span>
-    <h1 data-i18n="home.title">Trusted Adhesives for Every Industry</h1>
+    <h1 data-i18n-html="home.title">Engineered Adhesives.<br> Trusted Performance.</h1>
     <p data-i18n="home.lead">
-      Supplying quality adhesives for woodworking, packaging, construction,
-      furniture, and industrial applications.
+      For decades, we have been supplying high-performance adhesive solutions that empower businesses in the woodworking, packaging, furniture, construction, and industrial sectors with dependable products, exceptional quality, and outstanding customer support.
     </p>
     <div class="hero-buttons">
       <a href="/products" class="btn primary" data-i18n="home.browse">Browse Products</a>
@@ -84,9 +84,11 @@
   </div>
 </section>
 
+<!-- Statistics are figures, not copy: 50+, 500+, 1000+ and SG stay as written
+     in every language. Only their labels carry keys. -->
 <section class="stats">
   <div>
-    <h2>40+</h2>
+    <h2>50+</h2>
     <p data-i18n="home.stat_years">Years Experience</p>
   </div>
   <div>
@@ -102,41 +104,68 @@
     <p data-i18n="home.stat_local">Local Supplier</p>
   </div>
 </section>
-
 <section class="section">
   <div class="section-title">
     <h2 data-i18n="home.cats_title">Our Product Categories</h2>
     <p data-i18n="home.cats_lead">Find the right adhesive for your business needs.</p>
   </div>
-
-  <!-- Card copy is teammate-owned and left exactly as approved. Two content
-       issues are FLAGGED for the client rather than silently rewritten here:
-       cards 2 and 4 share the title "Laminates", and cards 1 and 3 carry
-       descriptions that belong to other categories. Only the hrefs changed,
-       to site-root clean URLs so they are Swup-navigable. -->
   <div class="card-grid">
 
-    <a href="/products?surface=Plastics+%26+Acrylics" class="brand-item">
-    <h3 data-i18n="home.cat_plastics">Plastics &amp; Acrylics</h3>
-    <p data-i18n="home.cat_plastics_d">Adhesives for furniture, plywood, and timber applications.</p>
+    <a href="/products?surface=Plastics+%26+Acrylics" class="product-card">
+      <div class="product-card-image">
+        <img src="images/plastics-acrylics.jpg" alt="Plastics & Acrylics">
+      </div>
+      <div class="product-card-body">
+        <h3 data-i18n="home.cat_plastics">Plastics & Acrylics</h3>
+        <p data-i18n="home.cat_plastics_d">Adhesives for acrylic, PVC, plastic laminates and other synthetic surfaces.</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
     </a>
 
-    <a href="/products?surface=laminates" class="brand-item">
-    <h3 data-i18n="home.cat_laminates">Laminates</h3>
-    <p data-i18n="home.cat_laminates_d">Reliable bonding solutions for cartons, paper, and packaging lines.</p>
+    <a href="/products?surface=laminates" class="product-card">
+      <div class="product-card-image">
+        <img src="images/laminates.jpg" alt="Laminates">
+      </div>
+      <div class="product-card-body">
+        <h3 data-i18n="home.cat_laminates">Laminates</h3>
+        <p data-i18n="home.cat_laminates_d">Contact adhesives for decorative laminates, panels, furniture and interior fabrication.</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
     </a>
 
-    <a href="/products?industry=flooring" class="brand-item">
-    <h3 data-i18n="home.cat_flooring">Flooring</h3>
-    <p data-i18n="home.cat_flooring_d">Reliable bonding solutions for cartons, paper, and packaging lines.</p>
+    <a href="/products?industry=flooring" class="product-card">
+      <div class="product-card-image">
+        <img src="images/flooring.jpg" alt="Flooring">
+
+      </div>
+      <div class="product-card-body">
+        <h3 data-i18n="home.cat_flooring">Flooring</h3>
+        <p data-i18n="home.cat_flooring_d">Adhesive solutions for vinyl, rubber, carpet and other flooring installations.</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
     </a>
 
-    <a href="/products?industry=Packaging" class="brand-item">
-    <h3 data-i18n="home.cat_packaging">Laminates</h3>
-    <p data-i18n="home.cat_packaging_d">High-performance adhesives for manufacturing operations.</p>
+    <a href="/products?industry=Packaging" class="product-card">
+      <div class="product-card-image">
+        <img src="images/packaging.jpg" alt="Packaging">
+      </div>
+      <div class="product-card-body">
+        <h3 data-i18n="home.cat_packaging">Packaging</h3>
+        <p data-i18n="home.cat_packaging_d">Reliable bonding solutions for cartons, paper products and packaging operations.</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
     </a>
 
   </div>
+</section>
+<section class="bond-finder">
+    <div class="bond-finder-title">
+        <h2 data-i18n="home.bond_title">Bond Finder</h2>
+        <p data-i18n="home.bond_lead">Let our Bond Finder do the work. Select your materials and discover the best adhesive for a strong, reliable bond.</p>
+        <a href="/products#bondFinder" class="btn primary" data-i18n="home.bond_cta">Try our Bond Finder →</a>
+    </div>
+
+
 </section>
 
 <section class="why">
@@ -160,20 +189,55 @@
 
 <section class="section light">
   <div class="section-title">
-    <h2 data-i18n="home.brands_title">Our Brands</h2><br>
+    <h2 data-i18n="home.brands_title">Our Trusted Brands</h2><br>
     <p data-i18n="home.brands_lead">Click a brand to see its products</p>
   </div>
 
-  <!-- Brand names are proper nouns and stay Latin in every language. -->
   <div class="brand-grid">
-    <a href="/products?brand=Deer%E2%84%A2+Brand" class="brand-item">DEER</a>
-    <a href="/products?brand=Horsemen%E2%84%A2+Brand" class="brand-item">HORSEMEN</a>
-    <a href="/products?brand=Premier%E2%84%A2+Brand" class="brand-item">PREMIER</a>
-    <a href="/products?brand=Rhino%E2%84%A2+Brand" class="brand-item">RHINO</a>
+      <a href="/products?brand=Deer™+Brand" class="brand-card">
+      <div class="brand-card-image">
+        <img src="images/DeerBrand_YeeLimAdhesivesIndustries.jpg" alt="Deer Brand Yee Lim">
+      </div>
+      <div class="product-card-body">
+        <h3>DEER</h3>
+        <p data-i18n="home.brand_general">For general purposes</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
+    </a>
+    <a href="/products?brand=Horsemen™+Brand" class="brand-card">
+      <div class="brand-card-image">
+        <img src="images/HorsmenBrand_YeeLimAdhesivesIndustries.jpg" alt="Horsemen Brand Yee Lim">
+      </div>
+      <div class="product-card-body">
+        <h3>HORSEMEN</h3>
+        <p data-i18n="home.brand_general">For general purposes</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
+    </a>
+    <a href="/products?brand=Rhino™+Brand" class="brand-card">
+      <div class="brand-card-image">
+        <img src="images/RhinoBrand__YeeLimAdhesivesIndustries.jpg" alt="Rhino Brand Yee Lim">
+      </div>
+      <div class="product-card-body">
+        <h3>RHINO</h3>
+        <p data-i18n="home.brand_general">For general purposes</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
+    </a>
+    <a href="/products?brand=premier" class="brand-card">
+      <div class="brand-card-image">
+        <img src="images/PremierBrand_YeeLimAdhesivesIndustries.jpg" alt="Premier Brand Yee Lim">
+      </div>
+      <div class="product-card-body">
+        <h3>PREMIER </h3>
+        <p data-i18n="home.brand_general">For general purposes</p>
+        <span class="view-link" data-i18n="home.view_solutions">View Solutions →</span>
+      </div>
+    </a>
   </div>
 </section>
 
-<iframe src="https://widgets.sociablekit.com/facebook-page-posts/iframe/25702514"
+<iframe src="https://widgets.sociablekit.com/facebook-page-posts/iframe/25702517"
         title="Yee Lim Adhesives on Facebook" loading="lazy"
         frameborder="0" width="100%" height="1000px"></iframe>
 
@@ -184,11 +248,21 @@
   <a href="/contact" class="btn primary" data-i18n="home.contact_us">Contact Us</a>
 </section>
 
+
 </main>
 </div>
 
 <script src="/js/vendor/swup.umd.js?v=1"></script>
+<script src="/js/data.js?v=11"></script>
 <script src="/js/core/app.js?v=8"></script>
-<script src="/js/widgets/page-transitions.js?v=11"></script>
+<script src="/js/widgets/compare.js?v=29"></script>
+<script src="/js/widgets/custom-select.js?v=7"></script>
+<script src="/js/pages/products.js?v=60"></script>
+<script src="/js/pages/product-detail.js?v=42"></script>
+<script src="/js/pages/compare-page.js?v=21"></script>
+<script src="/js/pages/enquiry.js?v=20"></script>
+<script src="/js/pages/contact.js?v=6"></script>
+<script src="/js/widgets/chatbot.js?v=33"></script>
+<script src="/js/widgets/page-transitions.js?v=13"></script>
 </body>
 </html>
