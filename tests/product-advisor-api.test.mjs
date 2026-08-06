@@ -1879,3 +1879,51 @@ test("a product question is still a product question", () => {
     assert.notEqual(response.intent, "company_information", text);
   }
 });
+
+// ─── Small talk gets a real reply, still without a model ───────────
+//
+// "hi" used to return the generic "which two surfaces" text -- the same question
+// the opening greeting already asks, so a greeting produced a duplicate.
+
+const smallTalk = [
+  ["en", "hi", /^Hello\./],
+  ["en", "hello", /^Hello\./],
+  ["en", "good morning", /^Hello\./],
+  ["zh", "你好", /^您好。/],
+  ["en", "thanks", /Happy to help/],
+  ["en", "ok", /Happy to help/],
+  ["zh", "谢谢", /很高兴能帮到您/],
+  ["en", "bye", /Thanks for stopping by/],
+  ["zh", "再见", /感谢您的来访/],
+];
+
+for (const [language, text, expected] of smallTalk) {
+  test(`"${text}" gets a small-talk reply, not the surfaces prompt`, () => {
+    const response = callAdvisor({
+      messages: [{ role: "user", content: text }],
+      requestedLanguage: language,
+    });
+    assert.equal(response.intent, "small_talk", text);
+    assert.equal(response.responseSource, "deterministic", text);
+    assert.doesNotMatch(response.message, SURFACES_PROMPT, text);
+    assert.match(response.message, expected, text);
+    assert.equal(response.language, language, text);
+  });
+}
+
+test("a greeting attached to a real question is still that question", () => {
+  // The small-talk patterns are anchored and length-capped so they cannot
+  // swallow a genuine enquiry that happens to open politely.
+  const cases = [
+    ["hi, how much is it?", "pricing"],
+    ["hello, do you have it in stock?", "stock"],
+    ["hi, where are you located?", "company_information"],
+  ];
+  for (const [text, expectedIntent] of cases) {
+    const response = callAdvisor({
+      messages: [{ role: "user", content: text }],
+      requestedLanguage: "en",
+    });
+    assert.equal(response.intent, expectedIntent, text);
+  }
+});

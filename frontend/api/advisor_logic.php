@@ -306,6 +306,7 @@ function advisorIntentIsDeterministicOnly(string $intent): bool
         "partnership",
         "general_enquiry",
         "company_information",
+        "small_talk",
         "unsupported",
     ], true);
 }
@@ -314,14 +315,51 @@ function advisorIntentIsDeterministicOnly(string $intent): bool
  * Greetings and acknowledgements. Not a separate intent, only a signal that
  * calling a model would cost a request without changing the answer.
  */
+/**
+ * Which kind of small talk this is, or null.
+ *
+ * A greeting deserves a greeting. It used to fall through to the generic
+ * "which two surfaces" reply, which is the same question the opening message
+ * already asks -- so saying "hi" got the visitor a duplicate.
+ *
+ * These stay off the model deliberately, and not for want of quota: a fixed
+ * pleasantry has exactly one right answer, so a model adds ~2.5s of latency and
+ * a chance of being rejected in exchange for nothing. The request budget is
+ * better spent on a real bonding question.
+ *
+ * Every pattern is anchored and length-capped, so "hi, how much is it?" is a
+ * pricing question, not a greeting.
+ */
+function advisorSmallTalkKind(string $query): ?string
+{
+    $lower = advisorLower(trim($query));
+    if ($lower === "") {
+        return null;
+    }
+    if (advisorMatches($lower, [
+        '/^(?:hi|hello|hey|yo|hiya|good\s+(?:morning|afternoon|evening))\b[\s\S]{0,20}$/i',
+        '/^(?:你好|您好|哈啰|嗨)[\s\S]{0,10}$/u',
+    ])) {
+        return "greeting";
+    }
+    if (advisorMatches($lower, [
+        '/^(?:bye|goodbye|see\s+ya|good\s+night)\b[\s\S]{0,20}$/i',
+        '/^(?:再见)[\s\S]{0,10}$/u',
+    ])) {
+        return "farewell";
+    }
+    if (advisorMatches($lower, [
+        '/^(?:thanks|thank\s+you|thx|cheers|ok|okay|noted|cool|great|got\s+it|alright|sure)\b[\s\S]{0,20}$/i',
+        '/^(?:谢谢|多谢|好的|知道了)[\s\S]{0,10}$/u',
+    ])) {
+        return "acknowledgement";
+    }
+    return null;
+}
+
 function advisorIsSmallTalk(string $query): bool
 {
-    return advisorMatches(advisorLower(trim($query)), [
-        '/^(?:hi|hello|hey|yo|hiya|good\s+(?:morning|afternoon|evening))\b[\s\S]{0,20}$/i',
-        '/^(?:thanks|thank\s+you|thx|cheers|ok|okay|noted|cool|great|got\s+it|alright|sure)\b[\s\S]{0,20}$/i',
-        '/^(?:bye|goodbye|see\s+ya|good\s+night)\b[\s\S]{0,20}$/i',
-        '/^(?:你好|您好|哈啰|嗨|谢谢|多谢|好的|知道了|再见)[\s\S]{0,10}$/u',
-    ]);
+    return advisorSmallTalkKind($query) !== null;
 }
 
 function advisorBuildResponse(
@@ -385,7 +423,16 @@ function advisorBuildResponse(
         // the response contract the browser already handles is unchanged.
         $messageKey = advisorCompanyTopic($query) ?? "company_contact";
     } elseif ($intent === "unclear") {
-        $messageKey = advisorMentionsOutdoorCondition($query) ? "outdoor_unclear" : "generic_unclear";
+        // A greeting is not an unclear product question. Checked before the
+        // surfaces prompt so "hi" stops being answered with the same question
+        // the opening message already asked.
+        $smallTalk = advisorSmallTalkKind($query);
+        if ($smallTalk !== null) {
+            $intent = "small_talk";
+            $messageKey = "smalltalk_" . $smallTalk;
+        } else {
+            $messageKey = advisorMentionsOutdoorCondition($query) ? "outdoor_unclear" : "generic_unclear";
+        }
     }
 
     $message = advisorResponseMessage(
@@ -541,6 +588,18 @@ function advisorResponseMessage(string $key, string $language, string $query, ?a
         "company_custom" => [
             "en" => "Yes. If the adhesive you need is not in the catalogue, Yee Lim can formulate one for the job, and we also provide OEM services. Submit an enquiry describing your application and materials, and our team will take it from there.",
             "zh" => "可以。如果目录中没有您需要的胶粘剂，Yee Lim 可以为您的应用专门配制，我们也提供 OEM 代工服务。请提交询价并说明您的应用和材料，我们的团队会跟进处理。",
+        ],
+        "smalltalk_greeting" => [
+            "en" => "Hello. Tell me the two surfaces you are bonding and the conditions they will face, and I will look for a product in the catalogue.",
+            "zh" => "您好。请告诉我您要粘合的两种材料以及使用环境，我会为您在产品目录中查找合适的胶粘剂。",
+        ],
+        "smalltalk_acknowledgement" => [
+            "en" => "Happy to help. If you have another bonding job, tell me the two surfaces and the conditions and I will take a look.",
+            "zh" => "很高兴能帮到您。如果您还有其他粘合需求，请告诉我要粘合的材料和使用环境，我再为您查找。",
+        ],
+        "smalltalk_farewell" => [
+            "en" => "Thanks for stopping by. You can submit an enquiry at any time and our team will follow up.",
+            "zh" => "感谢您的来访。您随时可以提交询价，我们的团队会跟进处理。",
         ],
         "company_overview" => [
             "en" => "Yee Lim Adhesives Industries has been making commercial and industrial adhesives in Singapore for over 50 years. We started as a shoe factory, moved into adhesives, and now manufacture from a facility of more than 20,000 square feet, supplying construction, woodworking, furniture, marine, packaging and OEM customers under the Deer, Horsemen, Premier and Rhino brands. Tell me what you are bonding and I will look for a product, or submit an enquiry to reach our team.",
