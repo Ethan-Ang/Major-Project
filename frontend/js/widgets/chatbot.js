@@ -463,18 +463,25 @@
       border-radius: 11px;
       background: #fffdf8;
     }
+    /* 24px is the house target size for a title link (WCAG 2.2 SC 2.5.8, and the
+       same value .product-card-title-link and .related-card-name a already use).
+       It was 44px here, which padded ~20px of dead space between the title and
+       the metadata line and was the main reason the card felt tall. */
     .yl-rec-name {
-      min-height: 44px;
+      min-height: 24px;
       display: inline-flex;
       align-items: center;
       color: #201e18;
       font-size: 0.82rem;
       font-weight: 700;
+      line-height: 1.25;
       text-decoration: none;
     }
     .yl-rec-name:hover { color: #a82020; text-decoration: underline; }
-    .yl-rec-meta { margin-top: 0.18rem; color: #756f65; font-size: 0.72rem; overflow-wrap: anywhere; }
-    .yl-rec-description { margin: 0.38rem 0 0; color: #4f4a43; font-size: 0.75rem; line-height: 1.4; }
+    /* Sits tight under the title and stays quiet: it is a qualifier, not a
+       heading. Held at 0.7rem so it is still comfortably readable on a phone. */
+    .yl-rec-meta { margin-top: 0.1rem; color: #8a8378; font-size: 0.7rem; overflow-wrap: anywhere; }
+    .yl-rec-description { margin: 0.3rem 0 0; color: #4f4a43; font-size: 0.75rem; line-height: 1.4; }
 
     .yl-adv-close:focus-visible,
     .yl-suggestion:focus-visible,
@@ -948,6 +955,52 @@
     }
   }
 
+  /**
+   * Display-only tidy of a catalogue description for the recommendation card.
+   *
+   * Every rule here removes or normalises wording that is ALREADY in the
+   * catalogue. Nothing is added, no application or feature is invented, and the
+   * database is not modified -- the product pages still show the supplier's
+   * original copy. If any rule does not apply, the text is left exactly as it is.
+   *
+   *   1. Drop the leading product name. 20 of 31 descriptions open by repeating
+   *      it ("Rhino™ Brand 909 is a…", "Deer™ Brand 129, a…"), which wastes the
+   *      first line directly under a title that already says it.
+   *   2. Hyphenate "solvent based" / "water based". The features column already
+   *      stores these as "Solvent-based", so this only makes the two agree.
+   *   3. "formulated to work best for" -> "formulated for", and "laminate works"
+   *      -> "laminate applications". Both are narrow, exact phrases; no blanket
+   *      "works" -> "applications" rule, because "raised works" is a real
+   *      construction term and would be mangled by one.
+   */
+  function tidyRecommendationCopy(text, productName, language) {
+    let out = String(text || "").trim();
+    if (!out) return "";
+
+    if (productName) {
+      const escaped = String(productName).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // "NAME is a …" / "NAME, a …" / "NAME 是一款…" / "NAME，…", and the bare
+      // "NAME PVC adhesive is …" case, where the name runs straight into the
+      // sentence. The trailing \s+ branch is last so a real connector is
+      // consumed when there is one; it only ever removes the name itself.
+      const stripped = out.replace(
+        new RegExp("^" + escaped + "(?:\\s*(?:,|，)\\s*|\\s+is\\s+|\\s*是(?:一款|一种)?\\s*|\\s+)(?:an?\\s+)?", "i"),
+        ""
+      );
+      if (stripped && stripped !== out) out = stripped;
+    }
+
+    if (language !== "zh") {
+      out = out
+        .replace(/\bsolvent based\b/gi, "solvent-based")
+        .replace(/\bwater based\b/gi, "water-based")
+        .replace(/\bformulated to work best for\b/gi, "formulated for")
+        .replace(/\blaminate works\b/gi, "laminate applications");
+      out = out.charAt(0).toUpperCase() + out.slice(1);
+    }
+    return out;
+  }
+
   function renderRecommendations(record, body) {
     // A restored numeric ID is not proof that a product exists. Recommendation
     // links and attachment controls stay unavailable until the public catalogue
@@ -971,10 +1024,24 @@
       const surfaceNames = recommendation.surfaces.map(function (surface) {
         return typeof window.ylTerm === "function" ? window.ylTerm(surface) : surface;
       });
-      meta.textContent = recommendation.brand + (surfaceNames.length
-        ? " · " + surfaceNames.join(advisorLanguage() === "zh" ? "、" : ", ")
-        : "");
-      card.appendChild(meta);
+      // Surfaces plus the adhesive's base, both straight from verified catalogue
+      // fields. The brand is dropped: every product name already begins with it
+      // ("Rhino™ Brand 909"), so repeating it here said nothing new.
+      const baseFeature = (recommendation.features || []).find(function (feature) {
+        return /-based$/i.test(String(feature).trim());
+      });
+      const metaParts = [];
+      if (surfaceNames.length) {
+        metaParts.push(surfaceNames.join(advisorLanguage() === "zh" ? "、" : ", "));
+      }
+      if (baseFeature) {
+        const base = String(baseFeature).trim();
+        // ylTerm already carries "Solvent-based" -> 溶剂型, so the qualifier is
+        // translated on the Chinese site instead of sitting there in English.
+        metaParts.push(typeof window.ylTerm === "function" ? window.ylTerm(base) : base);
+      }
+      meta.textContent = metaParts.join(" · ");
+      if (!metaParts.length) meta.remove(); else card.appendChild(meta);
       let descriptionText = recommendation.shortDescription;
       if (advisorLanguage() === "zh") {
         const translated = window.YL_PRODUCT_ZH && window.YL_PRODUCT_ZH[String(recommendation.id)];
@@ -984,6 +1051,11 @@
       } else if (product && typeof window.ylPField === "function") {
         descriptionText = window.ylPField(product, "shortDescription");
       }
+      descriptionText = tidyRecommendationCopy(
+        descriptionText,
+        recommendation.name,
+        advisorLanguage()
+      );
       if (descriptionText) {
         const description = document.createElement("p");
         description.className = "yl-rec-description";
