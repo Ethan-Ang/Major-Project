@@ -70,30 +70,55 @@
       pointer-events: all;
     }
 
-    @media (max-width: 520px) {
-      /* ADV-001: fit the content on open (greeting + chips), never a huge
-         blank middle. Grows with the conversation up to 78dvh, then the
-         messages list scrolls. Safe-area padded so the input clears the
-         home indicator. */
+    /* The full-screen treatment is not a width question alone. A phone in
+       landscape is ~720px wide but only ~320px tall, and with the keyboard up
+       the centred modal would put the composer behind it. The second clause
+       catches exactly that: a short viewport with a coarse pointer. A desktop
+       window is never coarse, so it keeps the modal. ylAdvSyncViewport matches
+       on the identical query, so CSS and JS can never disagree about which
+       treatment is active. */
+    @media (max-width: 520px), (max-height: 560px) and (pointer: coarse) {
+      /* ADV-002: a dedicated full-screen application panel, not a bottom sheet.
+         The 93dvh sheet this replaced left a strip of the live page showing at
+         the top, and — because dvh does NOT shrink for the iOS software
+         keyboard — left the composer under the keyboard and the enquiry page
+         exposed below it the moment the field was focused.
+
+         The panel is a fixed flex column filling the *visible* viewport:
+         header and composer are flex:0 0 auto, only the message list scrolls.
+         Height normally comes from 100dvh (100vh where dvh is unsupported).
+         --yl-adv-top / --yl-adv-height override it only while the keyboard is
+         up; ylAdvSyncViewport sets them from window.visualViewport and clears
+         them again the moment the keyboard closes, so nothing goes stale. */
       #yl-advisor-panel {
         width: 100%;
-        height: auto;
-        /* Near-full-height chat sheet — leaves just a small peek of the dimmed page
-           at the very top (so it still reads as a dismissible sheet). The messages
-           area flexes to fill, keeping the input pinned at the bottom. */
-        min-height: 93dvh;
-        max-height: 95dvh;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        top: auto;
         left: 0;
-        bottom: 0;
         right: 0;
-        border-radius: 16px 16px 0 0;
-        clip-path: inset(0 round 16px 16px 0 0);
-        transform: translateY(24px) scale(0.99);
+        top: var(--yl-adv-top, 0px);
+        bottom: auto;
+        height: 100vh;
+        height: var(--yl-adv-height, 100dvh);
+        min-height: 0;
+        max-height: none;
+        padding-bottom: 0;
+        border-radius: 0;
+        clip-path: none;
+        box-shadow: none;
+        /* A short rise, no zoom: ~240ms ease-out. */
+        transform: translateY(14px);
+        transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1),
+                    opacity 0.24s cubic-bezier(0.22, 0.61, 0.36, 1);
       }
-      #yl-advisor-panel.open {
-        transform: translateY(0) scale(1);
+      #yl-advisor-panel.open { transform: translateY(0); }
+
+      /* The backdrop is only ever seen during the open/close transition on
+         mobile, but it must still track the visible viewport so it never
+         reveals an undimmed strip of the page underneath. */
+      #yl-advisor-backdrop {
+        top: var(--yl-adv-top, 0px);
+        height: 100vh;
+        height: var(--yl-adv-height, 100dvh);
+        bottom: auto;
       }
     }
 
@@ -107,7 +132,7 @@
       .yl-msg, .yl-typing span { animation: none; }
     }
 
-    /* Header */
+    /* Header — never inside the scrolling region, so it stays put while typing. */
     .yl-adv-header {
       position: relative;
       background: #1a1712;
@@ -115,7 +140,7 @@
       display: flex;
       align-items: center;
       gap: 0.8rem;
-      flex-shrink: 0;
+      flex: 0 0 auto;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
     /* (The red header hairline was removed — the quiet bottom border is enough.) */
@@ -183,14 +208,22 @@
 
     .yl-adv-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
-    /* Messages */
+    /* Messages — the ONLY independently scrolling region in the panel.
+       min-height:0 is what stops a long conversation from growing the flex
+       column past the panel and pushing the composer off screen. */
     .yl-adv-messages {
-      flex: 1;
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
       padding: 1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      /* One clear gap between conversation turns. Everything that belongs to a
+         single assistant response is grouped inside .yl-msg-body instead. */
+      gap: 1.5rem;
       scroll-behavior: smooth;
       background: #f6f2ea;
     }
@@ -214,6 +247,7 @@
       display: flex;
       gap: 0.45rem;
       max-width: 90%;
+      min-width: 0;
       align-items: flex-start;
       animation: ylMsgIn 0.22s cubic-bezier(0.23,1,0.32,1) both;
     }
@@ -239,7 +273,10 @@
       overflow: hidden;
     }
     .yl-msg-avatar img { width: 18px; height: 18px; object-fit: contain; display: block; }
-    .yl-msg-body { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+    /* One assistant response group: explanation bubble, then the recommendation
+       card(s) on the same content edge, ~11px below. The avatar is a sibling of
+       this column, so it is never repeated beside the card or the CTA. */
+    .yl-msg-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 
     .yl-msg-bubble {
       padding: 0.6rem 0.85rem;
@@ -327,12 +364,20 @@
     .yl-suggestion:hover { border-color: #c9bfaa; color: #201e18; background: #f6f2ea; transform: translateY(-1px); }
     .yl-suggestion:active { transform: scale(0.97); }
 
-    /* Input */
+    /* Composer — a stable bottom region of the panel, not a pill floating over
+       the page. flex:0 0 auto keeps it out of the scrolling region entirely. */
     .yl-adv-footer {
       padding: 0.7rem 0.85rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
       border-top: 1px solid #efe9dc;
       background: #fff;
-      flex-shrink: 0;
+      flex: 0 0 auto;
+    }
+
+    /* Keyboard up: the home indicator is behind the keyboard, so the safe-area
+       inset would be padding the composer away from the keyboard for nothing.
+       ylAdvSyncViewport adds this class only while the keyboard is actually up. */
+    #yl-advisor-panel.yl-adv-kb-open .yl-adv-footer {
+      padding-bottom: 0.7rem;
     }
 
     /* Premium composer (Intercom/Nora-style): one soft rounded pill holding the
@@ -354,6 +399,10 @@
       background: #fff;
     }
 
+    /* A textarea, not an input. Two reasons: it wraps a long message naturally,
+       and iOS does not offer the "AutoFill Contact" accessory over a textarea —
+       which is what the enquiry page's autocomplete="name|organization|email|tel"
+       fields were triggering for a plain text input in the same document. */
     .yl-adv-input {
       flex: 1;
       padding: 0.55rem 0.4rem 0.55rem 0.75rem;
@@ -362,10 +411,15 @@
       /* 16px minimum: below this, iOS zooms the whole page in the moment the
          field is focused (the reported "makes me zoom in when I type"). */
       font-size: 16px;
+      line-height: 1.4;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #201e18;
       outline: none;
       min-width: 0;
+      resize: none;
+      overflow-y: auto;
+      /* One row by default, growing to ~5 before the field itself scrolls. */
+      max-height: 116px;
     }
 
     .yl-adv-input::placeholder { color: #6a655a; }
@@ -405,19 +459,6 @@
 
     .yl-adv-head-actions { display: flex; align-items: center; gap: 0.2rem; }
 
-    /* The enquiry action lives inside the sentence that offers it (see
-       renderBubbleText), so there is no standalone action row any more. This
-       block now styles only the per-recommendation "include in my enquiry"
-       control, which is a different action on a different object. */
-    /* The action area of the recommendation above it, not a second card: 16px
-       below the card, full width, no container of its own. */
-    .yl-rec-actions {
-      display: flex;
-      /* .yl-msg-body is a flex column with a 0.35rem gap, so subtract it to land
-         on a true 16px between the card and the button. */
-      margin-top: calc(16px - 0.35rem);
-    }
-
     /* Inline enquiry link: brand red, underlined, and it wraps with the prose
        rather than sitting in its own box. No min-height, because forcing one on
        an inline element would break the line box on a narrow screen. */
@@ -440,78 +481,162 @@
       border-radius: 3px;
     }
 
-    /* Primary action for the recommendation: solid brand red, full width,
-       ~50px tall. The pressed state is a very light red fill with red text and
-       border -- still obviously clickable, because pressing it again removes the
-       products. The label changes too, so the state never depends on colour. */
-    .yl-adv-inline-button {
-      flex: 1;
-      min-height: 50px;
+    /* Shared action button. The oversized full-width red banner that used to sit
+       BELOW the card (a separate block, taller than the card's own content) is
+       gone: the recommendation CTA now lives inside the card as .yl-rec-cta, and
+       this base is what Retry and the card CTA share. */
+    /* Outlined at rest, per the "Recommended CTA design" reference: white
+       ground, 1px brand-red border, brand-red label. The red border is what
+       makes this read as a button rather than another panel nested inside the
+       card — a neutral border was tried and lost that entirely.
+
+       The solid brand red is kept for hover and active, the deliberately
+       emphasised states, instead of sitting there permanently.
+
+       Reds are the site's #CC2929, not the reference's #D32F2F: on the pale
+       selected/pressed tints #D32F2F measures 4.29:1 and 4.14:1, under the
+       4.5:1 AA minimum, while #CC2929 clears it everywhere (5.36 resting,
+       4.62 selected) and matches the rest of the site. */
+    .yl-adv-cta {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.6rem 0.9rem;
-      border-radius: 11px;
+      min-height: 45px;
+      padding: 0.55rem 1rem;
+      border-radius: 9px;
       border: 1px solid #CC2929;
-      background: #CC2929;
-      color: #fff;
+      background: #fff;
+      color: #CC2929;
       cursor: pointer;
-      font: 600 0.82rem/1.25 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.25;
       text-decoration: none;
       text-align: center;
       transition: background 0.16s, border-color 0.16s, color 0.16s;
     }
-    .yl-adv-inline-button[aria-pressed=true] {
-      background: #fdeceb;
+    /* Selected: pale red ground, brand red border and text. Obviously chosen but
+       obviously still pressable, because pressing again removes the product. The
+       label changes too, so state is never carried by colour alone. */
+    .yl-adv-cta[aria-pressed=true] {
+      background: #ffe9e9;
       border-color: #CC2929;
       color: #CC2929;
     }
     @media (hover: hover) and (pointer: fine) {
-      .yl-adv-inline-button:hover { background: #b62525; border-color: #b62525; }
-      .yl-adv-inline-button[aria-pressed=true]:hover { background: #fbdcda; }
+      /* Solid brand red is the emphasis, not the resting weight. */
+      .yl-adv-cta:hover { background: #CC2929; border-color: #CC2929; color: #fff; }
+      /* An already-selected control must not flip to solid red on hover — that
+         would read as "add" when pressing it actually removes. It deepens
+         instead, which is still unmistakable feedback (6.25:1). */
+      .yl-adv-cta[aria-pressed=true]:hover { background: #ffe9e9; border-color: #a82020; color: #a82020; }
     }
-    .yl-adv-inline-button:disabled { color: #6b665e; background: #eee9df; cursor: default; }
+    /* Touch has no hover, so :active is where a phone gets the solid red. */
+    .yl-adv-cta:active { background: #a82020; border-color: #a82020; color: #fff; }
+    .yl-adv-cta[aria-pressed=true]:active { background: #ffe0e0; border-color: #a82020; color: #a82020; }
+    .yl-adv-cta:disabled { color: #6b665e; background: #eee9df; border-color: #e2dccf; cursor: default; }
+
+    /* The CTA inside the card: full usable card width, sat 15px under the
+       description so it reads as this recommendation's action rather than a
+       banner of its own. */
+    .yl-rec-cta { width: 100%; margin-top: 15px; }
+
+    /* Retry is not a recommendation action, so it stays compact and left-aligned
+       instead of inheriting the card CTA's full width. */
+    .yl-adv-retry { align-self: flex-start; }
 
     .yl-recommendations { display: grid; gap: 0.5rem; }
+    /* Restrained card: hairline border, small radius, no shadow, compact padding.
+       Professional rather than decorative, and it carries its own action. */
     .yl-recommendation {
       min-width: 0;
-      padding: 0.7rem;
+      padding: 14px;
       border: 1px solid #e6dfd0;
-      border-radius: 11px;
+      border-radius: 10px;
       background: #fffdf8;
+      box-shadow: none;
     }
-    /* 24px is the house target size for a title link (WCAG 2.2 SC 2.5.8, and the
-       same value .product-card-title-link and .related-card-name a already use).
-       It was 44px here, which padded ~20px of dead space between the title and
-       the metadata line and was the main reason the card felt tall. */
+    /* Strongest text in the card. Long names wrap instead of forcing the panel
+       wide (inline-flex would not wrap, so this is a block-level link with the
+       24px house target size preserved via padding-free min-height). */
     .yl-rec-name {
+      display: block;
       min-height: 24px;
-      display: inline-flex;
-      align-items: center;
       color: #201e18;
-      font-size: 0.82rem;
+      font-size: 15px;
       font-weight: 700;
-      line-height: 1.25;
+      line-height: 1.3;
       text-decoration: none;
+      overflow-wrap: anywhere;
     }
     .yl-rec-name:hover { color: #a82020; text-decoration: underline; }
-    /* Sits tight under the title and stays quiet: it is a qualifier, not a
-       heading. Held at 0.7rem so it is still comfortably readable on a phone. */
-    .yl-rec-meta { margin-top: 0.1rem; color: #8a8378; font-size: 0.7rem; overflow-wrap: anywhere; }
-    .yl-rec-description { margin: 0.3rem 0 0; color: #4f4a43; font-size: 0.75rem; line-height: 1.4; }
+    /* Smaller and muted: a qualifier under the name, not a heading. */
+    .yl-rec-meta { margin-top: 10px; color: #8a8378; font-size: 12.5px; line-height: 1.35; overflow-wrap: anywhere; }
+    .yl-rec-description { margin: 12px 0 0; color: #4f4a43; font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+    /* When the catalogue gives no description, the CTA still needs its 14-16px
+       breathing room from whatever precedes it. */
+    .yl-rec-meta + .yl-rec-cta, .yl-rec-name + .yl-rec-cta { margin-top: 15px; }
 
     .yl-adv-close:focus-visible,
     .yl-suggestion:focus-visible,
-    .yl-adv-inline-button:focus-visible, .yl-rec-name:focus-visible,
+    .yl-adv-cta:focus-visible, .yl-rec-name:focus-visible,
     .yl-adv-send:focus-visible {
       outline: 3px solid #CC2929;
       outline-offset: 2px;
     }
 
+    /* ── Mobile full-screen refinements ──────────────────────────────── */
+    @media (max-width: 520px), (max-height: 560px) and (pointer: coarse) {
+      /* Safe areas: the top inset matters under Safari's chrome and the notch,
+         the side insets matter in landscape. The bottom inset is handled on the
+         composer so it can be dropped while the keyboard is up. */
+      .yl-adv-header {
+        padding-top: calc(1.1rem + env(safe-area-inset-top, 0px));
+        padding-left: calc(1.15rem + env(safe-area-inset-left, 0px));
+        padding-right: calc(1.15rem + env(safe-area-inset-right, 0px));
+      }
+      .yl-adv-messages {
+        padding-left: calc(1rem + env(safe-area-inset-left, 0px));
+        padding-right: calc(1rem + env(safe-area-inset-right, 0px));
+      }
+      .yl-adv-footer {
+        padding-left: calc(0.85rem + env(safe-area-inset-left, 0px));
+        padding-right: calc(0.85rem + env(safe-area-inset-right, 0px));
+      }
+
+      /* Bottom-anchor the conversation. This is what removes the large beige
+         dead zone between the last reply and the composer: the margin resolves
+         to 0 as soon as the content overflows, so unlike justify-content:flex-end
+         it never makes the top of the transcript unreachable. */
+      .yl-adv-messages > .yl-msg:first-child { margin-top: auto; }
+
+      /* Controlled bubble width: a long message must not run edge to edge. */
+      .yl-msg-user { max-width: 84%; }
+      .yl-msg-assistant { max-width: 94%; }
+
+      .yl-msg-bubble { font-size: 16px; padding: 0.6rem 0.9rem; border-radius: 16px; }
+      .yl-rec-name { font-size: 16px; }
+      .yl-rec-meta { font-size: 13px; }
+      .yl-rec-description { font-size: 14px; }
+      .yl-adv-cta { font-size: 15px; }
+    }
+
     @media (max-width: 360px) {
-      .yl-adv-header { padding-inline: 0.7rem; gap: 0.45rem; }
-      .yl-adv-messages { padding-inline: 0.7rem; }
-      .yl-msg { max-width: 96%; }
+      .yl-adv-header {
+        padding-left: calc(0.7rem + env(safe-area-inset-left, 0px));
+        padding-right: calc(0.7rem + env(safe-area-inset-right, 0px));
+        gap: 0.45rem;
+      }
+      .yl-adv-messages {
+        padding-left: calc(0.7rem + env(safe-area-inset-left, 0px));
+        padding-right: calc(0.7rem + env(safe-area-inset-right, 0px));
+      }
+      /* User bubbles stay at 84% even here — widening them is what made a long
+         message nearly touch both sides of the panel. Only the assistant column,
+         which has to hold a product card, gets the extra room. */
+      .yl-msg-assistant { max-width: 97%; }
+      .yl-recommendation { padding: 12px; }
     }
 
     /* This must follow the base animation declarations above. Keeping the
@@ -846,11 +971,20 @@
       <div class="yl-adv-status" id="ylAdvStatus" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="yl-adv-footer">
         <div class="yl-adv-input-row">
-          <input class="yl-adv-input" id="ylAdvInput" type="text"
+          <!-- A textarea rather than <input type="text">. The advisor widget is
+               appended to document.body, so this field is not inside and not
+               form-associated with the enquiry fields (those pages have no
+               <form> element at all). What iOS was reacting to is the enquiry
+               page's autocomplete="name|organization|email|tel" inputs elsewhere
+               in the same document, which make Safari offer "AutoFill Contact"
+               on any text input on the page. A textarea is excluded from that
+               heuristic, and it also lets a long message wrap properly. -->
+          <textarea class="yl-adv-input" id="ylAdvInput" name="ylAdvisorMessage" rows="1"
             data-i18n-attr="aria-label:advisor.aria_input,placeholder:advisor.placeholder"
             aria-label="${cbT("advisor.aria_input", "Ask the product advisor a question")}"
             placeholder="${cbT("advisor.placeholder", "Message…")}"
-            maxlength="1000" autocomplete="off" />
+            maxlength="1000" autocomplete="off" autocorrect="on"
+            autocapitalize="sentences" spellcheck="true" enterkeyhint="send"></textarea>
           <button type="button" class="yl-adv-send" id="ylAdvSend" data-i18n-attr="aria-label:advisor.aria_send" aria-label="${cbT("advisor.aria_send", "Send message")}" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -885,8 +1019,60 @@
   let requestGeneration = 0;
   let activeController = null;
   let returnFocus = null;
-  let previousBodyOverflow = null;
   let releaseFocusTrap = null;
+  let bodyLock = null;
+  let lockedScrollY = 0;
+  let viewportFrame = 0;
+  let lastViewportKey = "";
+  // Whether the transcript is scrolled to the newest message. New replies only
+  // scroll the list when this is true, so a visitor reading back through the
+  // conversation is never yanked to the bottom.
+  let pinnedToBottom = true;
+
+  const PIN_TOLERANCE_PX = 48;
+
+  function updatePinnedState() {
+    pinnedToBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight <= PIN_TOLERANCE_PX;
+  }
+
+  /**
+   * Jumps the transcript to the newest message.
+   *
+   * behavior:"auto" is explicit because .yl-adv-messages sets scroll-behavior:
+   * smooth. An animated auto-follow fires scroll events all the way down, and
+   * updatePinnedState would read those mid-flight positions as the visitor
+   * scrolling up -- which silently switched auto-follow off for every later
+   * reply. An instant jump lands once, at the bottom, and reads back correctly.
+   */
+  function jumpConversationToBottom() {
+    // Inline scroll-behavior:auto beats the stylesheet's `smooth` for exactly
+    // this assignment, then the stylesheet is handed back. scrollTo({behavior:
+    // "auto"}) does NOT do this -- per spec "auto" means "use the element's
+    // computed scroll-behavior", i.e. smooth again, which is what left the
+    // newest reply stranded a few hundred pixels above the fold.
+    const previous = messages.style.scrollBehavior;
+    messages.style.scrollBehavior = "auto";
+    messages.scrollTop = messages.scrollHeight;
+    if (previous) messages.style.scrollBehavior = previous;
+    else messages.style.removeProperty("scroll-behavior");
+    pinnedToBottom = true;
+  }
+
+  /** Scrolls the conversation region only — never the panel, never the page. */
+  function scrollConversationToLatest(force) {
+    if (force) pinnedToBottom = true;
+    if (!pinnedToBottom) return;
+    jumpConversationToBottom();
+  }
+
+  /** Grows the composer with the message, up to the CSS max-height. */
+  function autoGrowComposer() {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 116) + "px";
+    // The composer growing takes height away from the transcript, so the newest
+    // message has to be followed down or it slides behind the composer.
+    scrollConversationToLatest(false);
+  }
 
   function appendAvatar(parent) {
     const avatar = document.createElement("div");
@@ -913,10 +1099,21 @@
     }
   }
 
-  function recommendationsAreIncluded(recommendations) {
+  /**
+   * The enquiry basket in localStorage is the ONLY source of truth for what is
+   * attached. There is no second store: every button reads its state back out
+   * of the basket, which is what keeps two cards for the same product, a
+   * reopened panel and the enquiry page itself all agreeing.
+   */
+  function recommendationIsIncluded(recommendation) {
+    return currentBasket().indexOf(String(recommendation.id)) !== -1;
+  }
+
+  /** Recommendations from this response that are currently in the basket. */
+  function attachedRecommendations(record) {
     const basket = currentBasket();
-    return recommendations.length > 0 && recommendations.every(function (recommendation) {
-      return basket.includes(String(recommendation.id));
+    return record.recommendations.filter(function (recommendation) {
+      return basket.indexOf(String(recommendation.id)) !== -1;
     });
   }
 
@@ -934,93 +1131,83 @@
     button.disabled = false;
   }
 
-  function buildAdvisorSummary(record) {
-    const names = record.recommendations.map(function (recommendation) { return recommendation.name; });
+  function buildAdvisorSummary(recommendations) {
     return [
       cbT("advisor.summary_title", "Product Advisor summary"),
       "",
       cbT("advisor.summary_recommended", "Recommended products:"),
-      names.map(function (name) { return "- " + name; }).join("\n"),
+      recommendations.map(function (recommendation) { return "- " + recommendation.name; }).join("\n"),
     ].join("\n");
   }
 
   /**
-   * Takes this record's products back out of the enquiry.
+   * Rewrites the enquiry handoff so it always describes exactly the products
+   * from this response that are attached right now.
    *
-   * The basket in localStorage stays the single source of truth -- this only
-   * subtracts from it, so anything the visitor added by hand is untouched. The
-   * handoff summary is dropped only when it describes exactly the products being
-   * removed, otherwise the enquiry message would prefill prose about products
-   * that are no longer attached.
+   * Called after every add and every remove, which is what stops the enquiry
+   * message being prefilled with prose about a product the visitor has since
+   * taken back out. When nothing from this response is attached any more the
+   * record is dropped, but only if it was this response that wrote it -- another
+   * response's handoff is left alone.
    */
-  function removeRecommendations(record, button) {
-    const ids = record.recommendations.map(function (recommendation) {
-      return String(recommendation.id);
-    });
-    if (!ids.length) return;
-    const remaining = currentBasket().filter(function (id) { return ids.indexOf(id) === -1; });
+  function syncEnquirySummary(record) {
+    const attached = attachedRecommendations(record);
     try {
-      if (typeof window.saveBasket === "function") window.saveBasket(remaining);
-      else {
-        localStorage.setItem("enquiryBasket", JSON.stringify(remaining));
-        window.dispatchEvent(new Event("basketUpdated"));
-      }
-      try {
+      if (!attached.length) {
         const raw = sessionStorage.getItem(ENQUIRY_SUMMARY_KEY);
         if (raw) {
           const stored = JSON.parse(raw);
-          const describesThese = stored && Array.isArray(stored.productIds)
-            && stored.productIds.length === ids.length
-            && stored.productIds.every(function (id) { return ids.indexOf(String(id)) !== -1; });
-          if (describesThese) sessionStorage.removeItem(ENQUIRY_SUMMARY_KEY);
+          if (stored && stored.recordId === record.id) sessionStorage.removeItem(ENQUIRY_SUMMARY_KEY);
         }
-      } catch (summaryError) { /* a corrupt summary is not worth failing over */ }
-      setAttachButtonState(button, false);
-      if (typeof window.announce === "function") {
-        window.announce(cbT("advisor.recommendation_removed", "Removed from enquiry"));
-      }
-    } catch (error) {
-      if (typeof window.showToast === "function") {
-        window.showToast(cbT("advisor.attach_error", "The recommendation could not be added. Please try again."), "error");
-      }
-    }
-  }
-
-  function toggleRecommendations(record, button) {
-    if (recommendationsAreIncluded(record.recommendations)) {
-      removeRecommendations(record, button);
-    } else {
-      includeRecommendations(record, button);
-    }
-  }
-
-  function includeRecommendations(record, button) {
-    const recommendedProductIds = record.recommendations.map(function (recommendation) {
-      return String(recommendation.id);
-    });
-    if (!recommendedProductIds.length) return;
-    const existing = currentBasket();
-    const union = new Set(existing);
-    recommendedProductIds.forEach(function (id) { union.add(id); });
-    const nextBasket = Array.from(union);
-    try {
-      if (typeof window.saveBasket === "function") window.saveBasket(nextBasket);
-      else {
-        localStorage.setItem("enquiryBasket", JSON.stringify(nextBasket));
-        window.dispatchEvent(new Event("basketUpdated"));
+        return;
       }
       sessionStorage.setItem(ENQUIRY_SUMMARY_KEY, JSON.stringify({
         schemaVersion: ADVISOR_SCHEMA_VERSION,
         id: advisorMessageId(),
+        recordId: record.id,
         updatedAt: Date.now(),
         language: advisorLanguage(),
-        productIds: recommendedProductIds,
-        productNames: record.recommendations.map(function (recommendation) { return recommendation.name; }),
-        summaryText: buildAdvisorSummary(record),
+        productIds: attached.map(function (recommendation) { return String(recommendation.id); }),
+        productNames: attached.map(function (recommendation) { return recommendation.name; }),
+        summaryText: buildAdvisorSummary(attached),
       }));
-      setAttachButtonState(button, true);
+    } catch (error) { /* a corrupt or full sessionStorage is not worth failing over */ }
+  }
+
+  /** Writes the basket back through the shared API, falling back to storage. */
+  function writeBasket(ids) {
+    if (typeof window.saveBasket === "function") { window.saveBasket(ids); return; }
+    localStorage.setItem("enquiryBasket", JSON.stringify(ids));
+    window.dispatchEvent(new Event("basketUpdated"));
+  }
+
+  /**
+   * Adds or removes ONE recommended product, and nothing else.
+   *
+   * The basket is the single source of truth, so this reads it, changes exactly
+   * one id, and writes it back. A Set guarantees a product can never be added
+   * twice, and anything the visitor attached by hand elsewhere on the site is
+   * untouched. The button's own state is then re-read from the basket rather
+   * than assumed, so the UI cannot drift from the data.
+   */
+  function toggleRecommendation(record, recommendation, button) {
+    const id = String(recommendation.id);
+    if (!id) return;
+    const included = recommendationIsIncluded(recommendation);
+    try {
+      if (included) {
+        writeBasket(currentBasket().filter(function (item) { return item !== id; }));
+      } else {
+        const union = new Set(currentBasket());
+        union.add(id);
+        writeBasket(Array.from(union));
+      }
+      syncEnquirySummary(record);
+      setAttachButtonState(button, recommendationIsIncluded(recommendation));
       if (typeof window.announce === "function") {
-        window.announce(cbT("advisor.recommendation_included", "Included in enquiry"));
+        window.announce(included
+          ? cbT("advisor.recommendation_removed", "Removed from enquiry")
+          : cbT("advisor.recommendation_included", "Included in enquiry"));
       }
     } catch (error) {
       if (typeof window.showToast === "function") {
@@ -1136,19 +1323,23 @@
         description.textContent = descriptionText;
         card.appendChild(description);
       }
+
+      // The action belongs to THIS product and lives inside its card, so a
+      // response carrying two recommendations shows each one's own state
+      // instead of a single banner speaking for both.
+      const includeButton = document.createElement("button");
+      includeButton.type = "button";
+      includeButton.className = "yl-adv-cta yl-rec-cta";
+      includeButton.dataset.productId = String(recommendation.id);
+      setAttachButtonState(includeButton, recommendationIsIncluded(recommendation));
+      includeButton.addEventListener("click", function () {
+        toggleRecommendation(record, recommendation, includeButton);
+      });
+      card.appendChild(includeButton);
+
       list.appendChild(card);
     });
     body.appendChild(list);
-
-    const actions = document.createElement("div");
-    actions.className = "yl-rec-actions";
-    const includeButton = document.createElement("button");
-    includeButton.type = "button";
-    includeButton.className = "yl-adv-inline-button";
-    setAttachButtonState(includeButton, recommendationsAreIncluded(record.recommendations));
-    includeButton.addEventListener("click", function () { toggleRecommendations(record, includeButton); });
-    actions.appendChild(includeButton);
-    body.appendChild(actions);
   }
 
   /**
@@ -1245,7 +1436,7 @@
     if (record.kind !== "error" || !record.retryUserMessageId) return;
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "yl-adv-inline-button";
+    button.className = "yl-adv-cta yl-adv-retry";
     button.dataset.i18n = "advisor.retry";
     button.textContent = cbT("advisor.retry", "Retry");
     button.addEventListener("click", function () {
@@ -1258,6 +1449,9 @@
   }
 
   function renderMessage(record, scroll) {
+    // Read the pin state BEFORE appending, otherwise the new node has already
+    // changed scrollHeight and every message would look like a scroll-up.
+    if (scroll !== false) updatePinnedState();
     const wrap = document.createElement("div");
     wrap.className = "yl-msg yl-msg-" + record.sender;
     wrap.dataset.messageId = record.id;
@@ -1273,7 +1467,9 @@
     renderRetry(record, body);
     wrap.appendChild(body);
     messages.appendChild(wrap);
-    if (scroll !== false) messages.scrollTop = messages.scrollHeight;
+    // The visitor's own message always brings itself into view; a reply only
+    // does so when they were already at the bottom.
+    if (scroll !== false) scrollConversationToLatest(record.sender === "user");
     return wrap;
   }
 
@@ -1281,7 +1477,7 @@
   function renderConversation() {
     messages.replaceChildren();
     advisorState.messages.forEach(function (message) { renderMessage(message, false); });
-    messages.scrollTop = messages.scrollHeight;
+    jumpConversationToBottom();
   }
 
   function validateAdvisorStateAgainstCatalogue() {
@@ -1340,7 +1536,8 @@
     for (let index = 0; index < 3; index += 1) typing.appendChild(document.createElement("span"));
     wrap.appendChild(typing);
     messages.appendChild(wrap);
-    messages.scrollTop = messages.scrollHeight;
+    // Already pinned by the visitor's own message that triggered this request.
+    scrollConversationToLatest(false);
     advisorStatus.textContent = loadingText;
   }
 
@@ -1402,6 +1599,7 @@
     }
 
     input.value = "";
+    autoGrowComposer();
     isLoading = true;
     sendBtn.disabled = true;
     messages.setAttribute("aria-busy", "true");
@@ -1502,7 +1700,10 @@
   }
 
   function activateFocusTrap() {
-    const selector = 'a[href],button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    // textarea is listed explicitly: the composer became one so iOS would stop
+    // offering Contact AutoFill over it, and without this the trap would skip
+    // the very field the dialog exists for.
+    const selector = 'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
     function focusableElements() {
       return Array.from(panel.querySelectorAll(selector)).filter(function (element) {
         if (element.hasAttribute("inert") || element.getAttribute("aria-hidden") === "true") {
@@ -1556,20 +1757,142 @@
     if (drawer && drawer.classList.contains("open") && hamburger) hamburger.click();
   }
 
+  /* ── Background scroll lock ────────────────────────────────────────────
+   *
+   * overflow:hidden on <body> does not lock iOS Safari, and that is the root of
+   * three separate symptoms in the recording: the page kept scrolling under the
+   * panel, iOS scrolled the document to reveal the focused field (which carried
+   * the panel's header up off screen), and closing the advisor left the page at
+   * whatever position that scrolling had reached.
+   *
+   * Pinning <body> with position:fixed at a negative offset genuinely freezes
+   * the document, and the remembered offset restores the exact original
+   * position. The previous inline values are recorded and put back verbatim, so
+   * repeated open/close cycles leave no residue on the element.
+   */
+  function lockBackgroundScroll() {
+    if (bodyLock) return;
+    const body = document.body;
+    lockedScrollY = window.scrollY || window.pageYOffset || 0;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    bodyLock = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      paddingRight: body.style.paddingRight,
+    };
+    body.style.position = "fixed";
+    body.style.top = -lockedScrollY + "px";
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    // Desktop only: replace the width the scrollbar was occupying so the page
+    // behind the modal does not reflow sideways as it disappears.
+    if (scrollbar > 0) body.style.paddingRight = scrollbar + "px";
+  }
+
+  function unlockBackgroundScroll() {
+    if (!bodyLock) return;
+    const body = document.body;
+    body.style.position = bodyLock.position;
+    body.style.top = bodyLock.top;
+    body.style.left = bodyLock.left;
+    body.style.right = bodyLock.right;
+    body.style.width = bodyLock.width;
+    body.style.overflow = bodyLock.overflow;
+    body.style.paddingRight = bodyLock.paddingRight;
+    if (!body.getAttribute("style")) body.removeAttribute("style");
+    bodyLock = null;
+    window.scrollTo(0, lockedScrollY);
+  }
+
+  /* ── Visible-viewport / software-keyboard sync ─────────────────────────
+   *
+   * CSS alone gets the panel to the full visible height: 100dvh tracks Safari's
+   * collapsing URL bar. What CSS cannot see is the software keyboard — iOS does
+   * not shrink the layout viewport (or dvh) for it, only the visual viewport.
+   * So visualViewport is used strictly as a progressive enhancement: while the
+   * keyboard is up, two scoped custom properties pin the panel to the visual
+   * viewport; the moment it closes they are removed and plain 100dvh takes over
+   * again. Nothing is left applied, so the panel cannot get stuck at a stale
+   * keyboard-sized height the way it did in the recording.
+   */
+  // Must stay identical to the two full-screen @media queries in the CSS above.
+  const ADVISOR_MOBILE_QUERY = "(max-width: 520px), (max-height: 560px) and (pointer: coarse)";
+  const KEYBOARD_MIN_PX = 80;
+
+  function advisorIsMobile() {
+    return window.matchMedia(ADVISOR_MOBILE_QUERY).matches;
+  }
+
+  function clearViewportVars() {
+    if (!lastViewportKey) return;
+    [panel, backdrop].forEach(function (element) {
+      element.style.removeProperty("--yl-adv-top");
+      element.style.removeProperty("--yl-adv-height");
+    });
+    panel.classList.remove("yl-adv-kb-open");
+    lastViewportKey = "";
+  }
+
+  function ylAdvSyncViewport() {
+    viewportFrame = 0;
+    const viewport = window.visualViewport;
+    if (!viewport || !advisorIsMobile() || !panel.classList.contains("open")) {
+      clearViewportVars();
+      return;
+    }
+    // innerHeight is the layout viewport, which iOS leaves at full height while
+    // the keyboard is up; the difference against the visual viewport is the
+    // keyboard (plus any accessory bar). Nothing here assumes a keyboard size.
+    const layoutHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
+    const keyboard = layoutHeight - viewport.height - viewport.offsetTop;
+    if (keyboard <= KEYBOARD_MIN_PX) {
+      clearViewportVars();
+      return;
+    }
+    const top = Math.round(viewport.offsetTop);
+    const height = Math.round(viewport.height);
+    const key = top + ":" + height;
+    // Writing the same values again would be a wasted style recalculation, and
+    // recalculation can itself fire visualViewport events — this is the guard
+    // that keeps the resize/scroll handlers from feeding back into each other.
+    if (key === lastViewportKey) return;
+    lastViewportKey = key;
+    [panel, backdrop].forEach(function (element) {
+      element.style.setProperty("--yl-adv-top", top + "px");
+      element.style.setProperty("--yl-adv-height", height + "px");
+    });
+    panel.classList.add("yl-adv-kb-open");
+    // Keep the newest reply in view as the keyboard takes the space, but only
+    // if the visitor had not deliberately scrolled up to read something.
+    if (pinnedToBottom) jumpConversationToBottom();
+  }
+
+  function scheduleViewportSync() {
+    if (viewportFrame) return;
+    viewportFrame = window.requestAnimationFrame(ylAdvSyncViewport);
+  }
+
   window.openProductAdvisor = function () {
     if (panel.classList.contains("open")) { input.focus(); return; }
     const requestedReturnFocus = document.activeElement;
     closeCompetingLayersForAdvisor();
     returnFocus = requestedReturnFocus;
-    previousBodyOverflow = document.body.style.overflow;
+    lockBackgroundScroll();
     backdrop.classList.add("open");
     panel.classList.add("open");
     panel.setAttribute("aria-hidden", "false");
     panel.removeAttribute("inert");
     panel.inert = false;
     document.body.classList.add("advisor-open");
-    document.body.style.overflow = "hidden";
+    jumpConversationToBottom();
     releaseFocusTrap = activateFocusTrap();
+    scheduleViewportSync();
   };
 
   window.closeProductAdvisor = function (restoreFocus) {
@@ -1580,37 +1903,15 @@
     panel.setAttribute("inert", "");
     panel.inert = true;
     document.body.classList.remove("advisor-open");
-    ylAdvResetKbStyles();
-    document.body.style.overflow = previousBodyOverflow == null ? "" : previousBodyOverflow;
-    previousBodyOverflow = null;
+    if (viewportFrame) { window.cancelAnimationFrame(viewportFrame); viewportFrame = 0; }
+    clearViewportVars();
+    unlockBackgroundScroll();
     if (releaseFocusTrap) { releaseFocusTrap(); releaseFocusTrap = null; }
     if (restoreFocus !== false && returnFocus && typeof returnFocus.focus === "function") {
       try { returnFocus.focus(); } catch (error) {}
     }
     returnFocus = null;
   };
-
-
-  function ylAdvResetKbStyles() {
-    panel.style.top = "";
-    panel.style.bottom = "";
-    panel.style.height = "";
-    panel.style.minHeight = "";
-    panel.style.maxHeight = "";
-  }
-
-  function ylAdvKeyboardSync() {
-    const viewport = window.visualViewport;
-    const mobile = window.matchMedia("(max-width: 520px)").matches;
-    if (!viewport || !mobile || !panel.classList.contains("open")) { ylAdvResetKbStyles(); return; }
-    const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
-    if (keyboardHeight <= 80) { ylAdvResetKbStyles(); return; }
-    panel.style.top = viewport.offsetTop + "px";
-    panel.style.bottom = "auto";
-    panel.style.height = viewport.height + "px";
-    panel.style.minHeight = "0";
-    panel.style.maxHeight = "none";
-  }
 
   window.ylAdvisorBeforeNavigation = function () {
     if (!isLoading) return;
@@ -1636,7 +1937,11 @@
 
   input.addEventListener("input", function () {
     sendBtn.disabled = !input.value.trim() || isLoading;
+    autoGrowComposer();
   });
+  // The transcript owns its own scroll position; this is the only thing that
+  // decides whether a new reply is allowed to move it.
+  messages.addEventListener("scroll", updatePinnedState, { passive: true });
   input.addEventListener("compositionstart", function () { isComposing = true; });
   input.addEventListener("compositionend", function () { isComposing = false; });
   input.addEventListener("keydown", function (event) {
@@ -1648,16 +1953,38 @@
   sendBtn.addEventListener("click", function () { sendMessage(input.value); });
   closeBtn.addEventListener("click", function () { window.closeProductAdvisor(); });
   backdrop.addEventListener("click", function () { window.closeProductAdvisor(); });
+  // The basket can change from anywhere (a product page, the enquiry page, a
+  // second advisor card for the same product). Every card re-reads its own
+  // product's state from the basket, so the panel can never show a stale label.
   window.addEventListener("basketUpdated", function () {
-    document.querySelectorAll(".yl-rec-actions .yl-adv-inline-button").forEach(function (button) {
-      const message = button.closest(".yl-msg");
-      const record = message && advisorState.messages.find(function (item) { return item.id === message.dataset.messageId; });
-      if (record) setAttachButtonState(button, recommendationsAreIncluded(record.recommendations));
+    const basket = currentBasket();
+    document.querySelectorAll(".yl-recommendation .yl-rec-cta").forEach(function (button) {
+      const id = button.dataset.productId;
+      if (id) setAttachButtonState(button, basket.indexOf(id) !== -1);
     });
   });
+  /* These are registered exactly once. The whole widget is an IIFE that returns
+     early when #yl-advisor-panel already exists, and the root lives outside
+     Swup's #swup container, so a repeated bundle evaluation after a page
+     transition cannot stack a second set of handlers. Every one of them is
+     rAF-throttled into a single ylAdvSyncViewport call per frame. */
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", ylAdvKeyboardSync);
-    window.visualViewport.addEventListener("scroll", ylAdvKeyboardSync);
+    window.visualViewport.addEventListener("resize", scheduleViewportSync);
+    window.visualViewport.addEventListener("scroll", scheduleViewportSync);
+  }
+  // Orientation change and the mobile/desktop breakpoint both invalidate the
+  // cached dimensions, so recompute rather than carrying them across.
+  window.addEventListener("orientationchange", function () {
+    lastViewportKey = "";
+    scheduleViewportSync();
+  });
+  window.addEventListener("resize", scheduleViewportSync);
+  const advisorBreakpoint = window.matchMedia(ADVISOR_MOBILE_QUERY);
+  if (typeof advisorBreakpoint.addEventListener === "function") {
+    advisorBreakpoint.addEventListener("change", function () {
+      clearViewportVars();
+      scheduleViewportSync();
+    });
   }
 
   renderConversation();
