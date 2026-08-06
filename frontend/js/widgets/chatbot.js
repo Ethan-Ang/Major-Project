@@ -1866,14 +1866,26 @@
     // innerHeight is the layout viewport, which iOS leaves at full height while
     // the keyboard is up; the difference against the visual viewport is the
     // keyboard (plus any accessory bar). Nothing here assumes a keyboard size.
+    //
+    // offsetTop must NOT be part of this sum. It is how far iOS has scrolled
+    // the visual viewport WITHIN the layout viewport, which it does freely
+    // while the keyboard is up. Subtracting it made the measured keyboard
+    // shrink as the visitor scrolled, until it fell under the threshold and the
+    // variables were cleared -- at which point the panel snapped back to a full
+    // 100dvh anchored at top 0, putting the header above the visible area and
+    // the composer under the keyboard. Scrolling then flipped it back. That
+    // was the whole panel appearing to move instead of just the transcript.
     const layoutHeight = Math.max(window.innerHeight, document.documentElement.clientHeight);
-    const keyboard = layoutHeight - viewport.height - viewport.offsetTop;
+    const keyboard = layoutHeight - viewport.height;
     if (keyboard <= KEYBOARD_MIN_PX) {
       clearViewportVars();
       return;
     }
+    // offsetTop is instead exactly what re-aligns a position:fixed panel with
+    // the scrolled visual viewport, and ceil on the height avoids leaving a
+    // sub-pixel strip of the page showing beneath the composer.
     const top = Math.round(viewport.offsetTop);
-    const height = Math.round(viewport.height);
+    const height = Math.ceil(viewport.height);
     const key = top + ":" + height;
     // Writing the same values again would be a wasted style recalculation, and
     // recalculation can itself fire visualViewport events — this is the guard
