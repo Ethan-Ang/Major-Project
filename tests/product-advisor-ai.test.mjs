@@ -483,14 +483,13 @@ test("extracted requirements are surfaced as structured data", () => {
 
 // ─── Company questions ────────────────────────────────────────────
 
-// The five fully answerable company questions (hours, address, export, custom
-// formulation, contact) are now answered from approved copy and never reach the
-// model -- see the deterministic company tests in product-advisor-api.test.mjs.
-// An open-ended company question still goes to the model, so it is the probe
-// here. The assertions themselves are unchanged.
+// Company questions the site can answer itself -- hours, address, export, custom
+// formulation, contact, and "who are you" -- are approved copy and never reach the
+// model. A company question the published facts do NOT cover still goes to the
+// model, so it is the probe here. The assertions themselves are unchanged.
 test("published company facts are supplied to the model", () => {
   const { calls } = runAdvisor({
-    messages: userMessage("Tell me about your company."),
+    messages: userMessage("What industries do you serve?"),
     ai: { responses: [ok(reply({ intent: "company_information" }))] },
   });
   const prompt = calls[0].payload.system_instruction.parts[0].text;
@@ -500,7 +499,7 @@ test("published company facts are supplied to the model", () => {
 
 test("the company facts carry no price, stock or lead-time line to quote", () => {
   const { calls } = runAdvisor({
-    messages: userMessage("Tell me about your company."),
+    messages: userMessage("What industries do you serve?"),
     ai: { responses: [ok(reply({ intent: "company_information" }))] },
   });
   const prompt = calls[0].payload.system_instruction.parts[0].text;
@@ -510,7 +509,7 @@ test("the company facts carry no price, stock or lead-time line to quote", () =>
 
 test("a company answer is accepted and carries no recommendation", () => {
   const { response } = runAdvisor({
-    messages: userMessage("Tell me about your company."),
+    messages: userMessage("What industries do you serve?"),
     ai: {
       responses: [
         ok(reply({

@@ -264,6 +264,25 @@ function advisorCompanyTopic(string $query): ?string
         return "company_contact";
     }
 
+    // Open-ended "who are you" questions, checked last so the specific topics
+    // above always win. Without this they fell through to "unclear" and were
+    // answered with the surfaces prompt -- a non-sequitur to "tell me about
+    // your company". They were only ever handled well when a model happened to
+    // be reachable, which is not something the answer should depend on.
+    if (advisorMatches($lower, [
+        '/\btell\s+me\s+(?:more\s+)?about\s+(?:you|your\s+company|yee\s*lim|ylai)\b/i',
+        '/\babout\s+(?:your\s+company|yee\s*lim)\b/i',
+        '/\bwho\s+are\s+you\b/i',
+        '/\bwhat\s+(?:is|are)\s+yee\s*lim\b/i',
+        '/\bwhat\s+(?:do|does)\s+(?:you|yee\s*lim)\b.{0,24}\b(?:do|make|sell|produce|manufacture|specialise|specialize)\b/i',
+        '/\bhow\s+long\s+(?:have\s+you|has\s+yee\s*lim)\b/i',
+        '/\byour\s+(?:history|background|story|experience|company)\b/i',
+        '/\bwhat\s+brands\b/i',
+        '/(?:介绍.{0,8}(?:公司|你们)|贵公司|公司简介|你们是做什么|你们做什么|你们是谁|有哪些品牌|品牌有哪些|成立多久|多少年历史)/u',
+    ])) {
+        return "company_overview";
+    }
+
     return null;
 }
 
@@ -522,6 +541,10 @@ function advisorResponseMessage(string $key, string $language, string $query, ?a
         "company_custom" => [
             "en" => "Yes. If the adhesive you need is not in the catalogue, Yee Lim can formulate one for the job, and we also provide OEM services. Submit an enquiry describing your application and materials, and our team will take it from there.",
             "zh" => "可以。如果目录中没有您需要的胶粘剂，Yee Lim 可以为您的应用专门配制，我们也提供 OEM 代工服务。请提交询价并说明您的应用和材料，我们的团队会跟进处理。",
+        ],
+        "company_overview" => [
+            "en" => "Yee Lim Adhesives Industries has been making commercial and industrial adhesives in Singapore for over 50 years. We started as a shoe factory, moved into adhesives, and now manufacture from a facility of more than 20,000 square feet, supplying construction, woodworking, furniture, marine, packaging and OEM customers under the Deer, Horsemen, Premier and Rhino brands. Tell me what you are bonding and I will look for a product, or submit an enquiry to reach our team.",
+            "zh" => "Yee Lim Adhesives Industries 在新加坡生产工商业胶粘剂已有五十多年。我们由制鞋厂起步，其后转向胶粘剂制造，目前拥有超过 20,000 平方英尺的生产厂房，以 Deer、Horsemen、Premier 和 Rhino 等品牌为建筑、木工、家具、船舶、包装及 OEM 客户供货。请告诉我您要粘合的材料，我可以为您查找产品；您也可以提交询价与我们的团队联系。",
         ],
         "company_contact" => [
             "en" => "You can reach our team by phone or WhatsApp on +65 8875 5786, by email at contact@yeelimadhesives.com.sg, or by submitting the enquiry form on this site. We are at 1 Ang Mo Kio Street 65, #03-17, Singapore 569063.",

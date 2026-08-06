@@ -1814,3 +1814,68 @@ test("the Advisor's own Chinese starter prompt recognises its surfaces", () => {
   assert.notEqual(response.intent, "unclear",
     "the shipped Chinese starter prompt must be understood");
 });
+
+// ─── "Who are you" questions, answered without a model ─────────────
+//
+// "tell me more about yeelim" used to fall through to the surfaces prompt --
+// a non-sequitur. It was only ever answered well when a model happened to be
+// reachable, which is not something the answer should depend on.
+
+const overviewQuestions = [
+  ["en", "tell me more about yeelim"],
+  ["en", "tell me about your company"],
+  ["en", "who are you"],
+  ["en", "what does yee lim make"],
+  ["en", "how long have you been around"],
+  ["en", "what brands do you have"],
+  ["zh", "介绍一下贵公司"],
+  ["zh", "你们是做什么的"],
+  ["zh", "你们有哪些品牌"],
+];
+
+for (const [language, text] of overviewQuestions) {
+  test(`"${text}" gets a company overview, not the surfaces prompt`, () => {
+    const response = callAdvisor({
+      messages: [{ role: "user", content: text }],
+      requestedLanguage: language,
+    });
+    assert.equal(response.intent, "company_information", text);
+    assert.equal(response.responseSource, "deterministic", text);
+    assert.doesNotMatch(response.message, SURFACES_PROMPT, text);
+    assert.equal(response.language, language, text);
+    assert.match(
+      response.message,
+      language === "zh" ? /新加坡/ : /Singapore/,
+      `${text} must actually describe the company`
+    );
+  });
+}
+
+test("the company overview states no price, stock, MOQ or lead time", () => {
+  for (const [language, text] of overviewQuestions) {
+    const response = callAdvisor({
+      messages: [{ role: "user", content: text }],
+      requestedLanguage: language,
+    });
+    assert.doesNotMatch(
+      response.message,
+      /\$\d|\bS\$|\bprice\b|\bin stock\b|\blead time\b|\bminimum order\b|\bMOQ\b|价格|现货|库存|起订量|交期/i,
+      `${text} must not carry a commercial claim`
+    );
+  }
+});
+
+test("a product question is still a product question", () => {
+  // The overview patterns must not swallow genuine catalogue enquiries.
+  for (const text of [
+    "what do you recommend for wood to wood",
+    "I need to glue leather",
+    "what adhesive works on metal",
+  ]) {
+    const response = callAdvisor({
+      messages: [{ role: "user", content: text }],
+      requestedLanguage: "en",
+    });
+    assert.notEqual(response.intent, "company_information", text);
+  }
+});
