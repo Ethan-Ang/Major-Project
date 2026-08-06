@@ -342,18 +342,22 @@
     .yl-suggestions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.4rem;
+      gap: 0.35rem;
     }
 
     /* Light pill chips — thin border, no shadow, snug padding, so they read as
-       quiet quick-replies instead of chunky buttons. */
+       quiet quick-replies instead of chunky buttons. Kept deliberately compact:
+       these are optional hints under the greeting, so they sit a step below the
+       message text rather than competing with it. The 28px floor still clears
+       the WCAG 2.5.8 24px target minimum. */
     .yl-suggestion {
       background: #fff;
       border: 1px solid #eae3d4;
       border-radius: 999px;
-      min-height: 44px;
-      padding: 0.33rem 0.75rem;
-      font-size: 0.78rem;
+      min-height: 28px;
+      padding: 0.26rem 0.68rem;
+      font-size: 0.72rem;
+      line-height: 1.25;
       font-weight: 500;
       color: #5c574d;
       cursor: pointer;
@@ -620,6 +624,8 @@
       .yl-rec-meta { font-size: 13px; }
       .yl-rec-description { font-size: 14px; }
       .yl-adv-cta { font-size: 15px; }
+      /* Still compact on phones, just a slightly taller tap target. */
+      .yl-suggestion { font-size: 13px; min-height: 34px; padding: 0.32rem 0.75rem; }
     }
 
     @media (max-width: 360px) {
