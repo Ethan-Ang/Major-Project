@@ -15,3 +15,15 @@ screenshots/
 deploy_package*.zip
 
 ftp.env
+
+# Downloaded copies of the live server's files. These routinely include
+# api/config.php, which carries the production database password and the LLM
+# API key, so a single `git add -A` would put live credentials into history
+# permanently. Never commit.
+ftp_backup/
+live_sync_review/
+
+# Timestamped local backups of config.php taken before editing it. Same
+# reason: they contain whichever API key was in use at the time.
+*.bak-advisor-*
+frontend/api/config.php.bak*
