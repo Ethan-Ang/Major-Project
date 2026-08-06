@@ -1694,7 +1694,11 @@
         messages.setAttribute("aria-busy", "false");
         advisorStatus.textContent = "";
         sendBtn.disabled = !input.value.trim();
-        if (panel.classList.contains("open")) input.focus();
+        // Returning focus to the field is right on a desktop, but on a phone it
+        // would throw the keyboard back up over the reply the visitor is trying
+        // to read. There, only restore focus if they were still in the field.
+        const keepFocus = !usesSoftwareKeyboard() || document.activeElement === input;
+        if (panel.classList.contains("open") && keepFocus) input.focus();
       }
     }
   }
@@ -1737,7 +1741,15 @@
       }
     }
     document.addEventListener("keydown", onKeydown, true);
-    input.focus();
+    // Focus has to move into the dialog, but on a touch device focusing the
+    // field also summons the software keyboard — and because opening happens
+    // inside the visitor's own tap, iOS honours it. That meant the keyboard
+    // covered half the panel before they had read a word of the greeting or the
+    // suggested prompts. On a coarse pointer, focus the dialog itself (it is
+    // tabindex="-1") so screen readers and Tab order still land inside, and let
+    // the keyboard appear only when the field is actually tapped.
+    if (usesSoftwareKeyboard()) panel.focus();
+    else input.focus();
     return function () { document.removeEventListener("keydown", onKeydown, true); };
   }
 
@@ -1829,6 +1841,11 @@
     return window.matchMedia(ADVISOR_MOBILE_QUERY).matches;
   }
 
+  /** True where focusing a field raises an on-screen keyboard. */
+  function usesSoftwareKeyboard() {
+    return window.matchMedia("(pointer: coarse)").matches;
+  }
+
   function clearViewportVars() {
     if (!lastViewportKey) return;
     [panel, backdrop].forEach(function (element) {
@@ -1879,7 +1896,11 @@
   }
 
   window.openProductAdvisor = function () {
-    if (panel.classList.contains("open")) { input.focus(); return; }
+    // Re-opening an already-open panel should not summon the keyboard either.
+    if (panel.classList.contains("open")) {
+      if (usesSoftwareKeyboard()) panel.focus(); else input.focus();
+      return;
+    }
     const requestedReturnFocus = document.activeElement;
     closeCompetingLayersForAdvisor();
     returnFocus = requestedReturnFocus;
