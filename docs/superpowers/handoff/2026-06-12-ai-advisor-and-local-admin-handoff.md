@@ -46,10 +46,14 @@ The user pasted a **live Gemini API key in plaintext chat** (and screenshotted i
 
 ```php
 define("LLM_PROVIDER", "gemini");
-define("LLM_API_KEY",  "AQ.Ab8RN6IxSHKJZk6rDeoPLPtN19iDhUfun-6NTrvmb4K_QQgvNw");
+define("LLM_API_KEY",  "REDACTED-ROTATE-THIS-KEY");
 define("LLM_MODEL",    "gemini-2.0-flash");
 ```
 
+- The key itself has been redacted from this file (2026-08-06). It was pasted into the
+  handoff text, so it DID reach git history here even though `config.php` never did:
+  redacting the file does not remove it from earlier commits. The key has since been
+  superseded and returns HTTP 401.
 - Confirmed `config.php` is gitignored and was **never committed** (verified before and after, and grepped the repo for the key string — not present in any tracked file).
 - Gemini free tier has no billing attached, so worst case is rate-limiting, not financial loss — but **the user should rotate this key when convenient** (Google AI Studio → delete key → create new → paste into local `config.php` and, separately, into the live cPanel `config.php` via File Manager).
 

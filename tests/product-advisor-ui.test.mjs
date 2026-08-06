@@ -169,7 +169,10 @@ test("translated Advisor chrome covers handoff, progress, and failures", () => {
   // Everything the panel still renders must remain bilingual.
   const requiredCopy = [
     ["Submit an enquiry", "提交询价"],
-    ["Include this recommendation in my enquiry", "将此推荐加入我的询价"],
+    // The attach control is a toggle now, so both of its labels must be
+    // bilingual: the wording is what communicates the state, not the colour.
+    ["Add to enquiry", "加入询价"],
+    ["Added to enquiry", "已加入询价"],
     ["Guidance only. Our team confirms suitability.", "仅供参考，具体适用性以我们团队确认为准。"],
     ["Retry", "重试"],
   ];
@@ -308,4 +311,31 @@ test("Home and About cold entries load the complete Swup application bundle", ()
     assert.deepEqual(missing, [],
       `${page} cannot cold-enter all Swup routes; missing ${missing.join(", ")}`);
   }
+});
+
+test("the enquiry attach control is a toggle, not a one-way disabled button", () => {
+  // It used to set button.disabled once the products were attached, which left
+  // no way to take them back out from the Advisor.
+  const state = /function setAttachButtonState\([\s\S]*?\n  \}/.exec(chatbot);
+  assert.ok(state, "setAttachButtonState must exist");
+  assert.match(state[0], /aria-pressed/, "the state must be exposed via aria-pressed");
+  assert.doesNotMatch(state[0], /button\.disabled\s*=\s*included/,
+    "the control must not disable itself when selected");
+  assert.match(chatbot, /function removeRecommendations\(/,
+    "there must be a path back out of the enquiry");
+  assert.match(chatbot, /function toggleRecommendations\(/,
+    "the click handler must toggle");
+  assert.match(chatbot, /toggleRecommendations\(record, includeButton\)/,
+    "the button must be wired to the toggle, not to include only");
+});
+
+test("removing a recommendation subtracts from the one basket, it does not replace it", () => {
+  const remove = /function removeRecommendations\([\s\S]*?\n  \}\n\n/.exec(chatbot);
+  assert.ok(remove, "removeRecommendations must exist");
+  // Filtering the existing basket is what keeps manually chosen products safe.
+  assert.match(remove[0], /currentBasket\(\)\.filter\(/,
+    "removal must filter the existing basket, never overwrite it");
+  assert.match(remove[0], /saveBasket/, "it must go through the shared basket writer");
+  assert.doesNotMatch(remove[0], /localStorage\.setItem\("enquiryBasket", JSON\.stringify\(ids/,
+    "it must not write its own competing basket");
 });

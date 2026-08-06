@@ -409,10 +409,13 @@
        renderBubbleText), so there is no standalone action row any more. This
        block now styles only the per-recommendation "include in my enquiry"
        control, which is a different action on a different object. */
+    /* The action area of the recommendation above it, not a second card: 16px
+       below the card, full width, no container of its own. */
     .yl-rec-actions {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
+      /* .yl-msg-body is a flex column with a 0.35rem gap, so subtract it to land
+         on a true 16px between the card and the button. */
+      margin-top: calc(16px - 0.35rem);
     }
 
     /* Inline enquiry link: brand red, underlined, and it wraps with the prose
@@ -437,22 +440,36 @@
       border-radius: 3px;
     }
 
+    /* Primary action for the recommendation: solid brand red, full width,
+       ~50px tall. The pressed state is a very light red fill with red text and
+       border -- still obviously clickable, because pressing it again removes the
+       products. The label changes too, so the state never depends on colour. */
     .yl-adv-inline-button {
-      min-height: 44px;
+      flex: 1;
+      min-height: 50px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0.55rem 0.8rem;
-      border-radius: 9px;
-      border: 1px solid #d9d0c0;
-      background: #fff;
-      color: #a82020;
+      padding: 0.6rem 0.9rem;
+      border-radius: 11px;
+      border: 1px solid #CC2929;
+      background: #CC2929;
+      color: #fff;
       cursor: pointer;
-      font: 600 0.78rem/1.25 'Inter', sans-serif;
+      font: 600 0.82rem/1.25 'Inter', sans-serif;
       text-decoration: none;
       text-align: center;
+      transition: background 0.16s, border-color 0.16s, color 0.16s;
     }
-    .yl-adv-inline-button:hover { border-color: #b7aa94; background: #fbfaf6; }
+    .yl-adv-inline-button[aria-pressed=true] {
+      background: #fdeceb;
+      border-color: #CC2929;
+      color: #CC2929;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .yl-adv-inline-button:hover { background: #b62525; border-color: #b62525; }
+      .yl-adv-inline-button[aria-pressed=true]:hover { background: #fbdcda; }
+    }
     .yl-adv-inline-button:disabled { color: #6b665e; background: #eee9df; cursor: default; }
 
     .yl-recommendations { display: grid; gap: 0.5rem; }
@@ -903,11 +920,18 @@
     });
   }
 
+  /**
+   * The control is a toggle, so it is never disabled: pressing it again takes
+   * the products back out. aria-pressed carries the state for assistive tech and
+   * drives the selected styling, and the label changes too so the state is not
+   * signalled by colour alone.
+   */
   function setAttachButtonState(button, included) {
     const key = included ? "advisor.recommendation_included" : "advisor.include_recommendation";
     button.dataset.i18n = key;
-    button.textContent = cbT(key, included ? "Included in enquiry" : "Include this recommendation in my enquiry");
-    button.disabled = included;
+    button.textContent = cbT(key, included ? "Added to enquiry" : "Add to enquiry");
+    button.setAttribute("aria-pressed", included ? "true" : "false");
+    button.disabled = false;
   }
 
   function buildAdvisorSummary(record) {
@@ -918,6 +942,56 @@
       cbT("advisor.summary_recommended", "Recommended products:"),
       names.map(function (name) { return "- " + name; }).join("\n"),
     ].join("\n");
+  }
+
+  /**
+   * Takes this record's products back out of the enquiry.
+   *
+   * The basket in localStorage stays the single source of truth -- this only
+   * subtracts from it, so anything the visitor added by hand is untouched. The
+   * handoff summary is dropped only when it describes exactly the products being
+   * removed, otherwise the enquiry message would prefill prose about products
+   * that are no longer attached.
+   */
+  function removeRecommendations(record, button) {
+    const ids = record.recommendations.map(function (recommendation) {
+      return String(recommendation.id);
+    });
+    if (!ids.length) return;
+    const remaining = currentBasket().filter(function (id) { return ids.indexOf(id) === -1; });
+    try {
+      if (typeof window.saveBasket === "function") window.saveBasket(remaining);
+      else {
+        localStorage.setItem("enquiryBasket", JSON.stringify(remaining));
+        window.dispatchEvent(new Event("basketUpdated"));
+      }
+      try {
+        const raw = sessionStorage.getItem(ENQUIRY_SUMMARY_KEY);
+        if (raw) {
+          const stored = JSON.parse(raw);
+          const describesThese = stored && Array.isArray(stored.productIds)
+            && stored.productIds.length === ids.length
+            && stored.productIds.every(function (id) { return ids.indexOf(String(id)) !== -1; });
+          if (describesThese) sessionStorage.removeItem(ENQUIRY_SUMMARY_KEY);
+        }
+      } catch (summaryError) { /* a corrupt summary is not worth failing over */ }
+      setAttachButtonState(button, false);
+      if (typeof window.announce === "function") {
+        window.announce(cbT("advisor.recommendation_removed", "Removed from enquiry"));
+      }
+    } catch (error) {
+      if (typeof window.showToast === "function") {
+        window.showToast(cbT("advisor.attach_error", "The recommendation could not be added. Please try again."), "error");
+      }
+    }
+  }
+
+  function toggleRecommendations(record, button) {
+    if (recommendationsAreIncluded(record.recommendations)) {
+      removeRecommendations(record, button);
+    } else {
+      includeRecommendations(record, button);
+    }
   }
 
   function includeRecommendations(record, button) {
@@ -1072,7 +1146,7 @@
     includeButton.type = "button";
     includeButton.className = "yl-adv-inline-button";
     setAttachButtonState(includeButton, recommendationsAreIncluded(record.recommendations));
-    includeButton.addEventListener("click", function () { includeRecommendations(record, includeButton); });
+    includeButton.addEventListener("click", function () { toggleRecommendations(record, includeButton); });
     actions.appendChild(includeButton);
     body.appendChild(actions);
   }

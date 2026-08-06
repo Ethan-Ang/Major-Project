@@ -753,7 +753,10 @@ try {
     await submitMessage(page, "Please recommend an adhesive for leather.");
     assert.equal(await page.locator(".yl-recommendation").count(), 2);
     const includeButton = page.locator(".yl-rec-actions .yl-adv-inline-button").last();
+    // The control is a toggle now, so it reports state through aria-pressed
+    // rather than by disabling itself -- pressing it again removes the products.
     assert.equal(await includeButton.isDisabled(), false);
+    assert.equal(await includeButton.getAttribute("aria-pressed"), "false");
     await includeButton.click();
     const stored = await page.evaluate(({ summaryKey }) => ({
       basket: JSON.parse(localStorage.getItem("enquiryBasket")),
@@ -764,7 +767,8 @@ try {
     assert.deepEqual(stored.summary.productIds, ["1", "2"]);
     assert.deepEqual(stored.summary.productNames, ["Deer™ Brand 101", "Deer™ Brand 129"]);
     assert.doesNotMatch(stored.summary.summaryText, /Please recommend|delivery|XSS/i);
-    assert.equal(await includeButton.isDisabled(), true);
+    assert.equal(await includeButton.getAttribute("aria-pressed"), "true");
+    assert.equal(await includeButton.isDisabled(), false, "the toggle must stay operable so it can be undone");
     attachedSummary = stored.summary;
     return { basket: stored.basket, attachedProductIds: stored.summary.productIds };
   });

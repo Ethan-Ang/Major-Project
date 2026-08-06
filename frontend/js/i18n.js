@@ -369,8 +369,11 @@
     "advisor.timeout":     { en: "Ava took too long to respond. Please retry or submit an enquiry.", zh: "Ava 响应时间过长。请重试或提交询价。" },
     "advisor.rate_limited": { en: "There are too many requests right now. Please wait a moment and retry.", zh: "当前请求较多。请稍候再重试。" },
     "advisor.invalid_response": { en: "Ava returned an unexpected response. Please retry or submit an enquiry.", zh: "Ava 返回了异常响应。请重试或提交询价。" },
-    "advisor.include_recommendation": { en: "Include this recommendation in my enquiry", zh: "将此推荐加入我的询价" },
-    "advisor.recommendation_included": { en: "Included in enquiry", zh: "已加入询价" },
+    /* Short, plain labels. The wording carries the state, so the control never
+       relies on colour alone: "Add to enquiry" -> "Added to enquiry". */
+    "advisor.include_recommendation": { en: "Add to enquiry",   zh: "加入询价" },
+    "advisor.recommendation_included": { en: "Added to enquiry", zh: "已加入询价" },
+    "advisor.recommendation_removed":  { en: "Removed from enquiry", zh: "已从询价中移除" },
     "advisor.attach_error": { en: "The recommendation could not be added. Please try again.", zh: "无法将推荐加入询价，请重试。" },
     "advisor.summary_title": { en: "Product Advisor summary", zh: "产品顾问摘要" },
     "advisor.summary_recommended": { en: "Recommended products:", zh: "推荐产品：" },
