@@ -135,6 +135,12 @@
 
 
     // ── Bond Finder V3 ──
+    /* The collapse toggle's starting label. products.js already swaps it to the
+       right language when the panel is toggled; without a key the FIRST paint
+       stayed English on the Chinese site. Same strings products.js uses, so the
+       two can never disagree. */
+    "bond.minimise":       { en: "Minimise",       zh: "收起" },
+    "bond.expand":         { en: "Expand",         zh: "展开" },
     "bond.eyebrow":        { en: "Guided Product Selector", zh: "引导式产品选择器" },
     "bond.title":          { en: "Yee Lim Bond Finder", zh: "Yee Lim 粘合方案查找器" },
     "bond.lead":           { en: "Choose two surfaces, then optionally refine by industry and application method. We will rank currently available adhesives using the latest catalogue data.", zh: "请选择两种表面材料，并可按行业和施工方法进一步筛选。系统将根据最新产品目录为目前有货的胶粘剂进行排序。" },
