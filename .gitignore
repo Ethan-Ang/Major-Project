@@ -27,3 +27,17 @@ live_sync_review/
 # reason: they contain whichever API key was in use at the time.
 *.bak-advisor-*
 frontend/api/config.php.bak*
+
+# Editor config. Stock generated files, nothing the project depends on.
+.vscode/
+
+# Staging copies assembled per deploy, then superseded by what actually went
+# live. Nothing reads from here; the authoritative copies are frontend/ for
+# our files and ftp_backup/ for whatever live had at the time.
+build/
+
+# Reference packs and client deliverables. Kept on disk because they are the
+# locked design spec and the handover documents, but they are ~32MB of images
+# and .docx that would sit in history forever.
+design_handoff_yee_lim_final/
+docs/client-handover/word/
