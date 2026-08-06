@@ -27,6 +27,21 @@ const ADVISOR_AI_MAX_RECOMMENDATIONS = 3;
 const ADVISOR_AI_MAX_CLAIMS = 12;
 const ADVISOR_AI_MAX_REPLY_CHARS = 900;
 const ADVISOR_AI_MAX_USER_TURNS = 15;
+/**
+ * Completion budget for the OpenAI-compatible path (currently Groq).
+ *
+ * This is not just "room for the answer". Groq's gpt-oss models are reasoning
+ * models, and their thinking tokens are charged against this same budget before
+ * a single character of the JSON document is emitted. At 900 a turn that
+ * reasoned even slightly long ran out mid-document, so Groq could not validate
+ * it against the response schema and rejected the whole request with
+ * 400 json_validate_failed ("max completion tokens reached before generating a
+ * valid document"). The advisor then fell back to a terse deterministic reply,
+ * which read as the assistant ignoring the question and repeating its opening
+ * clarifier. A traced successful call used exactly 900 of 900 -- it was sitting
+ * on the edge, so this failed intermittently rather than always.
+ */
+const ADVISOR_AI_MAX_COMPLETION_TOKENS = 2000;
 const ADVISOR_AI_TIMEOUT_SECONDS = 20;
 const ADVISOR_AI_CONNECT_TIMEOUT_SECONDS = 8;
 
@@ -605,7 +620,7 @@ function advisorAiCallOpenAi(array $config, string $system, array $messages): ar
     $payload = [
         "model" => advisorAiResolveModel($config),
         "messages" => $chat,
-        "max_tokens" => 900,
+        "max_tokens" => ADVISOR_AI_MAX_COMPLETION_TOKENS,
         "temperature" => 0.3,
         "response_format" => [
             "type" => "json_schema",
