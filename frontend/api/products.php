@@ -76,6 +76,17 @@ function jsonList($value) {
     return json_encode([]);
 }
 
+// Trim a request field that is *supposed* to be text. PHP 8 makes trim(array)
+// a TypeError, so a body like {"name":{"a":1}} used to kill the request with an
+// empty 500 instead of the 400 the validation below would have returned. Any
+// non-scalar collapses to "" and falls through to the normal "required field"
+// message; scalars keep their existing behaviour.
+function textField($value) {
+    if (is_string($value)) return trim($value);
+    if (is_scalar($value)) return trim((string) $value);
+    return "";
+}
+
 // Recursively remove a directory and its contents. Used when a product is
 // deleted, to clean up its uploaded images + documents. (Synced from live,
 // where the teammate added product image/document uploads.)
@@ -186,21 +197,21 @@ try {
         requireAdmin($pdo);
         $data = getJsonInput();
 
-        $name = trim($data["name"] ?? "");
+        $name = textField($data["name"] ?? "");
         $brand = $data["brand"] ?? "Deer™ Brand";
         $category = $data["category"] ?? "Industrial";
-        $productType = trim($data["productType"] ?? $data["product_type"] ?? "");
+        $productType = textField($data["productType"] ?? $data["product_type"] ?? "");
         if ($productType === "") {
             $productType = ($brand === "Others & Accessories" || $category === "Others")
                 ? "Spray Guns & Accessories" : "Adhesives";
         }
-        $shortDescription = trim($data["shortDescription"] ?? "");
-        $fullDescription = trim($data["fullDescription"] ?? "");
-        $usage = trim($data["usage"] ?? "");
-        $imageUrl = trim($data["imageUrl"] ?? "");
+        $shortDescription = textField($data["shortDescription"] ?? "");
+        $fullDescription = textField($data["fullDescription"] ?? "");
+        $usage = textField($data["usage"] ?? "");
+        $imageUrl = textField($data["imageUrl"] ?? "");
         $images = jsonList($data["images"] ?? []);
-        $sdsUrl = trim($data["sdsUrl"] ?? $data["sds_url"] ?? "");
-        $tdsUrl = trim($data["tdsUrl"] ?? $data["tds_url"] ?? "");
+        $sdsUrl = textField($data["sdsUrl"] ?? $data["sds_url"] ?? "");
+        $tdsUrl = textField($data["tdsUrl"] ?? $data["tds_url"] ?? "");
         $status = $data["status"] ?? "Available";
         $industries = jsonList($data["industries"] ?? []);
         $surfaces = jsonList($data["surfaces"] ?? []);
@@ -275,20 +286,20 @@ try {
             exit;
         }
 
-        $name = trim($data["name"] ?? $existing["name"]);
+        $name = textField($data["name"] ?? $existing["name"]);
         $brand = $data["brand"] ?? $existing["brand"];
         $category = $data["category"] ?? $existing["category"];
-        $productType = array_key_exists("productType", $data) ? trim($data["productType"])
-                     : (array_key_exists("product_type", $data) ? trim($data["product_type"]) : $existing["product_type"]);
-        $shortDescription = trim($data["shortDescription"] ?? $existing["short_description"]);
-        $fullDescription = trim($data["fullDescription"] ?? $existing["full_description"]);
-        $usage = trim($data["usage"] ?? $existing["usage_text"]);
-        $imageUrl = trim($data["imageUrl"] ?? $existing["image_url"]);
+        $productType = array_key_exists("productType", $data) ? textField($data["productType"])
+                     : (array_key_exists("product_type", $data) ? textField($data["product_type"]) : $existing["product_type"]);
+        $shortDescription = textField($data["shortDescription"] ?? $existing["short_description"]);
+        $fullDescription = textField($data["fullDescription"] ?? $existing["full_description"]);
+        $usage = textField($data["usage"] ?? $existing["usage_text"]);
+        $imageUrl = textField($data["imageUrl"] ?? $existing["image_url"]);
         $images = array_key_exists("images", $data) ? jsonList($data["images"]) : $existing["images"];
-        $sdsUrl = array_key_exists("sdsUrl", $data) ? trim($data["sdsUrl"])
-                : (array_key_exists("sds_url", $data) ? trim($data["sds_url"]) : $existing["sds_url"]);
-        $tdsUrl = array_key_exists("tdsUrl", $data) ? trim($data["tdsUrl"])
-                : (array_key_exists("tds_url", $data) ? trim($data["tds_url"]) : $existing["tds_url"]);
+        $sdsUrl = array_key_exists("sdsUrl", $data) ? textField($data["sdsUrl"])
+                : (array_key_exists("sds_url", $data) ? textField($data["sds_url"]) : $existing["sds_url"]);
+        $tdsUrl = array_key_exists("tdsUrl", $data) ? textField($data["tdsUrl"])
+                : (array_key_exists("tds_url", $data) ? textField($data["tds_url"]) : $existing["tds_url"]);
         $status = $data["status"] ?? $existing["status"];
         $industries = array_key_exists("industries", $data) ? jsonList($data["industries"]) : $existing["industries"];
         $surfaces = array_key_exists("surfaces", $data) ? jsonList($data["surfaces"]) : $existing["surfaces"];

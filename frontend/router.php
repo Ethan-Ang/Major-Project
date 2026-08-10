@@ -3,7 +3,11 @@
 // Mirrors the .htaccess clean-URL rules so /products works the same as on cPanel.
 // NOT deployed to cPanel — only used locally.
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+// parse_url leaves the path percent-encoded, so a real file whose name contains a
+// space or bracket ("images/quality (1).png" -> "/images/quality%20(1).png") never
+// matched file_exists() and fell through to the 404 page. Apache decodes the path
+// for us on cPanel, so this only ever broke local dev. Decode to match.
+$uri = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 
 // Strip leading slash for file lookup
 $file = __DIR__ . $uri;

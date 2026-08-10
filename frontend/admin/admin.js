@@ -287,11 +287,15 @@ function finishLoad(products) {
   // are gone — bail rather than animate stats into a detached DOM.
   if (!document.getElementById("productTableBody")) return;
   allProducts      = products;
-  filteredProducts = applySort([...products]);
-  currentPage      = 1;
-  selectedIds      = new Set();
   updateStats(products);
-  renderTable();
+  // DATA-LOSS GUARD: this used to set filteredProducts to the FULL catalogue
+  // while the search box still displayed the admin's query. Every caller that
+  // reloads after a write (delete, bulk status change, bulk delete, save)
+  // therefore repopulated the table with every product behind an unchanged
+  // "ZZQA"-style filter — and the very next Select All + Delete Selected hit
+  // rows the admin had never searched for. onSearch() rebuilds the filtered
+  // set from the live input and resets page + selection before rendering.
+  onSearch();
   if (window.lucide) lucide.createIcons();
 }
 
@@ -494,7 +498,10 @@ function onPageSizeChange() {
 
 // ─── Search ───────────────────────────────────────────────────────
 function onSearch() {
-  const q = document.getElementById("tableSearch").value.toLowerCase().trim();
+  // finishLoad() routes every (re)load through here, including reloads that
+  // land while the page is mid-swap, so the input may legitimately be absent.
+  const searchEl = document.getElementById("tableSearch");
+  const q = searchEl ? searchEl.value.toLowerCase().trim() : "";
   const base = q
     ? allProducts.filter(p =>
         p.name.toLowerCase().includes(q) ||
