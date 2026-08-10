@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Overview | Yee Lim Adhesives Admin</title>
   <style>html{background:#f3efe6}body{animation:ylAdminIn .28s ease both}@keyframes ylAdminIn{from{opacity:0}to{opacity:1}}@media (prefers-reduced-motion:reduce){body{animation:none}}</style>
-  <link rel="stylesheet" href="admin.css?v=32">
+  <link rel="stylesheet" href="admin.css?v=35">
   <link rel="stylesheet" href="../css/dropdown-ui.css?v=10">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <!-- SPA shell libs: loaded once in <head> so the in-body page script has them -->
@@ -103,20 +103,24 @@
           </div>
           <div class="chart-wrap">
             <div class="chart-figs"><span class="chart-big" id="chartTotal">0</span><span class="chart-cap" id="chartCap"></span></div>
-            <svg class="chart-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#CC2929" stop-opacity="0.28"/>
-                  <stop offset="100%" stop-color="#CC2929" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="50" x2="600" y2="50" stroke="#ece7dc" stroke-width="1"/>
-              <line x1="0" y1="100" x2="600" y2="100" stroke="#ece7dc" stroke-width="1"/>
-              <line x1="0" y1="150" x2="600" y2="150" stroke="#ece7dc" stroke-width="1"/>
-              <path id="chartArea" d="" fill="url(#area)"/>
-              <path id="chartLine" d="" fill="none" stroke="#CC2929" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle id="chartDot" r="4.5" fill="#fff" stroke="#CC2929" stroke-width="2.5" style="display:none"/>
-            </svg>
+            <div class="trend-chart" id="chartHover">
+              <svg class="chart-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#CC2929" stop-opacity="0.28"/>
+                    <stop offset="100%" stop-color="#CC2929" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <line x1="0" y1="50" x2="600" y2="50" stroke="#ece7dc" stroke-width="1"/>
+                <line x1="0" y1="100" x2="600" y2="100" stroke="#ece7dc" stroke-width="1"/>
+                <line x1="0" y1="150" x2="600" y2="150" stroke="#ece7dc" stroke-width="1"/>
+                <path id="chartArea" d="" fill="url(#area)"/>
+                <path id="chartLine" d="" fill="none" stroke="#CC2929" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle id="chartDot" r="4.5" fill="#fff" stroke="#CC2929" stroke-width="2.5" style="display:none"/>
+                <circle id="chartHoverDot" r="4.5" fill="#fff" stroke="#CC2929" stroke-width="2.5" style="display:none"/>
+              </svg>
+              <div class="trend-tip" id="chartTip" hidden></div>
+            </div>
             <div class="chart-xlabels" id="chartLabels"></div>
           </div>
         </div>
@@ -132,23 +136,36 @@
       <!-- Product analytics -->
       <div class="card">
         <div class="card-head">
-          <div><h2>Product Analytics</h2><div class="sub">Most-viewed products and demand, last 30 days</div></div>
+          <div><h2>Product Analytics</h2><div class="sub">Product performance, last 30 days</div></div>
           <span class="chart-cap" id="convCap"></span>
         </div>
         <div class="analytics-grid">
-          <div class="analytics-list cat-list" id="topProducts"><div class="overview-empty">Loading…</div></div>
+          <div class="analytics-list cat-list" id="topProducts">
+            <div class="analytics-col-label">Most-viewed products</div>
+            <div class="overview-empty">Loading…</div>
+          </div>
           <div class="analytics-trend" id="analyticsTrend">
-            <div class="chart-figs"><span class="chart-big" id="viewsTotal">0</span><span class="chart-cap">product views &middot; 14d</span></div>
-            <svg class="chart-svg" viewBox="0 0 600 160" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="viewsArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#CC2929" stop-opacity="0.28"/>
-                  <stop offset="100%" stop-color="#CC2929" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path id="viewsAreaPath" d="" fill="url(#viewsArea)"/>
-              <path id="viewsLine" d="" fill="none" stroke="#CC2929" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <div class="chart-figs"><span class="chart-big" id="viewsTotal">0</span><span class="chart-cap">product views &middot; 30d</span></div>
+            <div class="trend-axis-label">Views</div>
+            <div class="trend-chart" id="viewsChart">
+              <svg class="trend-svg" viewBox="0 0 600 300" preserveAspectRatio="none" role="img" aria-label="Daily product views, last 30 days">
+                <defs>
+                  <linearGradient id="viewsArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#CC2929" stop-opacity="0.28"/>
+                    <stop offset="100%" stop-color="#CC2929" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <g id="viewsGrid"></g>
+                <path id="viewsAreaPath" d="" fill="url(#viewsArea)"/>
+                <path id="viewsLine" d="" fill="none" stroke="#CC2929" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <g id="viewsPoints"></g>
+                <circle id="viewsDot" r="4" fill="#fff" stroke="#CC2929" stroke-width="2.5" style="display:none"/>
+              </svg>
+              <div class="trend-ylabels" id="viewsYLabels"></div>
+              <div class="trend-tip" id="viewsTip" hidden></div>
+            </div>
+            <div class="trend-xlabels" id="viewsLabels"></div>
+            <div class="trend-caption">Daily product page views over the last 30 days</div>
           </div>
         </div>
       </div>
@@ -165,7 +182,7 @@
       </div>
 
     </div>
-      <script src="overview.js?v=10"></script>
+      <script src="overview.js?v=13"></script>
     </div><!-- /#adminSwap -->
   </main>
 </div>

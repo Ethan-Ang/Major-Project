@@ -561,9 +561,10 @@ function toggleSelectAll() {
   const start = (currentPage - 1) * pageSize;
   const pageRows = filteredProducts.slice(start, start + pageSize);
 
-  pageRows.forEach(p => {
-    allChecked ? selectedIds.add(p._id) : selectedIds.delete(p._id);
-  });
+  // Checking selects this page; unchecking clears the whole selection, so the
+  // master checkbox is a reliable single way out of the bulk-selection state.
+  if (allChecked) pageRows.forEach(p => selectedIds.add(p._id));
+  else selectedIds = new Set();
 
   renderTable();
 }

@@ -743,7 +743,11 @@ input[type="checkbox"] { accent-color: var(--red); }
 .page-ellipsis { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 34px; color: var(--muted); font-family: var(--mono); border-right: 1px solid var(--control-border); }
 
 /* Bulk bar */
-.bulk-bar { padding: 0.65rem 1.35rem; background: var(--red-tint); border-bottom: 1px solid var(--red-tint-bdr); display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+/* Neutral toolbar: only Delete Selected is destructive, so the bar itself stays
+   in the normal admin surface colours and the red is left to that one button. */
+/* Same white as the card header above it, so selecting rows doesn't drop a
+   beige band into the middle of the card. */
+.bulk-bar { padding: 0.65rem 1.35rem; background: var(--card); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 .bulk-selected { font-family: var(--mono); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--red); margin-right: auto; }
 .bulk-actions { display: flex; gap: 0.4rem; }
 .row-selected td { background: var(--red-tint) !important; }
@@ -1385,11 +1389,44 @@ html.is-animating .admin-transition-fade { opacity: 0; }
 /* ═══════════════════════════════════════════════════════════════
    Product analytics dashboard (Feature 2)
    ═══════════════════════════════════════════════════════════════ */
-.analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
-.analytics-trend { display: flex; flex-direction: column; }
+/* Both columns stretch to the taller one (the Top 8 list), so the trend has a
+   full-height column to fill instead of a tall empty box under a squat graph. */
+.analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: stretch; }
+.analytics-trend { display: flex; flex-direction: column; padding: 1.2rem 1.35rem 1.35rem; }
+/* 30-day views trend, with date labels and a hover readout. The headline and
+   axis label keep their natural height and the chart takes every remaining
+   pixel, so metric + graph read as one block with no dead space beneath. */
+.trend-chart { position: relative; margin-top: 0.2rem; }
+.analytics-trend .trend-chart { display: flex; flex: 1 1 auto; min-height: 230px; max-height: 400px; }
+.trend-svg { flex: 1 1 auto; width: 100%; min-height: 0; display: block; }
+/* Y-axis values are HTML, not SVG <text>: the chart is drawn with
+   preserveAspectRatio="none" so anything inside the viewBox gets squashed. */
+.trend-ylabels { position: absolute; left: 0; top: 0; bottom: 0; width: 7.33%; pointer-events: none; }
+.trend-ylabels span { position: absolute; right: 8px; transform: translateY(-50%); font-family: var(--mono); font-size: 0.7rem; color: var(--muted-2); white-space: nowrap; }
+.trend-xlabels { position: relative; height: 1.05rem; margin-top: 0.55rem; font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; color: var(--muted-2); }
+.trend-xlabels span { position: absolute; top: 0; white-space: nowrap; }
+.trend-tip {
+  position: absolute; z-index: 3; pointer-events: none;
+  display: flex; flex-direction: column; gap: 0.1rem;
+  background: var(--ink); color: #fff; padding: 0.35rem 0.6rem;
+  font-size: 0.74rem; line-height: 1.3; white-space: nowrap;
+}
+.trend-tip b { font-weight: 600; }
+.trend-tip span { color: var(--muted-on-dark); font-family: var(--mono); font-size: 0.62rem; }
+.trend-tip[hidden] { display: none; }
+.trend-grid-line { stroke: #ece7dc; stroke-width: 1; }
+/* One small marker per day, as in the reference. Vector-effect keeps them the
+   same weight however wide the column stretches the viewBox. */
+.trend-point { fill: #CC2929; vector-effect: non-scaling-stroke; }
+.trend-axis-label { font-size: 0.76rem; font-weight: 600; color: var(--muted-2); margin: 0.9rem 0 0.15rem; }
+.trend-caption { margin-top: 0.75rem; font-size: 0.78rem; color: var(--muted-2); }
+.analytics-col-label { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-2); }
 /* When there are no views yet, one calm centred message fills the card. */
 .analytics-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.5rem; padding: 2.25rem 1rem; color: var(--muted, #6a655a); }
 .analytics-empty svg { width: 26px; height: 26px; opacity: 0.5; }
 .analytics-empty .ae-title { font-weight: 600; color: var(--ink, #201e18); font-size: 0.9rem; }
 .analytics-empty .ae-sub { font-size: 0.82rem; max-width: 320px; line-height: 1.5; }
-@media (max-width: 800px) { .analytics-grid { grid-template-columns: 1fr; } }
+@media (max-width: 800px) {
+  .analytics-grid { grid-template-columns: 1fr; }
+  .analytics-trend { padding-top: 0; }
+}

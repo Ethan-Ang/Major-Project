@@ -5,7 +5,7 @@ require_once "auth.php";
 /* ─────────────────────────────────────────────────────────────
    Analytics aggregator (admin-only, Feature 2). GET returns:
      topProducts   — most-viewed products, last 30 days
-     viewsTrend    — daily view counts, last 14 days
+     viewsTrend    — daily view counts, last 30 days
      categoryViews — views grouped by product category, last 30 days
      conversion    — 30d views vs enquiries + a simple rate
    Tolerates the product_views table not existing yet (returns zeros).
@@ -28,10 +28,12 @@ try {
         ORDER BY views DESC LIMIT 8
     ")->fetchAll(PDO::FETCH_ASSOC);
 
-    // Daily view counts for the last 14 days (client fills the gaps).
+    // Daily view counts for the last 30 days (client fills the gaps). Matches the
+    // same 30-day window as topProducts/conversion below, so the chart's own
+    // summed total lines up with the card's "views" figures.
     $trend = $pdo->query("
         SELECT DATE(viewed_at) AS d, COUNT(*) AS views
-        FROM product_views WHERE viewed_at >= (NOW() - INTERVAL 14 DAY)
+        FROM product_views WHERE viewed_at >= (NOW() - INTERVAL 30 DAY)
         GROUP BY DATE(viewed_at) ORDER BY d ASC
     ")->fetchAll(PDO::FETCH_ASSOC);
 

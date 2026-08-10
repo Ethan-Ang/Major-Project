@@ -138,20 +138,22 @@ async function loadAnalytics() {
   if (trendCol) trendCol.style.display = "";
   renderTopProducts(a.topProducts);
   renderViewsTrend(a.viewsTrend || []);
+  // This card is about product viewing only, so the summary stays view-only.
   if (cap && a.conversion) {
-    cap.textContent = `${a.conversion.views} views · ${a.conversion.enquiries} enquiries`;
+    cap.textContent = `${a.conversion.views} views`;
   }
 }
 
 function renderTopProducts(rows) {
   const el = document.getElementById("topProducts");
   if (!el) return;
+  const label = '<div class="analytics-col-label">Most-viewed products</div>';
   if (!rows.length) {
-    el.innerHTML = '<div class="overview-empty">No product views yet. Views are recorded as visitors browse the catalogue.</div>';
+    el.innerHTML = label + '<div class="overview-empty">No product views yet. Views are recorded as visitors browse the catalogue.</div>';
     return;
   }
   const max = Math.max(...rows.map(r => r.views), 1);
-  el.innerHTML = rows.map(r => `
+  el.innerHTML = label + rows.map(r => `
     <div class="cat-item">
       <div class="cat-row"><b>${escapeHtml(r.name)}</b><span>${r.views}</span></div>
       <div class="cat-track"><div class="cat-fill ink" style="width:${Math.round((r.views / max) * 100)}%"></div></div>
@@ -159,30 +161,195 @@ function renderTopProducts(rows) {
   `).join("");
 }
 
+// Local-calendar day key. Deliberately not toISOString(): in UTC+8 that turns
+// local midnight into the *previous* UTC date, so real days silently fell into
+// no slot and the trend under-counted.
+function dayKey(d) {
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
+}
+
+// 30-day views trend, drawn from the real per-day counts in analytics.php.
+// The headline number is the sum of exactly the points on the line, so it
+// always matches the real 30-day window analytics.php also uses for the
+// card's top-right "views" figure and the most-viewed list.
+// `var`, not `const`: admin-spa.js re-executes this whole script on every soft
+// return to the dashboard, and a repeated top-level `const` would throw.
+// The viewBox is tall (300) so the graph can fill the height of the analytics
+// column without the stretched viewBox distorting the line out of proportion.
+var TREND_DAYS = 30, TREND_W = 600, TREND_H = 300, TREND_TOP = 18, TREND_BOTTOM = 282,
+    TREND_PAD_L = 44, TREND_PAD_R = 8;
+
+// Round up to a "nice" axis ceiling (1/2/5/10 × a power of ten) so the y-axis
+// reads 0/5/10/15/20-style instead of an arbitrary data maximum.
+function niceMax(v) {
+  if (v <= 5) return 5;
+  const pow = Math.pow(10, Math.floor(Math.log10(v)));
+  const norm = v / pow;
+  const niceNorm = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+  return niceNorm * pow;
+}
+
 function renderViewsTrend(rows) {
-  // Fill 14 contiguous days so gaps render as zero rather than distort the line.
+  // Fill 30 contiguous days so gaps render as zero rather than distort the line.
   const days = [];
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  for (let i = 13; i >= 0; i--) {
+  for (let i = TREND_DAYS - 1; i >= 0; i--) {
     const d = new Date(today); d.setDate(d.getDate() - i);
-    days.push({ key: d.toISOString().slice(0, 10), count: 0 });
+    days.push({ date: d, key: dayKey(d), count: 0 });
   }
   rows.forEach(r => {
     const slot = days.find(d => d.key === String(r.date).slice(0, 10));
-    if (slot) slot.count = r.views;
+    if (slot) slot.count = Number(r.views) || 0;
   });
 
-  const values = days.map(d => d.count);
-  const total  = values.reduce((a, b) => a + b, 0);
-  const maxV   = Math.max(1, ...values);
-  const W = 600, top = 12, bottom = 150, padX = 8, step = (W - padX * 2) / 13;
-  const pts = values.map((v, i) => [Math.round(padX + i * step), Math.round(bottom - (v / maxV) * (bottom - top))]);
+  const values  = days.map(d => d.count);
+  const total   = values.reduce((a, b) => a + b, 0);
+  const gridMax = niceMax(Math.max(1, ...values));
+  const step    = (TREND_W - TREND_PAD_L - TREND_PAD_R) / (TREND_DAYS - 1);
+  const pts = values.map((v, i) => [
+    +(TREND_PAD_L + i * step).toFixed(1),
+    +(TREND_BOTTOM - (v / gridMax) * (TREND_BOTTOM - TREND_TOP)).toFixed(1)
+  ]);
   const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ");
-  const area = `${line} L${pts[pts.length - 1][0]},${bottom} L${pts[0][0]},${bottom} Z`;
+  const area = `${line} L${pts[pts.length - 1][0]},${TREND_BOTTOM} L${pts[0][0]},${TREND_BOTTOM} Z`;
 
-  const lineEl = document.getElementById("viewsLine"); if (lineEl) lineEl.setAttribute("d", line);
-  const areaEl = document.getElementById("viewsAreaPath"); if (areaEl) areaEl.setAttribute("d", area);
-  const totalEl = document.getElementById("viewsTotal"); if (totalEl) totalEl.textContent = total;
+  const lineEl  = document.getElementById("viewsLine");
+  const areaEl  = document.getElementById("viewsAreaPath");
+  const totalEl = document.getElementById("viewsTotal");
+  if (lineEl)  lineEl.setAttribute("d", line);
+  if (areaEl)  areaEl.setAttribute("d", area);
+  if (totalEl) totalEl.textContent = total;
+
+  renderTrendGrid(gridMax);
+  renderTrendPoints(pts);
+  renderTrendLabels("viewsLabels", days, pts, TREND_W);
+  bindChartHover("viewsChart", "viewsTip", "viewsDot", days, pts, TREND_W, TREND_H, "view", "views");
+  animateTrend(lineEl, areaEl);
+}
+
+// Horizontal gridlines + their value labels, scaled to the real data range —
+// reuses the same faint line style already used elsewhere on the dashboard.
+// The lines are SVG, the value labels are HTML: the chart stretches to fill its
+// column (preserveAspectRatio="none"), which would squash SVG <text>.
+function renderTrendGrid(gridMax) {
+  const g = document.getElementById("viewsGrid");
+  const yl = document.getElementById("viewsYLabels");
+  if (!g) return;
+  const steps = 4; // 0, 1/4, 1/2, 3/4, max — five labels
+  let lines = "", labels = "";
+  for (let s = 0; s <= steps; s++) {
+    const val = Math.round((gridMax * s) / steps);
+    const y = TREND_BOTTOM - (s / steps) * (TREND_BOTTOM - TREND_TOP);
+    lines += `<line class="trend-grid-line" x1="${TREND_PAD_L}" y1="${y}" x2="${TREND_W}" y2="${y}"/>`;
+    labels += `<span style="top:${((y / TREND_H) * 100).toFixed(2)}%">${val}</span>`;
+  }
+  g.innerHTML = lines;
+  if (yl) yl.innerHTML = labels;
+}
+
+// A small marker on each day, so the shape of the series stays readable.
+function renderTrendPoints(pts) {
+  const g = document.getElementById("viewsPoints");
+  if (!g) return;
+  g.innerHTML = pts.map(p => `<circle class="trend-point" cx="${p[0]}" cy="${p[1]}" r="2.6"/>`).join("");
+}
+
+// Picks ~5 evenly spaced indices ending on the most recent day, so a longer
+// series (30 days) doesn't crowd the axis with as many labels as a short one.
+function pickLabelIndices(n, target) {
+  target = target || 5;
+  const step = Math.max(1, Math.round((n - 1) / (target - 1)));
+  const idxs = [];
+  for (let i = n - 1; i >= 0; i -= step) idxs.push(i);
+  return idxs.reverse();
+}
+
+function renderTrendLabels(elId, days, pts, W) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const idxs = pickLabelIndices(days.length, 5);
+  let html = "";
+  idxs.forEach(i => {
+    const pct = (pts[i][0] / W) * 100;
+    const align = pct > 85 ? "translateX(-100%)" : pct < 8 ? "none" : "translateX(-50%)";
+    html += `<span style="left:${pct}%;transform:${align}">` +
+      days[i].date.toLocaleDateString("en-SG", { day: "numeric", month: "short" }) + "</span>";
+  });
+  el.innerHTML = html;
+}
+
+// Shared hover tooltip for both the Enquiries and Product Analytics charts:
+// nearest day, its date, and its count (view or enquiry). One listener per
+// chart element (each is a fresh DOM node after every soft page swap, so
+// returning to the dashboard never stacks duplicate handlers). The whole
+// chart width is the hover target — no need to land on the exact line.
+function bindChartHover(chartElId, tipElId, dotElId, days, pts, W, H, unitSingular, unitPlural) {
+  const chart = document.getElementById(chartElId);
+  if (!chart) return;
+  chart._trend = { days, pts, W, H, unitSingular, unitPlural: unitPlural || `${unitSingular}s` };
+
+  if (chart._trendBound) return;
+  chart._trendBound = true;
+
+  const tip = document.getElementById(tipElId);
+  const dot = document.getElementById(dotElId);
+
+  function show(e) {
+    const data = chart._trend;
+    if (!data || !tip || !dot) return;
+    const box = chart.getBoundingClientRect();
+    if (!box.width) return;
+    const last = data.pts.length - 1;
+    const i = Math.max(0, Math.min(last, Math.round(((e.clientX - box.left) / box.width) * last)));
+    const p = data.pts[i], d = data.days[i];
+
+    dot.setAttribute("cx", p[0]);
+    dot.setAttribute("cy", p[1]);
+    dot.style.display = "block";
+
+    const unitText = d.count === 1 ? data.unitSingular : data.unitPlural;
+    tip.innerHTML = `<b>${d.count} ${unitText}</b><span>` +
+      escapeHtml(d.date.toLocaleDateString("en-SG", { weekday: "short", day: "numeric", month: "short" })) + "</span>";
+    const pct = (p[0] / data.W) * 100;
+    tip.style.left = pct + "%";
+    tip.style.top = ((p[1] / data.H) * 100) + "%";
+    tip.style.transform =
+      (pct > 85 ? "translate(-100%,-125%)" : pct < 8 ? "translate(0,-125%)" : "translate(-50%,-125%)");
+    tip.hidden = false;
+  }
+
+  function hide() {
+    if (tip) tip.hidden = true;
+    if (dot) dot.style.display = "none";
+  }
+
+  chart.addEventListener("pointermove", show);
+  chart.addEventListener("pointerleave", hide);
+  chart.addEventListener("pointercancel", hide);
+}
+
+// One quiet draw-in on load. No looping animation.
+function animateTrend(lineEl, areaEl) {
+  if (!lineEl || !areaEl) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let len = 0;
+  try { len = lineEl.getTotalLength(); } catch (e) { return; }
+  if (!len) return;
+
+  lineEl.style.transition = "none";
+  lineEl.style.strokeDasharray = len;
+  lineEl.style.strokeDashoffset = len;
+  areaEl.style.transition = "none";
+  areaEl.style.opacity = "0";
+
+  requestAnimationFrame(function () {
+    lineEl.style.transition = "stroke-dashoffset 0.7s ease-out";
+    lineEl.style.strokeDashoffset = "0";
+    areaEl.style.transition = "opacity 0.7s ease-out";
+    areaEl.style.opacity = "1";
+  });
 }
 
 // ─── KPIs ─────────────────────────────────────────────────────────
@@ -263,7 +430,8 @@ function renderChart(enquiries) {
   document.getElementById("chartLine").setAttribute("d", line);
   document.getElementById("chartArea").setAttribute("d", area);
 
-  // dot on the last (today) point
+  // Permanent dot on the last (today) point — separate from the hover dot below,
+  // so hovering elsewhere and moving away never hides this "today" marker.
   const last = pts[pts.length - 1];
   const dot = document.getElementById("chartDot");
   dot.setAttribute("cx", last[0]); dot.setAttribute("cy", last[1]); dot.style.display = "block";
@@ -271,13 +439,16 @@ function renderChart(enquiries) {
   document.getElementById("chartTotal").textContent = total7;
   const cap = document.getElementById("chartCap");
   const todayCount = values[values.length - 1];
-  // Only a small green "+N today" when there really are new leads today; otherwise
-  // blank, so the 7-day number never sits next to a contradictory "none today".
-  cap.textContent = todayCount > 0 ? `▲ ${todayCount} today` : "";
-  cap.style.color = "var(--green)";
+  // The secondary figure is always present so the 7-day total never floats on
+  // its own: green "▲ N today" when leads came in today, a quiet grey "0 today"
+  // when none did.
+  cap.textContent = todayCount > 0 ? `▲ ${todayCount} today` : "0 today";
+  cap.style.color = todayCount > 0 ? "var(--green)" : "var(--muted-2)";
 
   document.getElementById("chartLabels").innerHTML =
     days.map(d => `<span>${d.date.toLocaleDateString("en-SG", { weekday: "short" })}</span>`).join("");
+
+  bindChartHover("chartHover", "chartTip", "chartHoverDot", days, pts, W, H, "enquiry", "enquiries");
 }
 
 // ─── Recent enquiries ─────────────────────────────────────────────

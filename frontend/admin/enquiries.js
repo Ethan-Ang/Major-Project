@@ -12,6 +12,7 @@ var filteredEnqs = [];
 var currentEnqId = null;
 var repliedIds   = new Set();
 var loadFailed   = false; // true when the API could not be reached
+var enqLoading   = false; // a fetch is in flight (blocks a duplicate request)
 
 // Non-dismissable banner at the top of the page. Used to make a load failure
 // obvious instead of silently showing fake or stale data.
@@ -74,7 +75,15 @@ function isNetworkError(err) {
     enhanceCustomSelect(document.getElementById("filterStatus"));
   }
 
-  loadEnquiries();
+  try {
+    await loadEnquiries();
+  } catch (e) {
+    // Never leave the table sitting on "Loading enquiries…".
+    const tbody = document.getElementById("enquiryTableBody");
+    if (tbody) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Could not load enquiries. Please refresh the page to try again.</td></tr>';
+    }
+  }
 })();
 
 function logout() {
@@ -86,6 +95,8 @@ function logout() {
 async function loadEnquiries() {
   const tbody = document.getElementById("enquiryTableBody");
   if (!tbody) return; // page swapped out during async init
+  if (enqLoading) return; // a load is already in flight — never fetch twice
+  enqLoading = true;
   tbody.innerHTML = adminSkeletonRows(6, 5);
 
   // No demo/sample fallback here: a real inbox must never show fake leads. On a
@@ -101,6 +112,8 @@ async function loadEnquiries() {
   } catch {
     loadFailed = true;
     enquiries = [];
+  } finally {
+    enqLoading = false;
   }
 
   if (loadFailed) {
@@ -470,8 +483,12 @@ function adminSkeletonRows(count, cols) {
 // normal, not broken. These two helpers are the ONLY place that decides how that
 // reads, so the table, the detail panel and the CSV can never drift apart or
 // fall back to a blank cell, "undefined" or an empty pill.
-const NO_PRODUCTS_SHORT = "No product selected";
-const NO_PRODUCTS_LONG  = "General enquiry - no product selected";
+// `var`, not `const`: admin-spa.js re-executes this whole script on every soft
+// return to Enquiries, and a repeated top-level `const` throws a redeclaration
+// SyntaxError before any of this file runs. That is what used to leave the table
+// stuck on "Loading enquiries…" until a manual refresh.
+var NO_PRODUCTS_SHORT = "No product selected";
+var NO_PRODUCTS_LONG  = "General enquiry - no product selected";
 
 function productList(enq) {
   return Array.isArray(enq.products) ? enq.products.filter(p => String(p).trim() !== "") : [];
