@@ -238,8 +238,19 @@ test("open and close preserve the exact opener and prior scroll-lock state", () 
     "opening must remember the exact triggering control");
   assert.match(chatbot, /(?:opener|trigger|returnFocus)[\s\S]{0,100}\.focus\s*\(/i,
     "closing must return focus to that exact control");
-  assert.match(chatbot, /(?:previous|prior|original)[A-Za-z]*(?:Overflow|Scroll|Body)/i,
-    "the widget must remember rather than overwrite a pre-existing scroll lock");
+  // Assert the guarantee, not the variable name: locking has to read the inline
+  // styles that were already on <body> before it overwrites them, and unlocking
+  // has to put those same recorded values back. 769f9cb replaced an
+  // overflow:hidden lock with a position:fixed pin (Safari ignores the former),
+  // so anything keyed to a "previousOverflow"-shaped name misses the real thing.
+  const lock = /function lockBackgroundScroll\([\s\S]*?\n  \}/.exec(chatbot);
+  const unlock = /function unlockBackgroundScroll\([\s\S]*?\n  \}/.exec(chatbot);
+  assert.ok(lock, "a background scroll lock must exist");
+  assert.ok(unlock, "the lock must have a matching release");
+  assert.match(lock[0], /:\s*body\.style\.position\b/,
+    "locking must record the prior inline styles rather than assume defaults");
+  assert.match(unlock[0], /body\.style\.position\s*=\s*\w+\.position/,
+    "releasing must put the recorded values back rather than blanking them");
   assert.match(chatbot, /onEscape\s*:\s*window\.closeProductAdvisor|(?:key|code)\s*===?\s*["']Escape["']/,
     "Escape must close the dialog");
 });
@@ -319,23 +330,34 @@ test("the enquiry attach control is a toggle, not a one-way disabled button", ()
   const state = /function setAttachButtonState\([\s\S]*?\n  \}/.exec(chatbot);
   assert.ok(state, "setAttachButtonState must exist");
   assert.match(state[0], /aria-pressed/, "the state must be exposed via aria-pressed");
-  assert.doesNotMatch(state[0], /button\.disabled\s*=\s*included/,
-    "the control must not disable itself when selected");
-  assert.match(chatbot, /function removeRecommendations\(/,
-    "there must be a path back out of the enquiry");
-  assert.match(chatbot, /function toggleRecommendations\(/,
-    "the click handler must toggle");
-  assert.match(chatbot, /toggleRecommendations\(record, includeButton\)/,
-    "the button must be wired to the toggle, not to include only");
+  assert.match(state[0], /button\.disabled\s*=\s*false/,
+    "the control must stay operable so the products can be taken back out");
+  // 769f9cb moved the CTA inside each recommendation card, so the toggle is now
+  // per product rather than per response: one reply carrying two products shows
+  // each product's own state. Hence the singular name and the extra argument.
+  assert.match(chatbot, /function toggleRecommendation\(/,
+    "the click handler must toggle a single recommendation");
+  assert.match(chatbot, /toggleRecommendation\(record, recommendation, \w+\)/,
+    "each card's button must be wired to the toggle, not to include only");
 });
 
 test("removing a recommendation subtracts from the one basket, it does not replace it", () => {
-  const remove = /function removeRecommendations\([\s\S]*?\n  \}\n\n/.exec(chatbot);
-  assert.ok(remove, "removeRecommendations must exist");
+  // Add and remove now live in the one toggle, so the removal branch is asserted
+  // where it actually is rather than in a separate removeRecommendations().
+  const toggle = /function toggleRecommendation\([\s\S]*?\n  \}/.exec(chatbot);
+  assert.ok(toggle, "toggleRecommendation must exist");
   // Filtering the existing basket is what keeps manually chosen products safe.
-  assert.match(remove[0], /currentBasket\(\)\.filter\(/,
+  assert.match(toggle[0], /currentBasket\(\)\.filter\(/,
     "removal must filter the existing basket, never overwrite it");
-  assert.match(remove[0], /saveBasket/, "it must go through the shared basket writer");
-  assert.doesNotMatch(remove[0], /localStorage\.setItem\("enquiryBasket", JSON\.stringify\(ids/,
-    "it must not write its own competing basket");
+  assert.match(toggle[0], /new Set\(currentBasket\(\)\)/,
+    "adding must union into the existing basket, never overwrite it");
+  assert.match(toggle[0], /writeBasket\(/, "both paths must go through one writer");
+
+  // That writer must prefer the site-wide basket API; the localStorage line is
+  // only a fallback for when the shared writer is absent, never a second basket.
+  const write = /function writeBasket\([\s\S]*?\n  \}/.exec(chatbot);
+  assert.ok(write, "writeBasket must exist");
+  assert.match(write[0], /window\.saveBasket/, "it must go through the shared basket writer");
+  assert.match(write[0], /typeof window\.saveBasket === "function"[\s\S]*?return;/,
+    "the shared writer must take precedence and return before any fallback");
 });

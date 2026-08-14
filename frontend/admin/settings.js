@@ -27,10 +27,8 @@ function authHeader() { return { Authorization: `Bearer ${localStorage.getItem("
   loadSettings();
 })();
 
-function logout() {
-  localStorage.removeItem("adminToken");
-  window.location.href = "login.html";
-}
+// logout() lives in admin-spa.js, which every admin page loads. It also
+// invalidates the token server-side, which the old per-page copies did not.
 
 function fields() {
   return Array.from(document.querySelectorAll("[data-key]"));

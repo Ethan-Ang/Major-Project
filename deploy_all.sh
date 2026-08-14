@@ -21,6 +21,7 @@ P=$(grep -a FTP_PASS "$ENVF" | sed 's/.*=//' | tr -d '\r\n[:space:]"')
 # Files to deploy (paths relative to frontend/ and to the live web root).
 DEPLOY="
 products.html product-detail.html compare.html enquiry.html contact.html
+css/products.css
 js/data.js js/core/app.js js/pages/products.js js/pages/product-detail.js js/pages/contact.js js/widgets/footer.js
 admin/dashboard.html admin/products.html admin/enquiries.html admin/login.html
 admin/filters.html admin/filters.js admin/settings.html admin/settings.js admin/downloads.html admin/downloads.js

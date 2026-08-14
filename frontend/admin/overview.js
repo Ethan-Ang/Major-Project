@@ -22,6 +22,13 @@ function isNetworkError(err) {
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
 
+  // Greet before the first await. This needs only the clock and localStorage,
+  // so holding it behind the me.php round-trip meant the page painted the
+  // static "Welcome back" from dashboard.html and then visibly rewrote the
+  // heading a beat later. Running it synchronously means the correct greeting
+  // is there on the first paint and nothing changes under the reader.
+  renderGreeting();
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/me.php`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -37,14 +44,11 @@ function isNetworkError(err) {
     // loadOverview() already falls back to empty KPIs/chart per section.
   }
 
-  renderGreeting();
   loadOverview();
 })();
 
-function logout() {
-  localStorage.removeItem("adminToken");
-  window.location.href = "login.html";
-}
+// logout() lives in admin-spa.js, which every admin page loads. It also
+// invalidates the token server-side, which the old per-page copies did not.
 
 // ─── Greeting ─────────────────────────────────────────────────────
 function renderGreeting() {

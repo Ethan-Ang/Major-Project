@@ -27,6 +27,32 @@
     return m ? m[1] : "";
   }
 
+  // ── Sign out ──────────────────────────────────────────────────────
+  // Defined once here because every admin page loads this file. It used to be
+  // copy-pasted into all six page scripts, and every copy only cleared
+  // localStorage — which hides the token from this browser but leaves its row
+  // in admin_tokens valid until it expires, so a copied token kept working
+  // after "signing out". api/logout.php deletes that row.
+  //
+  // Fire-and-forget with keepalive: the POST is allowed to outlive the
+  // navigation on the last line, so sign-out still feels instant. The local
+  // clear and the redirect happen regardless of whether the request lands,
+  // so a server that is down or unreachable can never strand a signed-in UI.
+  window.logout = function () {
+    var token = localStorage.getItem("adminToken");
+    if (token && typeof fetch === "function") {
+      try {
+        fetch(API + "/api/logout.php", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + token },
+          keepalive: true
+        }).catch(function () { /* offline — the local session is gone anyway */ });
+      } catch (e) { /* fetch threw synchronously — fall through to the local clear */ }
+    }
+    localStorage.removeItem("adminToken");
+    window.location.href = "login.html";
+  };
+
   function setActiveNav() {
     var here = pageOf(location.pathname);
     var links = document.querySelectorAll(".admin-nav a");

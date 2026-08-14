@@ -36,6 +36,8 @@ const englishCopy = {
   add: "Add a product",
   search: "Search or browse",
   compareNow: "Compare now",
+  compareHint: "Select at least 2 products to compare",
+  selectHint: "Add {count} more product to start comparing.",
   clearAll: "Clear all",
   swipe: "Swipe to compare all {count} products",
   rotateTitle: "Rotate for the full comparison",
@@ -45,11 +47,16 @@ const englishCopy = {
   closeHint: "Dismiss",
   remove: "Remove {product} from comparison",
   notSpecified: "Not specified",
-  emptyTitle: "Add at least 2 products to compare",
+  emptyTitle: "Compare products side by side",
   emptyBody:
-    "Browse the catalogue and click + Compare on the cards you want to compare side by side.",
-  emptyAction: "+ Compare",
-  browseProducts: "Browse Products",
+    "Add two or three products to compare their key specifications in one table.",
+  emptyTitleOne: "One more product to compare",
+  emptyBodyOne:
+    "You have 1 of the 2 products needed. Add another and the comparison table appears here.",
+  emptyNote: "Up to 3 products at a time.",
+  emptyPreview: "What you will compare",
+  addProducts: "Add Products",
+  browseCatalogue: "Browse Catalogue",
   productLabel: "Product",
   disclaimer:
     "Product information is provided for general guidance only. Contact Yee Lim for full technical details.",
@@ -62,6 +69,8 @@ const chineseCopy = {
   add: "添加产品",
   search: "搜索或浏览",
   compareNow: "立即对比",
+  compareHint: "请至少选择 2 款产品进行对比",
+  selectHint: "再添加 {count} 款产品即可开始对比。",
   clearAll: "清除全部",
   swipe: "滑动查看全部 {count} 款产品",
   rotateTitle: "横屏查看完整对比",
@@ -71,10 +80,14 @@ const chineseCopy = {
   closeHint: "关闭提示",
   remove: "从对比中移除 {product}",
   notSpecified: "未提供",
-  emptyTitle: "请至少添加 2 款产品进行对比",
-  emptyBody: "浏览产品目录，并在需要并排对比的产品卡片上点击“+ 对比”。",
-  emptyAction: "+ 对比",
-  browseProducts: "浏览产品",
+  emptyTitle: "并排对比产品",
+  emptyBody: "添加 2 至 3 款产品，即可在同一张表格中对照关键规格。",
+  emptyTitleOne: "还差一款产品即可开始对比",
+  emptyBodyOne: "已选择 1 款，至少需要 2 款。再添加一款，对比表格即会显示在此处。",
+  emptyNote: "每次最多对比 3 款产品。",
+  emptyPreview: "可对比的内容",
+  addProducts: "添加产品",
+  browseCatalogue: "浏览产品目录",
   productLabel: "产品",
   disclaimer: "产品信息仅供一般参考。如需完整技术资料，请联系 Yee Lim。",
   caption: "{count} 款产品并排对比。每一列为一款产品，每一行为一项规格。",
@@ -83,26 +96,45 @@ const chineseCopy = {
 const compareCopyIntegrations = [
   {
     key: "emptyTitle",
-    fragment: "<h2>${copy.emptyTitle}</h2>",
-    mutationTarget: "${copy.emptyTitle}",
+    fragment: "const title = one ? copy.emptyTitleOne : copy.emptyTitle;",
+    mutationTarget: "copy.emptyTitle;",
+  },
+  {
+    key: "emptyTitleOne",
+    fragment: "const title = one ? copy.emptyTitleOne : copy.emptyTitle;",
+    mutationTarget: "copy.emptyTitleOne",
   },
   {
     key: "emptyBody",
-    fragment:
-      "<p>${emphasizeComparePageAction(copy.emptyBody, copy.emptyAction)}</p>",
-    mutationTarget: "copy.emptyBody",
+    fragment: "const body  = one ? copy.emptyBodyOne : copy.emptyBody;",
+    mutationTarget: "copy.emptyBody;",
   },
   {
-    key: "emptyAction",
-    fragment:
-      "<p>${emphasizeComparePageAction(copy.emptyBody, copy.emptyAction)}</p>",
-    mutationTarget: "copy.emptyAction",
+    key: "emptyBodyOne",
+    fragment: "const body  = one ? copy.emptyBodyOne : copy.emptyBody;",
+    mutationTarget: "copy.emptyBodyOne",
   },
   {
-    key: "browseProducts",
+    key: "emptyNote",
+    fragment: '<p class="cmp-empty-note">${copy.emptyNote}</p>',
+    mutationTarget: "${copy.emptyNote}",
+  },
+  {
+    key: "emptyPreview",
+    fragment: '<p class="cmp-empty-preview-cap">${copy.emptyPreview}</p>',
+    mutationTarget: "${copy.emptyPreview}",
+  },
+  {
+    key: "addProducts",
     fragment:
-      'style="display:inline-flex;margin-top:1.25rem">${copy.browseProducts}</a>',
-    mutationTarget: "${copy.browseProducts}",
+      'onclick="ylCompareAddMore()">${copy.addProducts}</button>',
+    mutationTarget: "${copy.addProducts}",
+  },
+  {
+    key: "browseCatalogue",
+    fragment:
+      '<a href="/products" class="btn btn-outline">${copy.browseCatalogue}</a>',
+    mutationTarget: "${copy.browseCatalogue}",
   },
   {
     key: "productLabel",
@@ -173,19 +205,19 @@ test("compare-page copy safely formats count and named placeholders", () => {
   );
 });
 
-test("under-two action emphasis is preserved in both languages", () => {
-  const emphasizeComparePageAction = extractNamedFunction(
-    comparePageSource,
-    "emphasizeComparePageAction"
+// The under-two panel's zero state opens the picker in place. It must never go
+// back to sending the visitor to /products: that meant leaving the comparison
+// to come back to it, and the picker is the same one the add slot opens.
+test("the zero-product CTA opens the shared picker, it does not navigate away", () => {
+  assert.ok(
+    comparePageSource.includes(
+      'onclick="ylCompareAddMore()">${copy.addProducts}</button>'
+    ),
+    "the zero-product CTA must be a button wired to the shared picker"
   );
-
-  assert.equal(
-    emphasizeComparePageAction(englishCopy.emptyBody, englishCopy.emptyAction),
-    "Browse the catalogue and click <strong>+ Compare</strong> on the cards you want to compare side by side."
-  );
-  assert.equal(
-    emphasizeComparePageAction(chineseCopy.emptyBody, chineseCopy.emptyAction),
-    "浏览产品目录，并在需要并排对比的产品卡片上点击“<strong>+ 对比</strong>”。"
+  assert.ok(
+    !/class="btn btn-primary">\$\{copy\.\w+\}<\/a>/.test(comparePageSource),
+    "the zero-product CTA must not be a link to another page"
   );
 });
 

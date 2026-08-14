@@ -912,6 +912,10 @@ function comparePickerCopy(lang) {
     en: {
       eyebrow: "Compare Products",
       title: "Add a product to compare",
+      // Opened with nothing selected, the visitor is picking several, not one
+      // more. English only: Chinese does not inflect for number, so its two
+      // strings are deliberately identical.
+      titleZero: "Add products to compare",
       closeAria: "Close product picker",
       sourceAria: "Product source",
       recentTab: "Recently viewed",
@@ -935,6 +939,7 @@ function comparePickerCopy(lang) {
     zh: {
       eyebrow: "产品对比",
       title: "添加产品进行对比",
+      titleZero: "添加产品进行对比",
       closeAria: "关闭产品选择器",
       sourceAria: "产品来源",
       recentTab: "最近浏览",
@@ -1028,7 +1033,7 @@ function openComparePicker(opener) {
     <div class="cmp-picker-head">
       <div>
         <span class="cmp-picker-eyebrow">${copy.eyebrow}</span>
-        <h2 class="cmp-picker-title" id="ylCmpPickerTitle">${copy.title}</h2>
+        <h2 class="cmp-picker-title" id="ylCmpPickerTitle">${getCompareList().length ? copy.title : copy.titleZero}</h2>
         <span class="cmp-picker-count" id="ylCmpPickerCount"></span>
       </div>
       <button class="cmp-picker-x" type="button" onclick="closeComparePicker()" aria-label="${copy.closeAria}">

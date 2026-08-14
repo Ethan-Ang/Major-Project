@@ -4729,6 +4729,25 @@ body.cmp-rotate-open { overflow: hidden; }
   min-width: 168px;
 }
 .csel-compare { text-decoration: none; justify-content: center; }
+
+/* Below two products the control is present but inert. Same neutral the tray's
+   Compare now uses, so the two read as one state. The hover override is not
+   optional: a disabled button still matches :hover, and .btn-primary:hover
+   would otherwise flash it red under the cursor. */
+.csel-compare:disabled,
+.csel-compare:disabled:hover {
+  background: #d8d3c9;
+  border-color: #d8d3c9;
+  color: #6f695f;
+  cursor: not-allowed;
+  opacity: 1;
+  box-shadow: none;
+  transform: none;
+}
+/* Portrait phones only. Above 640px the panel below the selection panel says
+   the same thing beside its preview, so this would be the sentence twice. */
+.csel-hint { display: none; }
+
 .csel-actions .compare-page-clear {
   display: inline-flex;
   align-items: center;
@@ -4740,10 +4759,27 @@ body.cmp-rotate-open { overflow: hidden; }
 @media (max-width: 640px) {
   .csel-body { flex-direction: column; gap: 0.9rem; }
   .csel-row { grid-template-columns: 1fr; }
-  /* Hidden on portrait phones: it duplicates the table columns and eats scarce
-     height. It returns in landscape (wider than 640px); the column × below keeps
-     removal available in portrait. */
-  .compare-select-panel { display: none; }
+  /* Hidden on portrait phones once the table exists: it duplicates the table
+     columns and eats scarce height. It returns in landscape (wider than 640px);
+     the column × below keeps removal available in portrait.
+     .csel-solo (set by compare-page.js below two products) is the exception:
+     with no table drawn there is nothing to duplicate, and this panel is then
+     the phone's only view of what is selected and its only way to add more. */
+  .compare-select-panel:not(.csel-solo) { display: none; }
+
+  /* The phone's whole explanation of what is still missing, in one line, in the
+     panel the visitor is already working in. */
+  .csel-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding-top: 0.15rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+  .csel-hint svg { flex: none; color: var(--muted-2); }
   .compare-col-inner { position: relative; }
   .compare-col-x {
     display: inline-flex;
@@ -5245,6 +5281,223 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   color: var(--text);
   margin: 0;
   line-height: 1.2;
+}
+
+/* ─── Compare page: fewer than two products ──────────────────────
+   Not a centred void. One real panel that says what the page does, offers the
+   two ways to fill it, and sketches the shape of the table that will replace
+   it. Capped well below the table's 1280px so the copy keeps a readable
+   measure instead of stretching across the whole canvas. */
+.cmp-empty {
+  /* Full width of the page's content container, so the panel occupies exactly
+     the footprint the comparison table will take once two products are picked:
+     this IS the workspace, empty. The copy inside keeps its own measure (see
+     .cmp-empty p) rather than running the full span. */
+  margin: 0.25rem 0 0;
+  padding: 2.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  display: grid;
+  /* The copy column is sized to its own measure rather than to a share of the
+     panel, so widening the panel gives the extra room to the preview instead of
+     stranding the paragraph in the middle of an over-wide column. */
+  grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+.cmp-empty-copy,
+.cmp-empty-preview { min-width: 0; }
+
+.cmp-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--red-tint);
+  color: var(--red);
+  margin-bottom: 0.85rem;
+}
+
+.cmp-empty h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.cmp-empty p {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* Zero-selected only (see compare-page.js): the two routes out of a page that
+   otherwise just describes itself. They wrap rather than shrink, so a narrow
+   column stacks them at full width instead of squeezing both labels. */
+.cmp-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1.4rem;
+}
+
+.cmp-empty-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.6rem 1.35rem;
+}
+
+.cmp-empty .cmp-empty-note {
+  margin-top: 1.1rem;
+  font-size: 0.76rem;
+  color: var(--muted-2);
+}
+
+/* Decorative sketch of the comparison table. The row labels are the real ones
+   (shared with the table via compareSpecMeta); the value cells are neutral
+   bars, never invented data, and the whole block is aria-hidden. */
+.cmp-ghost {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  overflow: hidden;
+  /* Fades out at the foot: a table that continues past the panel, rather than
+     one that has been chopped off. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, rgba(0,0,0,0.12) 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, rgba(0,0,0,0.12) 100%);
+}
+
+.cmp-ghost-row {
+  display: grid;
+  /* Wide enough that "Application Method" and "Surface / Material" stay on one
+     line, so the rows keep an even rhythm. */
+  grid-template-columns: 132px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+}
+
+.cmp-ghost-row + .cmp-ghost-row { border-top: 1px solid var(--line); }
+.cmp-ghost-head { background: var(--card); padding: 12px; }
+
+.cmp-ghost-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--muted-2);
+}
+
+/* Quieter than in the real table: this is a sketch, and five red icons beside
+   the live panel would pull rank on the actual call to action. */
+.cmp-ghost-label .compare-label-ic {
+  color: #b8b1a3;
+  margin-top: 0;
+}
+
+.cmp-ghost-corner {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cmp-ghost-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 8px;
+  border: 1px dashed var(--line-2);
+  border-radius: 4px;
+  background: var(--card);
+}
+
+/* The one product already picked is drawn solid, so the sketch shows a filled
+   column beside an empty one: exactly what is missing. */
+.cmp-ghost-slot.is-filled {
+  border-style: solid;
+  border-color: var(--border);
+  background: var(--panel-2);
+}
+
+.cmp-ghost-slot-name {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cmp-ghost-cell { min-width: 0; }
+
+.cmp-ghost-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line-2);
+  opacity: 0.7;
+}
+
+/* Names the sketch before it is read, so it is never mistaken for real data
+   or for a table still loading. */
+.cmp-empty .cmp-empty-preview-cap {
+  margin: 0 0 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-2);
+}
+
+/* One column below the point where two columns would squeeze the copy past a
+   comfortable measure. The sketch keeps its place under the copy, at a reduced
+   height, so the panel still fills the page on a phone. */
+@media (max-width: 860px) {
+  .cmp-empty {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  .cmp-empty p { max-width: none; }
+  .cmp-ghost-row { grid-template-columns: 130px minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .cmp-ghost-label { font-size: 0.66rem; }
+  .cmp-ghost-slot { height: 44px; }
+}
+
+/* The one-product panel is desktop and landscape only. On a portrait phone the
+   selection panel above is on screen and its .csel-hint line says the same
+   thing in the place the visitor is already working, so this tall panel would
+   only be scrolling between them and the add slot. The ZERO-product panel is
+   deliberately not hidden here: with nothing selected the selection panel is
+   gone, and this is the only content the page has. */
+@media (max-width: 640px) {
+  .cmp-empty-one { display: none; }
+}
+
+@media (max-width: 420px) {
+  .cmp-empty { padding: 1.25rem; }
+  /* Full-width tap target on the narrowest phones, where a shrink-wrapped
+     button next to the copy block reads as an afterthought. */
+  .cmp-empty-actions .btn { width: 100%; }
+  .cmp-ghost-row { grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr); padding: 8px 10px; gap: 8px; }
+  .cmp-ghost-label { font-size: 0.63rem; }
+  .cmp-ghost-label .compare-label-ic svg { width: 13px; height: 13px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -7130,6 +7383,9 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   margin: 0 auto;
 }
 
+/* Both are anchors wrapping a whole card. Without this reset the anchor's
+   default underline paints straight through the title, the description and the
+   View Solutions line, which is not how any other card on the site reads. */
 .yl-static .product-card,
 .yl-static .brand-card {
   display: flex;
@@ -7138,6 +7394,7 @@ html[data-compare-count="3"] #compareSelectPanel:empty { min-height: 155px; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  text-decoration: none;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
 

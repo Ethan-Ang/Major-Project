@@ -122,10 +122,8 @@ function ensureOption(id, value) {
 
 function getToken() { return localStorage.getItem("adminToken"); }
 
-function logout() {
-  localStorage.removeItem("adminToken");
-  window.location.href = "login.html";
-}
+// logout() lives in admin-spa.js, which every admin page loads. It also
+// invalidates the token server-side, which the old per-page copies did not.
 
 function bindProductImageUploadInputs() {
   const mainInput = document.getElementById("fieldMainImageFile");

@@ -32,6 +32,7 @@ function plain(value) {
 const englishCopy = {
   eyebrow: "Compare Products",
   title: "Add a product to compare",
+  titleZero: "Add products to compare",
   closeAria: "Close product picker",
   sourceAria: "Product source",
   recentTab: "Recently viewed",
@@ -57,6 +58,7 @@ const englishCopy = {
 const chineseCopy = {
   eyebrow: "产品对比",
   title: "添加产品进行对比",
+  titleZero: "添加产品进行对比",
   closeAria: "关闭产品选择器",
   sourceAria: "产品来源",
   recentTab: "最近浏览",

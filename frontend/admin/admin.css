@@ -791,8 +791,11 @@ input[type="checkbox"] { accent-color: var(--red); }
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(23,19,14,0.55);
-  backdrop-filter: blur(3px);
+  /* No backdrop-filter here. The modal is a child of this overlay, so every
+     paint inside it (scrolling the body, focus rings, hover) invalidated the
+     overlay's render surface and re-ran a full-viewport blur, which is what
+     made the form scroll choppy. A slightly deeper scrim reads the same. */
+  background: rgba(23,19,14,0.62);
   z-index: 200;
   align-items: center;
   justify-content: center;
@@ -872,6 +875,10 @@ input[type="checkbox"] { accent-color: var(--red); }
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
+  /* Keep the scroll to this box: hitting either end used to chain into the
+     product table behind the overlay, which reads as a stall then a jump. */
+  overscroll-behavior: contain;
+  contain: paint;
 }
 
 .modal-footer {
