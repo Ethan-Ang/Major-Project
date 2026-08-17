@@ -9,6 +9,8 @@
 // Chinese label helpers (English fallback when zh is not active).
 function eqT(key, fb) { return (window.ylLang === "zh" && window.ylT) ? (window.ylT(key) || fb) : fb; }
 function eqItemWord(n) { return window.ylLang === "zh" ? "件" : (n !== 1 ? "items" : "item"); }
+// List separator. Simplified Chinese enumerates with the ideographic comma.
+function eqListSep() { return window.ylLang === "zh" ? "、" : ", "; }
 const ADVISOR_ENQUIRY_SUMMARY_KEY = "ylProductAdvisorEnquirySummary";
 const ADVISOR_ENQUIRY_SUMMARY_TTL_MS = 12 * 60 * 60 * 1000;
 let enquiryBasketRepairEventQueued = false;
@@ -217,6 +219,96 @@ function syncAttachedChrome(count) {
       : "Tell us about your requirements, quantity or any questions about the attached products.";
     hint.setAttribute("data-i18n", key);
     hint.textContent = eqT(key, fallback);
+  }
+}
+
+// ─── Confirmation screen ──────────────────────────────────────────
+// Fills the Enquiry summary column from the payload that was actually sent:
+// the kind of enquiry, how many products came with it, and their names. A
+// general enquiry is a normal outcome, so zero attachments is stated plainly
+// rather than hidden.
+function renderConfirmationSummary(ids) {
+  const typeEl  = document.getElementById("confirmationType");
+  const namesEl = document.getElementById("confirmationProductNames");
+  const row     = document.getElementById("confirmationProductsRow");
+  if (!typeEl || !namesEl || !row) return;
+
+  const products = (ids || [])
+    .map(id => PRODUCTS.find(p => String(p.id) === String(id)))
+    .filter(Boolean);
+
+  typeEl.textContent = products.length
+    ? eqT("enquiry.type_product", "Product enquiry")
+    : eqT("enquiry.type_general", "General enquiry");
+
+  // Naming them beats asserting they were included. With none attached the row
+  // is dropped entirely rather than printing an empty field — "General enquiry"
+  // on the row above already says so.
+  if (products.length === 0) return;
+
+  // A comma list, not the interpunct: that separator is this design system's
+  // metadata idiom (the footer uses it for "Adhesive Solutions · Singapore"), and
+  // across five product names it reads as breadcrumbs rather than a list.
+  namesEl.textContent = products.map(p => p.name).join(eqListSep());
+  row.hidden = false;
+}
+
+// Copy-to-clipboard for the reference. Falls back to selecting the text when
+// the clipboard API is unavailable (insecure origin, older browser), so the
+// button is never a dead control.
+function wireConfirmationCopy(reference) {
+  const btn = document.getElementById("confirmationCopyBtn");
+  // Only the label changes: writing to the button would throw away its icon.
+  const label = document.getElementById("confirmationCopyLabel");
+  if (!btn || !label) return;
+  const idle = eqT("enquiry.copy_ref", "Copy");
+  const done = eqT("enquiry.copied_ref", "Copied");
+  btn.onclick = function () {
+    const restore = () => {
+      label.textContent = idle;
+      btn.removeAttribute("data-copied");
+    };
+    const ok = () => {
+      label.textContent = done;
+      btn.setAttribute("data-copied", "1");
+      setTimeout(restore, 2000);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(reference).then(ok).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+
+    // Whatever happens, the button must react. If the clipboard is refused we
+    // select the reference so it can be copied by hand, and say so, rather than
+    // leaving a control that looks broken.
+    function fallbackCopy() {
+      const selected = selectRefText();
+      if (selected && document.execCommand && document.execCommand("copy")) {
+        ok();
+        return;
+      }
+      label.textContent = selected
+        ? eqT("enquiry.copy_manual", "Press Ctrl+C")
+        : eqT("enquiry.copy_failed", "Copy failed");
+      setTimeout(restore, 2500);
+    }
+  };
+}
+
+// Returns whether the reference text ended up selected.
+function selectRefText() {
+  const el = document.getElementById("confirmationRefValue");
+  if (!el || !window.getSelection || !document.createRange) return false;
+  try {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    return true;
+  } catch (error) {
+    return false;
   }
 }
 
@@ -457,23 +549,27 @@ async function submitEnquiry() {
     const confirmation = document.getElementById("confirmation");
     confirmation.style.display = "block";
 
-    // Tell the truth about what was sent: mention attached products only when
-    // there actually were some, otherwise confirm the general enquiry is with
-    // the team. No invented "enquiry history" or other new affordance here.
-    const withProducts = document.getElementById("confirmationProducts");
-    const generalOnly  = document.getElementById("confirmationGeneral");
-    if (withProducts) withProducts.hidden = !hadProducts;
-    if (generalOnly)  generalOnly.hidden  = hadProducts;
+    // What was sent is now stated in the Enquiry summary column, which
+    // renderConfirmationSummary writes from the submitted payload rather than
+    // from a pair of pre-written sentences.
 
-    // Show the reference number and the "we emailed you a copy" note.
+    // Show the reference number and the "we emailed you a copy" note. Both stay
+    // hidden unless the API actually reported them, so the record on screen
+    // never overstates what the server did.
     if (result.reference) {
-      const refEl = document.getElementById("confirmationRef");
-      refEl.textContent = eqT("enquiry.your_ref", "Your reference:") + " " + result.reference;
-      refEl.style.display = "block";
+      document.getElementById("confirmationRefValue").textContent = result.reference;
+      document.getElementById("confirmationRefRow").hidden = false;
+      wireConfirmationCopy(result.reference);
     }
     if (result.confirmed) {
-      document.getElementById("confirmationNote").style.display = "block";
+      // Naming the address beats "your records" — it tells them where to look.
+      // The label column already reads "Copy sent to", so the value is the
+      // address alone.
+      document.getElementById("confirmationNote").textContent = email;
+      document.getElementById("confirmationMailRow").hidden = false;
     }
+
+    renderConfirmationSummary(ids);
 
     // A11Y-004: success was purely visual — the page simply swapped underneath
     // a screen-reader user with no announcement and focus still on a button

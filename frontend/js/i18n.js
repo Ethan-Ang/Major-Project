@@ -324,7 +324,7 @@
     // Product Advisor block. Opens the EXISTING advisor; nothing about that
     // feature is changed here.
     "enquiry.open_advisor":  { en: "Open Product Advisor", zh: "打开产品顾问" },
-    "enquiry.browse_more": { en: "Browse More Products", zh: "浏览更多产品" },
+    "enquiry.browse_more": { en: "Continue Browsing Products", zh: "继续浏览产品" },
     "enquiry.remove":      { en: "Remove",             zh: "移除" },
     "enquiry.remove_aria": { en: "Remove {product} from your enquiry", zh: "将 {product} 从您的询价中移除" },
     "enquiry.item":        { en: "item",               zh: "件" },
@@ -335,12 +335,28 @@
     "enquiry.a11y_removed_last": { en: "{product} removed. No products attached. You can still submit your enquiry.", zh: "已移除 {product}。目前没有附加产品。您仍然可以提交询价。" },
     "enquiry.a11y_cleared":      { en: "All products removed. No products attached. You can still submit your enquiry.", zh: "已移除全部产品。目前没有附加产品。您仍然可以提交询价。" },
     "enquiry.your_ref":    { en: "Your reference:",    zh: "您的参考编号：" },
-    "enquiry.sent_body":   { en: "Thank you for your enquiry. Our team will get back to you within 1-2 business days.", zh: "感谢您的询价。我们的团队将在 1-2 个工作日内与您联系。" },
+    "enquiry.sent_body":   { en: "Thank you. Your enquiry has been received.", zh: "感谢您。我们已收到您的询价。" },
     // Success detail. Only ONE of these is shown, so the confirmation never
     // claims products were attached when none were.
     "enquiry.sent_with_products": { en: "The products you attached were included with your enquiry.", zh: "您附加的产品已随询价一并发送。" },
     "enquiry.sent_general": { en: "Our team will review your request and respond to you directly.", zh: "我们的团队将审阅您的请求并直接回复您。" },
     "enquiry.sent_email":  { en: "We've emailed a copy to you for your records.", zh: "我们已将副本发送至您的邮箱以供存档。" },
+    // Confirmation screen: the reference card, the attached-products list and
+    // the follow-up sequence. Brand names stay Latin.
+    "enquiry.copy_ref":        { en: "Copy",            zh: "复制" },
+    "enquiry.copied_ref":      { en: "Copied",          zh: "已复制" },
+    "enquiry.copy_manual":     { en: "Press Ctrl+C",    zh: "请按 Ctrl+C" },
+    "enquiry.copy_failed":     { en: "Copy failed",     zh: "复制失败" },
+    "enquiry.your_enquiry":    { en: "Your enquiry",      zh: "您的询价" },
+    "enquiry.row_reference":   { en: "Reference",         zh: "参考编号" },
+    "enquiry.row_type":        { en: "Enquiry type",      zh: "询价类型" },
+    "enquiry.row_products":    { en: "Products included", zh: "包含产品" },
+    "enquiry.row_copy_sent":   { en: "Copy sent to",      zh: "副本已发送至" },
+    "enquiry.type_general":    { en: "General enquiry",   zh: "一般询价" },
+    "enquiry.type_product":    { en: "Product enquiry",   zh: "产品询价" },
+    "enquiry.next_label":      { en: "What happens next", zh: "接下来的流程" },
+    "enquiry.step_review":     { en: "Our team reviews your enquiry.", zh: "我们的团队会审阅您的询价。" },
+    "enquiry.step_reply":      { en: "We'll respond directly within 1-2 business days.", zh: "我们将在 1-2 个工作日内直接回复您。" },
     "enquiry.send_fail":   { en: "We could not send your enquiry right now. Please try again shortly, or contact Yee Lim directly via the Contact page.", zh: "我们暂时无法提交您的询价。请稍后重试，或通过“联系我们”页面直接联系 Yee Lim。" },
     "enquiry.send_wrong":  { en: "Something went wrong. Please try again.", zh: "出现问题，请重试。" },
     "enquiry.update_fail": { en: "Sorry, we couldn't update your enquiry. Please try again.", zh: "抱歉，我们无法更新您的询价，请重试。" },

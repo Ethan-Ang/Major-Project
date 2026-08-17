@@ -2554,6 +2554,206 @@ body.detail-has-cta .toast {
 }
 .confirmation p { color: var(--muted); margin-bottom: 1.5rem; }
 
+
+/* The confirmation is one contained panel: a header, a labelled record of what
+   was actually submitted, the follow-up sequence, then the two ways onward.
+   Every value inside the record is written by enquiry.js from the real payload,
+   so the screen never claims something that did not happen. Inner text uses
+   div/span rather than <p> so the `.confirmation p` rule above cannot fight
+   its spacing. */
+.confirmation-card {
+  max-width: 42rem;
+  margin: 0 auto;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2.5rem 2.25rem;
+  box-shadow: var(--shadow);
+}
+.confirmation-head { text-align: center; }
+.confirmation-head h2 { margin-bottom: 0.45rem; }
+.confirmation-sub {
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+  max-width: 33rem;
+  margin: 0 auto;
+}
+
+.confirmation-block-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.67rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ── The record ── */
+/* Border only, no fill. The grey wash read as a disabled block sitting on the
+   white card; the outline alone is enough to group the rows. */
+.confirmation-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem 0.9rem;
+  margin-top: 1.75rem;
+}
+.confirmation-panel > .confirmation-block-label { margin-bottom: 0.35rem; }
+
+.confirmation-row {
+  display: grid;
+  grid-template-columns: 1.9rem 8.5rem 1fr auto;
+  align-items: center;
+  gap: 0 0.75rem;
+  padding: 0.85rem 0;
+}
+/* An author `display` beats the UA stylesheet's [hidden] { display: none },
+   so without this the rows enquiry.js leaves hidden still render as empty
+   fields. Keep this next to the display rule above. */
+.confirmation-row[hidden] { display: none; }
+/* Separators go on the TOP of every row that has a visible row before it.
+   A plain :last-child border-bottom left a stray rule under the last visible
+   row whenever the rows after it were hidden, because :last-child still
+   matches the last row in the DOM rather than the last one on screen. */
+.confirmation-row:not([hidden]) ~ .confirmation-row:not([hidden]) {
+  border-top: 1px solid var(--border);
+}
+
+.confirmation-row-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--red-tint);
+  border: 1px solid var(--red-tint-bdr);
+  color: var(--red);
+}
+.confirmation-row-icon svg { width: 0.9rem; height: 0.9rem; }
+.confirmation-row-label { font-size: 0.88rem; color: var(--muted); }
+.confirmation-row-value {
+  font-size: 0.94rem;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.confirmation-row-ref {
+  font-family: var(--mono);
+  font-size: 1.02rem;
+  letter-spacing: 0.01em;
+}
+/* Plain-weight for the softer facts, so the reference stays the loudest value. */
+.confirmation-row-value.is-quiet { font-weight: 500; }
+
+
+.confirmation-copy {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.42rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--red);
+  background: transparent;
+  color: var(--red);
+  cursor: pointer;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.confirmation-copy svg { width: 0.85rem; height: 0.85rem; }
+.confirmation-copy:hover { background: var(--red); color: #fff; }
+.confirmation-copy[data-copied="1"] { border-color: var(--green); color: var(--green); background: transparent; }
+
+/* ── What happens next ── */
+.confirmation-next { margin-top: 1.9rem; text-align: center; }
+.confirmation-next > .confirmation-block-label { margin-bottom: 1rem; }
+.confirmation-steps {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+  max-width: 24rem;
+  text-align: left;
+}
+.confirmation-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  position: relative;
+}
+.confirmation-step-num {
+  flex: none;
+  position: relative;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  background: var(--red-tint);
+  color: var(--red);
+  border: 1px solid var(--red-tint-bdr);
+}
+/* Dotted tie between consecutive steps, so the two read as a sequence. */
+.confirmation-step:not(:last-child) .confirmation-step-num::after {
+  content: "";
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  width: 0;
+  height: 0.75rem;
+  border-left: 2px dotted var(--red-tint-bdr);
+  transform: translateX(-50%);
+}
+.confirmation-step-text {
+  font-size: 0.92rem;
+  color: var(--text);
+  line-height: 1.5;
+  padding-top: 0.15rem;
+}
+
+/* Centred to match the heading and the steps above it: left-aligned, the lone
+   button hung off the edge of an otherwise centred card. */
+.confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 2rem;
+}
+.confirmation-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+}
+
+@media (max-width: 560px) {
+  .confirmation { padding: 2rem 1rem; }
+  .confirmation-card { padding: 1.75rem 1.25rem 1.5rem; }
+  .confirmation-panel { padding: 1rem 1rem 0.25rem; }
+  /* Label above value, icon spanning both, copy button on its own line. */
+  .confirmation-row {
+    grid-template-columns: 1.9rem 1fr;
+    gap: 0.15rem 0.75rem;
+    align-items: start;
+  }
+  .confirmation-row-icon { grid-row: span 2; align-self: center; }
+  .confirmation-copy { grid-column: 2; justify-self: start; margin-top: 0.5rem; }
+  .confirmation-actions > * { width: 100%; }
+}
+
 /* ─── Footer ──────────────────────────────────────────────────── */
 .footer {
   background: var(--dark);
