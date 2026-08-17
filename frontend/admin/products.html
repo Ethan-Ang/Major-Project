@@ -366,6 +366,25 @@
   </div>
 </div>
 
+<!-- Document Delete Confirm Modal -->
+<div class="modal-overlay" id="docDeleteModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>Delete <span id="docDeleteType">Document</span></h2>
+      <button class="modal-close" onclick="closeDocDeleteModal()" aria-label="Close modal"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirm-icon"><i data-lucide="file-x"></i></div>
+      <p class="delete-confirm-text">Are you sure you want to delete <strong id="docDeleteName"></strong>?</p>
+      <p class="delete-confirm-sub">The file is removed from the server and customers can no longer request it.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDocDeleteModal()">Cancel</button>
+      <button class="btn btn-danger-solid" id="confirmDocDeleteBtn" onclick="confirmDocDelete()">Delete Document</button>
+    </div>
+  </div>
+</div>
+
 <!-- Bulk Delete Confirm Modal -->
 <div class="modal-overlay" id="bulkDeleteModal">
   <div class="modal modal-sm">
@@ -385,7 +404,7 @@
   </div>
 </div>
 
-      <script src="admin.js?v=23"></script>
+      <script src="admin.js?v=24"></script>
     </div><!-- /#adminSwap -->
   </main>
 </div>

@@ -21,6 +21,9 @@ var selectedTdsFile = null;
 var existingSdsDocument = null;
 var existingTdsDocument = null;
 
+// Which document type the styled delete confirm is currently asking about.
+var pendingDocDeleteType = null;
+
 // Demo fallback when the backend is unreachable. Built from the bundled
 // DEMO_PRODUCTS catalogue (the same data the public pages fall back to), not the
 // empty live PRODUCTS array, so the offline admin list is populated rather than
@@ -1108,10 +1111,10 @@ function removeSelectedDocument(type) {
   renderDocumentPreview(type);
 }
 
-async function deleteSavedDocument(type) {
-  const isSds = type === "SDS";
-
-  const existingDocument = isSds
+// Opens the same styled confirm the product delete uses, rather than the
+// browser's native confirm(). The delete itself runs in confirmDocDelete().
+function deleteSavedDocument(type) {
+  const existingDocument = type === "SDS"
     ? existingSdsDocument
     : existingTdsDocument;
 
@@ -1120,13 +1123,41 @@ async function deleteSavedDocument(type) {
     return;
   }
 
-  const confirmed = confirm(
-    `Delete the uploaded ${type} document?`
-  );
+  openDocDeleteModal(type, existingDocument);
+}
 
-  if (!confirmed) {
+function openDocDeleteModal(type, existingDocument) {
+  pendingDocDeleteType = type;
+  document.getElementById("docDeleteType").textContent = type;
+  document.getElementById("docDeleteName").textContent =
+    existingDocument.original_name ||
+    (existingDocument.file_path || "").split("/").pop() ||
+    `${type} document`;
+  document.getElementById("docDeleteModal").classList.add("open");
+}
+
+function closeDocDeleteModal() {
+  pendingDocDeleteType = null;
+  document.getElementById("docDeleteModal").classList.remove("open");
+}
+
+async function confirmDocDelete() {
+  const type  = pendingDocDeleteType;
+  const isSds = type === "SDS";
+
+  const existingDocument = isSds
+    ? existingSdsDocument
+    : existingTdsDocument;
+
+  if (!existingDocument || !existingDocument.id) {
+    closeDocDeleteModal();
+    showToast("Document record not found.", "error");
     return;
   }
+
+  const btn = document.getElementById("confirmDocDeleteBtn");
+  btn.innerHTML = `<span class="btn-spinner"></span> Deleting…`;
+  btn.disabled  = true;
 
   try {
     const res = await fetch(
@@ -1156,6 +1187,7 @@ async function deleteSavedDocument(type) {
     }
 
     renderDocumentPreview(type);
+    closeDocDeleteModal();
 
     showToast(
       `${type} document deleted`,
@@ -1166,6 +1198,9 @@ async function deleteSavedDocument(type) {
       error.message || `Failed to delete ${type}.`,
       "error"
     );
+  } finally {
+    btn.textContent = "Delete Document";
+    btn.disabled    = false;
   }
 }
 
