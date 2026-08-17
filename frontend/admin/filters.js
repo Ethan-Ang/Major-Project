@@ -8,18 +8,22 @@
 var GROUP_META = {
   product_type: {
     title: "Product Types", singular: "product type", brand: false,
+    example: "e.g. Adhesives",
     hint: "The broadest catalogue split (e.g. Adhesives vs Spray Guns). Every product is assigned one on its edit page.",
   },
   brand: {
     title: "Brands", singular: "brand", brand: true,
+    example: "e.g. Deer Brand",
     hint: "Yee Lim's product brands. A hidden brand stays assignable on the product form but does not appear in the public Brand filter.",
   },
   industry: {
     title: "Industries", singular: "industry", brand: false,
+    example: "e.g. Flooring",
     hint: "Industry tags shown in the filter sidebar. Assign them to products in the Industries field on each product.",
   },
   surface: {
     title: "Surfaces", singular: "surface", brand: false,
+    example: "e.g. Leather",
     hint: "Surface / material tags shown in the filter sidebar. Assign them in the Surfaces field on each product.",
   },
 };
@@ -158,6 +162,8 @@ function openTermModal(id) {
   document.getElementById("termId").value    = term ? term.id : "";
   document.getElementById("termGroup").value = currentGroup;
   document.getElementById("termLabel").value = term ? term.label : "";
+  // The example has to follow the group, or adding a brand reads "e.g. Flooring".
+  document.getElementById("termLabel").placeholder = meta.example;
   document.getElementById("termModalTitle").textContent =
     term ? `Rename ${meta.singular}` : `Add ${meta.singular}`;
 
