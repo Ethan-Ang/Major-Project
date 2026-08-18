@@ -740,8 +740,13 @@ function exportCSV() {
     p.shortDescription, p.fullDescription, p.usage, p.imageUrl, joinList(p.images), p.sdsUrl, p.tdsUrl
   ].map(v => `"${(v || "").replace(/"/g, '""')}"`));
 
-  const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
+  // CRLF is what the CSV convention (and Excel) expects for row breaks.
+  const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+  // The leading BOM matters: without it Excel on Windows decodes the file as
+  // the system codepage rather than UTF-8, so "Deer™" opens as "Deerâ„¢" and
+  // Chinese product data becomes mojibake. 29 of the 31 products contain ™ or
+  // CJK, so almost every row is affected.
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement("a");
   a.href     = url;
