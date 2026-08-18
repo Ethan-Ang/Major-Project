@@ -46,6 +46,13 @@ async function populateTaxonomySelects() {
     const tax = await res.json();
     setSelectOptions("fieldBrand", (tax.brand || []).map(t => t.label).filter(Boolean));
     setSelectOptions("fieldProductType", (tax.product_type || []).map(t => t.label).filter(Boolean));
+    // Industries and surfaces stay free text (ad-hoc values must remain possible),
+    // but the catalogue filter matches them against these published terms with an
+    // exact compare. A typo therefore hides the product from that filter with no
+    // error anywhere, so offer the real terms and warn on anything unrecognised.
+    taxonomyTerms.industry = (tax.industry || []).map(t => t.label).filter(Boolean);
+    taxonomyTerms.surface  = (tax.surface  || []).map(t => t.label).filter(Boolean);
+    TERM_FIELDS.forEach(renderTermOptions);
   } catch (err) {
     console.warn("admin: taxonomy load failed; using built-in options.", err);
   }
@@ -101,8 +108,9 @@ function ensureOption(id, value) {
     await populateTaxonomySelects();
     // Modal selects too, so they use the on-brand custom dropdown instead of
     // the native OS listbox (whose blue option highlight clashes with the brand).
-    ["fieldCategory", "fieldBrand", "fieldProductType"].forEach(id =>
+    ["fieldCategory", "fieldBrand", "fieldProductType", "fieldBaseType"].forEach(id =>
       enhanceCustomSelect(document.getElementById(id)));
+    bindTaxonomyWarnings();
   }
 
   try {
@@ -763,14 +771,24 @@ existingTdsDocument = null;
   ensureOption("fieldProductType", p.productType || "Adhesives");
   document.getElementById("fieldShortDesc").value     = p.shortDescription || "";
   document.getElementById("fieldFullDesc").value      = p.fullDescription || "";
-  document.getElementById("fieldUsage").value         = p.usage || "";
+  document.getElementById("fieldUsage").value         = p.howToUse || "";
   document.getElementById("fieldImageUrl").value      = mainImage;
   document.getElementById("fieldImages").value        = existingExtraImageUrls.join(", ");
   document.getElementById("fieldSdsUrl").value = "";
 document.getElementById("fieldTdsUrl").value = "";
   document.getElementById("fieldIndustries").value    = joinList(p.industries);
   document.getElementById("fieldSurfaces").value      = joinList(p.surfaces);
-  document.getElementById("fieldFeatures").value      = joinList(p.features);
+
+  // The structured fields the API derives from the stored record. Each one maps
+  // to exactly one place on the public product page, which is what the labels
+  // and hints in the form promise.
+  document.getElementById("fieldBaseType").value          = p.baseType || "";
+  document.getElementById("fieldApplicationMethod").value = p.applicationMethod || "";
+  document.getElementById("fieldAvailableSizes").value    = p.availableSizes || "";
+  document.getElementById("fieldCharacteristics").value   = joinLines(p.characteristics);
+  document.getElementById("fieldKeyBenefits").value       = joinLines(p.keyBenefits);
+  document.getElementById("fieldSuitableUses").value      = joinLines(p.suitableUses);
+  refreshTermFields();
 
   const mainInput = document.getElementById("fieldMainImageFile");
   const extraInput = document.getElementById("fieldExtraImageFiles");
@@ -799,7 +817,7 @@ await loadProductDocuments(p._id);
 // programmatically (edit prefill / add reset).
 function syncModalSelects() {
   if (typeof refreshCustomSelect !== "function") return;
-  ["fieldCategory", "fieldBrand", "fieldProductType"].forEach(id =>
+  ["fieldCategory", "fieldBrand", "fieldProductType", "fieldBaseType"].forEach(id =>
     refreshCustomSelect(document.getElementById(id)));
 }
 
@@ -817,7 +835,7 @@ function clearForm() {
   existingSdsDocument = null;
   existingTdsDocument = null;
 
-  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl","fieldImages","fieldSdsUrl","fieldTdsUrl","fieldIndustries","fieldSurfaces","fieldFeatures"].forEach(id => {
+  ["fieldName","fieldShortDesc","fieldFullDesc","fieldUsage","fieldImageUrl","fieldImages","fieldSdsUrl","fieldTdsUrl","fieldIndustries","fieldSurfaces","fieldApplicationMethod","fieldAvailableSizes","fieldCharacteristics","fieldKeyBenefits","fieldSuitableUses"].forEach(id => {
     document.getElementById(id).value = "";
   });
 
@@ -828,6 +846,9 @@ function clearForm() {
 
   document.getElementById("fieldCategory").value      = "Industrial";
   document.getElementById("fieldBrand").value         = "Deer™ Brand";
+  document.getElementById("fieldBaseType").value      = "";
+  clearTaxonomyWarnings();
+  refreshTermFields();
   const ptSelect = document.getElementById("fieldProductType");
   if (ptSelect) ptSelect.selectedIndex = 0;
   document.getElementById("modalError").style.display = "none";
@@ -1335,6 +1356,186 @@ function joinList(value) {
   return Array.isArray(value) ? value.join(", ") : "";
 }
 
+// Features are stored as whole phrases that legitimately contain commas
+// ("Liquid, Yellow", "Available in 300G, 1 US Gallon"), so the comma splitter
+// above cannot be used for them: it split one entry into several on every save
+// and silently destroyed pack sizes on the public page. Features round-trip one
+// per line instead. Industries and surfaces are single taxonomy terms with no
+// internal commas, so they keep splitList/joinList.
+function splitLines(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map(item => capitaliseListItem(item))
+    .filter(Boolean);
+}
+
+function joinLines(value) {
+  return Array.isArray(value) ? value.join("\n") : "";
+}
+
+// Published taxonomy terms, filled by populateTaxonomySelects().
+// `var`, not `const`: this file lives inside the Swup swap container, so it is
+// re-executed every time the admin navigates back to Products. A top-level
+// const/let throws "already been declared" on the second visit, which kills the
+// whole script and leaves the table stuck on "Loading products...". Matches the
+// existing top-level state at the head of this file.
+var taxonomyTerms = { industry: [], surface: [] };
+
+// Industries and surfaces are multi-value fields drawn from the managed
+// taxonomy, so they use a multi-select built from the same parts as the other
+// dropdowns in this modal (custom-select trigger, panel and options), rather
+// than free text. A native datalist was tried first and is wrong here: these
+// fields hold a comma-separated list, and picking a suggestion replaced the
+// whole value instead of adding to it.
+//
+// The hidden input remains the source of truth and still holds a comma string,
+// so saveProduct()/clearForm() keep working through splitList() unchanged.
+var TERM_FIELDS = [
+  { input: "fieldIndustries", trigger: "msIndustriesTrigger", panel: "msIndustriesPanel",
+    value: "msIndustriesValue", warn: "warnIndustries", group: "industry", noun: "industries" },
+  { input: "fieldSurfaces", trigger: "msSurfacesTrigger", panel: "msSurfacesPanel",
+    value: "msSurfacesValue", warn: "warnSurfaces", group: "surface", noun: "surfaces" }
+];
+
+function termsInField(inputId) {
+  const el = document.getElementById(inputId);
+  return el ? splitList(el.value) : [];
+}
+
+// Options are the published taxonomy terms PLUS anything the product already
+// holds that is no longer in the taxonomy. Without that union, opening and
+// saving such a product would silently drop the value.
+function termOptionsFor(cfg) {
+  const known = taxonomyTerms[cfg.group] || [];
+  const current = termsInField(cfg.input);
+  const extra = current.filter(v => !known.some(t => t.toLowerCase() === v.toLowerCase()));
+  return known.concat(extra);
+}
+
+function renderTermOptions(cfg) {
+  const panel = document.getElementById(cfg.panel);
+  if (!panel) return;
+  panel.innerHTML = termOptionsFor(cfg).map(t => `
+    <div class="custom-select-option" role="option" aria-selected="false" data-term="${escapeHtml(t)}">
+      <span>${escapeHtml(t)}</span>
+      <span class="custom-select-option-check" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </span>
+    </div>`).join("");
+
+  panel.querySelectorAll(".custom-select-option").forEach(opt => {
+    opt.addEventListener("click", () => toggleTerm(cfg, opt.dataset.term));
+  });
+  syncTermField(cfg);
+}
+
+function toggleTerm(cfg, term) {
+  const input = document.getElementById(cfg.input);
+  if (!input) return;
+  const current = termsInField(cfg.input);
+  const at = current.findIndex(v => v.toLowerCase() === String(term).toLowerCase());
+  if (at >= 0) current.splice(at, 1);
+  else current.push(term);
+  input.value = current.join(", ");
+  syncTermField(cfg);
+}
+
+function syncTermField(cfg) {
+  const current = termsInField(cfg.input);
+  const lower = current.map(v => v.toLowerCase());
+
+  const label = document.getElementById(cfg.value);
+  if (label) {
+    label.textContent = current.length ? current.join(", ") : "None selected";
+    label.classList.toggle("is-empty", current.length === 0);
+  }
+
+  const panel = document.getElementById(cfg.panel);
+  if (panel) {
+    panel.querySelectorAll(".custom-select-option").forEach(opt => {
+      opt.setAttribute("aria-selected",
+        lower.includes(String(opt.dataset.term).toLowerCase()) ? "true" : "false");
+    });
+  }
+
+  checkTaxonomyField(cfg.input, cfg.warn, cfg.group);
+}
+
+function openTermPanel(cfg) {
+  TERM_FIELDS.forEach(other => { if (other !== cfg) closeTermPanel(other); });
+  const panel = document.getElementById(cfg.panel);
+  const trigger = document.getElementById(cfg.trigger);
+  if (!panel || !trigger) return;
+  renderTermOptions(cfg);
+  panel.hidden = false;
+  trigger.setAttribute("aria-expanded", "true");
+}
+
+function closeTermPanel(cfg) {
+  const panel = document.getElementById(cfg.panel);
+  const trigger = document.getElementById(cfg.trigger);
+  if (panel) panel.hidden = true;
+  if (trigger) trigger.setAttribute("aria-expanded", "false");
+}
+
+function closeAllTermPanels() { TERM_FIELDS.forEach(closeTermPanel); }
+
+// Repaint every multi-select after the modal's values change underneath it.
+function refreshTermFields() {
+  TERM_FIELDS.forEach(cfg => { renderTermOptions(cfg); closeTermPanel(cfg); });
+}
+
+function bindTaxonomyWarnings() {
+  TERM_FIELDS.forEach(cfg => {
+    const trigger = document.getElementById(cfg.trigger);
+    if (!trigger) return;
+    trigger.addEventListener("click", event => {
+      event.stopPropagation();
+      const panel = document.getElementById(cfg.panel);
+      if (panel && panel.hidden) openTermPanel(cfg); else closeTermPanel(cfg);
+    });
+  });
+
+  // Clicking inside a panel toggles options; anywhere else dismisses.
+  document.addEventListener("click", event => {
+    if (event.target.closest && event.target.closest(".custom-select-listbox")) return;
+    closeAllTermPanels();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeAllTermPanels();
+  });
+}
+
+// A value outside the published taxonomy still saves, but the catalogue filter
+// compares exactly, so the product would appear under no filter for it. The
+// multi-select cannot produce one; this only fires for a value a product was
+// already carrying before the term was renamed or removed in Catalogue Filters.
+function checkTaxonomyField(inputId, warnId, group) {
+  const warn = document.getElementById(warnId);
+  if (!warn) return;
+
+  const known = taxonomyTerms[group] || [];
+  const unknown = known.length
+    ? termsInField(inputId).filter(v => !known.some(t => t.toLowerCase() === v.toLowerCase()))
+    : [];
+
+  if (unknown.length) {
+    warn.textContent = unknown.length === 1
+      ? `"${unknown[0]}" is no longer in your Catalogue Filters, so the product will not appear under it.`
+      : `"${unknown.join('", "')}" are no longer in your Catalogue Filters, so the product will not appear under them.`;
+    warn.hidden = false;
+  } else {
+    warn.hidden = true;
+  }
+}
+
+function clearTaxonomyWarnings() {
+  ["warnIndustries", "warnSurfaces"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = true;
+  });
+}
+
 async function saveProduct() {
   const id      = document.getElementById("editingId").value;
   const btn     = document.getElementById("saveBtn");
@@ -1364,16 +1565,22 @@ fullDescription: capitaliseFirst(
   document.getElementById("fieldFullDesc").value
 ),
 
-usage: capitaliseFirst(
+howToUse: capitaliseFirst(
   document.getElementById("fieldUsage").value
 ),
+
+baseType:          document.getElementById("fieldBaseType").value,
+applicationMethod: document.getElementById("fieldApplicationMethod").value.trim(),
+availableSizes:    document.getElementById("fieldAvailableSizes").value.trim(),
+characteristics:   splitLines(document.getElementById("fieldCharacteristics").value),
+keyBenefits:       splitLines(document.getElementById("fieldKeyBenefits").value),
+suitableUses:      splitLines(document.getElementById("fieldSuitableUses").value),
     imageUrl:         manualMainImageUrl,
     images:           buildFinalImagesArray(manualMainImageUrl, manualExtraUrls),
     sdsUrl: "",
 tdsUrl: "",
     industries:       splitList(document.getElementById("fieldIndustries").value),
-    surfaces:         splitList(document.getElementById("fieldSurfaces").value),
-    features:         splitList(document.getElementById("fieldFeatures").value)
+    surfaces:         splitList(document.getElementById("fieldSurfaces").value)
   };
 
   // Availability is managed from the product list (the row toggle + bulk

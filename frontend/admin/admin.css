@@ -170,6 +170,43 @@ a { color: inherit; }
   line-height: 1.45;
   margin: -0.25rem 0 0.5rem;
 }
+/* An unrecognised industry/surface still saves; it just will not match any
+   catalogue filter. Advisory, not an error, so it stays quieter than .alert. */
+.form-warn { color: #92400e; }
+.form-warn[hidden] { display: none; }
+
+/* The console is a square design system (--radius* are all 0). css/dropdown-ui.css
+   is shared with the public site, where --radius is 4px, so it hardcodes a 5px
+   trigger and 4px options that look right there and wrong here: in the product
+   modal they were the only rounded controls sitting among square inputs. Corrected
+   for the admin only, with .admin-layout for the specificity to win over the
+   shared sheet (which loads after this one). The public site is untouched. */
+.admin-layout .form-group .custom-select-trigger,
+.admin-layout .custom-select-listbox { border-radius: var(--radius-sm); }
+.admin-layout .custom-select-option { border-radius: var(--radius-xs); }
+
+/* Same story for the border colour: the shared sheet hardcodes #ded9cd, a
+   near-white tuned for the public site, while every input in this modal uses
+   --control-border (#8f8168). Side by side the dropdowns looked like they had
+   no outline at all. Hover follows the inputs too (--muted, not #c4bdac). */
+.admin-layout .form-group .custom-select-trigger { border-color: var(--control-border); }
+@media (hover: hover) {
+  .admin-layout .form-group .custom-select-trigger:hover { border-color: var(--muted); }
+}
+
+/* Industries / Surfaces multi-select. Built from the same trigger, panel and
+   option parts as the single-value dropdowns beside it, so the only visible
+   difference is that more than one option can carry a check. The selected
+   values are summarised on the closed trigger. */
+.ms-value {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-value.is-empty { color: var(--muted-2); }
 
 .alert { padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.5; }
 .alert-error { background: var(--red-tint); border: 1px solid var(--red-tint-bdr); color: #991b1b; }
@@ -1227,16 +1264,6 @@ input[type="checkbox"] { accent-color: var(--red); }
   gap: 1rem;
 }
 
-.product-docs-help {
-  border: 1px solid var(--line-2);
-  background: var(--panel);
-  padding: 0.75rem 0.9rem;
-  font-size: 0.76rem;
-  color: var(--muted);
-  line-height: 1.45;
-  margin-top: -0.15rem;
-}
-
 @media (max-width: 768px) {
   .product-docs-grid {
     grid-template-columns: 1fr;
@@ -1286,10 +1313,15 @@ input[type="checkbox"] { accent-color: var(--red); }
   box-shadow: inset 0 0 0 1px var(--red);
 }
 
+/* Matches .image-upload-layout exactly, including the top margin. The documents
+   block used to sit tighter to its heading and was followed by a bordered note
+   pulled up with a negative margin, which fused both cards and the note into
+   one big outer box while Product Images rendered as two clean cards. */
 .document-upload-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  margin-top: 0.75rem;
 }
 
 .document-upload-card {
