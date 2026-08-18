@@ -179,7 +179,11 @@ async function initDetailPage() {
   renderStickyCta(product);
   renderRelated(product);
   updateBasketCount();
-  ylDetailTab("specs");
+  // Switching language re-renders this page through a Swup visit, so init runs
+  // again. Defaulting to "specs" every time threw the reader back to the first
+  // tab purely for changing language. Restore the tab they were on, but only
+  // for the same product: arriving at a different one starts on Specifications.
+  ylDetailTab(ylRememberedTab());
 
   // Registered once for the app's lifetime; they read the current detailProduct.
   ylOnce("detail:listeners", () => {
@@ -963,6 +967,13 @@ function renderApplication(product) {
   // benefit) via the term map. Unmapped values fall back to English. Numbered
   // Chinese methods keep their "1. 2." markers so step-splitting still works.
   const termOf = window.ylTerm || (x => x);
+  // Keep the recorded English before translating. The "is this sentence just a
+  // restatement of the Application Method spec row" test below is written
+  // against the recorded wording ("Apply by brush or roll." vs "Brush or Roll"),
+  // and the spec value it compares with is never translated. Testing the
+  // translated text instead meant Chinese matched nothing and showed the
+  // duplicate column that English correctly hides.
+  const methodSource = method;
   method = termOf(method);
   // Uses may be a single un-splittable blob (source data lost its delimiters);
   // ylUses translates known phrases within it. Falls back to a plain term lookup.
@@ -996,8 +1007,8 @@ function renderApplication(product) {
   const recordedMethod = (product.features || [])
     .map(f => String(f).match(/^application\s*:\s*(.+)$/i))
     .filter(Boolean).map(m => m[1].trim())[0] || "";
-  const methodBare = method.replace(/^apply\s+by\s+/i, "").replace(/\s*\.\s*$/, "").trim();
-  const methodRestatesSpec = !!recordedMethod && /^apply\s+by\s+/i.test(method) &&
+  const methodBare = methodSource.replace(/^apply\s+by\s+/i, "").replace(/\s*\.\s*$/, "").trim();
+  const methodRestatesSpec = !!recordedMethod && /^apply\s+by\s+/i.test(methodSource) &&
     methodBare.toLowerCase() === recordedMethod.toLowerCase();
   const showMethod = !!method && !(methodRestatesSpec && (uses.length || claims.length));
 
@@ -1129,7 +1140,18 @@ function applyMark() {
 
 // ─── Tab switcher (Specifications / Application / Downloads) ──────
 const YL_DETAIL_TABS = ["specs", "apply", "downloads"];
+
+// Which tab is open, keyed by product URL. Lives on window because a Swup visit
+// replaces #swup but keeps the document, so this survives the re-render that a
+// language change performs.
+function ylTabKey() { return location.pathname + location.search; }
+function ylRememberedTab() {
+  const s = window.ylDetailTabState;
+  return (s && s.key === ylTabKey() && YL_DETAIL_TABS.indexOf(s.tab) !== -1) ? s.tab : "specs";
+}
+
 function ylDetailTab(name) {
+  window.ylDetailTabState = { key: ylTabKey(), tab: name };
   YL_DETAIL_TABS.forEach(t => {
     const tab = document.getElementById(`tab-${t}`);
     const panel = document.getElementById(`panel-${t}`);
