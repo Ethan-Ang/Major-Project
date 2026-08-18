@@ -447,6 +447,17 @@ try {
         // is deleted. The product_documents FK cascade removes their DB rows.
         $productUploadDirectory = dirname(__DIR__) . "/uploads/products/product-" . (int) $id;
 
+        // `product_views` has no foreign key, so its rows outlived the product.
+        // The analytics page counts total views with a bare COUNT(*) but builds
+        // its per-product table with a JOIN, so orphans made the headline number
+        // disagree with the rows beneath it, and they accumulated for good.
+        // Tolerated if the table is absent (it arrives with its own migration).
+        try {
+            $pdo->prepare("DELETE FROM product_views WHERE product_id = ?")->execute([$id]);
+        } catch (Throwable $e) {
+            error_log("products.php: could not clear product_views for {$id}: " . $e->getMessage());
+        }
+
         $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
         $stmt->execute([$id]);
 
