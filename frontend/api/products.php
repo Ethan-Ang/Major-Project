@@ -1,6 +1,7 @@
 <?php
 require_once "db.php";
 require_once "auth.php";
+require_once "product_fields.php";
 
 function decodeJsonField($value) {
     $decoded = json_decode($value ?? "[]", true);
@@ -8,6 +9,13 @@ function decodeJsonField($value) {
 }
 
 function formatProduct($row, $flags = []) {
+    // The admin edits one field per public destination (Key Benefits,
+    // Characteristics, Application Method, Available Sizes, How to Use,
+    // Suitable Uses). They are derived from the stored `features` /
+    // `usage_text` so the storage format is unchanged and every existing
+    // reader (advisor, chatbot, search) sees exactly what it always has.
+    $fields = pfDecompose(decodeJsonField($row["features"]), $row["usage_text"] ?? "");
+
     return [
         "id" => strval($row["id"]),
         "_id" => strval($row["id"]),
@@ -29,9 +37,49 @@ function formatProduct($row, $flags = []) {
         "industries" => decodeJsonField($row["industries"]),
         "surfaces" => decodeJsonField($row["surfaces"]),
         "features" => decodeJsonField($row["features"]),
+        "baseType" => $fields["base_type"],
+        "applicationMethod" => $fields["application_method"],
+        "availableSizes" => $fields["available_sizes"],
+        "characteristics" => $fields["characteristics"],
+        "keyBenefits" => $fields["key_benefits"],
+        "howToUse" => $fields["how_to_use"],
+        "suitableUses" => $fields["suitable_uses"],
         "createdAt" => $row["created_at"],
         "updatedAt" => $row["updated_at"]
     ];
+}
+
+// Build the stored `features` / `usage_text` from whichever shape the request
+// used. A body carrying the structured fields wins; one carrying only the old
+// `features` / `usage` keys (an admin page served from a stale cache) still
+// works unchanged. Returns null when the request used neither.
+function structuredWrite($data) {
+    $structuredKeys = ["baseType", "applicationMethod", "availableSizes",
+                       "characteristics", "keyBenefits", "howToUse", "suitableUses"];
+    $present = false;
+    foreach ($structuredKeys as $k) {
+        if (array_key_exists($k, $data)) { $present = true; break; }
+    }
+    if (!$present) return null;
+
+    $list = function ($value) {
+        if (!is_array($value)) return [];
+        $out = [];
+        foreach ($value as $item) {
+            if (is_string($item) && trim($item) !== "") $out[] = trim($item);
+        }
+        return $out;
+    };
+
+    return pfCompose([
+        "base_type"          => textField($data["baseType"] ?? ""),
+        "application_method" => textField($data["applicationMethod"] ?? ""),
+        "available_sizes"    => textField($data["availableSizes"] ?? ""),
+        "characteristics"    => $list($data["characteristics"] ?? []),
+        "key_benefits"       => $list($data["keyBenefits"] ?? []),
+        "how_to_use"         => textField($data["howToUse"] ?? ""),
+        "suitable_uses"      => $list($data["suitableUses"] ?? []),
+    ]);
 }
 
 // Which products have an SDS / TDS on file (from product_documents). Used to set
@@ -217,6 +265,12 @@ try {
         $surfaces = jsonList($data["surfaces"] ?? []);
         $features = jsonList($data["features"] ?? []);
 
+        $structured = structuredWrite($data);
+        if ($structured !== null) {
+            $features = jsonList($structured["features"]);
+            $usage = $structured["usage_text"];
+        }
+
         if ($name === "" || $shortDescription === "") {
             http_response_code(400);
             echo json_encode(["message" => "Product name and short description are required."]);
@@ -304,6 +358,12 @@ try {
         $industries = array_key_exists("industries", $data) ? jsonList($data["industries"]) : $existing["industries"];
         $surfaces = array_key_exists("surfaces", $data) ? jsonList($data["surfaces"]) : $existing["surfaces"];
         $features = array_key_exists("features", $data) ? jsonList($data["features"]) : $existing["features"];
+
+        $structured = structuredWrite($data);
+        if ($structured !== null) {
+            $features = jsonList($structured["features"]);
+            $usage = $structured["usage_text"];
+        }
 
         if ($name === "" || $shortDescription === "") {
             http_response_code(400);
