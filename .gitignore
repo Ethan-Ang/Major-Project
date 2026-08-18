@@ -46,3 +46,7 @@ docs/client-handover/word/
 # not source: it belongs in the database + the live uploads dir, not in history.
 # The uploads/.htaccess that hardens the directory IS tracked.
 frontend/uploads/products/
+
+# CSV archives written by database/reset_product_views.php before it clears the
+# analytics table. They are point-in-time data dumps, not source.
+database/analytics_archive/
