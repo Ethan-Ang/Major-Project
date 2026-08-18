@@ -142,12 +142,15 @@ a { color: inherit; }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
 /* Sub-section divider inside the product modal (e.g. Product Documents) */
+/* The rule introduces the section below it, so it needs more air above than
+   below. It used to sit ~5px under the previous field and 16px from its own
+   heading, which read as a line stuck to the bottom of the field above. */
 .form-section-label {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--text);
-  margin: 0.35rem 0 0.75rem;
-  padding-top: 1rem;
+  margin: 1.9rem 0 0.85rem;
+  padding-top: 1.1rem;
   border-top: 1px solid var(--line);
   display: flex;
   align-items: center;

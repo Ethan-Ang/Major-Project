@@ -33,8 +33,25 @@ if (PHP_SAPI !== "cli") {
     exit;
 }
 
+// The repo keeps the API under frontend/api/, but the live cPanel account is
+// chrooted to the web root, where the same file sits at api/config.php with no
+// frontend/ level at all. Try both rather than assuming a layout, and say which
+// one was used so a cron log makes the failure obvious if neither is found.
 $root = dirname(__DIR__);
-require $root . "/frontend/api/config.php";
+$configCandidates = [
+    $root . "/frontend/api/config.php",  // repo / local checkout
+    $root . "/api/config.php",           // live web root
+    __DIR__ . "/../api/config.php",      // script sitting beside api/
+];
+$configPath = null;
+foreach ($configCandidates as $candidate) {
+    if (is_file($candidate)) { $configPath = $candidate; break; }
+}
+if ($configPath === null) {
+    fwrite(STDERR, "Could not find config.php. Looked in:\n  " . implode("\n  ", $configCandidates) . "\n");
+    exit(1);
+}
+require $configPath;
 
 // ─── Arguments ────────────────────────────────────────────────────
 $apply     = in_array("--apply", $argv, true);
