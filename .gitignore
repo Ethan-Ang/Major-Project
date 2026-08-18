@@ -41,3 +41,8 @@ build/
 # and .docx that would sit in history forever.
 design_handoff_yee_lim_final/
 docs/client-handover/word/
+
+# Product images and documents uploaded through the admin. Customer content,
+# not source: it belongs in the database + the live uploads dir, not in history.
+# The uploads/.htaccess that hardens the directory IS tracked.
+frontend/uploads/products/
