@@ -1088,7 +1088,14 @@ function deriveApplicationSteps(method) {
   if ((t.match(/(?:^|\s)\d+\.\s/g) || []).length >= 2) {
     return t.split(/\s*(?:^|\s)\d+\.\s+/).map(s => s.trim()).filter(s => s.length > 1);
   }
-  const sentences = t.split(/(?<=\.)\s+(?=[A-Z0-9])/).map(s => s.trim()).filter(s => s.length > 2);
+  // Sentence split for BOTH languages. The English rule needs whitespace and a
+  // capital after the full stop, which also protects decimals ("cure 3.5 hours").
+  // Chinese ends sentences with a full-width mark and usually no space, and has
+  // no capitals, so the English rule never matched: multi-step instructions
+  // rendered as numbered steps in English and as one wall of text in Chinese.
+  const sentences = t
+    .split(/(?<=[。！？])\s*|(?<=\.)\s+(?=[A-Z0-9])/)
+    .map(s => s.trim()).filter(s => s.length > 2);
   return sentences.length >= 2 ? sentences : [];
 }
 
