@@ -124,11 +124,19 @@ async function initDetailPage() {
   if (typeof renderCompareTray === "function") renderCompareTray();
 
   if (!product) {
+    // A product id that does not resolve (deleted, or a hand-edited URL) is a
+    // missing page, so it gets the site's designed 404 rather than a bare line
+    // of text inside a half-built product layout. replace() rather than
+    // assign() so the dead product URL is not left in history: pressing Back
+    // would otherwise return here and bounce straight out again.
+    // Note this is a client-side hand-off, so the HTTP status for the original
+    // request stays 200; making it a true 404 would need a server-side lookup.
+    window.location.replace("/404.html");
+
+    // Everything below still runs in the instant before the browser navigates,
+    // and matters if the redirect is ever blocked: clear the skeleton so the
+    // page never sits showing a loading state for a product that is not there.
     const grid = document.getElementById("detailPageGrid");
-    // This replaces #detailPageGrid's whole innerHTML, which already removes
-    // #detailGallery and #detailSummary (its two children) along with any
-    // skeleton content they held, so no separate clearing of #detailSummary
-    // is needed here.
     if (grid) grid.innerHTML =
       "<p style='padding:3rem 1.5rem;color:var(--muted)'>" + ylTr("detail.not_found", "Product not found.") + " <a href='/products' style='color:var(--red)'>" + ylTr("detail.back_products", "Back to products") + "</a></p>";
     const tabs = document.querySelector(".detail-tabs");
@@ -492,6 +500,9 @@ function renderSpecTable(product) {
     // The solvent/water base is already carried by the Product Type value
     // (productSubtype), so the bare base entry would duplicate it.
     if (/^(solvent|water)[\s-]*based$/i.test(s)) return;
+    // Genuine claims belong to Key Benefits in the Application tab. Leaving them
+    // here as well printed the same text twice under two different names.
+    if (isKeyBenefitClaim(s)) return;
     characteristics.push(s);
   });
 
@@ -948,7 +959,12 @@ function renderApplication(product) {
   // Uses may be a single un-splittable blob (source data lost its delimiters);
   // ylUses translates known phrases within it. Falls back to a plain term lookup.
   uses = uses.map(u => window.ylUses ? window.ylUses(u) : termOf(u));
-  const methodHeading = uses.length ? ylTr("spec.app_method", "Application Method") : ylTr("detail.how_to_use", "How to Use");
+  // Always "How to Use". The heading used to flip to "Application Method"
+  // whenever Suitable Uses existed, which put that exact label on both tabs at
+  // once: the Specifications table already has an Application Method row. The
+  // two showed the same fact in different words ("Brush or Roll" beside "Apply
+  // by brush or roll."), so the name now belongs to the spec row alone.
+  const methodHeading = ylTr("detail.how_to_use", "How to Use");
   const steps = method ? deriveApplicationSteps(method) : [];
   const claims = deriveKeyBenefits(product.features).map(termOf);
 
@@ -962,7 +978,22 @@ function renderApplication(product) {
   //    pushed its text ~30px in while the neighbouring column's text sat at
   //    ~21px — the mismatched indent and the counter sitting off the first text
   //    line were the reported misalignment.
-  if (method) {
+  // 27 of 31 catalogue products record the method twice: "Application: Brush or
+  // Roll" in features (the spec row) and "Apply by brush or roll." in usage.
+  // The sentence adds nothing, so it is dropped when it is exactly that
+  // restatement. Matched literally, never by similarity: strip a leading
+  // "Apply by" and the full stop, then compare with the recorded value. Real
+  // instructions (Deer 313, Deer 500, both spray guns) never start that way, so
+  // they are untouched. Only dropped when the column has other content left.
+  const recordedMethod = (product.features || [])
+    .map(f => String(f).match(/^application\s*:\s*(.+)$/i))
+    .filter(Boolean).map(m => m[1].trim())[0] || "";
+  const methodBare = method.replace(/^apply\s+by\s+/i, "").replace(/\s*\.\s*$/, "").trim();
+  const methodRestatesSpec = !!recordedMethod && /^apply\s+by\s+/i.test(method) &&
+    methodBare.toLowerCase() === recordedMethod.toLowerCase();
+  const showMethod = !!method && !(methodRestatesSpec && (uses.length || claims.length));
+
+  if (showMethod) {
     const methodBody = steps.length >= 2
       ? `<ol class="apply-steps">${steps.map(s => `<li><span class="apply-step-n" aria-hidden="true"></span><span class="apply-step-text">${ylEscapeHtml(s)}</span></li>`).join("")}</ol>`
       : `<p class="apply-prose">${ylEscapeHtml(steps.length ? steps[0] : method)}</p>`;
@@ -1048,18 +1079,27 @@ function deriveApplicationSteps(method) {
 // line (Liquid/Paste/Gel/Aerosol/Powder/Cream/Solid, ...). What remains are
 // genuine claims ("Low VOC (as stated by Yee Lim)") and accessory specs
 // (spray-gun nozzle/controls). Nothing is invented.
+// The single predicate deciding which of the two lists a feature belongs to.
+// The Specifications builder uses it too, so a value can never land in both:
+// it used to print once as a Characteristic and again as a Key Benefit, under
+// two different headings, from one field the admin called "Features".
+function isKeyBenefitClaim(feature) {
+  const f = String(feature || "").trim();
+  return !!f &&
+    !/^application\s*:/i.test(f) &&
+    !/^available in\s+/i.test(f) &&
+    !/^(solvent|water)[\s-]*based$/i.test(f) &&
+    !/^(liquid|paste|gel|aerosol|powder|cream|semi[-\s]?solid|solid)\b/i.test(f) &&
+    // Bare sizes ("300G", "1/4 US Gallon", "18L") and standalone colours
+    // ("Yellow") are characteristics, not benefits — keep them out of this list.
+    !/^[\d\s./-]+\s*(kg|g|ml|l|litre|liter|us\s*gal(?:lon)?|gal(?:lon)?|oz|lb)s?$/i.test(f) &&
+    !/^(yellow|white|clear|amber|black|red|blue|green|brown|grey|gray|beige|transparent|off[-\s]?white|cream|natural|colou?rless)$/i.test(f);
+}
+
 function deriveKeyBenefits(features) {
   return (features || [])
     .map(f => String(f).trim())
-    .filter(f => f &&
-      !/^application\s*:/i.test(f) &&
-      !/^available in\s+/i.test(f) &&
-      !/^(solvent|water)[\s-]*based$/i.test(f) &&
-      !/^(liquid|paste|gel|aerosol|powder|cream|semi[-\s]?solid|solid)\b/i.test(f) &&
-      // Bare sizes ("300G", "1/4 US Gallon", "18L") and standalone colours
-      // ("Yellow") are characteristics, not benefits — keep them out of this list.
-      !/^[\d\s./-]+\s*(kg|g|ml|l|litre|liter|us\s*gal(?:lon)?|gal(?:lon)?|oz|lb)s?$/i.test(f) &&
-      !/^(yellow|white|clear|amber|black|red|blue|green|brown|grey|gray|beige|transparent|off[-\s]?white|cream|natural|colou?rless)$/i.test(f));
+    .filter(isKeyBenefitClaim);
 }
 
 // Restrained red heading icons for the Application tab sections.

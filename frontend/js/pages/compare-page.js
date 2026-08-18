@@ -172,7 +172,10 @@ function compareSpecMeta() {
       ic: icon('<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>') },
     { key: "category", label: ylTr("compare.category", "Category"),
       ic: icon('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>') },
-    { key: "features", label: ylTr("compare.key_features", "Key Features"),
+    // Named "Key Benefits" to match the product detail page. The same data used
+    // to appear as "Key Features" here, "Key Benefits" there and
+    // "Characteristics" in the spec table, which read as three different things.
+    { key: "features", label: ylTr("detail.key_benefits", "Key Benefits"),
       ic: icon('<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>') }
   ];
 }
@@ -393,9 +396,16 @@ function renderComparePage() {
     surfaces:   p => listVals(p.surfaces),
     method:     p => text(termOf(methodOf(p))),
     category:   p => text(termOf(p.category === "Others" ? "Application Equipment" : p.category)),
-    features:   p => p.features.length
-      ? p.features.map(f => `<div class="compare-feature">${check}${ylEscapeHtml(termOf(f))}</div>`).join("")
-      : EMPTY
+    features:   p => {
+      // Only genuine claims, matching what the label now promises. The spec
+      // rows above already carry the base, method, sizes and characteristics,
+      // so listing them again here repeated the same values twice on one page.
+      const claim = typeof isKeyBenefitClaim === "function" ? isKeyBenefitClaim : (() => true);
+      const benefits = (p.features || []).filter(claim);
+      return benefits.length
+        ? benefits.map(f => `<div class="compare-feature">${check}${ylEscapeHtml(termOf(f))}</div>`).join("")
+        : EMPTY;
+    }
   };
   const specRows = compareSpecMeta().map(meta => ({ ...meta, render: renderers[meta.key] })).map(row => `
     <tr>
