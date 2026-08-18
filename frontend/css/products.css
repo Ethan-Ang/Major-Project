@@ -5310,7 +5310,10 @@ body:has(.compare-tray.visible) .toast {
 .filter-count {
   font-family: var(--mono);
   font-size: 0.7rem;
-  color: var(--muted-2);
+  /* --muted-2 (#767066) is AA on white but only 4.46:1 on this tinted panel
+     (#f6f4ef), just under the 4.5 required for text this small. --muted is
+     5.27:1 there. Same visual weight, one shade down. */
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
   font-weight: 500;
   min-width: 18px;

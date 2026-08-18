@@ -30,7 +30,17 @@
     select._customSelectEnhanced = true;
 
     const listboxId = `${select.id || "customSelect"}-listbox-${++uid}`;
-    const ariaLabel = select.getAttribute("aria-label") || "";
+    // The trigger is role="combobox", so its accessible name does NOT come from
+    // its contents; without an explicit one a screen reader announces a bare
+    // "combobox". Most selects on the admin forms are labelled with a <label
+    // for=...> rather than aria-label, so fall back to that, then to the
+    // select's title. Purely additive: an existing aria-label still wins.
+    let ariaLabel = select.getAttribute("aria-label") || "";
+    if (!ariaLabel && select.id) {
+      const labelEl = document.querySelector(`label[for="${select.id}"]`);
+      if (labelEl) ariaLabel = (labelEl.textContent || "").replace(/\s+/g, " ").trim();
+    }
+    if (!ariaLabel) ariaLabel = select.getAttribute("title") || "";
 
     const wrap = document.createElement("div");
     wrap.className = "custom-select-wrap";

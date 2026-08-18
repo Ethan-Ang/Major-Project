@@ -762,6 +762,7 @@ function openAddModal() {
   document.getElementById("editingId").value = "";
   clearForm();
   document.getElementById("productModal").classList.add("open");
+  openModalA11y();
 }
 
 async function openEditModal(id) {
@@ -826,6 +827,7 @@ document.getElementById("fieldTdsUrl").value = "";
 renderDocumentPreview("TDS");
 
 document.getElementById("productModal").classList.add("open");
+  openModalA11y();
 
 await loadProductDocuments(p._id);
 }
@@ -838,8 +840,65 @@ function syncModalSelects() {
     refreshCustomSelect(document.getElementById(id)));
 }
 
+// ─── Product modal: dialog semantics and keyboard behaviour ───────
+// The overlay was a bare <div>: no role, no aria-modal, no label, focus left
+// behind on the row button that opened it, and Escape did nothing. A keyboard
+// or screen-reader user could open it and never reach or leave it.
+var ylModalReturnFocus = null;
+
+function openModalA11y() {
+  const overlay = document.getElementById("productModal");
+  if (!overlay) return;
+  ylModalReturnFocus = document.activeElement;
+
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-labelledby", "modalTitle");
+
+  // Move focus to the first real field so typing starts where the eye is.
+  const first = overlay.querySelector("#fieldName") ||
+                overlay.querySelector("input, select, textarea, button");
+  if (first) setTimeout(() => { try { first.focus(); } catch (e) {} }, 60);
+}
+
+// Keep Tab inside the dialog: at the ends, wrap instead of escaping to the page
+// behind, which is what "modal" is supposed to mean.
+function ylModalKeydown(event) {
+  const overlay = document.getElementById("productModal");
+  if (!overlay || !overlay.classList.contains("open")) return;
+
+  if (event.key === "Escape") {
+    // Let an open dropdown swallow the first Escape; the panel closes, not the modal.
+    const openPanel = overlay.querySelector(".custom-select-listbox:not([hidden])");
+    if (openPanel) return;
+    event.preventDefault();
+    closeModal();
+    return;
+  }
+  if (event.key !== "Tab") return;
+
+  const focusable = [...overlay.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )].filter(el => el.offsetParent !== null || el === document.activeElement);
+  if (!focusable.length) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+}
+document.addEventListener("keydown", ylModalKeydown);
+
 function closeModal() {
-  document.getElementById("productModal").classList.remove("open");
+  const overlay = document.getElementById("productModal");
+  overlay.classList.remove("open");
+  overlay.removeAttribute("aria-modal");
+  // Send focus back where it came from, so the keyboard does not restart at the
+  // top of the page every time a product is closed.
+  if (ylModalReturnFocus && document.contains(ylModalReturnFocus)) {
+    try { ylModalReturnFocus.focus(); } catch (e) {}
+  }
+  ylModalReturnFocus = null;
 }
 
 function clearForm() {
