@@ -133,12 +133,20 @@ async function initDetailPage() {
     // request stays 200; making it a true 404 would need a server-side lookup.
     window.location.replace("/404.html");
 
-    // Everything below still runs in the instant before the browser navigates,
-    // and matters if the redirect is ever blocked: clear the skeleton so the
-    // page never sits showing a loading state for a product that is not there.
+    // Blank, not a message. Anything painted here appears for the frame or two
+    // before the browser navigates, which is the "Product not found" flash.
     const grid = document.getElementById("detailPageGrid");
-    if (grid) grid.innerHTML =
-      "<p style='padding:3rem 1.5rem;color:var(--muted)'>" + ylTr("detail.not_found", "Product not found.") + " <a href='/products' style='color:var(--red)'>" + ylTr("detail.back_products", "Back to products") + "</a></p>";
+    if (grid) grid.innerHTML = "";
+
+    // Safety net for the case where the redirect never happens (blocked, or a
+    // browser that ignores replace() during load). Delayed past the navigation
+    // so it costs nothing normally, and still beats leaving a blank page.
+    setTimeout(function () {
+      const stillHere = document.getElementById("detailPageGrid");
+      if (!stillHere) return;
+      stillHere.innerHTML =
+        "<p style='padding:3rem 1.5rem;color:var(--muted)'>" + ylTr("detail.not_found", "Product not found.") + " <a href='/products' style='color:var(--red)'>" + ylTr("detail.back_products", "Back to products") + "</a></p>";
+    }, 1500);
     const tabs = document.querySelector(".detail-tabs");
     if (tabs) tabs.style.display = "none";
     const advice = document.getElementById("detailAdvice");

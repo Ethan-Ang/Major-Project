@@ -53,6 +53,13 @@ function isNetworkError(err) {
   // Self-select: bail if this script's async re-execution lands after we've
   // navigated away (its anchor element is no longer in the DOM).
   if (!document.getElementById("enquiryTableBody")) return;
+  // Going Enquiries -> Enquiries leaves that element in place for both inits, so
+  // the check above cannot catch a rapid second click. The token says which
+  // visit owns the page; a superseded init stops instead of fetching twice.
+  const pageToken = (typeof ylPageToken === "function") ? ylPageToken() : null;
+  const superseded = () =>
+    pageToken !== null && typeof ylPageSuperseded === "function" && ylPageSuperseded(pageToken);
+
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
 
@@ -60,8 +67,10 @@ function isNetworkError(err) {
     const res = await fetch(`${API_BASE_URL}/api/me.php`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    if (superseded()) return;
     if (!res.ok) throw new Error();
   } catch (err) {
+    if (superseded()) return;
     if (!isNetworkError(err)) {
       localStorage.removeItem("adminToken");
       window.location.href = "login.html";
@@ -74,6 +83,8 @@ function isNetworkError(err) {
   if (typeof enhanceCustomSelect === "function") {
     enhanceCustomSelect(document.getElementById("filterStatus"));
   }
+
+  if (superseded()) return;
 
   try {
     await loadEnquiries();

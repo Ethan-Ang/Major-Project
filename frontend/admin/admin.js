@@ -96,6 +96,13 @@ function ensureOption(id, value) {
   // Self-select: bail if this script's async re-execution lands after we've
   // navigated away (its anchor element is no longer in the DOM).
   if (!document.getElementById("productTableBody")) return;
+  // That check only catches navigating AWAY. Going Products -> Products leaves
+  // the element in place for both inits, so a rapid second click used to run
+  // this twice. The token identifies which visit owns the page.
+  const pageToken = (typeof ylPageToken === "function") ? ylPageToken() : null;
+  const superseded = () =>
+    pageToken !== null && typeof ylPageSuperseded === "function" && ylPageSuperseded(pageToken);
+
   const token = localStorage.getItem("adminToken");
   if (!token) { window.location.href = "login.html"; return; }
   bindProductImageUploadInputs();
@@ -106,6 +113,7 @@ function ensureOption(id, value) {
     // added values are immediately assignable. Inject them BEFORE enhancing,
     // because the custom-select UI is built from the options only once.
     await populateTaxonomySelects();
+    if (superseded()) return;
     // Modal selects too, so they use the on-brand custom dropdown instead of
     // the native OS listbox (whose blue option highlight clashes with the brand).
     ["fieldCategory", "fieldBrand", "fieldProductType", "fieldBaseType"].forEach(id =>
@@ -113,13 +121,17 @@ function ensureOption(id, value) {
     bindTaxonomyWarnings();
   }
 
+  if (superseded()) return;
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/me.php`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    if (superseded()) return;
     if (!res.ok) throw new Error();
     loadProducts();
   } catch (err) {
+    if (superseded()) return;
     if (isNetworkError(err)) {
       // Backend unreachable:fall back to demo data so the page is still navigable
       demoMode = true;

@@ -98,6 +98,20 @@
       .catch(function () { /* offline / signed out — leave it hidden */ });
   }
 
+  // Clicking the sidebar again before a swap has finished starts a second visit
+  // while the first page script is still awaiting its auth check, so two inits
+  // race: two calls to me.php, two table fetches, and a loading state that stays
+  // visible far longer than the ~150ms it should. The page scripts' existing
+  // "is my anchor element still in the DOM" guard cannot catch it, because for
+  // Products -> Products the element is present for both.
+  //
+  // Every swap bumps this counter. A page script takes a token when it starts
+  // and checks it after each await; if the number moved, a newer visit owns the
+  // page and the older init returns without fetching or rendering.
+  var pageGen = 0;
+  window.ylPageToken = function () { return pageGen; };
+  window.ylPageSuperseded = function (token) { return token !== pageGen; };
+
   // Re-execute <script> tags inside a freshly-swapped container. Scripts inserted
   // via innerHTML are inert; cloning + replacing each one forces the browser to run
   // it again. External src scripts re-fetch (from cache) and re-run.
@@ -149,6 +163,9 @@
     });
 
     swup.hooks.on("content:replace", function () {
+      // Bumped BEFORE the new scripts run, so the incoming init takes the fresh
+      // token and any init still in flight from the previous visit sees a stale one.
+      pageGen++;
       runScripts(document.getElementById("adminSwap"));
       refreshChrome();
       window.scrollTo(0, 0);
